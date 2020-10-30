@@ -12,6 +12,9 @@ homepage = "https://github.com/rate-technology/rill"
 [dependencies]
 anyhow = "1.0.33"
 async-trait = "0.1.41"
+derive_more = "0.99.11"
 meio = "0.21.0"
 meio-ws = "0.21.0"
+serde = { version = "1.0.117", features = ["derive"] }
+serde_json = "1.0.59"
 tokio = { version = "0.3.2", features = ["full"] }
