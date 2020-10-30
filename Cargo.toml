@@ -1,0 +1,17 @@
+[package]
+name = "rill"
+version = "0.1.0"
+edition = "2018"
+authors = [
+    "Denis Kolodin <deniskolodin@gmail.com>",
+    "overfloat <rillrate@gmail.com>",
+]
+repository = "https://github.com/rate-technology/rill"
+homepage = "https://github.com/rate-technology/rill"
+
+[dependencies]
+anyhow = "1.0.33"
+async-trait = "0.1.41"
+meio = "0.21.0"
+meio-ws = "0.21.0"
+tokio = { version = "0.3.2", features = ["full"] }
