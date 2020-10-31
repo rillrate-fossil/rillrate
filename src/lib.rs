@@ -6,6 +6,7 @@ pub mod provider;
 mod worker;
 
 use futures::channel::mpsc;
+use meio::Action;
 use once_cell::sync::OnceCell;
 use provider::ProviderCell;
 use thiserror::Error;
@@ -14,7 +15,10 @@ enum ControlEvent {
     RegisterStream { provider: &'static ProviderCell },
 }
 
+impl Action for ControlEvent {}
+
 type ControlSender = mpsc::UnboundedSender<ControlEvent>;
+type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
 
 static RILL: OnceCell<ControlSender> = OnceCell::new();
 
@@ -27,7 +31,7 @@ pub enum Error {
 pub fn install() -> Result<(), Error> {
     let (tx, rx) = mpsc::unbounded();
     RILL.set(tx).map_err(|_| Error::AlreadyInstalled)?;
-    thread::spawn(worker::entrypoint);
+    thread::spawn(move || worker::entrypoint(rx));
     Ok(())
 }
 
