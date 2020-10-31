@@ -35,6 +35,7 @@ impl ProviderCell {
 
     pub fn log(&self, data: String) {
         if let Some(provider) = self.provider.get() {
+            // TODO: Render data here! Only when provider is available.
             provider.send(data);
         }
     }
