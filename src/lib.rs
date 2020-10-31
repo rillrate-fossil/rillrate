@@ -8,14 +8,13 @@ mod worker;
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
-use provider::ProviderCell;
+use provider::{Data, ProviderCell};
 use thiserror::Error;
 
 enum ControlEvent {
     RegisterStream {
         provider: &'static ProviderCell,
-        // TODO: Add this to receive buffered values after binding:
-        // initial_receiver: mpsc::UnboundedReceiver<Data>,
+        initial_receiver: mpsc::UnboundedReceiver<Data>,
     },
 }
 
@@ -40,9 +39,12 @@ pub fn install() -> Result<(), Error> {
 }
 
 pub fn bind(provider: &'static ProviderCell) {
-    // TODO: Init `ProviderCell` to collect initial values
     if let Some(sender) = RILL.get() {
-        let event = ControlEvent::RegisterStream { provider };
+        let initial_receiver = provider.init();
+        let event = ControlEvent::RegisterStream {
+            provider,
+            initial_receiver,
+        };
         sender.unbounded_send(event);
     }
 }

@@ -33,6 +33,12 @@ impl ProviderCell {
         }
     }
 
+    pub fn init(&self) -> mpsc::UnboundedReceiver<Data> {
+        let (rx, provider) = Provider::create();
+        self.provider.set(provider);
+        rx
+    }
+
     pub fn log(&self, data: String) {
         if let Some(provider) = self.provider.get() {
             // TODO: Render data here! Only when provider is available.
