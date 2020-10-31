@@ -12,7 +12,11 @@ use provider::ProviderCell;
 use thiserror::Error;
 
 enum ControlEvent {
-    RegisterStream { provider: &'static ProviderCell },
+    RegisterStream {
+        provider: &'static ProviderCell,
+        // TODO: Add this to receive buffered values after binding:
+        // initial_receiver: mpsc::UnboundedReceiver<Data>,
+    },
 }
 
 impl Action for ControlEvent {}
@@ -36,6 +40,7 @@ pub fn install() -> Result<(), Error> {
 }
 
 pub fn bind(provider: &'static ProviderCell) {
+    // TODO: Init `ProviderCell` to collect initial values
     if let Some(sender) = RILL.get() {
         let event = ControlEvent::RegisterStream { provider };
         sender.unbounded_send(event);
