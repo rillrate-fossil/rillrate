@@ -1,8 +1,13 @@
 use crate::protocol::Path;
 use futures::channel::mpsc;
+use meio::Action;
 use once_cell::sync::OnceCell;
 
-pub type Data = String;
+pub enum Data {
+    LogRecord { message: String },
+}
+
+impl Action for Data {}
 
 pub type DataSender = mpsc::UnboundedSender<Data>;
 pub type DataReceiver = mpsc::UnboundedReceiver<Data>;
@@ -19,7 +24,7 @@ impl Provider {
         (rx, this)
     }
 
-    fn send(&self, data: String) {
+    fn send(&self, data: Data) {
         self.sender.unbounded_send(data).ok();
     }
 }
@@ -37,15 +42,24 @@ impl ProviderCell {
         }
     }
 
-    pub fn init(&self) -> DataReceiver {
+    pub fn switch_on(&self) -> DataReceiver {
         let (rx, provider) = Provider::create();
         self.provider.set(provider);
         rx
     }
 
-    pub fn log(&self, data: String) {
+    pub fn switch_off(&mut self) {
+        self.provider.take();
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.provider.get().is_some()
+    }
+
+    pub fn log(&self, message: String) {
         if let Some(provider) = self.provider.get() {
-            // TODO: Render data here! Only when provider is available.
+            // TODO: Render message here! Only when provider is available.
+            let data = Data::LogRecord { message };
             provider.send(data);
         }
     }

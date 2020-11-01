@@ -45,7 +45,7 @@ pub fn bind_all(providers: &[&'static ProviderCell]) {
 
 pub fn bind(provider: &'static ProviderCell) {
     if let Some(sender) = RILL.get() {
-        let initial_receiver = provider.init();
+        let initial_receiver = provider.switch_on();
         let event = ControlEvent::RegisterStream {
             provider,
             initial_receiver,

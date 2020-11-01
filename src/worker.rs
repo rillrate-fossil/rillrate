@@ -1,6 +1,6 @@
 use super::{ControlEvent, ControlReceiver};
 use crate::protocol::{Path, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
-use crate::provider::{DataReceiver, ProviderCell};
+use crate::provider::{Data, DataReceiver, ProviderCell};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
@@ -20,6 +20,7 @@ pub(crate) async fn entrypoint(rx: ControlReceiver) {
 
 struct StreamRecord {
     provider: &'static ProviderCell,
+    // TODO: Remove this field
     stream_id: StreamId,
 }
 
@@ -107,16 +108,42 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
     async fn handle(
         &mut self,
         msg: WsIncoming<RillToProvider>,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match msg.0 {
             RillToProvider::CanDrop { stream_id } => {
+                if let Some(record) = self.declared_streams.get(stream_id.0 as usize) {
+                    record.provider.switch_off();
+                    self.initial_streams.remove(&stream_id);
+                }
                 todo!();
             }
             RillToProvider::ControlStream { stream_id, active } => {
-                todo!();
+                if let Some(record) = self.declared_streams.get(stream_id.0 as usize) {
+                    if active {
+                        if record.provider.is_active() {
+                            if let Some(rx) = self.initial_streams.remove(&stream_id) {
+                                ctx.address().attach(rx);
+                            } else {
+                                // Stream already started and attached
+                            }
+                        } else {
+                            let rx = record.provider.switch_on();
+                            ctx.address().attach(rx);
+                        }
+                    } else {
+                        record.provider.switch_off();
+                    }
+                }
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<Data> for RillWorker {
+    async fn handle(&mut self, data: Data, ctx: &mut Context<Self>) -> Result<(), Error> {
+        todo!();
     }
 }
