@@ -38,6 +38,12 @@ pub fn install() -> Result<(), Error> {
     Ok(())
 }
 
+pub fn bind_all(providers: &[&'static ProviderCell]) {
+    for provider in providers {
+        bind(provider);
+    }
+}
+
 pub fn bind(provider: &'static ProviderCell) {
     if let Some(sender) = RILL.get() {
         let initial_receiver = provider.init();
