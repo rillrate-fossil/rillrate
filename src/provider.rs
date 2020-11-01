@@ -1,15 +1,19 @@
+use crate::protocol::Path;
 use futures::channel::mpsc;
 use once_cell::sync::OnceCell;
 
 pub type Data = String;
 
+pub type DataSender = mpsc::UnboundedSender<Data>;
+pub type DataReceiver = mpsc::UnboundedReceiver<Data>;
+
 /// `Connector` creates a provider and puts it into an `OnceCell` to start the stream.
 pub struct Provider {
-    sender: mpsc::UnboundedSender<Data>,
+    sender: DataSender,
 }
 
 impl Provider {
-    pub fn create() -> (mpsc::UnboundedReceiver<Data>, Self) {
+    pub fn create() -> (DataReceiver, Self) {
         let (tx, rx) = mpsc::unbounded();
         let this = Self { sender: tx };
         (rx, this)
@@ -33,7 +37,7 @@ impl ProviderCell {
         }
     }
 
-    pub fn init(&self) -> mpsc::UnboundedReceiver<Data> {
+    pub fn init(&self) -> DataReceiver {
         let (rx, provider) = Provider::create();
         self.provider.set(provider);
         rx
@@ -44,5 +48,13 @@ impl ProviderCell {
             // TODO: Render data here! Only when provider is available.
             provider.send(data);
         }
+    }
+
+    pub fn path(&self) -> Path {
+        self.module
+            .split("::")
+            .map(String::from)
+            .collect::<Vec<_>>()
+            .into()
     }
 }
