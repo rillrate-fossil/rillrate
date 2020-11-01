@@ -1,6 +1,5 @@
 use std::thread;
 
-mod connector;
 pub mod protocol;
 pub mod provider;
 mod worker;
