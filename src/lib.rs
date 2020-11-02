@@ -8,7 +8,7 @@ use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
 use protocol::StreamId;
-use provider::{Data, DataReceiver, ProviderCell};
+use provider::{DataReceiver, ProviderCell};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use thiserror::Error;
 

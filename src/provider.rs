@@ -1,17 +1,19 @@
-use crate::protocol::{Path, StreamId};
+use crate::protocol::{Path, RillData, StreamId};
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-pub enum Data {
-    LogRecord { message: String },
+/// Keeps `StreamId` and implements `Action`.
+pub struct DataEnvelope {
+    stream_id: StreamId,
+    data: RillData,
 }
 
-impl Action for Data {}
+impl Action for DataEnvelope {}
 
-pub type DataSender = mpsc::UnboundedSender<Data>;
-pub type DataReceiver = mpsc::UnboundedReceiver<Data>;
+pub type DataSender = mpsc::UnboundedSender<DataEnvelope>;
+pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
 pub struct Provider {
     stream_id: StreamId,
@@ -28,8 +30,12 @@ impl Provider {
         (rx, this)
     }
 
-    fn send(&self, data: Data) {
-        self.sender.unbounded_send(data).ok();
+    fn send(&self, data: RillData) {
+        let envelope = DataEnvelope {
+            stream_id: self.stream_id,
+            data,
+        };
+        self.sender.unbounded_send(envelope).ok();
     }
 }
 
@@ -74,7 +80,10 @@ impl ProviderCell {
         if self.is_active() {
             // TODO: Render message here! Only when provider is available.
             if let Some(provider) = self.provider.get() {
-                let data = Data::LogRecord { message };
+                let data = RillData::LogRecord {
+                    timestamp: 0,
+                    message,
+                };
                 provider.send(data);
             }
         }

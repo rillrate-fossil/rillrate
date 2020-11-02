@@ -1,6 +1,6 @@
 use super::{ControlEvent, ControlReceiver};
 use crate::protocol::{Path, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
-use crate::provider::{Data, DataReceiver, ProviderCell};
+use crate::provider::{DataEnvelope, DataReceiver, ProviderCell};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
@@ -108,10 +108,9 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
     }
 }
 
-// TODO: Add `StreamId` here...
 #[async_trait]
-impl ActionHandler<Data> for RillWorker {
-    async fn handle(&mut self, data: Data, ctx: &mut Context<Self>) -> Result<(), Error> {
+impl ActionHandler<DataEnvelope> for RillWorker {
+    async fn handle(&mut self, data: DataEnvelope, ctx: &mut Context<Self>) -> Result<(), Error> {
         todo!();
     }
 }
