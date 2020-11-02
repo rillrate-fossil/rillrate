@@ -7,13 +7,13 @@ mod worker;
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
-use provider::{Data, ProviderCell};
+use provider::{Data, DataReceiver, ProviderCell};
 use thiserror::Error;
 
 enum ControlEvent {
     RegisterStream {
         provider: &'static ProviderCell,
-        initial_receiver: mpsc::UnboundedReceiver<Data>,
+        rx: DataReceiver,
     },
 }
 
@@ -45,11 +45,10 @@ pub fn bind_all(providers: &[&'static ProviderCell]) {
 
 pub fn bind(provider: &'static ProviderCell) {
     if let Some(sender) = RILL.get() {
-        let initial_receiver = provider.switch_on();
-        let event = ControlEvent::RegisterStream {
-            provider,
-            initial_receiver,
-        };
+        // IMPORTANT: Initialize `Provider` here to create the channel before it
+        // will be used by the user.
+        let rx = provider.init();
+        let event = ControlEvent::RegisterStream { provider, rx };
         sender.unbounded_send(event);
     }
 }

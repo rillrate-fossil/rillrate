@@ -20,16 +20,13 @@ pub(crate) async fn entrypoint(rx: ControlReceiver) {
 
 struct StreamRecord {
     provider: &'static ProviderCell,
-    // TODO: Remove this field
-    stream_id: StreamId,
+    collector: Option<Vec<Data>>,
 }
 
 struct RillWorker {
     url: String,
     sender: Option<WsSender<RillToServer>>,
-
     declared_streams: Vec<StreamRecord>,
-    initial_streams: HashMap<StreamId, DataReceiver>,
 }
 
 #[async_trait]
@@ -59,26 +56,27 @@ impl RillWorker {
             url: link,
             sender: None,
             declared_streams: Vec::new(),
-            initial_streams: HashMap::new(),
         }
     }
 }
 
 #[async_trait]
 impl ActionHandler<ControlEvent> for RillWorker {
-    async fn handle(&mut self, event: ControlEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterStream {
-                provider,
-                initial_receiver,
-            } => {
+            ControlEvent::RegisterStream { provider, rx } => {
                 let stream_id = StreamId(self.declared_streams.len() as u64);
                 let record = StreamRecord {
                     provider,
-                    stream_id,
+                    // Attach the collector to store initial records before the server
+                    // will decide what to do with them.
+                    collector: Some(Vec::new()),
                 };
                 self.declared_streams.push(record);
-                self.initial_streams.insert(stream_id, initial_receiver);
+                ctx.address().attach(rx);
+                if let Some(sender) = self.sender.as_mut() {
+                    // TODO: Send a declaration of the stream if there is a connection
+                }
             }
         }
         Ok(())
@@ -112,28 +110,13 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
     ) -> Result<(), Error> {
         match msg.0 {
             RillToProvider::CanDrop { stream_id } => {
-                if let Some(record) = self.declared_streams.get(stream_id.0 as usize) {
-                    // TODO: record.provider.switch_off();
-                    self.initial_streams.remove(&stream_id);
+                if let Some(record) = self.declared_streams.get_mut(stream_id.0 as usize) {
+                    record.collector.take();
                 }
-                todo!();
             }
             RillToProvider::ControlStream { stream_id, active } => {
-                if let Some(record) = self.declared_streams.get(stream_id.0 as usize) {
-                    if active {
-                        if record.provider.is_active() {
-                            if let Some(rx) = self.initial_streams.remove(&stream_id) {
-                                ctx.address().attach(rx);
-                            } else {
-                                // Stream already started and attached
-                            }
-                        } else {
-                            let rx = record.provider.switch_on();
-                            ctx.address().attach(rx);
-                        }
-                    } else {
-                        // TODO: record.provider.switch_off();
-                    }
+                if let Some(record) = self.declared_streams.get_mut(stream_id.0 as usize) {
+                    record.provider.switch(active);
                 }
             }
         }
@@ -141,6 +124,7 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
     }
 }
 
+// TODO: Add `StreamId` here...
 #[async_trait]
 impl ActionHandler<Data> for RillWorker {
     async fn handle(&mut self, data: Data, ctx: &mut Context<Self>) -> Result<(), Error> {

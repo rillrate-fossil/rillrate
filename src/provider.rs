@@ -1,7 +1,8 @@
-use crate::protocol::Path;
+use crate::protocol::{Path, StreamId};
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 pub enum Data {
     LogRecord { message: String },
@@ -12,15 +13,18 @@ impl Action for Data {}
 pub type DataSender = mpsc::UnboundedSender<Data>;
 pub type DataReceiver = mpsc::UnboundedReceiver<Data>;
 
-/// `Connector` creates a provider and puts it into an `OnceCell` to start the stream.
 pub struct Provider {
+    stream_id: StreamId,
     sender: DataSender,
 }
 
 impl Provider {
-    pub fn create() -> (DataReceiver, Self) {
+    pub fn create(stream_id: StreamId) -> (DataReceiver, Self) {
         let (tx, rx) = mpsc::unbounded();
-        let this = Self { sender: tx };
+        let this = Self {
+            stream_id,
+            sender: tx,
+        };
         (rx, this)
     }
 
@@ -31,6 +35,7 @@ impl Provider {
 
 pub struct ProviderCell {
     module: &'static str,
+    active: AtomicBool,
     provider: OnceCell<Provider>,
 }
 
@@ -38,29 +43,32 @@ impl ProviderCell {
     pub const fn new(module: &'static str) -> Self {
         Self {
             module,
+            active: AtomicBool::new(false),
             provider: OnceCell::new(),
         }
     }
 
-    pub fn switch_on(&self) -> DataReceiver {
-        let (rx, provider) = Provider::create();
+    pub fn init(&self, stream_id: StreamId) -> DataReceiver {
+        let (rx, provider) = Provider::create(stream_id);
         self.provider.set(provider);
         rx
     }
 
-    pub fn switch_off(&mut self) {
-        self.provider.take();
+    pub fn switch(&self, active: bool) {
+        self.active.store(active, Ordering::Relaxed);
     }
 
     pub fn is_active(&self) -> bool {
-        self.provider.get().is_some()
+        self.active.load(Ordering::Relaxed)
     }
 
     pub fn log(&self, message: String) {
-        if let Some(provider) = self.provider.get() {
+        if self.is_active() {
             // TODO: Render message here! Only when provider is available.
-            let data = Data::LogRecord { message };
-            provider.send(data);
+            if let Some(provider) = self.provider.get() {
+                let data = Data::LogRecord { message };
+                provider.send(data);
+            }
         }
     }
 
