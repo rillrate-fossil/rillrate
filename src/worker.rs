@@ -113,7 +113,7 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
         match msg.0 {
             RillToProvider::CanDrop { stream_id } => {
                 if let Some(record) = self.declared_streams.get(stream_id.0 as usize) {
-                    record.provider.switch_off();
+                    // TODO: record.provider.switch_off();
                     self.initial_streams.remove(&stream_id);
                 }
                 todo!();
@@ -132,7 +132,7 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
                             ctx.address().attach(rx);
                         }
                     } else {
-                        record.provider.switch_off();
+                        // TODO: record.provider.switch_off();
                     }
                 }
             }
