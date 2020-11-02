@@ -1,6 +1,6 @@
 use super::{ControlEvent, ControlReceiver};
 use crate::protocol::{Path, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
-use crate::provider::{DataEnvelope, DataReceiver, ProviderCell};
+use crate::provider::{DataEnvelope, ProviderCell};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
@@ -53,6 +53,42 @@ impl RillWorker {
             providers: HashMap::new(),
         }
     }
+
+    fn response(&mut self, msg: RillToServer) {
+        if let Some(sender) = self.sender.as_mut() {
+            sender.send(msg);
+        } else {
+            //log::error!("Can't send a response. Not connected.");
+        }
+    }
+
+    fn send_declarations(&mut self) {
+        if !self.providers.is_empty() {
+            let streams: Vec<_> = self
+                .providers
+                .iter()
+                // TODO: Add `path` prefix
+                .map(|(stream_id, provider)| (*stream_id, provider.path()))
+                .collect();
+            for (stream_id, path) in streams {
+                self.send_declaration(stream_id, path);
+            }
+        }
+    }
+
+    fn send_declaration(&mut self, stream_id: StreamId, path: Path) {
+        let msg = RillToServer::DeclareStream {
+            stream_id,
+            path: path.into(),
+        };
+        self.response(msg);
+    }
+
+    fn stop_all(&mut self) {
+        for provider in self.providers.values() {
+            provider.switch(false);
+        }
+    }
 }
 
 #[async_trait]
@@ -63,9 +99,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 let stream_id = provider.stream_id();
                 self.providers.insert(stream_id, provider);
                 ctx.address().attach(rx);
-                if let Some(sender) = self.sender.as_mut() {
-                    // TODO: Send a declaration of the stream if there is a connection
-                }
+                self.send_declaration(stream_id, provider.path());
             }
         }
         Ok(())
@@ -82,9 +116,12 @@ impl InteractionHandler<WsClientStatus<RillServerProtocol>> for RillWorker {
         match status {
             WsClientStatus::Connected { sender } => {
                 self.sender = Some(sender);
-                // TODO: Send declarations if they already exists
+                self.send_declarations();
             }
-            WsClientStatus::Failed(reason) => {}
+            WsClientStatus::Failed(_reason) => {
+                // TODO: Log the reason
+                self.stop_all();
+            }
         }
         Ok(())
     }
@@ -95,7 +132,7 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
     async fn handle(
         &mut self,
         msg: WsIncoming<RillToProvider>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match msg.0 {
             RillToProvider::ControlStream { stream_id, active } => {
@@ -110,7 +147,16 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
 
 #[async_trait]
 impl ActionHandler<DataEnvelope> for RillWorker {
-    async fn handle(&mut self, data: DataEnvelope, ctx: &mut Context<Self>) -> Result<(), Error> {
-        todo!();
+    async fn handle(
+        &mut self,
+        envelope: DataEnvelope,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let msg = RillToServer::Data {
+            stream_id: envelope.stream_id,
+            data: envelope.data,
+        };
+        self.response(msg);
+        Ok(())
     }
 }

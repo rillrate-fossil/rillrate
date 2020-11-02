@@ -5,9 +5,10 @@ use once_cell::sync::OnceCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Keeps `StreamId` and implements `Action`.
+#[derive(Debug)]
 pub struct DataEnvelope {
-    stream_id: StreamId,
-    data: RillData,
+    pub stream_id: StreamId,
+    pub data: RillData,
 }
 
 impl Action for DataEnvelope {}
@@ -15,6 +16,7 @@ impl Action for DataEnvelope {}
 pub type DataSender = mpsc::UnboundedSender<DataEnvelope>;
 pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
+#[derive(Debug)]
 pub struct Provider {
     stream_id: StreamId,
     sender: DataSender,
@@ -56,7 +58,9 @@ impl ProviderCell {
 
     pub fn init(&self, stream_id: StreamId) -> DataReceiver {
         let (rx, provider) = Provider::create(stream_id);
-        self.provider.set(provider);
+        self.provider
+            .set(provider)
+            .expect("provider already initialized");
         rx
     }
 

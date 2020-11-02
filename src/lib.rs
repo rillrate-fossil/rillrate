@@ -45,7 +45,9 @@ impl RillState {
     }
 
     fn send(&self, event: ControlEvent) {
-        self.sender.unbounded_send(event);
+        self.sender
+            .unbounded_send(event)
+            .expect("rill actors not started");
     }
 }
 
