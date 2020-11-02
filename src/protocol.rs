@@ -53,8 +53,6 @@ pub enum RillData {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToProvider {
-    // If the client can drop initially collected data
-    CanDrop { stream_id: StreamId },
     ControlStream { stream_id: StreamId, active: bool },
 }
 
