@@ -3,6 +3,7 @@ use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Keeps `StreamId` and implements `Action`.
 #[derive(Debug)]
@@ -84,8 +85,12 @@ impl ProviderCell {
         if self.is_active() {
             // TODO: Render message here! Only when provider is available.
             if let Some(provider) = self.provider.get() {
+                let now = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis();
                 let data = RillData::LogRecord {
-                    timestamp: 0,
+                    timestamp: now as i64, //TODO: Change to u128 instead?
                     message,
                 };
                 provider.send(data);
