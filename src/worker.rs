@@ -23,10 +23,18 @@ struct StreamRecord {
     collector: Option<Vec<Data>>,
 }
 
+enum ProcessingRule {
+    Collect { pool: Vec<Data> },
+    Forward,
+    Block,
+}
+
 struct RillWorker {
     url: String,
     sender: Option<WsSender<RillToServer>>,
     declared_streams: HashMap<StreamId, StreamRecord>,
+    // TODO: Fill with `Collect` values for the all unknown streams
+    rules: Vec<ProcessingRule>,
 }
 
 #[async_trait]
@@ -56,6 +64,7 @@ impl RillWorker {
             url: link,
             sender: None,
             declared_streams: HashMap::new(),
+            rules: Vec::new(),
         }
     }
 }
