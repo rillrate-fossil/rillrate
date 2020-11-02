@@ -3,6 +3,7 @@ use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 pub enum Data {
     LogRecord { message: String },
@@ -12,6 +13,22 @@ impl Action for Data {}
 
 pub type DataSender = mpsc::UnboundedSender<Data>;
 pub type DataReceiver = mpsc::UnboundedReceiver<Data>;
+
+/*
+#[derive(Debug, Default, Clone)]
+pub struct Activator {
+    active: Arc<AtomicBool>,
+}
+
+impl Activator {
+    const fn new() -> Self {
+        Self {
+            active: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+}
+*/
 
 pub struct Provider {
     stream_id: StreamId,
@@ -52,6 +69,14 @@ impl ProviderCell {
         let (rx, provider) = Provider::create(stream_id);
         self.provider.set(provider);
         rx
+    }
+
+    pub fn stream_id(&self) -> StreamId {
+        if let Some(provider) = self.provider.get() {
+            provider.stream_id.clone()
+        } else {
+            panic!("uninitialized stream");
+        }
     }
 
     pub fn switch(&self, active: bool) {

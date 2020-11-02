@@ -26,7 +26,7 @@ struct StreamRecord {
 struct RillWorker {
     url: String,
     sender: Option<WsSender<RillToServer>>,
-    declared_streams: Vec<StreamRecord>,
+    declared_streams: HashMap<StreamId, StreamRecord>,
 }
 
 #[async_trait]
@@ -55,7 +55,7 @@ impl RillWorker {
         Self {
             url: link,
             sender: None,
-            declared_streams: Vec::new(),
+            declared_streams: HashMap::new(),
         }
     }
 }
@@ -65,14 +65,14 @@ impl ActionHandler<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ControlEvent::RegisterStream { provider, rx } => {
-                let stream_id = StreamId(self.declared_streams.len() as u64);
+                let stream_id = provider.stream_id();
                 let record = StreamRecord {
                     provider,
                     // Attach the collector to store initial records before the server
                     // will decide what to do with them.
                     collector: Some(Vec::new()),
                 };
-                self.declared_streams.push(record);
+                self.declared_streams.insert(stream_id, record);
                 ctx.address().attach(rx);
                 if let Some(sender) = self.sender.as_mut() {
                     // TODO: Send a declaration of the stream if there is a connection
@@ -110,12 +110,12 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
     ) -> Result<(), Error> {
         match msg.0 {
             RillToProvider::CanDrop { stream_id } => {
-                if let Some(record) = self.declared_streams.get_mut(stream_id.0 as usize) {
+                if let Some(record) = self.declared_streams.get_mut(&stream_id) {
                     record.collector.take();
                 }
             }
             RillToProvider::ControlStream { stream_id, active } => {
-                if let Some(record) = self.declared_streams.get_mut(stream_id.0 as usize) {
+                if let Some(record) = self.declared_streams.get(&stream_id) {
                     record.provider.switch(active);
                 }
             }
