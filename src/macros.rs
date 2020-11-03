@@ -1,7 +1,9 @@
 #[macro_export]
 macro_rules! log {
     ($msg:expr) => {
-        RILL.log($msg);
+        if RILL.is_active() {
+            RILL.log($msg);
+        }
     };
 }
 

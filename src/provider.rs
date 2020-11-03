@@ -82,19 +82,16 @@ impl ProviderCell {
     }
 
     pub fn log(&self, message: String) {
-        if self.is_active() {
-            // TODO: Render message here! Only when provider is available.
-            if let Some(provider) = self.provider.get() {
-                let now = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_millis();
-                let data = RillData::LogRecord {
-                    timestamp: now as i64, //TODO: Change to u128 instead?
-                    message,
-                };
-                provider.send(data);
-            }
+        if let Some(provider) = self.provider.get() {
+            let now = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis();
+            let data = RillData::LogRecord {
+                timestamp: now as i64, //TODO: Change to u128 instead?
+                message,
+            };
+            provider.send(data);
         }
     }
 
