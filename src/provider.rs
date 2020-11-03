@@ -37,6 +37,10 @@ impl Provider {
         (rx, this)
     }
 
+    pub fn stream_id(&self) -> StreamId {
+        self.stream_id
+    }
+
     pub fn switch(&self, active: bool) {
         self.active.store(active, Ordering::Relaxed);
     }
@@ -88,14 +92,6 @@ impl StaticJoint {
         state.send(event);
     }
 
-    pub fn stream_id(&self) -> StreamId {
-        if let Some(provider) = self.provider.get() {
-            provider.stream_id.clone()
-        } else {
-            panic!("uninitialized stream");
-        }
-    }
-
     pub fn log(&self, message: String) {
         if let Some(provider) = self.provider.get() {
             let now = SystemTime::now()
@@ -121,8 +117,15 @@ impl StaticJoint {
 
 pub struct DynamicJoint {
     module: String,
-    active: AtomicBool,
     provider: Provider,
+}
+
+impl Deref for DynamicJoint {
+    type Target = Provider;
+
+    fn deref(&self) -> &Provider {
+        &self.provider
+    }
 }
 
 impl DynamicJoint {
@@ -132,7 +135,6 @@ impl DynamicJoint {
         let (rx, provider) = Provider::create(stream_id);
         let this = Self {
             module: module.to_string(),
-            active: AtomicBool::new(false),
             provider,
         };
         let joint = Arc::new(this);
@@ -143,21 +145,6 @@ impl DynamicJoint {
         };
         state.send(event);
         joint
-    }
-
-    // TODO: DRY
-    pub fn stream_id(&self) -> StreamId {
-        self.provider.stream_id.clone()
-    }
-
-    // TODO: DRY
-    pub fn switch(&self, active: bool) {
-        self.active.store(active, Ordering::Relaxed);
-    }
-
-    // TODO: DRY
-    pub fn is_active(&self) -> bool {
-        self.active.load(Ordering::Relaxed)
     }
 
     // TODO: DRY
