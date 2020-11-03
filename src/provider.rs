@@ -1,4 +1,5 @@
 use crate::protocol::{Path, RillData, StreamId};
+use derive_more::From;
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
@@ -72,18 +73,26 @@ impl dyn Joint {
     }
 }
 
+#[derive(Clone, From)]
+pub struct StaticJointWrapper {
+    inner: &'static StaticJoint,
+}
+
 pub struct StaticJoint {
     module: &'static str,
     provider: OnceCell<Provider>,
 }
 
-impl Joint for &StaticJoint {
+impl Joint for StaticJointWrapper {
     fn module(&self) -> &str {
-        self.module
+        self.inner.module
     }
 
     fn provider(&self) -> &Provider {
-        self.provider.get().expect("not registered StaticJoint")
+        self.inner
+            .provider
+            .get()
+            .expect("not registered StaticJoint")
     }
 }
 
@@ -104,7 +113,8 @@ impl StaticJoint {
         self.provider
             .set(provider)
             .expect("provider already initialized");
-        let joint: Box<dyn Joint> = Box::new(self);
+        let wrapper = StaticJointWrapper { inner: self };
+        let joint: Box<dyn Joint> = Box::new(wrapper);
         let event = ControlEvent::RegisterJoint { joint, rx };
         state.send(event);
     }
