@@ -95,11 +95,14 @@ impl RillWorker {
 impl ActionHandler<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterStream { provider, rx } => {
+            ControlEvent::RegisterStaticStream { provider, rx } => {
                 let stream_id = provider.stream_id();
                 self.providers.insert(stream_id, provider);
                 ctx.address().attach(rx);
                 self.send_declaration(stream_id, provider.path());
+            }
+            ControlEvent::RegisterDynamicStream { provider, rx } => {
+                todo!();
             }
         }
         Ok(())

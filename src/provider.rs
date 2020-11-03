@@ -2,7 +2,8 @@ use crate::protocol::{Path, RillData, StreamId};
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Keeps `StreamId` and implements `Action`.
@@ -42,6 +43,49 @@ impl Provider {
     }
 }
 
+pub enum ControlEvent {
+    RegisterStaticStream {
+        provider: &'static StaticJoint,
+        rx: DataReceiver,
+    },
+    RegisterDynamicStream {
+        provider: Arc<DynamicJoint>,
+        rx: DataReceiver,
+    },
+}
+
+impl Action for ControlEvent {}
+
+pub type ControlSender = mpsc::UnboundedSender<ControlEvent>;
+pub type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
+
+pub struct RillState {
+    sender: ControlSender,
+    stream_id_counter: AtomicUsize,
+}
+
+impl RillState {
+    pub fn create() -> (ControlReceiver, Self) {
+        let (tx, rx) = mpsc::unbounded();
+        let this = Self {
+            sender: tx,
+            stream_id_counter: AtomicUsize::new(0),
+        };
+        (rx, this)
+    }
+
+    fn next(&self) -> StreamId {
+        let id = self.stream_id_counter.fetch_add(1, Ordering::Relaxed);
+        StreamId(id as u64)
+    }
+
+    fn send(&self, event: ControlEvent) {
+        self.sender
+            .unbounded_send(event)
+            .expect("rill actors not started");
+    }
+}
+
 pub struct StaticJoint {
     module: &'static str,
     active: AtomicBool,
@@ -57,12 +101,17 @@ impl StaticJoint {
         }
     }
 
-    pub fn init(&self, stream_id: StreamId) -> DataReceiver {
+    pub fn register(&'static self) {
+        let state = crate::RILL_STATE.get().expect("rill not installed!");
+        let stream_id = state.next();
+        // IMPORTANT: Initialize `Provider` here to create the channel before it
+        // will be used by the user.
         let (rx, provider) = Provider::create(stream_id);
         self.provider
             .set(provider)
             .expect("provider already initialized");
-        rx
+        let event = ControlEvent::RegisterStaticStream { provider: self, rx };
+        state.send(event);
     }
 
     pub fn stream_id(&self) -> StreamId {
@@ -95,6 +144,57 @@ impl StaticJoint {
         }
     }
 
+    pub fn path(&self) -> Path {
+        self.module
+            .split("::")
+            .map(String::from)
+            .collect::<Vec<_>>()
+            .into()
+    }
+}
+
+pub struct DynamicJoint {
+    module: String,
+    active: AtomicBool,
+    provider: Provider,
+}
+
+impl DynamicJoint {
+    pub fn create_and_register(module: &str) -> Arc<Self> {
+        let state = crate::RILL_STATE.get().expect("rill not installed!");
+        let stream_id = state.next();
+        let (rx, provider) = Provider::create(stream_id);
+        let this = Self {
+            module: module.to_string(),
+            active: AtomicBool::new(false),
+            provider,
+        };
+        let joint = Arc::new(this);
+        // Registering
+        let event = ControlEvent::RegisterDynamicStream {
+            provider: joint.clone(),
+            rx,
+        };
+        state.send(event);
+        joint
+    }
+
+    // TODO: DRY
+    pub fn stream_id(&self) -> StreamId {
+        self.provider.stream_id.clone()
+    }
+
+    // TODO: DRY
+    pub fn switch(&self, active: bool) {
+        self.active.store(active, Ordering::Relaxed);
+    }
+
+    // TODO: DRY
+    pub fn is_active(&self) -> bool {
+        self.active.load(Ordering::Relaxed)
+    }
+
+    // TODO: DRY
     pub fn path(&self) -> Path {
         self.module
             .split("::")
