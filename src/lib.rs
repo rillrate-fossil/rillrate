@@ -1,5 +1,6 @@
 use std::thread;
 
+mod drivers;
 mod macros;
 pub mod protocol;
 pub mod provider;
