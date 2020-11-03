@@ -1,3 +1,4 @@
+use crate::provider::Joint;
 use crate::StaticJoint;
 use log::{Log, Metadata, Record};
 use std::collections::HashMap;
@@ -9,8 +10,8 @@ pub struct LogDriver {
 
 impl Log for LogDriver {
     fn enabled(&self, metadata: &Metadata<'_>) -> bool {
-        if let Some(provider) = self.providers.read().unwrap().get(metadata.target()) {
-            provider.is_active()
+        if let Some(joint) = self.providers.read().unwrap().get(metadata.target()) {
+            joint.provider().is_active()
         } else {
             // TODO: Create a provider...
             false

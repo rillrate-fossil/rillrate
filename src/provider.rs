@@ -2,7 +2,6 @@ use crate::protocol::{Path, RillData, StreamId};
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
-use std::ops::Deref;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -58,15 +57,32 @@ impl Provider {
     }
 }
 
+pub trait Joint: Sync + Send {
+    fn module(&self) -> &str;
+    fn provider(&self) -> &Provider;
+}
+
+impl dyn Joint {
+    pub fn path(&self) -> Path {
+        self.module()
+            .split("::")
+            .map(String::from)
+            .collect::<Vec<_>>()
+            .into()
+    }
+}
+
 pub struct StaticJoint {
     module: &'static str,
     provider: OnceCell<Provider>,
 }
 
-impl Deref for StaticJoint {
-    type Target = Provider;
+impl Joint for &StaticJoint {
+    fn module(&self) -> &str {
+        self.module
+    }
 
-    fn deref(&self) -> &Provider {
+    fn provider(&self) -> &Provider {
         self.provider.get().expect("not registered StaticJoint")
     }
 }
@@ -88,7 +104,8 @@ impl StaticJoint {
         self.provider
             .set(provider)
             .expect("provider already initialized");
-        let event = ControlEvent::RegisterStaticStream { provider: self, rx };
+        let joint: Box<dyn Joint> = Box::new(self);
+        let event = ControlEvent::RegisterJoint { joint, rx };
         state.send(event);
     }
 
@@ -105,14 +122,6 @@ impl StaticJoint {
             provider.send(data);
         }
     }
-
-    pub fn path(&self) -> Path {
-        self.module
-            .split("::")
-            .map(String::from)
-            .collect::<Vec<_>>()
-            .into()
-    }
 }
 
 pub struct DynamicJoint {
@@ -120,10 +129,12 @@ pub struct DynamicJoint {
     provider: Provider,
 }
 
-impl Deref for DynamicJoint {
-    type Target = Provider;
+impl Joint for Arc<DynamicJoint> {
+    fn module(&self) -> &str {
+        &self.module
+    }
 
-    fn deref(&self) -> &Provider {
+    fn provider(&self) -> &Provider {
         &self.provider
     }
 }
@@ -137,33 +148,18 @@ impl DynamicJoint {
             module: module.to_string(),
             provider,
         };
-        let joint = Arc::new(this);
+        let res = Arc::new(this);
         // Registering
-        let event = ControlEvent::RegisterDynamicStream {
-            provider: joint.clone(),
-            rx,
-        };
+        let joint: Box<dyn Joint> = Box::new(res.clone());
+        let event = ControlEvent::RegisterJoint { joint, rx };
         state.send(event);
-        joint
-    }
-
-    // TODO: DRY
-    pub fn path(&self) -> Path {
-        self.module
-            .split("::")
-            .map(String::from)
-            .collect::<Vec<_>>()
-            .into()
+        res
     }
 }
 
 pub enum ControlEvent {
-    RegisterStaticStream {
-        provider: &'static StaticJoint,
-        rx: DataReceiver,
-    },
-    RegisterDynamicStream {
-        provider: Arc<DynamicJoint>,
+    RegisterJoint {
+        joint: Box<dyn Joint>,
         rx: DataReceiver,
     },
 }

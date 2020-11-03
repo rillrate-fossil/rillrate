@@ -1,6 +1,6 @@
 use super::{ControlEvent, ControlReceiver};
 use crate::protocol::{Path, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
-use crate::provider::{DataEnvelope, StaticJoint};
+use crate::provider::{DataEnvelope, Joint};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
@@ -21,7 +21,7 @@ pub(crate) async fn entrypoint(rx: ControlReceiver) {
 struct RillWorker {
     url: String,
     sender: Option<WsSender<RillToServer>>,
-    providers: HashMap<StreamId, &'static StaticJoint>,
+    joints: HashMap<StreamId, Box<dyn Joint>>,
 }
 
 #[async_trait]
@@ -50,7 +50,7 @@ impl RillWorker {
         Self {
             url: link,
             sender: None,
-            providers: HashMap::new(),
+            joints: HashMap::new(),
         }
     }
 
@@ -63,9 +63,9 @@ impl RillWorker {
     }
 
     fn send_declarations(&mut self) {
-        if !self.providers.is_empty() {
+        if !self.joints.is_empty() {
             let streams: Vec<_> = self
-                .providers
+                .joints
                 .iter()
                 // TODO: Add `path` prefix
                 .map(|(stream_id, provider)| (*stream_id, provider.path()))
@@ -85,8 +85,8 @@ impl RillWorker {
     }
 
     fn stop_all(&mut self) {
-        for provider in self.providers.values() {
-            provider.switch(false);
+        for joint in self.joints.values() {
+            joint.provider().switch(false);
         }
     }
 }
@@ -95,14 +95,12 @@ impl RillWorker {
 impl ActionHandler<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterStaticStream { provider, rx } => {
-                let stream_id = provider.stream_id();
-                self.providers.insert(stream_id, provider);
+            ControlEvent::RegisterJoint { joint, rx } => {
+                let stream_id = joint.provider().stream_id();
+                let path = joint.path();
+                self.joints.insert(stream_id, joint);
                 ctx.address().attach(rx);
-                self.send_declaration(stream_id, provider.path());
-            }
-            ControlEvent::RegisterDynamicStream { provider, rx } => {
-                todo!();
+                self.send_declaration(stream_id, path);
             }
         }
         Ok(())
@@ -139,8 +137,8 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
     ) -> Result<(), Error> {
         match msg.0 {
             RillToProvider::ControlStream { stream_id, active } => {
-                if let Some(provider) = self.providers.get(&stream_id) {
-                    provider.switch(active);
+                if let Some(joint) = self.joints.get(&stream_id) {
+                    joint.provider().switch(active);
                 }
             }
         }

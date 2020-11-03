@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! log {
     ($msg:expr) => {
-        if RILL.is_active() {
+        if rill::provider::Joint::provider(&&RILL).is_active() {
             RILL.log($msg);
         }
     };
