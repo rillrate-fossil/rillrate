@@ -2,6 +2,7 @@ use crate::protocol::{Path, RillData, StreamId};
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
+use std::ops::Deref;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -21,6 +22,7 @@ pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 #[derive(Debug)]
 pub struct Provider {
     stream_id: StreamId,
+    active: AtomicBool,
     sender: DataSender,
 }
 
@@ -29,9 +31,18 @@ impl Provider {
         let (tx, rx) = mpsc::unbounded();
         let this = Self {
             stream_id,
+            active: AtomicBool::new(false),
             sender: tx,
         };
         (rx, this)
+    }
+
+    pub fn switch(&self, active: bool) {
+        self.active.store(active, Ordering::Relaxed);
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.active.load(Ordering::Relaxed)
     }
 
     fn send(&self, data: RillData) {
@@ -43,60 +54,23 @@ impl Provider {
     }
 }
 
-pub enum ControlEvent {
-    RegisterStaticStream {
-        provider: &'static StaticJoint,
-        rx: DataReceiver,
-    },
-    RegisterDynamicStream {
-        provider: Arc<DynamicJoint>,
-        rx: DataReceiver,
-    },
-}
-
-impl Action for ControlEvent {}
-
-pub type ControlSender = mpsc::UnboundedSender<ControlEvent>;
-pub type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
-
-pub struct RillState {
-    sender: ControlSender,
-    stream_id_counter: AtomicUsize,
-}
-
-impl RillState {
-    pub fn create() -> (ControlReceiver, Self) {
-        let (tx, rx) = mpsc::unbounded();
-        let this = Self {
-            sender: tx,
-            stream_id_counter: AtomicUsize::new(0),
-        };
-        (rx, this)
-    }
-
-    fn next(&self) -> StreamId {
-        let id = self.stream_id_counter.fetch_add(1, Ordering::Relaxed);
-        StreamId(id as u64)
-    }
-
-    fn send(&self, event: ControlEvent) {
-        self.sender
-            .unbounded_send(event)
-            .expect("rill actors not started");
-    }
-}
-
 pub struct StaticJoint {
     module: &'static str,
-    active: AtomicBool,
     provider: OnceCell<Provider>,
+}
+
+impl Deref for StaticJoint {
+    type Target = Provider;
+
+    fn deref(&self) -> &Provider {
+        self.provider.get().expect("not registered StaticJoint")
+    }
 }
 
 impl StaticJoint {
     pub const fn new(module: &'static str) -> Self {
         Self {
             module,
-            active: AtomicBool::new(false),
             provider: OnceCell::new(),
         }
     }
@@ -120,14 +94,6 @@ impl StaticJoint {
         } else {
             panic!("uninitialized stream");
         }
-    }
-
-    pub fn switch(&self, active: bool) {
-        self.active.store(active, Ordering::Relaxed);
-    }
-
-    pub fn is_active(&self) -> bool {
-        self.active.load(Ordering::Relaxed)
     }
 
     pub fn log(&self, message: String) {
@@ -201,5 +167,48 @@ impl DynamicJoint {
             .map(String::from)
             .collect::<Vec<_>>()
             .into()
+    }
+}
+
+pub enum ControlEvent {
+    RegisterStaticStream {
+        provider: &'static StaticJoint,
+        rx: DataReceiver,
+    },
+    RegisterDynamicStream {
+        provider: Arc<DynamicJoint>,
+        rx: DataReceiver,
+    },
+}
+
+impl Action for ControlEvent {}
+
+pub type ControlSender = mpsc::UnboundedSender<ControlEvent>;
+pub type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
+
+pub struct RillState {
+    sender: ControlSender,
+    stream_id_counter: AtomicUsize,
+}
+
+impl RillState {
+    pub fn create() -> (ControlReceiver, Self) {
+        let (tx, rx) = mpsc::unbounded();
+        let this = Self {
+            sender: tx,
+            stream_id_counter: AtomicUsize::new(0),
+        };
+        (rx, this)
+    }
+
+    fn next(&self) -> StreamId {
+        let id = self.stream_id_counter.fetch_add(1, Ordering::Relaxed);
+        StreamId(id as u64)
+    }
+
+    fn send(&self, event: ControlEvent) {
+        self.sender
+            .unbounded_send(event)
+            .expect("rill actors not started");
     }
 }
