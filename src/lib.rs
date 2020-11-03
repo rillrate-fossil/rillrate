@@ -28,7 +28,7 @@ type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
 
 struct RillState {
     sender: ControlSender,
-    counter: AtomicUsize,
+    stream_id_counter: AtomicUsize,
 }
 
 impl RillState {
@@ -36,13 +36,13 @@ impl RillState {
         let (tx, rx) = mpsc::unbounded();
         let this = Self {
             sender: tx,
-            counter: AtomicUsize::new(0),
+            stream_id_counter: AtomicUsize::new(0),
         };
         (rx, this)
     }
 
     fn next(&self) -> StreamId {
-        let id = self.counter.fetch_add(1, Ordering::Relaxed);
+        let id = self.stream_id_counter.fetch_add(1, Ordering::Relaxed);
         StreamId(id as u64)
     }
 
@@ -53,7 +53,7 @@ impl RillState {
     }
 }
 
-static RILL: OnceCell<RillState> = OnceCell::new();
+static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -63,7 +63,7 @@ pub enum Error {
 
 pub fn install() -> Result<(), Error> {
     let (rx, state) = RillState::create();
-    RILL.set(state).map_err(|_| Error::AlreadyInstalled)?;
+    RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
     thread::spawn(move || worker::entrypoint(rx));
     Ok(())
 }
@@ -75,7 +75,7 @@ pub fn bind_all(providers: &[&'static ProviderCell]) {
 }
 
 pub fn bind(provider: &'static ProviderCell) {
-    if let Some(state) = RILL.get() {
+    if let Some(state) = RILL_STATE.get() {
         let stream_id = state.next();
         // IMPORTANT: Initialize `Provider` here to create the channel before it
         // will be used by the user.
