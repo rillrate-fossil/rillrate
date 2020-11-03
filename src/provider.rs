@@ -124,37 +124,47 @@ impl StaticJoint {
     }
 }
 
+#[derive(Clone)]
 pub struct DynamicJoint {
-    module: String,
-    provider: Provider,
+    inner: Arc<DynamicJointInner>,
 }
 
-impl Joint for Arc<DynamicJoint> {
+impl Joint for DynamicJoint {
     fn module(&self) -> &str {
-        &self.module
+        &self.inner.module
     }
 
     fn provider(&self) -> &Provider {
-        &self.provider
+        &self.inner.provider
     }
 }
 
 impl DynamicJoint {
-    pub fn create_and_register(module: &str) -> Arc<Self> {
+    pub fn create_and_register(module: &str) -> Self {
         let state = crate::RILL_STATE.get().expect("rill not installed!");
         let stream_id = state.next();
         let (rx, provider) = Provider::create(stream_id);
-        let this = Self {
+        let inner = DynamicJointInner {
             module: module.to_string(),
             provider,
         };
-        let res = Arc::new(this);
+        let joint = Self {
+            inner: Arc::new(inner),
+        };
         // Registering
-        let joint: Box<dyn Joint> = Box::new(res.clone());
-        let event = ControlEvent::RegisterJoint { joint, rx };
+        let boxed_joint: Box<dyn Joint> = Box::new(joint.clone());
+        let event = ControlEvent::RegisterJoint {
+            joint: boxed_joint,
+            rx,
+        };
         state.send(event);
-        res
+        joint
     }
+}
+
+struct DynamicJointInner {
+    module: String,
+    provider: Provider,
 }
 
 pub enum ControlEvent {
