@@ -1,17 +1,29 @@
 use anyhow::Error;
-use rill::provider::ProviderCell;
 use std::thread;
 use std::time::Duration;
 
-static RILL: ProviderCell = ProviderCell::new(std::module_path!());
-static ALT: ProviderCell = ProviderCell::new("alternative::module");
-
 fn main() -> Result<(), Error> {
     rill::install()?;
-    rill::bind_all(&[&RILL, &ALT]);
+    rill::bind_all(&[&module_1::RILL, &module_2::RILL]);
     loop {
-        RILL.log("Rill Data".into());
-        ALT.log("Alt Data".into());
+        module_1::work();
+        module_2::work();
         thread::sleep(Duration::from_millis(10));
+    }
+}
+
+mod module_1 {
+    rill::attach_logger!();
+
+    pub fn work() {
+        rill::log!("work module_1 called".into());
+    }
+}
+
+mod module_2 {
+    rill::attach_logger!();
+
+    pub fn work() {
+        rill::log!("work module_2 called".into());
     }
 }

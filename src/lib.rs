@@ -1,5 +1,6 @@
 use std::thread;
 
+mod macros;
 pub mod protocol;
 pub mod provider;
 mod worker;
@@ -8,7 +9,8 @@ use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
 use protocol::StreamId;
-use provider::{DataReceiver, ProviderCell};
+use provider::DataReceiver;
+pub use provider::ProviderCell;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use thiserror::Error;
 
