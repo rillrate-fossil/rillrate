@@ -1,6 +1,6 @@
 use anyhow::Error;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Error> {
     rill::install()?;
@@ -11,6 +11,7 @@ fn main() -> Result<(), Error> {
         log::trace!("Cool!");
         log::warn!("Nice!");
         thread::sleep(Duration::from_millis(10));
+        println!("PING: {:?}", Instant::now());
     }
 }
 

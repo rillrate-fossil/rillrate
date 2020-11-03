@@ -31,7 +31,17 @@ impl Log for LogDriver {
     }
 
     fn log(&self, record: &Record<'_>) {
-        if self.enabled(record.metadata()) {}
+        if self.enabled(record.metadata()) {
+            let s = format!("{}", record.args());
+            if let Some(joint) = self
+                .providers
+                .read()
+                .unwrap()
+                .get(record.metadata().target())
+            {
+                joint.log(s);
+            }
+        }
     }
 
     fn flush(&self) {}

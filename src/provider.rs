@@ -178,6 +178,18 @@ impl DynamicJoint {
         state.send(event);
         joint
     }
+
+    pub fn log(&self, message: String) {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
+        let data = RillData::LogRecord {
+            timestamp: now as i64, //TODO: Change to u128 instead?
+            message,
+        };
+        self.send(data);
+    }
 }
 
 struct DynamicJointInner {
