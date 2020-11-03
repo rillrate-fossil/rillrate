@@ -19,7 +19,7 @@ anyhow = "1.0.33"
 async-trait = "0.1.41"
 derive_more = "0.99.11"
 futures = "0.3.6"
-log = "0.4.11"
+log = { version = "0.4.11", features = ["std"] }
 meio = "0.21.0"
 meio-ws = "0.21.0"
 once_cell = "1.4.1"

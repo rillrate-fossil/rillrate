@@ -7,6 +7,14 @@ pub struct LogDriver {
     providers: RwLock<HashMap<String, DynamicJoint>>,
 }
 
+impl LogDriver {
+    pub fn new() -> Self {
+        Self {
+            providers: RwLock::new(HashMap::new()),
+        }
+    }
+}
+
 impl Log for LogDriver {
     fn enabled(&self, metadata: &Metadata<'_>) -> bool {
         if let Some(joint) = self.providers.read().unwrap().get(metadata.target()) {
@@ -20,7 +28,7 @@ impl Log for LogDriver {
     }
 
     fn log(&self, record: &Record<'_>) {
-        todo!();
+        //todo!();
     }
 
     fn flush(&self) {}

@@ -17,9 +17,18 @@ static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 pub enum Error {
     #[error("alreary installed")]
     AlreadyInstalled,
+    #[cfg(feature = "log-driver")]
+    #[error("set logger errror: {0}")]
+    SetLoggerError(#[from] log::SetLoggerError),
 }
 
 pub fn install() -> Result<(), Error> {
+    #[cfg(feature = "log-driver")]
+    {
+        use drivers::LogDriver;
+        let driver = LogDriver::new();
+        log::set_boxed_logger(Box::new(driver))?;
+    }
     let (rx, state) = RillState::create();
     RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
     thread::spawn(move || worker::entrypoint(rx));

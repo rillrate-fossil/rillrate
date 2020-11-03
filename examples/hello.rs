@@ -8,6 +8,8 @@ fn main() -> Result<(), Error> {
     loop {
         module_1::work();
         module_2::work();
+        log::trace!("Cool!");
+        log::warn!("Nice!");
         thread::sleep(Duration::from_millis(10));
     }
 }
