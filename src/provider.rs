@@ -42,13 +42,13 @@ impl Provider {
     }
 }
 
-pub struct ProviderCell {
+pub struct StaticJoint {
     module: &'static str,
     active: AtomicBool,
     provider: OnceCell<Provider>,
 }
 
-impl ProviderCell {
+impl StaticJoint {
     pub const fn new(module: &'static str) -> Self {
         Self {
             module,

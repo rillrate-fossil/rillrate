@@ -10,6 +10,6 @@ macro_rules! log {
 #[macro_export]
 macro_rules! attach_logger {
     () => {
-        pub static RILL: rill::ProviderCell = rill::ProviderCell::new(std::module_path!());
+        pub static RILL: rill::StaticJoint = rill::StaticJoint::new(std::module_path!());
     };
 }

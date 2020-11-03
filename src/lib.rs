@@ -11,13 +11,13 @@ use meio::Action;
 use once_cell::sync::OnceCell;
 use protocol::StreamId;
 use provider::DataReceiver;
-pub use provider::ProviderCell;
+pub use provider::StaticJoint;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use thiserror::Error;
 
 enum ControlEvent {
     RegisterStream {
-        provider: &'static ProviderCell,
+        provider: &'static StaticJoint,
         rx: DataReceiver,
     },
 }
@@ -69,13 +69,13 @@ pub fn install() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn bind_all(providers: &[&'static ProviderCell]) {
+pub fn bind_all(providers: &[&'static StaticJoint]) {
     for provider in providers {
         bind(provider);
     }
 }
 
-pub fn bind(provider: &'static ProviderCell) {
+pub fn bind(provider: &'static StaticJoint) {
     if let Some(state) = RILL_STATE.get() {
         let stream_id = state.next();
         // IMPORTANT: Initialize `Provider` here to create the channel before it

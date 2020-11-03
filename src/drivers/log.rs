@@ -1,10 +1,10 @@
-use crate::ProviderCell;
+use crate::StaticJoint;
 use log::{Log, Metadata, Record};
 use std::collections::HashMap;
 use std::sync::RwLock;
 
 pub struct LogDriver {
-    providers: RwLock<HashMap<String, ProviderCell>>,
+    providers: RwLock<HashMap<String, StaticJoint>>,
 }
 
 impl Log for LogDriver {

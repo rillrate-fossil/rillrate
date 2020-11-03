@@ -1,6 +1,6 @@
 use super::{ControlEvent, ControlReceiver};
 use crate::protocol::{Path, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
-use crate::provider::{DataEnvelope, ProviderCell};
+use crate::provider::{DataEnvelope, StaticJoint};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
@@ -21,7 +21,7 @@ pub(crate) async fn entrypoint(rx: ControlReceiver) {
 struct RillWorker {
     url: String,
     sender: Option<WsSender<RillToServer>>,
-    providers: HashMap<StreamId, &'static ProviderCell>,
+    providers: HashMap<StreamId, &'static StaticJoint>,
 }
 
 #[async_trait]
