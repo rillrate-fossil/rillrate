@@ -3,6 +3,7 @@ use derive_more::From;
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
+use std::ops::Deref;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -58,9 +59,8 @@ impl Provider {
     }
 }
 
-pub trait Joint: Sync + Send {
+pub trait Joint: Deref<Target = Provider> + Sync + Send {
     fn module(&self) -> &str;
-    fn provider(&self) -> &Provider;
 }
 
 impl dyn Joint {
@@ -78,6 +78,17 @@ pub struct StaticJointWrapper {
     inner: &'static StaticJoint,
 }
 
+impl Deref for StaticJointWrapper {
+    type Target = Provider;
+
+    fn deref(&self) -> &Provider {
+        self.inner
+            .provider
+            .get()
+            .expect("not registered StaticJoint")
+    }
+}
+
 pub struct StaticJoint {
     module: &'static str,
     provider: OnceCell<Provider>,
@@ -86,13 +97,6 @@ pub struct StaticJoint {
 impl Joint for StaticJointWrapper {
     fn module(&self) -> &str {
         self.inner.module
-    }
-
-    fn provider(&self) -> &Provider {
-        self.inner
-            .provider
-            .get()
-            .expect("not registered StaticJoint")
     }
 }
 
@@ -139,13 +143,17 @@ pub struct DynamicJoint {
     inner: Arc<DynamicJointInner>,
 }
 
+impl Deref for DynamicJoint {
+    type Target = Provider;
+
+    fn deref(&self) -> &Provider {
+        &self.inner.provider
+    }
+}
+
 impl Joint for DynamicJoint {
     fn module(&self) -> &str {
         &self.inner.module
-    }
-
-    fn provider(&self) -> &Provider {
-        &self.inner.provider
     }
 }
 

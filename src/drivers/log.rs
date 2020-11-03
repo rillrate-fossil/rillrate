@@ -1,4 +1,4 @@
-use crate::provider::{DynamicJoint, Joint};
+use crate::provider::DynamicJoint;
 use log::{Log, Metadata, Record};
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -10,7 +10,7 @@ pub struct LogDriver {
 impl Log for LogDriver {
     fn enabled(&self, metadata: &Metadata<'_>) -> bool {
         if let Some(joint) = self.providers.read().unwrap().get(metadata.target()) {
-            joint.provider().is_active()
+            joint.is_active()
         } else {
             let joint = DynamicJoint::create_and_register(metadata.target());
             let module = metadata.target().to_string();

@@ -2,7 +2,7 @@
 macro_rules! log {
     ($msg:expr) => {
         let wrapper = rill::provider::StaticJointWrapper::from(&RILL);
-        if rill::provider::Joint::provider(&wrapper).is_active() {
+        if wrapper.is_active() {
             RILL.log($msg);
         }
     };

@@ -86,7 +86,7 @@ impl RillWorker {
 
     fn stop_all(&mut self) {
         for joint in self.joints.values() {
-            joint.provider().switch(false);
+            joint.switch(false);
         }
     }
 }
@@ -96,7 +96,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ControlEvent::RegisterJoint { joint, rx } => {
-                let stream_id = joint.provider().stream_id();
+                let stream_id = joint.stream_id();
                 let path = joint.path();
                 self.joints.insert(stream_id, joint);
                 ctx.address().attach(rx);
@@ -138,7 +138,7 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
         match msg.0 {
             RillToProvider::ControlStream { stream_id, active } => {
                 if let Some(joint) = self.joints.get(&stream_id) {
-                    joint.provider().switch(active);
+                    joint.switch(active);
                 }
             }
         }
