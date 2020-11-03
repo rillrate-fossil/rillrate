@@ -23,14 +23,15 @@ pub enum Error {
 }
 
 pub fn install() -> Result<(), Error> {
+    let (rx, state) = RillState::create();
+    RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
     #[cfg(feature = "log-driver")]
     {
         use drivers::LogDriver;
         let driver = LogDriver::new();
         log::set_boxed_logger(Box::new(driver))?;
+        log::set_max_level(log::LevelFilter::Trace);
     }
-    let (rx, state) = RillState::create();
-    RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
     thread::spawn(move || worker::entrypoint(rx));
     Ok(())
 }

@@ -17,18 +17,21 @@ impl LogDriver {
 
 impl Log for LogDriver {
     fn enabled(&self, metadata: &Metadata<'_>) -> bool {
-        if let Some(joint) = self.providers.read().unwrap().get(metadata.target()) {
-            joint.is_active()
-        } else {
-            let joint = DynamicJoint::create_and_register(metadata.target());
-            let module = metadata.target().to_string();
-            self.providers.write().unwrap().insert(module, joint);
-            false
+        {
+            if let Some(joint) = self.providers.read().unwrap().get(metadata.target()) {
+                return joint.is_active();
+            }
         }
+        let joint = DynamicJoint::create_and_register(metadata.target());
+        let module = metadata.target().to_string();
+        {
+            self.providers.write().unwrap().insert(module, joint);
+        }
+        false
     }
 
     fn log(&self, record: &Record<'_>) {
-        //todo!();
+        if self.enabled(record.metadata()) {}
     }
 
     fn flush(&self) {}
