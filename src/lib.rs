@@ -1,6 +1,5 @@
 use std::thread;
 
-mod drivers;
 mod macros;
 pub mod protocol;
 pub mod provider;
@@ -17,21 +16,11 @@ static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 pub enum Error {
     #[error("alreary installed")]
     AlreadyInstalled,
-    #[cfg(feature = "log-driver")]
-    #[error("set logger errror: {0}")]
-    SetLoggerError(#[from] log::SetLoggerError),
 }
 
 pub fn install() -> Result<(), Error> {
     let (rx, state) = RillState::create();
     RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
-    #[cfg(feature = "log-driver")]
-    {
-        use drivers::LogDriver;
-        let driver = LogDriver::new();
-        log::set_boxed_logger(Box::new(driver))?;
-        log::set_max_level(log::LevelFilter::Trace);
-    }
     thread::spawn(move || worker::entrypoint(rx));
     Ok(())
 }
