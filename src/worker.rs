@@ -4,7 +4,7 @@ use crate::provider::{DataEnvelope, Joint};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
-use meio_ws::{
+use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };

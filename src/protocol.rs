@@ -1,6 +1,6 @@
 use anyhow::Error;
 use derive_more::From;
-use meio_ws::{Protocol, ProtocolCodec, ProtocolData};
+use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 
 pub const PORT: u16 = 1636;
