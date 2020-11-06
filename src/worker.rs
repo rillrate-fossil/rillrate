@@ -37,9 +37,7 @@ impl Actor for RillWorker {
             ctx.address().clone(),
         );
         let ws_client = client.start(ctx.bind());
-        ctx.terminator()
-            .new_stage("ws_client", false)
-            .insert(ws_client);
+        ctx.terminator().single_stage(ws_client);
         Ok(())
     }
 }
