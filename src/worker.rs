@@ -95,10 +95,11 @@ impl ActionHandler<ControlEvent> for RillWorker {
         match event {
             ControlEvent::RegisterJoint { joint, rx } => {
                 let stream_id = joint.stream_id();
-                let path = joint.path();
                 self.joints.insert(stream_id, joint);
                 ctx.address().attach(rx);
-                self.send_declaration(stream_id, path);
+            }
+            ControlEvent::Completed => {
+                self.send_declarations();
             }
         }
         Ok(())

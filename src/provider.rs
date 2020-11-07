@@ -198,10 +198,12 @@ struct DynamicJointInner {
 }
 
 pub enum ControlEvent {
+    // TODO: Use the single `RegisterAllJoints` event with no `Completed` variant.
     RegisterJoint {
         joint: Box<dyn Joint>,
         rx: DataReceiver,
     },
+    Completed,
 }
 
 impl Action for ControlEvent {}
