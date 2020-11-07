@@ -2,6 +2,7 @@ use anyhow::Error;
 use derive_more::From;
 use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 pub const PORT: u16 = 1636;
 
@@ -37,7 +38,7 @@ impl ToString for Path {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToServer {
-    DeclareStream { stream_id: StreamId, path: Path },
+    DeclareStreams(HashMap<Path, StreamId>),
     Data { stream_id: StreamId, data: RillData },
 }
 

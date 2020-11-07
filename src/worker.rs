@@ -1,5 +1,5 @@
 use super::{ControlEvent, ControlReceiver};
-use crate::protocol::{Path, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
+use crate::protocol::{RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
 use crate::provider::{DataEnvelope, Joint};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -62,24 +62,15 @@ impl RillWorker {
 
     fn send_declarations(&mut self) {
         if !self.joints.is_empty() {
-            let streams: Vec<_> = self
+            let streams = self
                 .joints
                 .iter()
                 // TODO: Add `path` prefix
-                .map(|(stream_id, provider)| (*stream_id, provider.path()))
+                .map(|(stream_id, provider)| (provider.path(), *stream_id))
                 .collect();
-            for (stream_id, path) in streams {
-                self.send_declaration(stream_id, path);
-            }
+            let msg = RillToServer::DeclareStreams(streams);
+            self.response(msg);
         }
-    }
-
-    fn send_declaration(&mut self, stream_id: StreamId, path: Path) {
-        let msg = RillToServer::DeclareStream {
-            stream_id,
-            path: path.into(),
-        };
-        self.response(msg);
     }
 
     fn stop_all(&mut self) {
