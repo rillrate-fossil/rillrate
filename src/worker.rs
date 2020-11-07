@@ -1,5 +1,5 @@
 use super::{ControlEvent, ControlReceiver};
-use crate::protocol::{RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
+use crate::protocol::{EntryId, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
 use crate::provider::{DataEnvelope, Joint};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -12,14 +12,15 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 #[tokio::main]
-pub(crate) async fn entrypoint(rx: ControlReceiver) {
-    let mut handle = RillWorker::new().start(Supervisor::None);
+pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) {
+    let mut handle = RillWorker::new(entry_id).start(Supervisor::None);
     handle.attach(rx);
     handle.join().await;
 }
 
 struct RillWorker {
     url: String,
+    entry_id: EntryId,
     sender: Option<WsSender<RillToServer>>,
     joints: HashMap<StreamId, Box<dyn Joint>>,
 }
@@ -43,10 +44,11 @@ impl Actor for RillWorker {
 }
 
 impl RillWorker {
-    pub fn new() -> Self {
+    pub fn new(entry_id: EntryId) -> Self {
         let link = format!("ws://127.0.0.1:{}/provider/io", PORT);
         Self {
             url: link,
+            entry_id,
             sender: None,
             joints: HashMap::new(),
         }
@@ -60,6 +62,13 @@ impl RillWorker {
         }
     }
 
+    fn send_entry_id(&mut self) {
+        let entry_id = self.entry_id.clone();
+        let msg = RillToServer::Declare { entry_id };
+        self.response(msg);
+    }
+
+    /*
     fn send_declarations(&mut self) {
         if !self.joints.is_empty() {
             let streams = self
@@ -72,6 +81,7 @@ impl RillWorker {
             self.response(msg);
         }
     }
+    */
 
     fn stop_all(&mut self) {
         for joint in self.joints.values() {
@@ -90,7 +100,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 ctx.address().attach(rx);
             }
             ControlEvent::Completed => {
-                self.send_declarations();
+                //self.send_declarations();
             }
         }
         Ok(())
@@ -107,7 +117,8 @@ impl InteractionHandler<WsClientStatus<RillServerProtocol>> for RillWorker {
         match status {
             WsClientStatus::Connected { sender } => {
                 self.sender = Some(sender);
-                self.send_declarations();
+                self.send_entry_id();
+                //self.send_declarations();
             }
             WsClientStatus::Failed(_reason) => {
                 // TODO: Log the reason
