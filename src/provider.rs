@@ -89,6 +89,8 @@ impl Deref for StaticJointWrapper {
     }
 }
 
+/// Statically embedded provider, recommended for languages that supports
+/// `const` expressions.
 pub struct StaticJoint {
     module: &'static str,
     provider: OnceCell<Provider>,
@@ -138,6 +140,7 @@ impl StaticJoint {
     }
 }
 
+/// Provides data from a dynamic environment.
 #[derive(Clone)]
 pub struct DynamicJoint {
     inner: Arc<DynamicJointInner>,
