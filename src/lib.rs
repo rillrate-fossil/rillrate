@@ -27,10 +27,6 @@ pub fn install() -> Result<(), Error> {
 
 pub fn bind_all(providers: &[&'static StaticJoint]) {
     for provider in providers {
-        bind(provider);
+        provider.register();
     }
-}
-
-pub fn bind(provider: &'static StaticJoint) {
-    provider.register();
 }
