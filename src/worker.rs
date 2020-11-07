@@ -1,5 +1,5 @@
 use super::{ControlEvent, ControlReceiver};
-use crate::protocol::{EntryId, RillServerProtocol, RillToProvider, RillToServer, StreamId, PORT};
+use crate::protocol::{EntryId, Path, RillServerProtocol, RillToProvider, RillToServer, PORT};
 use crate::provider::{DataEnvelope, Joint};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -22,7 +22,7 @@ struct RillWorker {
     url: String,
     entry_id: EntryId,
     sender: Option<WsSender<RillToServer>>,
-    joints: HashMap<StreamId, Box<dyn Joint>>,
+    joints: HashMap<EntryId, Box<dyn Joint>>,
 }
 
 #[async_trait]
@@ -68,20 +68,11 @@ impl RillWorker {
         self.response(msg);
     }
 
-    /*
-    fn send_declarations(&mut self) {
-        if !self.joints.is_empty() {
-            let streams = self
-                .joints
-                .iter()
-                // TODO: Add `path` prefix
-                .map(|(stream_id, provider)| (provider.path(), *stream_id))
-                .collect();
-            let msg = RillToServer::DeclareStreams(streams);
-            self.response(msg);
-        }
+    fn send_list_for(&mut self, path: &Path) {
+        let entries = self.joints.keys().cloned().collect();
+        let msg = RillToServer::Entries { entries };
+        self.response(msg);
     }
-    */
 
     fn stop_all(&mut self) {
         for joint in self.joints.values() {
@@ -95,12 +86,9 @@ impl ActionHandler<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ControlEvent::RegisterJoint { joint, rx } => {
-                let stream_id = joint.stream_id();
-                self.joints.insert(stream_id, joint);
+                let entry_id = joint.entry_id().to_owned();
+                self.joints.insert(entry_id, joint);
                 ctx.address().attach(rx);
-            }
-            ControlEvent::Completed => {
-                //self.send_declarations();
             }
         }
         Ok(())
@@ -118,7 +106,6 @@ impl InteractionHandler<WsClientStatus<RillServerProtocol>> for RillWorker {
             WsClientStatus::Connected { sender } => {
                 self.sender = Some(sender);
                 self.send_entry_id();
-                //self.send_declarations();
             }
             WsClientStatus::Failed(_reason) => {
                 // TODO: Log the reason
@@ -137,8 +124,15 @@ impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match msg.0 {
-            RillToProvider::ControlStream { stream_id, active } => {
-                if let Some(joint) = self.joints.get(&stream_id) {
+            RillToProvider::ListOf { path } => {
+                self.send_list_for(&path);
+            }
+            RillToProvider::ControlStream {
+                entry_id,
+                direct_id,
+                active,
+            } => {
+                if let Some(joint) = self.joints.get(&entry_id) {
                     joint.switch(active);
                 }
             }
@@ -155,7 +149,7 @@ impl ActionHandler<DataEnvelope> for RillWorker {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let msg = RillToServer::Data {
-            stream_id: envelope.stream_id,
+            direct_id: todo!(), //envelope.entry_id,
             data: envelope.data,
         };
         self.response(msg);

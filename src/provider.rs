@@ -1,4 +1,4 @@
-use crate::protocol::{EntryId, Path, RillData, StreamId};
+use crate::protocol::{EntryId, Path, RillData};
 use derive_more::From;
 use futures::channel::mpsc;
 use meio::Action;
@@ -8,10 +8,10 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Keeps `StreamId` and implements `Action`.
+/// Keeps `EntryId` and implements `Action`.
 #[derive(Debug)]
 pub struct DataEnvelope {
-    pub stream_id: StreamId,
+    pub entry_id: EntryId,
     pub data: RillData,
 }
 
@@ -22,24 +22,24 @@ pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
 #[derive(Debug)]
 pub struct Provider {
-    stream_id: StreamId,
+    entry_id: EntryId,
     active: AtomicBool,
     sender: DataSender,
 }
 
 impl Provider {
-    pub fn create(stream_id: StreamId) -> (DataReceiver, Self) {
+    pub fn create(entry_id: EntryId) -> (DataReceiver, Self) {
         let (tx, rx) = mpsc::unbounded();
         let this = Self {
-            stream_id,
+            entry_id,
             active: AtomicBool::new(false),
             sender: tx,
         };
         (rx, this)
     }
 
-    pub fn stream_id(&self) -> StreamId {
-        self.stream_id
+    pub fn entry_id(&self) -> &EntryId {
+        &self.entry_id
     }
 
     pub fn switch(&self, active: bool) {
@@ -52,7 +52,8 @@ impl Provider {
 
     fn send(&self, data: RillData) {
         let envelope = DataEnvelope {
-            stream_id: self.stream_id,
+            // TODO: Use `DirectId` here, or nothing.
+            entry_id: self.entry_id.clone(),
             data,
         };
         self.sender.unbounded_send(envelope).ok();
@@ -112,10 +113,10 @@ impl StaticJoint {
 
     pub fn register(&'static self) {
         let state = crate::RILL_STATE.get().expect("rill not installed!");
-        let stream_id = state.next();
+        let entry_id = EntryId::from(self.module);
         // IMPORTANT: Initialize `Provider` here to create the channel before it
         // will be used by the user.
-        let (rx, provider) = Provider::create(stream_id);
+        let (rx, provider) = Provider::create(entry_id);
         self.provider
             .set(provider)
             .expect("provider already initialized");
@@ -163,8 +164,8 @@ impl Joint for DynamicJoint {
 impl DynamicJoint {
     pub fn create_and_register(module: &str) -> Self {
         let state = crate::RILL_STATE.get().expect("rill not installed!");
-        let stream_id = state.next();
-        let (rx, provider) = Provider::create(stream_id);
+        let entry_id = EntryId::from(module);
+        let (rx, provider) = Provider::create(entry_id);
         let inner = DynamicJointInner {
             module: module.to_string(),
             provider,
@@ -206,7 +207,6 @@ pub enum ControlEvent {
         joint: Box<dyn Joint>,
         rx: DataReceiver,
     },
-    Completed,
 }
 
 impl Action for ControlEvent {}
@@ -216,22 +216,13 @@ pub type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
 
 pub struct RillState {
     sender: ControlSender,
-    stream_id_counter: AtomicUsize,
 }
 
 impl RillState {
     pub fn create() -> (ControlReceiver, Self) {
         let (tx, rx) = mpsc::unbounded();
-        let this = Self {
-            sender: tx,
-            stream_id_counter: AtomicUsize::new(0),
-        };
+        let this = Self { sender: tx };
         (rx, this)
-    }
-
-    fn next(&self) -> StreamId {
-        let id = self.stream_id_counter.fetch_add(1, Ordering::Relaxed);
-        StreamId(id as u64)
     }
 
     fn send(&self, event: ControlEvent) {
