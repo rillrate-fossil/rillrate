@@ -1,4 +1,4 @@
-use crate::protocol::{Path, RillData, StreamId};
+use crate::protocol::{EntryId, Path, RillData, StreamId};
 use derive_more::From;
 use futures::channel::mpsc;
 use meio::Action;
@@ -67,7 +67,7 @@ impl dyn Joint {
     pub fn path(&self) -> Path {
         self.module()
             .split("::")
-            .map(String::from)
+            .map(EntryId::from)
             .collect::<Vec<_>>()
             .into()
     }

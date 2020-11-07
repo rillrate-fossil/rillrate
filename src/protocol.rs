@@ -1,8 +1,10 @@
 use anyhow::Error;
-use derive_more::From;
+use derive_more::{From, FromStr};
 use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
+use std::borrow::Borrow;
 use std::collections::HashMap;
+use std::fmt;
 
 pub const PORT: u16 = 1636;
 
@@ -27,8 +29,42 @@ impl ProtocolCodec for JsonCodec {
     }
 }
 
+/// An identifier in a hierarchy of the node/metadata/stream.
+#[derive(Serialize, Deserialize, FromStr, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct EntryId(String);
+
+impl AsRef<str> for EntryId {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Borrow<str> for EntryId {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<&str> for EntryId {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
+impl From<String> for EntryId {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl fmt::Display for EntryId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
 #[derive(Debug, Clone, From, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Path(Vec<String>);
+pub struct Path(Vec<EntryId>);
 
 impl ToString for Path {
     fn to_string(&self) -> String {
