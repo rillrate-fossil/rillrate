@@ -3,7 +3,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Error> {
-    rill::install()?;
+    rill::install("example-hello")?;
     rill::bind_all(&[&module_1::RILL, &module_2::RILL]);
     loop {
         module_1::work();

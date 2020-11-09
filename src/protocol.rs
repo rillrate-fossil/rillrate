@@ -1,5 +1,5 @@
 use anyhow::Error;
-use derive_more::{From, FromStr};
+use derive_more::{From, FromStr, Into};
 use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
@@ -8,9 +8,9 @@ use std::fmt;
 pub const PORT: u16 = 1636;
 
 #[derive(Debug)]
-pub struct RillServerProtocol;
+pub struct RillProviderProtocol;
 
-impl Protocol for RillServerProtocol {
+impl Protocol for RillProviderProtocol {
     type ToServer = RillToServer;
     type ToClient = RillToProvider;
     type Codec = JsonCodec;
@@ -62,14 +62,22 @@ impl fmt::Display for EntryId {
     }
 }
 
-#[derive(Debug, Clone, From, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, From, Into, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Path(Vec<EntryId>);
 
+impl AsRef<[EntryId]> for Path {
+    fn as_ref(&self) -> &[EntryId] {
+        &self.0
+    }
+}
+
+/*
 impl ToString for Path {
     fn to_string(&self) -> String {
         self.0.join(".")
     }
 }
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToServer {

@@ -1,5 +1,5 @@
 use super::{ControlEvent, ControlReceiver};
-use crate::protocol::{EntryId, Path, RillServerProtocol, RillToProvider, RillToServer, PORT};
+use crate::protocol::{EntryId, Path, RillProviderProtocol, RillToProvider, RillToServer, PORT};
 use crate::provider::{DataEnvelope, Joint};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -45,7 +45,7 @@ impl Actor for RillWorker {
 
 impl RillWorker {
     pub fn new(entry_id: EntryId) -> Self {
-        let link = format!("ws://127.0.0.1:{}/provider/io", PORT);
+        let link = format!("ws://127.0.0.1:{}/live/provider", PORT);
         Self {
             url: link,
             entry_id,
@@ -96,10 +96,10 @@ impl ActionHandler<ControlEvent> for RillWorker {
 }
 
 #[async_trait]
-impl InteractionHandler<WsClientStatus<RillServerProtocol>> for RillWorker {
+impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
     async fn handle(
         &mut self,
-        status: WsClientStatus<RillServerProtocol>,
+        status: WsClientStatus<RillProviderProtocol>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match status {
