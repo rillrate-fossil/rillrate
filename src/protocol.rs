@@ -65,6 +65,17 @@ impl fmt::Display for EntryId {
 #[derive(Debug, Clone, From, Into, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Path(Vec<EntryId>);
 
+impl Path {
+    pub fn concat(&self, other: &[EntryId]) -> Path {
+        self.0
+            .iter()
+            .chain(other.iter())
+            .cloned()
+            .collect::<Vec<_>>()
+            .into()
+    }
+}
+
 impl AsRef<[EntryId]> for Path {
     fn as_ref(&self) -> &[EntryId] {
         &self.0
