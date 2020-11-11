@@ -82,13 +82,11 @@ impl AsRef<[EntryId]> for Path {
     }
 }
 
-/*
 impl ToString for Path {
     fn to_string(&self) -> String {
         self.0.join(".")
     }
 }
-*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToServer {
