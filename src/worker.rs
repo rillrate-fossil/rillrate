@@ -107,8 +107,9 @@ impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
                 self.sender = Some(sender);
                 self.send_entry_id();
             }
-            WsClientStatus::Failed(_reason) => {
-                // TODO: Log the reason
+            WsClientStatus::Failed { reason } => {
+                log::error!("Connection failed: {}", reason);
+                // TODO: Try to reconnect...
                 self.stop_all();
             }
         }
