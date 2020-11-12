@@ -69,7 +69,15 @@ impl RillWorker {
     }
 
     fn send_list_for(&mut self, path: &Path) {
-        let entries = self.joints.keys().cloned().collect();
+        let entries;
+        match path.as_ref() {
+            [provider] if *provider == self.entry_id => {
+                entries = self.joints.keys().cloned().collect();
+            }
+            _ => {
+                entries = Vec::new();
+            }
+        }
         let msg = RillToServer::Entries { entries };
         self.response(msg);
     }
