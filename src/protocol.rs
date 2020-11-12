@@ -1,5 +1,5 @@
 use anyhow::Error;
-use derive_more::{From, FromStr, Into};
+use derive_more::{From, FromStr, Index, Into};
 use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
@@ -62,7 +62,9 @@ impl fmt::Display for EntryId {
     }
 }
 
-#[derive(Debug, Clone, From, Into, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, From, Into, Index, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash,
+)]
 pub struct Path(Vec<EntryId>);
 
 impl Path {
@@ -70,6 +72,14 @@ impl Path {
         self.0
             .iter()
             .chain(other.iter())
+            .cloned()
+            .collect::<Vec<_>>()
+            .into()
+    }
+
+    pub fn subpath(&self, drop_left: usize) -> Path {
+        self.0[drop_left..]
+            .iter()
             .cloned()
             .collect::<Vec<_>>()
             .into()
