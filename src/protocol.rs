@@ -119,7 +119,7 @@ impl ToString for Path {
 pub enum RillToServer {
     Declare { entry_id: EntryId },
     Entries { entries: Vec<EntryId> },
-    Data { direct_id: DirectId, data: RillData },
+    Data { data: RillData },
 }
 
 pub type Timestamp = i64;
@@ -134,15 +134,9 @@ pub enum RillData {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToProvider {
-    ListOf {
-        path: Path,
-    },
+    ListOf { path: Path },
     // TODO: Use `Path` insead of `EntryId`.
-    ControlStream {
-        entry_id: EntryId,
-        direct_id: DirectId,
-        active: bool,
-    },
+    ControlStream { entry_id: EntryId, active: bool },
 }
 
 #[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]

@@ -4,7 +4,7 @@ use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
 use std::ops::Deref;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 

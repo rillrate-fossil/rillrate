@@ -146,11 +146,7 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
             RillToProvider::ListOf { path } => {
                 self.send_list_for(msg.0.direct_id, &path);
             }
-            RillToProvider::ControlStream {
-                entry_id,
-                direct_id,
-                active,
-            } => {
+            RillToProvider::ControlStream { entry_id, active } => {
                 // TODO: Add `DirectId` to `DirectionSet`
                 if let Some(joint) = self.joints.get(&entry_id) {
                     joint.switch(active);
@@ -169,7 +165,6 @@ impl ActionHandler<DataEnvelope> for RillWorker {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let msg = RillToServer::Data {
-            direct_id: todo!(), //envelope.entry_id,
             data: envelope.data,
         };
         // TODO: Get the `Direction`
