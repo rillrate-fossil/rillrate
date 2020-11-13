@@ -7,8 +7,15 @@ use std::fmt;
 
 pub const PORT: u16 = 1636;
 
+pub enum Direction {
+    Direct(DirectId),
+    Multicase(Vec<DirectId>),
+    Broadcast,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Envelope<T> {
+    // TODO: Use Direction here
     pub direct_id: DirectId,
     pub data: T,
 }
@@ -17,8 +24,8 @@ pub struct Envelope<T> {
 pub struct RillProviderProtocol;
 
 impl Protocol for RillProviderProtocol {
-    type ToServer = RillToServer;
-    type ToClient = RillToProvider;
+    type ToServer = Envelope<RillToServer>;
+    type ToClient = Envelope<RillToProvider>;
     type Codec = JsonCodec;
 }
 

@@ -1,5 +1,7 @@
 use super::{ControlEvent, ControlReceiver};
-use crate::protocol::{EntryId, Path, RillProviderProtocol, RillToProvider, RillToServer, PORT};
+use crate::protocol::{
+    DirectId, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider, RillToServer, PORT,
+};
 use crate::provider::{DataEnvelope, Joint};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -11,6 +13,9 @@ use meio_connect::{
 use std::collections::HashMap;
 use std::time::Duration;
 
+// TODO: Add `DirectionSet` that can give `Direction` value that depends
+// of the 0,1,N items contained
+
 #[tokio::main]
 pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) {
     let mut handle = RillWorker::new(entry_id).start(Supervisor::None);
@@ -21,7 +26,7 @@ pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) {
 struct RillWorker {
     url: String,
     entry_id: EntryId,
-    sender: Option<WsSender<RillToServer>>,
+    sender: Option<WsSender<Envelope<RillToServer>>>,
     joints: HashMap<EntryId, Box<dyn Joint>>,
 }
 
@@ -54,9 +59,13 @@ impl RillWorker {
         }
     }
 
-    fn response(&mut self, msg: RillToServer) {
+    fn response(&mut self, direct_id: DirectId, msg: RillToServer) {
         if let Some(sender) = self.sender.as_mut() {
-            sender.send(msg);
+            let envelope = Envelope {
+                direct_id,
+                data: msg,
+            };
+            sender.send(envelope);
         } else {
             //log::error!("Can't send a response. Not connected.");
         }
@@ -65,10 +74,11 @@ impl RillWorker {
     fn send_entry_id(&mut self) {
         let entry_id = self.entry_id.clone();
         let msg = RillToServer::Declare { entry_id };
-        self.response(msg);
+        // TODO: Use `Direction::Broadcast` here.
+        self.response(DirectId::from(0), msg);
     }
 
-    fn send_list_for(&mut self, path: &Path) {
+    fn send_list_for(&mut self, direct_id: DirectId, path: &Path) {
         let entries;
         match path.as_ref() {
             [provider] if *provider == self.entry_id => {
@@ -79,7 +89,7 @@ impl RillWorker {
             }
         }
         let msg = RillToServer::Entries { entries };
-        self.response(msg);
+        self.response(direct_id, msg);
     }
 
     fn stop_all(&mut self) {
@@ -126,21 +136,22 @@ impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<RillToProvider>> for RillWorker {
+impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
     async fn handle(
         &mut self,
-        msg: WsIncoming<RillToProvider>,
+        msg: WsIncoming<Envelope<RillToProvider>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        match msg.0 {
+        match msg.0.data {
             RillToProvider::ListOf { path } => {
-                self.send_list_for(&path);
+                self.send_list_for(msg.0.direct_id, &path);
             }
             RillToProvider::ControlStream {
                 entry_id,
                 direct_id,
                 active,
             } => {
+                // TODO: Add `DirectId` to `DirectionSet`
                 if let Some(joint) = self.joints.get(&entry_id) {
                     joint.switch(active);
                 }
@@ -161,7 +172,8 @@ impl ActionHandler<DataEnvelope> for RillWorker {
             direct_id: todo!(), //envelope.entry_id,
             data: envelope.data,
         };
-        self.response(msg);
+        // TODO: Get the `Direction`
+        //self.response(msg);
         Ok(())
     }
 }
