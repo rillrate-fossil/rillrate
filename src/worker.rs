@@ -10,7 +10,7 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
@@ -25,6 +25,16 @@ pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) {
 
 struct JointHolder {
     joint: Box<dyn Joint>,
+    subscribers: HashSet<DirectId>,
+}
+
+impl JointHolder {
+    fn new(joint: Box<dyn Joint>) -> Self {
+        Self {
+            joint,
+            subscribers: HashSet::new(),
+        }
+    }
 }
 
 struct RillWorker {
@@ -109,7 +119,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
         match event {
             ControlEvent::RegisterJoint { joint, rx } => {
                 let entry_id = joint.entry_id().to_owned();
-                let holder = JointHolder { joint };
+                let holder = JointHolder::new(joint);
                 self.joints.insert(entry_id, holder);
                 ctx.address().attach(rx);
             }
@@ -151,19 +161,22 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
             RillToProvider::ListOf { path } => {
                 self.send_list_for(msg.0.direct_id, &path);
             }
-            RillToProvider::ControlStream { path, active } => {
-                match path.as_ref() {
-                    [root, entry_id] if *root == self.entry_id => {
-                        // TODO: Add `DirectId` to `DirectionSet`
-                        if let Some(holder) = self.joints.get(entry_id) {
-                            holder.joint.switch(active);
+            RillToProvider::ControlStream { path, active } => match path.as_ref() {
+                [root, entry_id] if *root == self.entry_id => {
+                    let direct_id = msg.0.direct_id;
+                    if let Some(holder) = self.joints.get_mut(entry_id) {
+                        if active {
+                            holder.subscribers.insert(direct_id);
+                        } else {
+                            holder.subscribers.remove(&direct_id);
                         }
-                    }
-                    _ => {
-                        todo!("subpaths not supported yet");
+                        holder.joint.switch(active);
                     }
                 }
-            }
+                _ => {
+                    todo!("subpaths not supported yet");
+                }
+            },
         }
         Ok(())
     }
@@ -179,6 +192,8 @@ impl ActionHandler<DataEnvelope> for RillWorker {
         let msg = RillToServer::Data {
             data: envelope.data,
         };
+        // TODO: Drop the `Data` if no `DirectId`s remained
+        // Passive filtering
         // TODO: Get the `Direction`
         //self.response(msg);
         Ok(())

@@ -3,14 +3,32 @@ use derive_more::{From, FromStr, Index, Into};
 use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
+use std::collections::HashSet;
 use std::fmt;
 
 pub const PORT: u16 = 1636;
 
 pub enum Direction {
     Direct(DirectId),
-    Multicase(Vec<DirectId>),
+    Multicast(Vec<DirectId>),
     Broadcast,
+}
+
+impl From<&HashSet<DirectId>> for Direction {
+    fn from(set: &HashSet<DirectId>) -> Self {
+        let mut iter = set.iter();
+        match iter.len() {
+            0 => Self::Broadcast,
+            1 => {
+                let direct_id = iter.next().cloned().unwrap();
+                Self::Direct(direct_id)
+            }
+            _ => {
+                let ids = iter.cloned().collect();
+                Self::Multicast(ids)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
