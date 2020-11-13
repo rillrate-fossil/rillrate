@@ -135,8 +135,7 @@ pub enum RillData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToProvider {
     ListOf { path: Path },
-    // TODO: Use `Path` insead of `EntryId`.
-    ControlStream { entry_id: EntryId, active: bool },
+    ControlStream { path: Path, active: bool },
 }
 
 #[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]

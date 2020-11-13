@@ -146,10 +146,17 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
             RillToProvider::ListOf { path } => {
                 self.send_list_for(msg.0.direct_id, &path);
             }
-            RillToProvider::ControlStream { entry_id, active } => {
-                // TODO: Add `DirectId` to `DirectionSet`
-                if let Some(joint) = self.joints.get(&entry_id) {
-                    joint.switch(active);
+            RillToProvider::ControlStream { path, active } => {
+                match path.as_ref() {
+                    [root, entry_id] if *root == self.entry_id => {
+                        // TODO: Add `DirectId` to `DirectionSet`
+                        if let Some(joint) = self.joints.get(entry_id) {
+                            joint.switch(active);
+                        }
+                    }
+                    _ => {
+                        todo!("subpaths not supported yet");
+                    }
                 }
             }
         }
