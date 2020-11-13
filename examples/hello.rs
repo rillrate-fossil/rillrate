@@ -3,6 +3,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Error> {
+    env_logger::try_init()?;
     rill::install("example-hello")?;
     rill::bind_all(&[&module_1::RILL, &module_2::RILL]);
     loop {
@@ -11,7 +12,7 @@ fn main() -> Result<(), Error> {
         log::trace!("Cool!");
         log::warn!("Nice!");
         thread::sleep(Duration::from_millis(10));
-        println!("PING: {:?}", Instant::now());
+        log::trace!("PING: {:?}", Instant::now());
     }
 }
 
