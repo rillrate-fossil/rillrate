@@ -31,6 +31,7 @@ pub struct Provider {
 impl Provider {
     pub fn create(entry_id: EntryId) -> (DataReceiver, Self) {
         let (tx, rx) = mpsc::unbounded();
+        // TODO: Register provider here
         let this = Self {
             entry_id,
             active: AtomicBool::new(false),
@@ -122,7 +123,7 @@ impl StaticJoint {
             .set(provider)
             .expect("provider already initialized");
         let wrapper = StaticJointWrapper { inner: self };
-        let joint: Box<dyn Joint> = Box::new(wrapper);
+        let joint = Box::new(wrapper);
         let event = ControlEvent::RegisterJoint { joint, rx };
         state.send(event);
     }
