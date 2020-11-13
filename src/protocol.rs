@@ -68,6 +68,10 @@ impl fmt::Display for EntryId {
 pub struct Path(Vec<EntryId>);
 
 impl Path {
+    pub fn root() -> Self {
+        Self(Vec::new())
+    }
+
     pub fn concat(&self, other: &[EntryId]) -> Path {
         self.0
             .iter()
@@ -128,5 +132,5 @@ pub enum RillToProvider {
     },
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct DirectId(pub u64);
