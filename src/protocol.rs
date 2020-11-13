@@ -7,6 +7,12 @@ use std::fmt;
 
 pub const PORT: u16 = 1636;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Envelope<T> {
+    pub direct_id: DirectId,
+    pub data: T,
+}
+
 #[derive(Debug)]
 pub struct RillProviderProtocol;
 
