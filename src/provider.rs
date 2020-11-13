@@ -23,6 +23,7 @@ pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 #[derive(Debug)]
 pub struct Provider {
     entry_id: EntryId,
+    /// It's atomic, because it's used from multiple threads by an immutable reference
     active: AtomicBool,
     sender: DataSender,
 }

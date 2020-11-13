@@ -135,7 +135,10 @@ pub enum RillToProvider {
 pub enum RillToServer {
     Declare { entry_id: EntryId },
     Entries { entries: Vec<EntryId> },
+    // Snapshot { data: RillData },
+    BeginStream,
     Data { data: RillData },
+    EndStream,
 }
 
 #[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]

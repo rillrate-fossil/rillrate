@@ -23,11 +23,15 @@ pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) {
     handle.join().await;
 }
 
+struct JointHolder {
+    joint: Box<dyn Joint>,
+}
+
 struct RillWorker {
     url: String,
     entry_id: EntryId,
     sender: Option<WsSender<Envelope<RillToServer>>>,
-    joints: HashMap<EntryId, Box<dyn Joint>>,
+    joints: HashMap<EntryId, JointHolder>,
 }
 
 #[async_trait]
@@ -93,8 +97,8 @@ impl RillWorker {
     }
 
     fn stop_all(&mut self) {
-        for joint in self.joints.values() {
-            joint.switch(false);
+        for holder in self.joints.values() {
+            holder.joint.switch(false);
         }
     }
 }
@@ -105,7 +109,8 @@ impl ActionHandler<ControlEvent> for RillWorker {
         match event {
             ControlEvent::RegisterJoint { joint, rx } => {
                 let entry_id = joint.entry_id().to_owned();
-                self.joints.insert(entry_id, joint);
+                let holder = JointHolder { joint };
+                self.joints.insert(entry_id, holder);
                 ctx.address().attach(rx);
             }
         }
@@ -150,8 +155,8 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
                 match path.as_ref() {
                     [root, entry_id] if *root == self.entry_id => {
                         // TODO: Add `DirectId` to `DirectionSet`
-                        if let Some(joint) = self.joints.get(entry_id) {
-                            joint.switch(active);
+                        if let Some(holder) = self.joints.get(entry_id) {
+                            holder.joint.switch(active);
                         }
                     }
                     _ => {
