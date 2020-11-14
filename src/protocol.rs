@@ -45,13 +45,13 @@ impl From<DirectId> for Direction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestEnvelope<T> {
+pub struct Envelope<T> {
     pub direct_id: DirectId,
     pub data: T,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResponseEnvelope<T> {
+pub struct WideEnvelope<T> {
     pub direction: Direction,
     pub data: T,
 }
@@ -60,8 +60,8 @@ pub struct ResponseEnvelope<T> {
 pub struct RillProviderProtocol;
 
 impl Protocol for RillProviderProtocol {
-    type ToServer = ResponseEnvelope<RillToServer>;
-    type ToClient = RequestEnvelope<RillToProvider>;
+    type ToServer = WideEnvelope<RillToServer>;
+    type ToClient = Envelope<RillToProvider>;
     type Codec = JsonCodec;
 }
 

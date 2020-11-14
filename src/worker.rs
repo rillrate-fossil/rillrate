@@ -1,6 +1,6 @@
 use crate::protocol::{
-    DirectId, Direction, EntryId, Path, RequestEnvelope, ResponseEnvelope, RillProviderProtocol,
-    RillToProvider, RillToServer, PORT,
+    DirectId, Direction, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider,
+    RillToServer, WideEnvelope, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
@@ -43,7 +43,7 @@ impl JointHolder {
 struct RillWorker {
     url: String,
     entry_id: EntryId,
-    sender: Option<WsSender<ResponseEnvelope<RillToServer>>>,
+    sender: Option<WsSender<WideEnvelope<RillToServer>>>,
     // TODO: Keep not Path, but EntryId hierarchy?
     index: HashMap<Path, usize>,
     joints: Slab<JointHolder>,
@@ -82,7 +82,7 @@ impl RillWorker {
 
     fn response(&mut self, direction: Direction, data: RillToServer) {
         if let Some(sender) = self.sender.as_mut() {
-            let envelope = ResponseEnvelope { direction, data };
+            let envelope = WideEnvelope { direction, data };
             sender.send(envelope);
         } else {
             log::error!("Can't send a response. Not connected.");
@@ -165,10 +165,10 @@ impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<RequestEnvelope<RillToProvider>>> for RillWorker {
+impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
     async fn handle(
         &mut self,
-        msg: WsIncoming<RequestEnvelope<RillToProvider>>,
+        msg: WsIncoming<Envelope<RillToProvider>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let direct_id = msg.0.direct_id;
