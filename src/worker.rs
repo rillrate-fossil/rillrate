@@ -40,10 +40,30 @@ impl JointHolder {
     }
 }
 
+#[derive(Default)]
+struct RillSender {
+    sender: Option<WsSender<WideEnvelope<RillToServer>>>,
+}
+
+impl RillSender {
+    fn set(&mut self, sender: WsSender<WideEnvelope<RillToServer>>) {
+        self.sender = Some(sender);
+    }
+
+    fn response(&mut self, direction: Direction, data: RillToServer) {
+        if let Some(sender) = self.sender.as_mut() {
+            let envelope = WideEnvelope { direction, data };
+            sender.send(envelope);
+        } else {
+            log::error!("Can't send a response. Not connected.");
+        }
+    }
+}
+
 struct RillWorker {
     url: String,
     entry_id: EntryId,
-    sender: Option<WsSender<WideEnvelope<RillToServer>>>,
+    sender: RillSender,
     // TODO: Keep not Path, but EntryId hierarchy?
     index: HashMap<Path, usize>,
     joints: Slab<JointHolder>,
@@ -74,25 +94,16 @@ impl RillWorker {
         Self {
             url: link,
             entry_id,
-            sender: None,
+            sender: RillSender::default(),
             index: HashMap::new(),
             joints: Slab::new(),
-        }
-    }
-
-    fn response(&mut self, direction: Direction, data: RillToServer) {
-        if let Some(sender) = self.sender.as_mut() {
-            let envelope = WideEnvelope { direction, data };
-            sender.send(envelope);
-        } else {
-            log::error!("Can't send a response. Not connected.");
         }
     }
 
     fn send_entry_id(&mut self) {
         let entry_id = self.entry_id.clone();
         let msg = RillToServer::Declare { entry_id };
-        self.response(Direction::broadcast(), msg);
+        self.sender.response(Direction::broadcast(), msg);
     }
 
     fn send_list_for(&mut self, direct_id: DirectId, path: &Path) {
@@ -112,7 +123,7 @@ impl RillWorker {
             }
         }
         let msg = RillToServer::Entries { entries };
-        self.response(direct_id.into(), msg);
+        self.sender.response(direct_id.into(), msg);
     }
 
     fn stop_all(&mut self) {
@@ -154,7 +165,7 @@ impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
     ) -> Result<(), Error> {
         match status {
             WsClientStatus::Connected { sender } => {
-                self.sender = Some(sender);
+                self.sender.set(sender);
                 self.send_entry_id();
             }
             WsClientStatus::Failed { reason } => {
@@ -184,10 +195,17 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
                     if let Some(holder) = self.joints.get_mut(*idx) {
                         if active {
                             holder.subscribers.insert(direct_id);
+                            // Send it before the flag switched on
+                            let msg = RillToServer::BeginStream;
+                            self.sender.response(direct_id.into(), msg);
+                            holder.joint.switch(true);
                         } else {
                             holder.subscribers.remove(&direct_id);
+                            holder.joint.switch(false);
+                            // Send it after the flag switched off
+                            let msg = RillToServer::EndStream;
+                            self.sender.response(direct_id.into(), msg);
                         }
-                        holder.joint.switch(active);
                     } else {
                         log::error!("Inconsistent state of the storage: no Joint with the index {} of path {:?}", idx, path);
                     }
@@ -213,7 +231,7 @@ impl ActionHandler<DataEnvelope> for RillWorker {
                 let msg = RillToServer::Data {
                     data: envelope.data,
                 };
-                self.response(direction, msg);
+                self.sender.response(direction, msg);
             } else {
                 // Passive filtering in action:
                 // Never `Broasdcast` data events. If the `Data` message received
