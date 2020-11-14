@@ -3,15 +3,14 @@ use std::thread;
 mod macros;
 pub mod protocol;
 pub mod provider;
+pub mod provider2;
+mod state;
 mod worker;
 
-use once_cell::sync::OnceCell;
 use protocol::EntryId;
 pub use provider::StaticJoint;
-use provider::{ControlEvent, ControlReceiver, RillState};
+use state::{RillState, RILL_STATE};
 use thiserror::Error;
-
-static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
 #[derive(Debug, Error)]
 pub enum Error {

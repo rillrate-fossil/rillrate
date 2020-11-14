@@ -1,8 +1,8 @@
-use super::{ControlEvent, ControlReceiver};
 use crate::protocol::{
     DirectId, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider, RillToServer, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
+use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
@@ -123,6 +123,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 self.joints.insert(entry_id, holder);
                 ctx.address().attach(rx);
             }
+            ControlEvent::RegisterJoint2(joint) => {}
         }
         Ok(())
     }

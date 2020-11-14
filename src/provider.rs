@@ -1,4 +1,5 @@
 use crate::protocol::{EntryId, Path, RillData};
+use crate::state::{ControlEvent, RILL_STATE};
 use derive_more::From;
 use futures::channel::mpsc;
 use meio::Action;
@@ -62,6 +63,7 @@ impl Provider {
     }
 }
 
+/// The goal of this trait to give a reference to the `Provider`.
 pub trait Joint: Deref<Target = Provider> + Sync + Send {
     fn module(&self) -> &str;
 }
@@ -114,7 +116,7 @@ impl StaticJoint {
     }
 
     pub fn register(&'static self) {
-        let state = crate::RILL_STATE.get().expect("rill not installed!");
+        let state = RILL_STATE.get().expect("rill not installed!");
         let entry_id = EntryId::from(self.module);
         // IMPORTANT: Initialize `Provider` here to create the channel before it
         // will be used by the user.
@@ -201,35 +203,4 @@ impl DynamicJoint {
 struct DynamicJointInner {
     module: String,
     provider: Provider,
-}
-
-pub enum ControlEvent {
-    // TODO: Use the single `RegisterAllJoints` event with no `Completed` variant.
-    RegisterJoint {
-        joint: Box<dyn Joint>,
-        rx: DataReceiver,
-    },
-}
-
-impl Action for ControlEvent {}
-
-pub type ControlSender = mpsc::UnboundedSender<ControlEvent>;
-pub type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
-
-pub struct RillState {
-    sender: ControlSender,
-}
-
-impl RillState {
-    pub fn create() -> (ControlReceiver, Self) {
-        let (tx, rx) = mpsc::unbounded();
-        let this = Self { sender: tx };
-        (rx, this)
-    }
-
-    fn send(&self, event: ControlEvent) {
-        self.sender
-            .unbounded_send(event)
-            .expect("rill actors not started");
-    }
 }
