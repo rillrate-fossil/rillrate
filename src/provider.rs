@@ -1,18 +1,13 @@
-use crate::protocol::{EntryId, Path, RillData};
+use crate::protocol::{EntryId, RillData};
 use crate::state::{ControlEvent, RILL_STATE};
-use derive_more::From;
 use futures::channel::mpsc;
 use meio::Action;
-use once_cell::sync::OnceCell;
-use std::ops::Deref;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Keeps `EntryId` and implements `Action`.
 #[derive(Debug)]
 pub struct DataEnvelope {
-    pub entry_id: EntryId,
+    pub idx: usize,
     pub data: RillData,
 }
 
@@ -21,186 +16,60 @@ impl Action for DataEnvelope {}
 pub type DataSender = mpsc::UnboundedSender<DataEnvelope>;
 pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
-#[derive(Debug)]
-pub struct Provider {
-    entry_id: EntryId,
-    /// It's atomic, because it's used from multiple threads by an immutable reference
+/// Used to control the streams and interaction between a sender and a receiver.
+#[derive(Debug, Default)]
+pub struct Joint {
+    idx: AtomicUsize,
     active: AtomicBool,
-    sender: DataSender,
 }
 
-impl Provider {
-    pub fn create(entry_id: EntryId) -> (DataReceiver, Self) {
-        let (tx, rx) = mpsc::unbounded();
-        // TODO: Register provider here
-        let this = Self {
-            entry_id,
-            active: AtomicBool::new(false),
-            sender: tx,
-        };
-        (rx, this)
-    }
-
-    pub fn entry_id(&self) -> &EntryId {
-        &self.entry_id
+impl Joint {
+    pub fn is_active(&self) -> bool {
+        self.active.load(Ordering::Relaxed)
     }
 
     pub fn switch(&self, active: bool) {
         self.active.store(active, Ordering::Relaxed);
     }
 
-    pub fn is_active(&self) -> bool {
-        self.active.load(Ordering::Relaxed)
+    pub fn assign(&self, idx: usize) {
+        self.idx.store(idx, Ordering::Relaxed);
+    }
+
+    pub fn index(&self) -> usize {
+        self.idx.load(Ordering::Relaxed)
+    }
+}
+
+#[derive(Debug)]
+pub struct Provider {
+    joint: Arc<Joint>,
+    sender: DataSender,
+}
+
+impl Provider {
+    pub fn new(entry_id: EntryId) -> Self {
+        let (tx, rx) = mpsc::unbounded();
+        let joint = Arc::new(Joint::default());
+        let this = Provider {
+            joint: joint.clone(),
+            sender: tx,
+        };
+        let event = ControlEvent::RegisterJoint {
+            entry_id,
+            joint,
+            rx,
+        };
+        let state = RILL_STATE.get().expect("rill not installed!");
+        state.send(event);
+        this
     }
 
     fn send(&self, data: RillData) {
         let envelope = DataEnvelope {
-            // TODO: Use `DirectId` here, or nothing.
-            entry_id: self.entry_id.clone(),
+            idx: self.joint.index(),
             data,
         };
         self.sender.unbounded_send(envelope).ok();
     }
-}
-
-/// The goal of this trait to give a reference to the `Provider`.
-pub trait Joint: Deref<Target = Provider> + Sync + Send {
-    fn module(&self) -> &str;
-}
-
-impl dyn Joint {
-    pub fn path(&self) -> Path {
-        self.module()
-            .split("::")
-            .map(EntryId::from)
-            .collect::<Vec<_>>()
-            .into()
-    }
-}
-
-#[derive(Clone, From)]
-pub struct StaticJointWrapper {
-    inner: &'static StaticJoint,
-}
-
-impl Deref for StaticJointWrapper {
-    type Target = Provider;
-
-    fn deref(&self) -> &Provider {
-        self.inner
-            .provider
-            .get()
-            .expect("not registered StaticJoint")
-    }
-}
-
-/// Statically embedded provider, recommended for languages that supports
-/// `const` expressions.
-pub struct StaticJoint {
-    module: &'static str,
-    provider: OnceCell<Provider>,
-}
-
-impl Joint for StaticJointWrapper {
-    fn module(&self) -> &str {
-        self.inner.module
-    }
-}
-
-impl StaticJoint {
-    pub const fn new(module: &'static str) -> Self {
-        Self {
-            module,
-            provider: OnceCell::new(),
-        }
-    }
-
-    pub fn register(&'static self) {
-        let state = RILL_STATE.get().expect("rill not installed!");
-        let entry_id = EntryId::from(self.module);
-        // IMPORTANT: Initialize `Provider` here to create the channel before it
-        // will be used by the user.
-        let (rx, provider) = Provider::create(entry_id);
-        self.provider
-            .set(provider)
-            .expect("provider already initialized");
-        let wrapper = StaticJointWrapper { inner: self };
-        let joint = Box::new(wrapper);
-        let event = ControlEvent::RegisterJoint { joint, rx };
-        state.send(event);
-    }
-
-    pub fn log(&self, message: String) {
-        if let Some(provider) = self.provider.get() {
-            let now = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_millis();
-            let data = RillData::LogRecord {
-                timestamp: now as i64, //TODO: Change to u128 instead?
-                message,
-            };
-            provider.send(data);
-        }
-    }
-}
-
-/// Provides data from a dynamic environment.
-#[derive(Clone)]
-pub struct DynamicJoint {
-    inner: Arc<DynamicJointInner>,
-}
-
-impl Deref for DynamicJoint {
-    type Target = Provider;
-
-    fn deref(&self) -> &Provider {
-        &self.inner.provider
-    }
-}
-
-impl Joint for DynamicJoint {
-    fn module(&self) -> &str {
-        &self.inner.module
-    }
-}
-
-impl DynamicJoint {
-    pub fn create_and_register(module: &str) -> Self {
-        let state = crate::RILL_STATE.get().expect("rill not installed!");
-        let entry_id = EntryId::from(module);
-        let (rx, provider) = Provider::create(entry_id);
-        let inner = DynamicJointInner {
-            module: module.to_string(),
-            provider,
-        };
-        let joint = Self {
-            inner: Arc::new(inner),
-        };
-        // Registering
-        let boxed_joint: Box<dyn Joint> = Box::new(joint.clone());
-        let event = ControlEvent::RegisterJoint {
-            joint: boxed_joint,
-            rx,
-        };
-        state.send(event);
-        joint
-    }
-
-    pub fn log(&self, message: String) {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
-        let data = RillData::LogRecord {
-            timestamp: now as i64, //TODO: Change to u128 instead?
-            message,
-        };
-        self.send(data);
-    }
-}
-
-struct DynamicJointInner {
-    module: String,
-    provider: Provider,
 }

@@ -3,12 +3,11 @@ use std::thread;
 mod macros;
 pub mod protocol;
 pub mod provider;
-pub mod provider2;
 mod state;
 mod worker;
 
 use protocol::EntryId;
-pub use provider::StaticJoint;
+//pub use provider::StaticJoint;
 use state::{RillState, RILL_STATE};
 use thiserror::Error;
 
@@ -26,8 +25,10 @@ pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     Ok(())
 }
 
+/*
 pub fn bind_all(providers: &[&'static StaticJoint]) {
     for provider in providers {
         provider.register();
     }
 }
+*/

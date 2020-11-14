@@ -2,7 +2,6 @@ use crate::protocol::{
     DirectId, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider, RillToServer, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
-use crate::provider2;
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -27,12 +26,12 @@ pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) {
 }
 
 struct JointHolder {
-    joint: Arc<provider2::Joint>,
+    joint: Arc<Joint>,
     subscribers: HashSet<DirectId>,
 }
 
 impl JointHolder {
-    fn new(joint: Arc<provider2::Joint>) -> Self {
+    fn new(joint: Arc<Joint>) -> Self {
         Self {
             joint,
             subscribers: HashSet::new(),
@@ -127,10 +126,7 @@ impl RillWorker {
 impl ActionHandler<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterJoint { joint, rx } => {
-                // TODO: Remove the branch!
-            }
-            ControlEvent::RegisterJoint2 {
+            ControlEvent::RegisterJoint {
                 entry_id,
                 joint,
                 rx,
@@ -209,24 +205,6 @@ impl ActionHandler<DataEnvelope> for RillWorker {
     async fn handle(
         &mut self,
         envelope: DataEnvelope,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let msg = RillToServer::Data {
-            data: envelope.data,
-        };
-        // TODO: Drop the `Data` if no `DirectId`s remained
-        // Passive filtering
-        // TODO: Get the `Direction`
-        //self.response(msg);
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl ActionHandler<provider2::DataEnvelope> for RillWorker {
-    async fn handle(
-        &mut self,
-        envelope: provider2::DataEnvelope,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let msg = RillToServer::Data {

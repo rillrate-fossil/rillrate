@@ -1,5 +1,5 @@
 use crate::protocol::EntryId;
-use crate::{provider, provider2};
+use crate::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
@@ -8,15 +8,10 @@ use std::sync::Arc;
 pub static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
 pub enum ControlEvent {
-    // TODO: Use the single `RegisterAllJoints` event with no `Completed` variant.
     RegisterJoint {
-        joint: Box<dyn provider::Joint>,
-        rx: provider::DataReceiver,
-    },
-    RegisterJoint2 {
         entry_id: EntryId,
-        joint: Arc<provider2::Joint>,
-        rx: provider2::DataReceiver,
+        joint: Arc<Joint>,
+        rx: DataReceiver,
     },
 }
 
