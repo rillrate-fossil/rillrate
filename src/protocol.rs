@@ -8,10 +8,17 @@ use std::fmt;
 
 pub const PORT: u16 = 1636;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Direction {
     Direct(DirectId),
     Multicast(Vec<DirectId>),
     Broadcast,
+}
+
+impl Direction {
+    pub fn broadcast() -> Self {
+        Self::Broadcast
+    }
 }
 
 impl From<&HashSet<DirectId>> for Direction {
@@ -31,10 +38,21 @@ impl From<&HashSet<DirectId>> for Direction {
     }
 }
 
+impl From<DirectId> for Direction {
+    fn from(direct_id: DirectId) -> Self {
+        Self::Direct(direct_id)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Envelope<T> {
-    // TODO: Use Direction here
+pub struct RequestEnvelope<T> {
     pub direct_id: DirectId,
+    pub data: T,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseEnvelope<T> {
+    pub direction: Direction,
     pub data: T,
 }
 
@@ -42,8 +60,8 @@ pub struct Envelope<T> {
 pub struct RillProviderProtocol;
 
 impl Protocol for RillProviderProtocol {
-    type ToServer = Envelope<RillToServer>;
-    type ToClient = Envelope<RillToProvider>;
+    type ToServer = ResponseEnvelope<RillToServer>;
+    type ToClient = RequestEnvelope<RillToProvider>;
     type Codec = JsonCodec;
 }
 

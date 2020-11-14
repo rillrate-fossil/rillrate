@@ -1,6 +1,6 @@
 use crate::protocol::{
-    DirectId, Direction, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider,
-    RillToServer, PORT,
+    DirectId, Direction, EntryId, Path, RequestEnvelope, ResponseEnvelope, RillProviderProtocol,
+    RillToProvider, RillToServer, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
@@ -43,7 +43,7 @@ impl JointHolder {
 struct RillWorker {
     url: String,
     entry_id: EntryId,
-    sender: Option<WsSender<Envelope<RillToServer>>>,
+    sender: Option<WsSender<ResponseEnvelope<RillToServer>>>,
     // TODO: Keep not Path, but EntryId hierarchy?
     index: HashMap<Path, usize>,
     joints: Slab<JointHolder>,
@@ -80,23 +80,19 @@ impl RillWorker {
         }
     }
 
-    fn response(&mut self, direct_id: DirectId, msg: RillToServer) {
+    fn response(&mut self, direction: Direction, data: RillToServer) {
         if let Some(sender) = self.sender.as_mut() {
-            let envelope = Envelope {
-                direct_id,
-                data: msg,
-            };
+            let envelope = ResponseEnvelope { direction, data };
             sender.send(envelope);
         } else {
-            //log::error!("Can't send a response. Not connected.");
+            log::error!("Can't send a response. Not connected.");
         }
     }
 
     fn send_entry_id(&mut self) {
         let entry_id = self.entry_id.clone();
         let msg = RillToServer::Declare { entry_id };
-        // TODO: Use `Direction::Broadcast` here.
-        self.response(DirectId::from(0), msg);
+        self.response(Direction::broadcast(), msg);
     }
 
     fn send_list_for(&mut self, direct_id: DirectId, path: &Path) {
@@ -169,20 +165,20 @@ impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
+impl ActionHandler<WsIncoming<RequestEnvelope<RillToProvider>>> for RillWorker {
     async fn handle(
         &mut self,
-        msg: WsIncoming<Envelope<RillToProvider>>,
+        msg: WsIncoming<RequestEnvelope<RillToProvider>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let direct_id = msg.0.direct_id;
         match msg.0.data {
             RillToProvider::ListOf { path } => {
-                self.send_list_for(msg.0.direct_id, &path);
+                self.send_list_for(direct_id.into(), &path);
             }
             RillToProvider::ControlStream { path, active } => {
                 if let Some(idx) = self.index.get(&path) {
                     if let Some(holder) = self.joints.get_mut(*idx) {
-                        let direct_id = msg.0.direct_id;
                         if active {
                             holder.subscribers.insert(direct_id);
                         } else {
@@ -211,12 +207,10 @@ impl ActionHandler<DataEnvelope> for RillWorker {
         if let Some(holder) = self.joints.get(envelope.idx) {
             if !holder.subscribers.is_empty() {
                 let direction = Direction::from(&holder.subscribers);
-                if let Direction::Direct(direct_id) = direction {
-                    let msg = RillToServer::Data {
-                        data: envelope.data,
-                    };
-                    self.response(direct_id, msg);
-                }
+                let msg = RillToServer::Data {
+                    data: envelope.data,
+                };
+                self.response(direction, msg);
             } else {
                 // Passive filtering in action:
                 // Never `Broasdcast` data events. If the `Data` message received
