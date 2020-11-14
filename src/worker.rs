@@ -122,6 +122,7 @@ impl RillWorker {
                 entries = Vec::new();
             }
         }
+        log::trace!("Entries list: {:?}", entries);
         let msg = RillToServer::Entries { entries };
         self.sender.response(direct_id.into(), msg);
     }
@@ -148,7 +149,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 let holder = JointHolder::new(joint);
                 entry.insert(holder);
                 ctx.address().attach(rx);
-                let path = Path::from(vec![self.entry_id.clone(), entry_id]);
+                let path = Path::from(vec![entry_id]);
                 self.index.insert(path, idx);
             }
         }
