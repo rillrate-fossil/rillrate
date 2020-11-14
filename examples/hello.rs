@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     rill::install("example-hello")?;
-    rill::bind_all(&[&module_1::RILL, &module_2::RILL]);
+    //rill::bind_all(&[&module_1::RILL, &module_2::RILL]);
     loop {
         module_1::work();
         module_2::work();
@@ -17,7 +17,7 @@ fn main() -> Result<(), Error> {
 }
 
 mod module_1 {
-    rill::attach_logger!();
+    rill::provider!();
 
     pub fn work() {
         rill::log!("work module_1 called".into());
@@ -25,7 +25,7 @@ mod module_1 {
 }
 
 mod module_2 {
-    rill::attach_logger!();
+    rill::provider!();
 
     pub fn work() {
         rill::log!("work module_2 called".into());

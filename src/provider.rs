@@ -1,9 +1,11 @@
 use crate::protocol::{EntryId, RillData};
 use crate::state::{ControlEvent, RILL_STATE};
+use derive_more::Deref;
 use futures::channel::mpsc;
 use meio::Action;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug)]
 pub struct DataEnvelope {
@@ -41,13 +43,15 @@ impl Joint {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deref)]
 pub struct Provider {
+    #[deref]
     joint: Arc<Joint>,
     sender: DataSender,
 }
 
 impl Provider {
+    // TODO: Add type of the stream...
     pub fn new(entry_id: EntryId) -> Self {
         let (tx, rx) = mpsc::unbounded();
         let joint = Arc::new(Joint::default());
@@ -71,5 +75,17 @@ impl Provider {
             data,
         };
         self.sender.unbounded_send(envelope).ok();
+    }
+
+    pub fn log(&self, message: String) {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
+        let data = RillData::LogRecord {
+            timestamp: now as i64, //TODO: Change to u128 instead?
+            message,
+        };
+        self.send(data);
     }
 }

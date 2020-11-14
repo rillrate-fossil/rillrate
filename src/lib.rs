@@ -6,8 +6,9 @@ pub mod provider;
 mod state;
 mod worker;
 
-use protocol::EntryId;
-//pub use provider::StaticJoint;
+pub use once_cell::sync::Lazy;
+pub use protocol::EntryId;
+pub use provider::Provider;
 use state::{RillState, RILL_STATE};
 use thiserror::Error;
 
@@ -24,11 +25,3 @@ pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     thread::spawn(move || worker::entrypoint(entry_id, rx));
     Ok(())
 }
-
-/*
-pub fn bind_all(providers: &[&'static StaticJoint]) {
-    for provider in providers {
-        provider.register();
-    }
-}
-*/
