@@ -1,5 +1,5 @@
 use anyhow::Error;
-use derive_more::{From, FromStr, Index, Into};
+use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
@@ -112,7 +112,19 @@ impl fmt::Display for EntryId {
 }
 
 #[derive(
-    Debug, Clone, From, Into, Index, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash,
+    Debug,
+    Clone,
+    Deref,
+    From,
+    Into,
+    Index,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
 )]
 pub struct Path(Vec<EntryId>);
 
