@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::fmt;
+use std::str::FromStr;
+use thiserror::Error;
 
 pub const PORT: u16 = 1636;
 
@@ -160,6 +162,20 @@ impl AsRef<[EntryId]> for Path {
 impl ToString for Path {
     fn to_string(&self) -> String {
         self.0.join(".")
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum PathError {
+    // Never constructed yet, because paths never fail now.
+}
+
+impl FromStr for Path {
+    type Err = PathError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let entries: Vec<_> = s.split('.').map(EntryId::from).collect();
+        Ok(Path::from(entries))
     }
 }
 
