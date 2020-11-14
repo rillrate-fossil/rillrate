@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct DataEnvelope {
+    pub idx: usize,
     pub data: RillData,
 }
 
@@ -34,6 +35,10 @@ impl Joint {
     pub fn assign(&self, idx: usize) {
         self.idx.store(idx, Ordering::Relaxed);
     }
+
+    pub fn index(&self) -> usize {
+        self.idx.load(Ordering::Relaxed)
+    }
 }
 
 #[derive(Debug)]
@@ -58,5 +63,13 @@ impl Provider {
         let state = RILL_STATE.get().expect("rill not installed!");
         state.send(event);
         this
+    }
+
+    fn send(&self, data: RillData) {
+        let envelope = DataEnvelope {
+            idx: self.joint.index(),
+            data,
+        };
+        self.sender.unbounded_send(envelope).ok();
     }
 }
