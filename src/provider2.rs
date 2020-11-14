@@ -1,6 +1,7 @@
 use crate::protocol::{EntryId, RillData};
 use crate::state::{ControlEvent, RILL_STATE};
 use futures::channel::mpsc;
+use meio::Action;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -8,6 +9,8 @@ use std::sync::Arc;
 pub struct DataEnvelope {
     pub data: RillData,
 }
+
+impl Action for DataEnvelope {}
 
 pub type DataSender = mpsc::UnboundedSender<DataEnvelope>;
 pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
@@ -20,20 +23,24 @@ pub struct Joint {
     active: AtomicBool,
 }
 
+impl Joint {
+    pub fn entry_id(&self) -> &EntryId {
+        &self.entry_id
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.active.load(Ordering::Relaxed)
+    }
+
+    pub fn switch(&self, active: bool) {
+        self.active.store(active, Ordering::Relaxed);
+    }
+}
+
 #[derive(Debug)]
 pub struct Provider {
     joint: Arc<Joint>,
     sender: DataSender,
-}
-
-impl Provider {
-    pub fn is_active(&self) -> bool {
-        self.joint.active.load(Ordering::Relaxed)
-    }
-
-    pub fn switch(&self, active: bool) {
-        self.joint.active.store(active, Ordering::Relaxed);
-    }
 }
 
 impl Provider {
@@ -48,19 +55,9 @@ impl Provider {
             joint: joint.clone(),
             sender: tx,
         };
-        let msg = RegisterJoint {
-            joint: joint.clone(),
-            receiver: rx,
-        };
-        let event = ControlEvent::RegisterJoint2(msg);
+        let event = ControlEvent::RegisterJoint2 { joint, rx };
         let state = RILL_STATE.get().expect("rill not installed!");
         state.send(event);
         this
     }
-}
-
-#[derive(Debug)]
-pub struct RegisterJoint {
-    joint: Arc<Joint>,
-    receiver: DataReceiver,
 }

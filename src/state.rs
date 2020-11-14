@@ -2,6 +2,7 @@ use crate::{provider, provider2};
 use futures::channel::mpsc;
 use meio::Action;
 use once_cell::sync::OnceCell;
+use std::sync::Arc;
 
 pub static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
@@ -11,7 +12,10 @@ pub enum ControlEvent {
         joint: Box<dyn provider::Joint>,
         rx: provider::DataReceiver,
     },
-    RegisterJoint2(provider2::RegisterJoint),
+    RegisterJoint2 {
+        joint: Arc<provider2::Joint>,
+        rx: provider2::DataReceiver,
+    },
 }
 
 impl Action for ControlEvent {}
