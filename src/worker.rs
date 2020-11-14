@@ -1,5 +1,6 @@
 use crate::protocol::{
-    DirectId, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider, RillToServer, PORT,
+    DirectId, Direction, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider,
+    RillToServer, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
@@ -109,7 +110,7 @@ impl RillWorker {
                 entries = Vec::new();
             }
         }
-        /* TODO: Fix!
+        /* TODO: Fix with `Direction`
         let msg = RillToServer::Entries { entries };
         self.response(direct_id, msg);
         */
@@ -207,13 +208,23 @@ impl ActionHandler<DataEnvelope> for RillWorker {
         envelope: DataEnvelope,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let msg = RillToServer::Data {
-            data: envelope.data,
-        };
-        // TODO: Drop the `Data` if no `DirectId`s remained
-        // Passive filtering
-        // TODO: Get the `Direction`
-        //self.response(msg);
+        if let Some(holder) = self.joints.get(envelope.idx) {
+            if !holder.subscribers.is_empty() {
+                let direction = Direction::from(&holder.subscribers);
+                if let Direction::Direct(direct_id) = direction {
+                    let msg = RillToServer::Data {
+                        data: envelope.data,
+                    };
+                    self.response(direct_id, msg);
+                }
+            } else {
+                // Passive filtering in action:
+                // Never `Broasdcast` data events. If the `Data` message received
+                // for the empty subscribers list that means it was the late unprocessed
+                // data generated before the stream was deactivated.
+                // This late data has to be dropped.
+            }
+        }
         Ok(())
     }
 }
