@@ -11,6 +11,7 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
+use slab::Slab;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
@@ -43,7 +44,10 @@ struct RillWorker {
     url: String,
     entry_id: EntryId,
     sender: Option<WsSender<Envelope<RillToServer>>>,
-    joints: HashMap<EntryId, JointHolder>,
+    // TODO: Keep not Path, but EntryId hierarchy?
+    index: HashMap<Path, usize>,
+    joints: Slab<JointHolder>,
+    //joints: HashMap<EntryId, JointHolder>,
 }
 
 #[async_trait]
@@ -71,7 +75,8 @@ impl RillWorker {
             url: link,
             entry_id,
             sender: None,
-            joints: HashMap::new(),
+            index: HashMap::new(),
+            joints: Slab::new(),
         }
     }
 
@@ -98,18 +103,21 @@ impl RillWorker {
         let entries;
         match path.as_ref() {
             [provider] if *provider == self.entry_id => {
-                entries = self.joints.keys().cloned().collect();
+                // TODO: Filter paths by prefix or len!
+                entries = self.index.keys().cloned().collect();
             }
             _ => {
                 entries = Vec::new();
             }
         }
+        /* TODO: Fix!
         let msg = RillToServer::Entries { entries };
         self.response(direct_id, msg);
+        */
     }
 
     fn stop_all(&mut self) {
-        for holder in self.joints.values() {
+        for (_, holder) in self.joints.iter_mut() {
             holder.joint.switch(false);
         }
     }
@@ -127,9 +135,14 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 joint,
                 rx,
             } => {
+                let entry = self.joints.vacant_entry();
+                let idx = entry.key();
+                joint.assign(idx);
                 let holder = JointHolder::new(joint);
-                self.joints.insert(entry_id, holder);
+                entry.insert(holder);
                 ctx.address().attach(rx);
+                let path = Path::from(vec![self.entry_id.clone(), entry_id]);
+                self.index.insert(path, idx);
             }
         }
         Ok(())
@@ -169,22 +182,23 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
             RillToProvider::ListOf { path } => {
                 self.send_list_for(msg.0.direct_id, &path);
             }
-            RillToProvider::ControlStream { path, active } => match path.as_ref() {
-                [root, entry_id] if *root == self.entry_id => {
-                    let direct_id = msg.0.direct_id;
-                    if let Some(holder) = self.joints.get_mut(entry_id) {
+            RillToProvider::ControlStream { path, active } => {
+                if let Some(idx) = self.index.get(&path) {
+                    if let Some(holder) = self.joints.get_mut(*idx) {
+                        let direct_id = msg.0.direct_id;
                         if active {
                             holder.subscribers.insert(direct_id);
                         } else {
                             holder.subscribers.remove(&direct_id);
                         }
                         holder.joint.switch(active);
+                    } else {
+                        log::error!("Inconsistent state of the storage: no Joint with the index {} of path {:?}", idx, path);
                     }
+                } else {
+                    log::warn!("Path not found: {:?}", path);
                 }
-                _ => {
-                    todo!("subpaths not supported yet");
-                }
-            },
+            }
         }
         Ok(())
     }

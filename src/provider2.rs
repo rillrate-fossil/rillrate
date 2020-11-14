@@ -30,6 +30,10 @@ impl Joint {
     pub fn switch(&self, active: bool) {
         self.active.store(active, Ordering::Relaxed);
     }
+
+    pub fn assign(&self, idx: usize) {
+        self.idx.store(idx, Ordering::Relaxed);
+    }
 }
 
 #[derive(Debug)]
