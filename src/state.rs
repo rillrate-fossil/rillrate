@@ -1,3 +1,4 @@
+use crate::protocol::EntryId;
 use crate::{provider, provider2};
 use futures::channel::mpsc;
 use meio::Action;
@@ -13,6 +14,7 @@ pub enum ControlEvent {
         rx: provider::DataReceiver,
     },
     RegisterJoint2 {
+        entry_id: EntryId,
         joint: Arc<provider2::Joint>,
         rx: provider2::DataReceiver,
     },

@@ -122,8 +122,11 @@ impl ActionHandler<ControlEvent> for RillWorker {
             ControlEvent::RegisterJoint { joint, rx } => {
                 // TODO: Remove the branch!
             }
-            ControlEvent::RegisterJoint2 { joint, rx } => {
-                let entry_id = joint.entry_id().to_owned();
+            ControlEvent::RegisterJoint2 {
+                entry_id,
+                joint,
+                rx,
+            } => {
                 let holder = JointHolder::new(joint);
                 self.joints.insert(entry_id, holder);
                 ctx.address().attach(rx);
