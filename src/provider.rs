@@ -53,6 +53,7 @@ pub struct Provider {
 impl Provider {
     // TODO: Add type of the stream...
     pub fn new(entry_id: EntryId) -> Self {
+        log::trace!("Creating Provider with id: {:?}", entry_id);
         let (tx, rx) = mpsc::unbounded();
         let joint = Arc::new(Joint::default());
         let this = Provider {

@@ -25,3 +25,7 @@ pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     thread::spawn(move || worker::entrypoint(entry_id, rx));
     Ok(())
 }
+
+pub fn awake(provider: &Lazy<Provider>) {
+    Lazy::force(provider);
+}

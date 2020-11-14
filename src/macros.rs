@@ -1,7 +1,5 @@
 // TODO: Imports here instad of the root module?
 
-// TODO: Use `$crate` instead?
-
 #[macro_export]
 macro_rules! provider {
     () => {

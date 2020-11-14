@@ -5,7 +5,8 @@ use std::time::{Duration, Instant};
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     rill::install("example-hello")?;
-    //rill::bind_all(&[&module_1::RILL, &module_2::RILL]);
+    rill::awake(module_1::RILL);
+    rill::awake(module_2::RILL);
     loop {
         module_1::work();
         module_2::work();
