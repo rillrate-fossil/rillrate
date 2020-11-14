@@ -144,12 +144,20 @@ impl Path {
             .into()
     }
 
+    #[deprecated(since = "0.4.0", note = "Use `split` method instead.")]
     pub fn subpath(&self, drop_left: usize) -> Path {
         self.0[drop_left..]
             .iter()
             .cloned()
             .collect::<Vec<_>>()
             .into()
+    }
+
+    pub fn split(&self) -> (Option<EntryId>, Path) {
+        let mut iter = self.0.iter().cloned();
+        let entry_id = iter.next();
+        let path = Path::from(iter.collect::<Vec<_>>());
+        (entry_id, path)
     }
 }
 
