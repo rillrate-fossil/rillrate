@@ -100,16 +100,19 @@ impl RillWorker {
         match path.as_ref() {
             [provider] if *provider == self.entry_id => {
                 // TODO: Filter paths by prefix or len!
-                entries = self.index.keys().cloned().collect();
+                entries = self
+                    .index
+                    .keys()
+                    .filter_map(|path| path.as_ref().get(0))
+                    .cloned()
+                    .collect();
             }
             _ => {
                 entries = Vec::new();
             }
         }
-        /* TODO: Fix with `Direction`
         let msg = RillToServer::Entries { entries };
-        self.response(direct_id, msg);
-        */
+        self.response(direct_id.into(), msg);
     }
 
     fn stop_all(&mut self) {
