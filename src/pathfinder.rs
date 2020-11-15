@@ -1,7 +1,6 @@
 use crate::protocol::{EntryId, Path};
 use derive_more::{Deref, DerefMut};
 use std::collections::HashMap;
-use std::iter::FromIterator;
 
 #[derive(Debug)]
 pub struct Record<T> {
@@ -42,15 +41,18 @@ impl<T> Record<T> {
     pub fn discover(&self, path: &Path) -> Discovered<'_, T> {
         let mut record = self;
         let mut iter = path.as_ref().iter();
+        let mut remained = Vec::new();
         while let Some(element) = iter.next() {
             if let Some(next_record) = record.subs.get(element) {
                 record = next_record;
             } else {
+                remained.push(element.clone());
                 break;
             }
         }
+        remained.extend(iter.cloned());
         Discovered {
-            remained_path: Path::from_iter(iter),
+            remained_path: Path::from(remained),
             record,
         }
     }
