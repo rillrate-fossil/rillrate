@@ -109,3 +109,11 @@ impl<T> Record<T> {
 pub struct Pathfinder<T> {
     root: Record<T>,
 }
+
+impl<T> Pathfinder<T> {
+    pub fn new() -> Self {
+        Self {
+            root: Record::default(),
+        }
+    }
+}
