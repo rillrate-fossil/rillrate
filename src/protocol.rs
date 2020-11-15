@@ -6,31 +6,41 @@ use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::fmt;
 use std::iter::FromIterator;
+use std::marker::PhantomData;
 use std::str::FromStr;
 use thiserror::Error;
 
 pub const PORT: u16 = 1636;
 
+/// The protocol is `Origin` in this case.
+pub type RillOrigin = RillProviderProtocol;
+
+impl Origin for RillOrigin {}
+
+/// The origin of `DirectId`.
+pub trait Origin: Default + Clone {}
+
 #[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct DirectId {
+pub struct DirectId<T: Origin> {
     value: u64,
+    origin: PhantomData<T>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Direction {
-    Direct(DirectId),
-    Multicast(Vec<DirectId>),
+pub enum Direction<T: Origin> {
+    Direct(DirectId<T>),
+    Multicast(Vec<DirectId<T>>),
     Broadcast,
 }
 
-impl Direction {
+impl<T: Origin> Direction<T> {
     pub fn broadcast() -> Self {
         Self::Broadcast
     }
 }
 
-impl From<&HashSet<DirectId>> for Direction {
-    fn from(set: &HashSet<DirectId>) -> Self {
+impl<T: Origin> From<&HashSet<DirectId<T>>> for Direction<T> {
+    fn from(set: &HashSet<DirectId<T>>) -> Self {
         let mut iter = set.iter();
         match iter.len() {
             0 => Self::Broadcast,
@@ -46,8 +56,8 @@ impl From<&HashSet<DirectId>> for Direction {
     }
 }
 
-impl From<DirectId> for Direction {
-    fn from(direct_id: DirectId) -> Self {
+impl<T: Origin> From<DirectId<T>> for Direction<T> {
+    fn from(direct_id: DirectId<T>) -> Self {
         Self::Direct(direct_id)
     }
 }
@@ -186,23 +196,23 @@ impl ProtocolCodec for JsonCodec {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Envelope<T> {
-    pub direct_id: DirectId,
-    pub data: T,
+pub struct Envelope<T: Origin, D> {
+    pub direct_id: DirectId<T>,
+    pub data: D,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WideEnvelope<T> {
-    pub direction: Direction,
-    pub data: T,
+pub struct WideEnvelope<T: Origin, D> {
+    pub direction: Direction<T>,
+    pub data: D,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct RillProviderProtocol;
 
 impl Protocol for RillProviderProtocol {
-    type ToServer = WideEnvelope<RillToServer>;
-    type ToClient = Envelope<RillToProvider>;
+    type ToServer = WideEnvelope<Self, RillToServer>;
+    type ToClient = Envelope<Self, RillToProvider>;
     type Codec = JsonCodec;
 }
 
