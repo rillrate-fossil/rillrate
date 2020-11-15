@@ -41,6 +41,22 @@ impl<T> Record<T> {
         Some(record)
     }
 
+    pub fn find(&self, path: &Path) -> (&Self, Path) {
+        let mut record = self;
+        let mut iter = path.as_ref().iter();
+        let mut rem_path = Vec::new();
+        while let Some(element) = iter.next() {
+            if let Some(next_record) = record.subs.get(element) {
+                record = next_record;
+            } else {
+                rem_path.push(element.clone());
+                break;
+            }
+        }
+        rem_path.extend(iter.cloned());
+        (record, rem_path.into())
+    }
+
     pub fn list(&self) -> Vec<EntryId> {
         self.subs.keys().cloned().collect()
     }
