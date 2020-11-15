@@ -74,12 +74,26 @@ impl<T> Record<T> {
         Some(record)
     }
 
+    pub fn find_mut(&mut self, path: &Path) -> Option<&mut Self> {
+        let mut record = self;
+        for element in path.as_ref() {
+            if let Some(next_record) = record.subs.get_mut(element) {
+                record = next_record;
+            } else {
+                return None;
+            }
+        }
+        Some(record)
+    }
+
     pub fn list(&self) -> Vec<EntryId> {
         self.subs.keys().cloned().collect()
     }
 
-    pub fn set_link(&mut self, link: T) {
-        self.link = Some(link);
+    pub fn set_link(&mut self, link: T) -> Option<T> {
+        let mut cell = Some(link);
+        std::mem::swap(&mut self.link, &mut cell);
+        cell
     }
 
     pub fn reset_link(&mut self) {

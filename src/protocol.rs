@@ -133,6 +133,10 @@ impl fmt::Display for EntryId {
 pub struct Path(Vec<EntryId>);
 
 impl Path {
+    pub fn single(entry_id: EntryId) -> Self {
+        Self(vec![entry_id])
+    }
+
     pub fn root() -> Self {
         Self(Vec::new())
     }
