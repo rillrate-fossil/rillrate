@@ -41,10 +41,12 @@ impl<T> Record<T> {
             if let Some(next_record) = record.subs.get(element) {
                 record = next_record;
             } else {
+                // Only if there is non last element
                 rem_path.push(element.clone());
                 break;
             }
         }
+        // Adds elements only if the discovering wasn't finished
         rem_path.extend(iter.cloned());
         (record, rem_path.into())
     }
