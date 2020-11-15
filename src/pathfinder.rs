@@ -20,11 +20,9 @@ impl<T> Default for Record<T> {
     }
 }
 
-pub enum Discovered<'a, T> {
-    Pointer {
-        remained_path: Path,
-        link: Option<&'a T>,
-    },
+pub struct Discovered<'a, T> {
+    pub remained_path: Path,
+    pub record: &'a Record<T>,
 }
 
 impl<T> Record<T> {
@@ -51,9 +49,9 @@ impl<T> Record<T> {
                 break;
             }
         }
-        Discovered::Pointer {
+        Discovered {
             remained_path: Path::from_iter(iter),
-            link: record.get_link(),
+            record,
         }
     }
 
