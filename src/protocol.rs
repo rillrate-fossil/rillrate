@@ -11,6 +11,11 @@ use thiserror::Error;
 
 pub const PORT: u16 = 1636;
 
+#[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct DirectId {
+    value: u64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Direction {
     Direct(DirectId),
@@ -44,39 +49,6 @@ impl From<&HashSet<DirectId>> for Direction {
 impl From<DirectId> for Direction {
     fn from(direct_id: DirectId) -> Self {
         Self::Direct(direct_id)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Envelope<T> {
-    pub direct_id: DirectId,
-    pub data: T,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WideEnvelope<T> {
-    pub direction: Direction,
-    pub data: T,
-}
-
-#[derive(Debug)]
-pub struct RillProviderProtocol;
-
-impl Protocol for RillProviderProtocol {
-    type ToServer = WideEnvelope<RillToServer>;
-    type ToClient = Envelope<RillToProvider>;
-    type Codec = JsonCodec;
-}
-
-pub struct JsonCodec;
-
-impl ProtocolCodec for JsonCodec {
-    fn decode<T: ProtocolData>(data: &[u8]) -> Result<T, Error> {
-        serde_json::from_slice(data).map_err(Error::from)
-    }
-
-    fn encode<T: ProtocolData>(value: &T) -> Result<Vec<u8>, Error> {
-        serde_json::to_vec(value).map_err(Error::from)
     }
 }
 
@@ -201,6 +173,39 @@ impl FromStr for Path {
 
 pub type Timestamp = i64;
 
+pub struct JsonCodec;
+
+impl ProtocolCodec for JsonCodec {
+    fn decode<T: ProtocolData>(data: &[u8]) -> Result<T, Error> {
+        serde_json::from_slice(data).map_err(Error::from)
+    }
+
+    fn encode<T: ProtocolData>(value: &T) -> Result<Vec<u8>, Error> {
+        serde_json::to_vec(value).map_err(Error::from)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Envelope<T> {
+    pub direct_id: DirectId,
+    pub data: T,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WideEnvelope<T> {
+    pub direction: Direction,
+    pub data: T,
+}
+
+#[derive(Debug)]
+pub struct RillProviderProtocol;
+
+impl Protocol for RillProviderProtocol {
+    type ToServer = WideEnvelope<RillToServer>;
+    type ToClient = Envelope<RillToProvider>;
+    type Codec = JsonCodec;
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillData {
     LogRecord {
@@ -225,6 +230,3 @@ pub enum RillToServer {
     Data { data: RillData },
     EndStream,
 }
-
-#[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct DirectId(pub u64);
