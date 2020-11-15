@@ -111,7 +111,7 @@ impl RillWorker {
             .discover(path)
             .map(Record::list)
             .unwrap_or_default();
-        log::trace!("Entries list: {:?}", entries);
+        log::trace!("Entries list for {:?}: {:?}", path, entries);
         let msg = RillToServer::Entries { entries };
         self.sender.response(direct_id.into(), msg);
     }
@@ -138,7 +138,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 let holder = JointHolder::new(joint);
                 entry.insert(holder);
                 ctx.address().attach(rx);
-                let path = Path::from(vec![entry_id]);
+                let path = Path::from(vec![self.entry_id.clone(), entry_id]);
                 self.index.dig(path).set_link(idx);
             }
         }
@@ -181,6 +181,7 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
                 self.send_list_for(direct_id.into(), &path);
             }
             RillToProvider::ControlStream { path, active } => {
+                log::debug!("Switching the stream {:?} to {:?}", path, active);
                 if let Some(idx) = self.index.discover(&path).and_then(Record::get_link) {
                     if let Some(holder) = self.joints.get_mut(*idx) {
                         if active {
