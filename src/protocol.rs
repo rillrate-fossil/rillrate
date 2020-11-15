@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::fmt;
+use std::iter::FromIterator;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -159,6 +160,12 @@ impl Path {
         let entry_id = iter.next();
         let path = Path::from(iter.collect::<Vec<_>>());
         (entry_id, path)
+    }
+}
+
+impl<'a> FromIterator<&'a EntryId> for Path {
+    fn from_iter<I: IntoIterator<Item = &'a EntryId>>(iter: I) -> Self {
+        Self(iter.into_iter().cloned().collect())
     }
 }
 

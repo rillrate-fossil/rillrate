@@ -1,6 +1,7 @@
 use crate::protocol::{EntryId, Path};
 use derive_more::{Deref, DerefMut};
 use std::collections::HashMap;
+use std::iter::FromIterator;
 
 #[derive(Debug)]
 pub struct Record<T> {
@@ -19,6 +20,16 @@ impl<T> Default for Record<T> {
     }
 }
 
+pub enum Discovered<'a, T> {
+    Found {
+        record: &'a Record<T>,
+    },
+    Pointer {
+        remained_path: Path,
+        link: Option<&'a T>,
+    },
+}
+
 impl<T> Record<T> {
     /// Creates nodes for the provided `Path`.
     pub fn dig(&mut self, path: Path) -> &mut Self {
@@ -33,22 +44,20 @@ impl<T> Record<T> {
     /// Tries to find a `Record` for the `Path`, but it it's not
     /// exists than it returned the last record in a chain and the
     /// remained (unprocessed) `Path`.
-    pub fn discover(&self, path: &Path) -> (&Self, Path) {
+    pub fn discover(&self, path: &Path) -> Discovered<'_, T> {
         let mut record = self;
         let mut iter = path.as_ref().iter();
-        let mut rem_path = Vec::new();
         while let Some(element) = iter.next() {
             if let Some(next_record) = record.subs.get(element) {
                 record = next_record;
             } else {
-                // Only if there is non last element
-                rem_path.push(element.clone());
-                break;
+                return Discovered::Pointer {
+                    remained_path: Path::from_iter(iter),
+                    link: record.get_link(),
+                };
             }
         }
-        // Adds elements only if the discovering wasn't finished
-        rem_path.extend(iter.cloned());
-        (record, rem_path.into())
+        Discovered::Found { record }
     }
 
     /// Returns the `Record` for the `Path` or `None` if the `Record` not
