@@ -21,9 +21,6 @@ impl<T> Default for Record<T> {
 }
 
 pub enum Discovered<'a, T> {
-    Found {
-        record: &'a Record<T>,
-    },
     Pointer {
         remained_path: Path,
         link: Option<&'a T>,
@@ -51,13 +48,13 @@ impl<T> Record<T> {
             if let Some(next_record) = record.subs.get(element) {
                 record = next_record;
             } else {
-                return Discovered::Pointer {
-                    remained_path: Path::from_iter(iter),
-                    link: record.get_link(),
-                };
+                break;
             }
         }
-        Discovered::Found { record }
+        Discovered::Pointer {
+            remained_path: Path::from_iter(iter),
+            link: record.get_link(),
+        }
     }
 
     /// Returns the `Record` for the `Path` or `None` if the `Record` not
