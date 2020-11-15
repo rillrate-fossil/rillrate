@@ -57,6 +57,23 @@ impl<T> Record<T> {
         }
     }
 
+    pub fn remove(&mut self, path: &Path) -> Option<Self> {
+        let mut record = self;
+        let mut iter = path.as_ref().iter();
+        while let Some(element) = iter.next() {
+            if iter.len() == 1 {
+                return record.subs.remove(element);
+            } else {
+                if let Some(next_record) = record.subs.get_mut(element) {
+                    record = next_record;
+                } else {
+                    break;
+                }
+            }
+        }
+        None
+    }
+
     /// Returns the `Record` for the `Path` or `None` if the `Record` not
     /// exists for the path.
     pub fn find(&self, path: &Path) -> Option<&Self> {
