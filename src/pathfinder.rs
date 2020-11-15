@@ -20,6 +20,7 @@ impl<T> Default for Record<T> {
 }
 
 impl<T> Record<T> {
+    /// Creates nodes for the provided `Path`.
     pub fn dig(&mut self, path: Path) -> &mut Self {
         let mut record = self;
         let entries: Vec<_> = path.into();
@@ -29,19 +30,10 @@ impl<T> Record<T> {
         record
     }
 
-    pub fn discover(&self, path: &Path) -> Option<&Self> {
-        let mut record = self;
-        for element in path.as_ref() {
-            if let Some(next_record) = record.subs.get(element) {
-                record = next_record;
-            } else {
-                return None;
-            }
-        }
-        Some(record)
-    }
-
-    pub fn find(&self, path: &Path) -> (&Self, Path) {
+    /// Tries to find a `Record` for the `Path`, but it it's not
+    /// exists than it returned the last record in a chain and the
+    /// remained (unprocessed) `Path`.
+    pub fn discover(&self, path: &Path) -> (&Self, Path) {
         let mut record = self;
         let mut iter = path.as_ref().iter();
         let mut rem_path = Vec::new();
@@ -55,6 +47,20 @@ impl<T> Record<T> {
         }
         rem_path.extend(iter.cloned());
         (record, rem_path.into())
+    }
+
+    /// Returns the `Record` for the `Path` or `None` if the `Record` not
+    /// exists for the path.
+    pub fn find(&self, path: &Path) -> Option<&Self> {
+        let mut record = self;
+        for element in path.as_ref() {
+            if let Some(next_record) = record.subs.get(element) {
+                record = next_record;
+            } else {
+                return None;
+            }
+        }
+        Some(record)
     }
 
     pub fn list(&self) -> Vec<EntryId> {

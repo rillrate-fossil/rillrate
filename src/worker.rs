@@ -106,11 +106,7 @@ impl RillWorker {
     }
 
     fn send_list_for(&mut self, direct_id: DirectId, path: &Path) {
-        let entries = self
-            .index
-            .discover(path)
-            .map(Record::list)
-            .unwrap_or_default();
+        let entries = self.index.find(path).map(Record::list).unwrap_or_default();
         log::trace!("Entries list for {:?}: {:?}", path, entries);
         let msg = RillToServer::Entries { entries };
         self.sender.response(direct_id.into(), msg);
@@ -182,7 +178,7 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
             }
             RillToProvider::ControlStream { path, active } => {
                 log::debug!("Switching the stream {:?} to {:?}", path, active);
-                if let Some(idx) = self.index.discover(&path).and_then(Record::get_link) {
+                if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
                     if let Some(holder) = self.joints.get_mut(*idx) {
                         if active {
                             holder.subscribers.insert(direct_id);
