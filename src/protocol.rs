@@ -20,10 +20,23 @@ impl Origin for RillOrigin {}
 /// The origin of `DirectId`.
 pub trait Origin: Default + Clone {}
 
-#[derive(Debug, Clone, Copy, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct DirectId<T: Origin> {
     value: u64,
     origin: PhantomData<T>,
+}
+
+impl<T: Origin> DirectId<T> {
+    pub fn to_u64(&self) -> u64 {
+        self.value
+    }
+
+    pub fn from_u64(value: u64) -> Self {
+        Self {
+            value,
+            origin: PhantomData,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
