@@ -1,3 +1,4 @@
+use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     DirectId, Direction, EntryId, Envelope, Path, RillProviderProtocol, RillToProvider,
     RillToServer, WideEnvelope, PORT,
@@ -12,7 +13,7 @@ use meio_connect::{
     WsIncoming,
 };
 use slab::Slab;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -64,10 +65,8 @@ struct RillWorker {
     url: String,
     entry_id: EntryId,
     sender: RillSender,
-    // TODO: Keep not Path, but EntryId hierarchy?
-    index: HashMap<Path, usize>,
+    index: Pathfinder<usize>,
     joints: Slab<JointHolder>,
-    //joints: HashMap<EntryId, JointHolder>,
 }
 
 #[async_trait]
@@ -95,7 +94,7 @@ impl RillWorker {
             url: link,
             entry_id,
             sender: RillSender::default(),
-            index: HashMap::new(),
+            index: Pathfinder::default(),
             joints: Slab::new(),
         }
     }
@@ -107,21 +106,11 @@ impl RillWorker {
     }
 
     fn send_list_for(&mut self, direct_id: DirectId, path: &Path) {
-        let entries;
-        match path.as_ref() {
-            [provider] if *provider == self.entry_id => {
-                // TODO: Filter paths by prefix or len!
-                entries = self
-                    .index
-                    .keys()
-                    .filter_map(|path| path.as_ref().get(0))
-                    .cloned()
-                    .collect();
-            }
-            _ => {
-                entries = Vec::new();
-            }
-        }
+        let entries = self
+            .index
+            .discover(path)
+            .map(Record::list)
+            .unwrap_or_default();
         log::trace!("Entries list: {:?}", entries);
         let msg = RillToServer::Entries { entries };
         self.sender.response(direct_id.into(), msg);
@@ -150,7 +139,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 let path = Path::from(vec![entry_id]);
-                self.index.insert(path, idx);
+                self.index.dig(path).set_link(idx);
             }
         }
         Ok(())
@@ -192,7 +181,7 @@ impl ActionHandler<WsIncoming<Envelope<RillToProvider>>> for RillWorker {
                 self.send_list_for(direct_id.into(), &path);
             }
             RillToProvider::ControlStream { path, active } => {
-                if let Some(idx) = self.index.get(&path) {
+                if let Some(idx) = self.index.discover(&path).and_then(Record::get_link) {
                     if let Some(holder) = self.joints.get_mut(*idx) {
                         if active {
                             holder.subscribers.insert(direct_id);
