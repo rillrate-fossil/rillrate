@@ -27,13 +27,13 @@ pub struct DirectId<T: Origin> {
 }
 
 impl<T: Origin> DirectId<T> {
-    pub fn to_u64(&self) -> u64 {
-        self.value
+    pub fn to_index(&self) -> usize {
+        self.value as usize
     }
 
-    pub fn from_u64(value: u64) -> Self {
+    pub fn from_index(index: usize) -> Self {
         Self {
-            value,
+            value: index as u64,
             origin: PhantomData,
         }
     }
