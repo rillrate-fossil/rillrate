@@ -47,6 +47,16 @@ pub enum Direction<T: Origin> {
 }
 
 impl<T: Origin> Direction<T> {
+    pub fn to_vec(self) -> Vec<DirectId<T>> {
+        match self {
+            Self::Direct(direct_id) => vec![direct_id],
+            Self::Multicast(ids) => ids,
+            Self::Broadcast => Vec::new(),
+        }
+    }
+}
+
+impl<T: Origin> Direction<T> {
     pub fn broadcast() -> Self {
         Self::Broadcast
     }
