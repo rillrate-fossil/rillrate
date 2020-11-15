@@ -134,7 +134,7 @@ impl ActionHandler<ControlEvent> for RillWorker {
                 let holder = JointHolder::new(joint);
                 entry.insert(holder);
                 ctx.address().attach(rx);
-                let path = Path::from(vec![self.entry_id.clone(), entry_id]);
+                let path = Path::single(entry_id);
                 self.index.dig(path).set_link(idx);
             }
         }
