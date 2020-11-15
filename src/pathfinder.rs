@@ -61,7 +61,7 @@ impl<T> Record<T> {
         let mut record = self;
         let mut iter = path.as_ref().iter();
         while let Some(element) = iter.next() {
-            if iter.len() == 1 {
+            if iter.len() == 0 {
                 return record.subs.remove(element);
             } else {
                 if let Some(next_record) = record.subs.get_mut(element) {
