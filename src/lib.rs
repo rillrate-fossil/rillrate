@@ -1,6 +1,7 @@
 use std::thread;
 
 mod macros;
+pub mod pathfinder;
 pub mod protocol;
 pub mod provider;
 mod state;

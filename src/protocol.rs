@@ -128,6 +128,7 @@ impl fmt::Display for EntryId {
     Ord,
     Hash,
 )]
+// TODO: Consider to use `type Path = Vec<EntryId>` directly
 pub struct Path(Vec<EntryId>);
 
 impl Path {
