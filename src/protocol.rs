@@ -255,11 +255,19 @@ pub enum RillToProvider {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToServer {
-    Declare { entry_id: EntryId },
+    Declare {
+        entry_id: EntryId,
+    },
     // TODO: Consider renaming to ListReady
-    Entries { entries: Vec<EntryId> },
+    Entries {
+        entries: Vec<EntryId>,
+    },
     // Snapshot { data: RillData },
+    /// The response to `ControlStream { active: true }` request
     BeginStream,
-    Data { data: RillData },
+    Data {
+        data: RillData,
+    },
+    /// The response to `ControlStream { active: false }` request
     EndStream,
 }
