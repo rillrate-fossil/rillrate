@@ -12,10 +12,9 @@ use thiserror::Error;
 
 pub const PORT: u16 = 1636;
 
-/// The protocol is `Origin` in this case.
-pub type RillOrigin = RillProviderProtocol;
+pub type ProviderReqId = DirectId<RillProviderProtocol>;
 
-impl Origin for RillOrigin {}
+impl Origin for RillProviderProtocol {}
 
 /// The origin of `DirectId`.
 pub trait Origin: Default + Clone {}
