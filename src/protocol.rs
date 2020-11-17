@@ -26,16 +26,18 @@ pub struct DirectId<T: Origin> {
     origin: PhantomData<T>,
 }
 
-impl<T: Origin> DirectId<T> {
-    pub fn to_index(&self) -> usize {
-        self.value as usize
-    }
-
-    pub fn from_index(index: usize) -> Self {
+impl<T: Origin> From<usize> for DirectId<T> {
+    fn from(value: usize) -> Self {
         Self {
-            value: index as u64,
+            value: value as u64,
             origin: PhantomData,
         }
+    }
+}
+
+impl<T: Origin> Into<usize> for DirectId<T> {
+    fn into(self) -> usize {
+        self.value as usize
     }
 }
 
