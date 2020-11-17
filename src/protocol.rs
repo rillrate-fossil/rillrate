@@ -251,6 +251,8 @@ pub enum RillData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToProvider {
     ListOf { path: Path },
+    // TODO: Add `StartStream { path }` and `StopStream`,
+    // because the `Path` is not needed to stop the stream.
     ControlStream { path: Path, active: bool },
 }
 
