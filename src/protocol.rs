@@ -12,9 +12,9 @@ use thiserror::Error;
 
 pub const PORT: u16 = 1636;
 
-pub type ProviderReqId = DirectId<RillProviderProtocol>;
+pub type ProviderReqId = DirectId<RillProtocol>;
 
-impl Origin for RillProviderProtocol {}
+impl Origin for RillProtocol {}
 
 /// The origin of `DirectId`.
 pub trait Origin: Default + Clone {}
@@ -232,9 +232,9 @@ pub struct WideEnvelope<T: Origin, D> {
 }
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct RillProviderProtocol;
+pub struct RillProtocol;
 
-impl Protocol for RillProviderProtocol {
+impl Protocol for RillProtocol {
     type ToServer = WideEnvelope<Self, RillToServer>;
     type ToClient = Envelope<Self, RillToProvider>;
     type Codec = JsonCodec;

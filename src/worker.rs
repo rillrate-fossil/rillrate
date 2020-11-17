@@ -1,7 +1,7 @@
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
-    Direction, EntryId, Envelope, Path, ProviderReqId, RillProviderProtocol, RillToProvider,
-    RillToServer, WideEnvelope, PORT,
+    Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider, RillToServer,
+    WideEnvelope, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
@@ -43,15 +43,15 @@ impl JointHolder {
 
 #[derive(Default)]
 struct RillSender {
-    sender: Option<WsSender<WideEnvelope<RillProviderProtocol, RillToServer>>>,
+    sender: Option<WsSender<WideEnvelope<RillProtocol, RillToServer>>>,
 }
 
 impl RillSender {
-    fn set(&mut self, sender: WsSender<WideEnvelope<RillProviderProtocol, RillToServer>>) {
+    fn set(&mut self, sender: WsSender<WideEnvelope<RillProtocol, RillToServer>>) {
         self.sender = Some(sender);
     }
 
-    fn response(&mut self, direction: Direction<RillProviderProtocol>, data: RillToServer) {
+    fn response(&mut self, direction: Direction<RillProtocol>, data: RillToServer) {
         if let Some(sender) = self.sender.as_mut() {
             let envelope = WideEnvelope { direction, data };
             sender.send(envelope);
@@ -143,10 +143,10 @@ impl ActionHandler<ControlEvent> for RillWorker {
 }
 
 #[async_trait]
-impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
+impl InteractionHandler<WsClientStatus<RillProtocol>> for RillWorker {
     async fn handle(
         &mut self,
-        status: WsClientStatus<RillProviderProtocol>,
+        status: WsClientStatus<RillProtocol>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match status {
@@ -165,10 +165,10 @@ impl InteractionHandler<WsClientStatus<RillProviderProtocol>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<Envelope<RillProviderProtocol, RillToProvider>>> for RillWorker {
+impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillWorker {
     async fn handle(
         &mut self,
-        msg: WsIncoming<Envelope<RillProviderProtocol, RillToProvider>>,
+        msg: WsIncoming<Envelope<RillProtocol, RillToProvider>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let direct_id = msg.0.direct_id;
