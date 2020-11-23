@@ -171,6 +171,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
         msg: WsIncoming<Envelope<RillProtocol, RillToProvider>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        log::trace!("Incoming request: {:?}", msg.0);
         let direct_id = msg.0.direct_id;
         match msg.0.data {
             RillToProvider::ListOf { path } => {
