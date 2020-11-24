@@ -7,7 +7,7 @@ use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{ActionHandler, Actor, Context, InteractionHandler, LiteTask, Supervisor};
+use meio::{ActionHandler, Actor, Context, InteractionHandler, Supervisor};
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
@@ -81,7 +81,7 @@ impl Actor for RillWorker {
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
-        let ws_client = client.start(ctx.bind());
+        let ws_client = ctx.bind_task(client);
         ctx.terminator().insert_to_single_stage(ws_client);
         Ok(())
     }
