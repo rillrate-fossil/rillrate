@@ -7,7 +7,7 @@ use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{ActionHandler, Actor, Awake, Context, InteractionHandler, Supervisor};
+use meio::{lifecycle, ActionHandler, Actor, Context, InteractionHandler};
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
@@ -21,10 +21,11 @@ use std::time::Duration;
 // of the 0,1,N items contained
 
 #[tokio::main]
-pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) {
-    let mut handle = RillWorker::new(entry_id).start(Supervisor::None);
+pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) -> Result<(), Error> {
+    let mut handle = meio::standalone(RillWorker::new(entry_id))?;
     handle.attach(rx);
     handle.join().await;
+    Ok(())
 }
 
 struct JointHolder {
@@ -109,8 +110,12 @@ impl RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<Awake> for RillWorker {
-    async fn handle(&mut self, _event: Awake, ctx: &mut Context<Self>) -> Result<(), Error> {
+impl ActionHandler<lifecycle::Awake> for RillWorker {
+    async fn handle(
+        &mut self,
+        _event: lifecycle::Awake,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         let client = WsClient::new(
             self.url.clone(),
             Some(Duration::from_secs(1)),
