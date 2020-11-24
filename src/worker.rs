@@ -7,7 +7,7 @@ use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{ActionHandler, Actor, Context, InteractionHandler, Supervisor};
+use meio::{ActionHandler, Actor, Awake, Context, InteractionHandler, Supervisor};
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
@@ -74,17 +74,6 @@ impl Actor for RillWorker {
     fn name(&self) -> String {
         format!("RillWorker({})", self.url)
     }
-
-    async fn initialize(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let client = WsClient::new(
-            self.url.clone(),
-            Some(Duration::from_secs(1)),
-            ctx.address().clone(),
-        );
-        let ws_client = ctx.bind_task(client);
-        ctx.terminator().insert_to_single_stage(ws_client);
-        Ok(())
-    }
 }
 
 impl RillWorker {
@@ -116,6 +105,20 @@ impl RillWorker {
         for (_, holder) in self.joints.iter_mut() {
             holder.joint.switch(false);
         }
+    }
+}
+
+#[async_trait]
+impl ActionHandler<Awake> for RillWorker {
+    async fn handle(&mut self, _event: Awake, ctx: &mut Context<Self>) -> Result<(), Error> {
+        let client = WsClient::new(
+            self.url.clone(),
+            Some(Duration::from_secs(1)),
+            ctx.address().clone(),
+        );
+        let ws_client = ctx.bind_task(client);
+        ctx.terminator().insert_to_single_stage(ws_client);
+        Ok(())
     }
 }
 
