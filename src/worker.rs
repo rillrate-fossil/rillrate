@@ -7,7 +7,7 @@ use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{lifecycle, ActionHandler, Actor, Context, InteractionHandler};
+use meio::{lifecycle, ActionHandler, Actor, Context, InteractionHandler, System};
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
@@ -110,10 +110,10 @@ impl RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<lifecycle::Awake> for RillWorker {
+impl ActionHandler<lifecycle::Awake<System>> for RillWorker {
     async fn handle(
         &mut self,
-        _event: lifecycle::Awake,
+        _event: lifecycle::Awake<System>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let client = WsClient::new(
