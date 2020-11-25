@@ -121,8 +121,19 @@ impl ActionHandler<lifecycle::Awake<System>> for RillWorker {
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
-        let ws_client = ctx.bind_task(client);
-        ctx.terminator().insert_to_single_stage(ws_client);
+        ctx.bind_task(client);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<lifecycle::TaskDone<WsClient<RillProtocol, RillWorker>>> for RillWorker {
+    async fn handle(
+        &mut self,
+        _event: lifecycle::TaskDone<WsClient<RillProtocol, RillWorker>>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        // TODO: Drop unfinished tasks
         Ok(())
     }
 }
