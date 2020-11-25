@@ -127,10 +127,10 @@ impl ActionHandler<lifecycle::Awake<System>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<lifecycle::TaskDone<WsClient<RillProtocol, RillWorker>>> for RillWorker {
+impl ActionHandler<lifecycle::TaskDone<WsClient<RillProtocol, Self>>> for RillWorker {
     async fn handle(
         &mut self,
-        _event: lifecycle::TaskDone<WsClient<RillProtocol, RillWorker>>,
+        _event: lifecycle::TaskDone<WsClient<RillProtocol, Self>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         // TODO: Drop unfinished tasks
