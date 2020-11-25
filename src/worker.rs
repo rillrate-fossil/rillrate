@@ -22,7 +22,7 @@ use std::time::Duration;
 
 #[tokio::main]
 pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) -> Result<(), Error> {
-    let mut handle = meio::standalone(RillWorker::new(entry_id))?;
+    let mut handle = meio::standalone(RillWorker::new(entry_id));
     handle.attach(rx);
     handle.join().await;
     Ok(())
