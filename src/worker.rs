@@ -7,7 +7,7 @@ use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{lifecycle, ActionHandler, Actor, Context, InteractionHandler, System};
+use meio::{ActionHandler, Actor, Context, Consumer, Eliminated, InteractionHandler, StartedBy, System, Task, TypedId};
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
@@ -110,10 +110,9 @@ impl RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<lifecycle::Awake<System>> for RillWorker {
+impl StartedBy<System> for RillWorker {
     async fn handle(
         &mut self,
-        _event: lifecycle::Awake<System>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let client = WsClient::new(
@@ -127,10 +126,10 @@ impl ActionHandler<lifecycle::Awake<System>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<lifecycle::TaskDone<WsClient<RillProtocol, Self>>> for RillWorker {
+impl Eliminated<Task<WsClient<RillProtocol, Self>>> for RillWorker {
     async fn handle(
         &mut self,
-        _event: lifecycle::TaskDone<WsClient<RillProtocol, Self>>,
+        _id: TypedId<Task<WsClient<RillProtocol, Self>>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         // TODO: Drop unfinished tasks
@@ -139,7 +138,7 @@ impl ActionHandler<lifecycle::TaskDone<WsClient<RillProtocol, Self>>> for RillWo
 }
 
 #[async_trait]
-impl ActionHandler<ControlEvent> for RillWorker {
+impl Consumer<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ControlEvent::RegisterJoint {
@@ -226,7 +225,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
 }
 
 #[async_trait]
-impl ActionHandler<DataEnvelope> for RillWorker {
+impl Consumer<DataEnvelope> for RillWorker {
     async fn handle(
         &mut self,
         envelope: DataEnvelope,
