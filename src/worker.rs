@@ -75,6 +75,8 @@ struct RillWorker {
 
 #[async_trait]
 impl Actor for RillWorker {
+    type GroupBy = ();
+
     fn name(&self) -> String {
         format!("RillWorker({})", self.url)
     }
