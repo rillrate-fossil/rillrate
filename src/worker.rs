@@ -122,7 +122,7 @@ impl StartedBy<System> for RillWorker {
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
-        ctx.bind_task(client);
+        ctx.bind_task(client, ());
         Ok(())
     }
 }
