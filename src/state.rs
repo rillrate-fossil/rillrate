@@ -1,7 +1,7 @@
 use crate::protocol::EntryId;
 use crate::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
-use meio::Action;
+use meio::prelude::Action;
 use once_cell::sync::OnceCell;
 use std::sync::Arc;
 

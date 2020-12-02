@@ -7,7 +7,7 @@ use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{
+use meio::prelude::{
     ActionHandler, Actor, Consumer, Context, Eliminated, IdOf, InteractionHandler, StartedBy,
     System, Task,
 };

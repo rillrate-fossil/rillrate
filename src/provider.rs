@@ -2,7 +2,7 @@ use crate::protocol::{EntryId, RillData};
 use crate::state::{ControlEvent, RILL_STATE};
 use derive_more::Deref;
 use futures::channel::mpsc;
-use meio::Action;
+use meio::prelude::Action;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
