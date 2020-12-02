@@ -85,9 +85,16 @@ struct RillWorker {
     joints: Slab<JointHolder>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum Group {
+    // TODO: Use it for coroutine-based streams (maybe)
+    Subscriptions,
+    WsConnection,
+}
+
 #[async_trait]
 impl Actor for RillWorker {
-    type GroupBy = ();
+    type GroupBy = Group;
 
     fn name(&self) -> String {
         format!("RillWorker({})", self.url)
@@ -129,12 +136,13 @@ impl RillWorker {
 #[async_trait]
 impl StartedBy<System> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(vec![Group::Subscriptions, Group::WsConnection]);
         let client = WsClient::new(
             self.url.clone(),
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
-        ctx.bind_task(client, ());
+        ctx.bind_task(client, Group::WsConnection);
         Ok(())
     }
 }
@@ -142,6 +150,7 @@ impl StartedBy<System> for RillWorker {
 #[async_trait]
 impl InterruptedBy<System> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        // TODO: Stop all streams and send errors to subscribers!
         ctx.shutdown();
         Ok(())
     }
