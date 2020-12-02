@@ -1,3 +1,4 @@
+use super::TermReceiver;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider, RillToServer,
@@ -5,11 +6,11 @@ use crate::protocol::{
 };
 use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Consumer, Context, Eliminated, IdOf, InteractionHandler, StartedBy,
-    System, Task,
+    ActionHandler, Actor, Consumer, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy,
+    StartedBy, System, Task,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -24,10 +25,21 @@ use std::time::Duration;
 // of the 0,1,N items contained
 
 #[tokio::main]
-pub(crate) async fn entrypoint(entry_id: EntryId, rx: ControlReceiver) -> Result<(), Error> {
+pub(crate) async fn entrypoint(
+    entry_id: EntryId,
+    rx: ControlReceiver,
+    term_rx: TermReceiver,
+) -> Result<(), Error> {
+    let blocker = term_rx
+        .blocker
+        .lock()
+        .map_err(|_| anyhow!("can't take termination blocker"))?;
     let mut handle = meio::spawn(RillWorker::new(entry_id));
     handle.attach(rx);
+    term_rx.notifier_rx.await?;
+    handle.interrupt()?;
     handle.join().await;
+    drop(blocker);
     Ok(())
 }
 
@@ -123,6 +135,14 @@ impl StartedBy<System> for RillWorker {
             ctx.address().clone(),
         );
         ctx.bind_task(client, ());
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl InterruptedBy<System> for RillWorker {
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }

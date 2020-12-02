@@ -1,4 +1,8 @@
 use anyhow::Error;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -7,7 +11,13 @@ fn main() -> Result<(), Error> {
     rill::install("example-hello")?;
     rill::awake(&module_1::RILL);
     rill::awake(&module_2::RILL);
-    loop {
+    let running = Arc::new(AtomicBool::new(true));
+    let r = running.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    })
+    .expect("Error setting Ctrl-C handler");
+    while running.load(Ordering::SeqCst) {
         module_1::work();
         module_2::work();
         log::trace!("Cool!");
@@ -15,6 +25,8 @@ fn main() -> Result<(), Error> {
         thread::sleep(Duration::from_millis(10));
         log::trace!("PING: {:?}", Instant::now());
     }
+    rill::terminate()?;
+    Ok(())
 }
 
 mod module_1 {
