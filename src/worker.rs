@@ -172,18 +172,13 @@ impl Eliminated<Task<WsClient<RillProtocol, Self>>> for RillWorker {
 impl Consumer<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterJoint {
-                entry_id,
-                joint,
-                rx,
-            } => {
+            ControlEvent::RegisterJoint { path, joint, rx } => {
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
                 joint.assign(idx);
                 let holder = JointHolder::new(joint);
                 entry.insert(holder);
                 ctx.address().attach(rx);
-                let path = Path::single(entry_id);
                 self.index.dig(path).set_link(idx);
             }
         }

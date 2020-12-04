@@ -1,4 +1,4 @@
-use crate::protocol::EntryId;
+use crate::protocol::Path;
 use crate::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -9,7 +9,7 @@ pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
 pub(crate) enum ControlEvent {
     RegisterJoint {
-        entry_id: EntryId,
+        path: Path,
         joint: Arc<Joint>,
         rx: DataReceiver,
     },
