@@ -242,10 +242,10 @@ impl Protocol for RillProtocol {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillData {
-    LogRecord {
-        timestamp: Timestamp,
-        message: String,
-    },
+    /// Use empty strings if value is not provided.
+    ///
+    /// For `module` and `level` use `Path`s hierarchy.
+    LogRecord { timestamp: String, message: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

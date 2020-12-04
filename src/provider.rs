@@ -1,11 +1,11 @@
 use crate::protocol::{EntryId, RillData};
 use crate::state::{ControlEvent, RILL_STATE};
-use derive_more::Deref;
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
+// TODO: Move to user featrues part
+//use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug)]
 pub struct DataEnvelope {
@@ -20,7 +20,7 @@ pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
 /// Used to control the streams and interaction between a sender and a receiver.
 #[derive(Debug, Default)]
-pub struct Joint {
+pub(crate) struct Joint {
     /// The index of the binding in the `Worker`.
     idx: AtomicUsize,
     /// The flag that used to activate/deactivate streams.
@@ -45,9 +45,8 @@ impl Joint {
     }
 }
 
-#[derive(Debug, Deref)]
+#[derive(Debug)]
 pub struct Provider {
-    #[deref]
     joint: Arc<Joint>,
     sender: DataSender,
 }
@@ -72,14 +71,21 @@ impl Provider {
         this
     }
 
-    fn send(&self, data: RillData) {
+    pub fn is_active(&self) -> bool {
+        self.joint.is_active()
+    }
+
+    pub fn send(&self, data: RillData) {
         let envelope = DataEnvelope {
             idx: self.joint.index(),
             data,
         };
-        self.sender.unbounded_send(envelope).ok();
+        if let Err(err) = self.sender.unbounded_send(envelope) {
+            log::error!("Can't transfer data to sender: {}", err);
+        }
     }
 
+    /*
     pub fn log(&self, message: String) {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -91,4 +97,5 @@ impl Provider {
         };
         self.send(data);
     }
+    */
 }

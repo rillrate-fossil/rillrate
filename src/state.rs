@@ -5,9 +5,9 @@ use meio::prelude::Action;
 use once_cell::sync::OnceCell;
 use std::sync::Arc;
 
-pub static RILL_STATE: OnceCell<RillState> = OnceCell::new();
+pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
-pub enum ControlEvent {
+pub(crate) enum ControlEvent {
     RegisterJoint {
         entry_id: EntryId,
         joint: Arc<Joint>,
@@ -17,10 +17,10 @@ pub enum ControlEvent {
 
 impl Action for ControlEvent {}
 
-pub type ControlSender = mpsc::UnboundedSender<ControlEvent>;
-pub type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
+pub(crate) type ControlSender = mpsc::UnboundedSender<ControlEvent>;
+pub(crate) type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
 
-pub struct RillState {
+pub(crate) struct RillState {
     sender: ControlSender,
 }
 
