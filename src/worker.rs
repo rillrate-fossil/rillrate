@@ -120,10 +120,15 @@ impl RillWorker {
     }
 
     fn send_list_for(&mut self, direct_id: ProviderReqId, path: &Path) {
-        // TODO: Return Error if not found!
-        let entries = self.index.find(path).map(Record::list).unwrap_or_default();
-        log::trace!("Entries list for {:?}: {:?}", path, entries);
-        let msg = RillToServer::Entries { entries };
+        let msg;
+        if let Some(entries) = self.index.find(path).map(Record::list) {
+            log::trace!("Entries list for {:?}: {:?}", path, entries);
+            msg = RillToServer::Entries { entries };
+        } else {
+            log::trace!("No entry for {:?} to get a list", path);
+            let reason = format!("entry not found");
+            msg = RillToServer::Error { reason };
+        }
         self.sender.response(direct_id.into(), msg);
     }
 
