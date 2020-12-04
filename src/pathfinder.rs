@@ -2,11 +2,23 @@ use crate::protocol::{EntryId, Path};
 use derive_more::{Deref, DerefMut};
 use std::collections::HashMap;
 
+/// Universal storage with `EntryId` hierarchy.
+#[derive(Debug, Default, Deref, DerefMut)]
+pub struct Pathfinder<T> {
+    root: Record<T>,
+}
+
+impl<T> Pathfinder<T> {
+    pub fn new() -> Self {
+        Self {
+            root: Record::default(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Record<T> {
-    //meta_data: Option<MetaData>,
     subs: HashMap<EntryId, Record<T>>,
-    //sources: HashSet<T>,
     link: Option<T>,
 }
 
@@ -116,18 +128,5 @@ impl<T> Record<T> {
 
     pub fn get_link(&self) -> Option<&T> {
         self.link.as_ref()
-    }
-}
-
-#[derive(Debug, Default, Deref, DerefMut)]
-pub struct Pathfinder<T> {
-    root: Record<T>,
-}
-
-impl<T> Pathfinder<T> {
-    pub fn new() -> Self {
-        Self {
-            root: Record::default(),
-        }
     }
 }
