@@ -21,7 +21,9 @@ pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 /// Used to control the streams and interaction between a sender and a receiver.
 #[derive(Debug, Default)]
 pub struct Joint {
+    /// The index of the binding in the `Worker`.
     idx: AtomicUsize,
+    /// The flag that used to activate/deactivate streams.
     active: AtomicBool,
 }
 

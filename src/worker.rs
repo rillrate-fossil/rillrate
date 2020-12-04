@@ -1,4 +1,4 @@
-use super::TermReceiver;
+use super::term;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider, RillToServer,
@@ -28,7 +28,7 @@ use std::time::Duration;
 pub(crate) async fn entrypoint(
     entry_id: EntryId,
     rx: ControlReceiver,
-    term_rx: TermReceiver,
+    term_rx: term::Receiver,
 ) -> Result<(), Error> {
     let blocker = term_rx
         .blocker
