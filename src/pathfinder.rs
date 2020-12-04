@@ -38,6 +38,9 @@ pub struct Discovered<'a, T> {
 
 impl<T> Record<T> {
     /// Creates nodes for the provided `Path`.
+    ///
+    /// It returns empty record if value is not exists and you
+    /// have to use `set_link` method to assign a value to it.
     pub fn dig(&mut self, path: Path) -> &mut Self {
         let mut record = self;
         let entries: Vec<_> = path.into();
