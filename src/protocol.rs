@@ -273,4 +273,7 @@ pub enum RillToServer {
     },
     /// The response to `ControlStream { active: false }` request
     EndStream,
+    Error {
+        reason: String,
+    },
 }

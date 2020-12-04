@@ -120,6 +120,7 @@ impl RillWorker {
     }
 
     fn send_list_for(&mut self, direct_id: ProviderReqId, path: &Path) {
+        // TODO: Return Error if not found!
         let entries = self.index.find(path).map(Record::list).unwrap_or_default();
         log::trace!("Entries list for {:?}: {:?}", path, entries);
         let msg = RillToServer::Entries { entries };
@@ -173,6 +174,7 @@ impl Consumer<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ControlEvent::RegisterJoint { path, joint, rx } => {
+                log::debug!("Creating provider with path: {:?}", path);
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
                 joint.assign(idx);
@@ -243,6 +245,9 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                     }
                 } else {
                     log::warn!("Path not found: {:?}", path);
+                    let reason = format!("path not found");
+                    let msg = RillToServer::Error { reason };
+                    self.sender.response(direct_id.into(), msg);
                 }
             }
         }
