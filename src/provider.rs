@@ -1,5 +1,7 @@
 use crate::protocol::{Path, RillData, StreamType};
 use crate::state::{ControlEvent, RILL_STATE};
+use anyhow::{anyhow, Error};
+use derive_more::{Deref, DerefMut};
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -46,7 +48,7 @@ pub struct Provider {
 
 impl Provider {
     // TODO: Add type of the stream...
-    pub fn new(path: Path, stream_type: StreamType) -> Self {
+    fn new(path: Path, stream_type: StreamType) -> Self {
         log::trace!("Creating Provider with path: {:?}", path);
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(false);
@@ -72,6 +74,21 @@ impl Provider {
         *self.active.borrow()
     }
 
+    pub async fn when_active(&mut self) -> Result<(), Error> {
+        loop {
+            // TODO: Change to separate error type
+            let is_active = self
+                .active
+                .recv()
+                .await
+                .ok_or_else(|| anyhow!("rill is not available"))?;
+            if is_active {
+                break;
+            }
+        }
+        Ok(())
+    }
+
     fn send(&self, data: RillData) {
         let envelope = DataEnvelope {
             idx: self.joint.index(),
@@ -81,23 +98,9 @@ impl Provider {
             log::error!("Can't transfer data to sender: {}", err);
         }
     }
-
-    /*
-    pub fn log(&self, message: String) {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
-        let data = RillData::LogRecord {
-            timestamp: now as i64, //TODO: Change to u128 instead?
-            message,
-        };
-        self.send(data);
-    }
-    */
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deref, DerefMut)]
 pub struct LogProvider {
     provider: Provider,
 }
@@ -106,10 +109,6 @@ impl LogProvider {
     pub fn new(path: Path) -> Self {
         let provider = Provider::new(path, StreamType::LogStream);
         Self { provider }
-    }
-
-    pub fn is_active(&self) -> bool {
-        self.provider.is_active()
     }
 
     pub fn log(&self, timestamp: String, message: String) {
