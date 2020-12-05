@@ -2,7 +2,7 @@ use crate::protocol::{Path, RillData, StreamType};
 use crate::state::{ControlEvent, RILL_STATE};
 use futures::channel::mpsc;
 use meio::prelude::Action;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 // TODO: Move to user featrues part
 //use std::time::{SystemTime, UNIX_EPOCH};
@@ -24,19 +24,9 @@ pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 pub(crate) struct Joint {
     /// The index of the binding in the `Worker`.
     idx: AtomicUsize,
-    /// The flag that used to activate/deactivate streams.
-    active: AtomicBool,
 }
 
 impl Joint {
-    pub fn is_active(&self) -> bool {
-        self.active.load(Ordering::Relaxed)
-    }
-
-    pub fn switch(&self, active: bool) {
-        self.active.store(active, Ordering::Relaxed);
-    }
-
     pub fn assign(&self, idx: usize) {
         self.idx.store(idx, Ordering::Relaxed);
     }
@@ -48,6 +38,7 @@ impl Joint {
 
 #[derive(Debug)]
 pub struct Provider {
+    /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     joint: Arc<Joint>,
     sender: DataSender,
@@ -78,7 +69,7 @@ impl Provider {
     }
 
     pub fn is_active(&self) -> bool {
-        self.joint.is_active()
+        *self.active.borrow()
     }
 
     fn send(&self, data: RillData) {

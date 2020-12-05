@@ -4,7 +4,7 @@ use crate::protocol::{
     Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
     RillToServer, StreamType, WideEnvelope, PORT,
 };
-use crate::provider::{DataEnvelope, Joint};
+use crate::provider::DataEnvelope;
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::{anyhow, Error};
 use async_trait::async_trait;
@@ -18,7 +18,6 @@ use meio_connect::{
 };
 use slab::Slab;
 use std::collections::HashSet;
-use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::watch;
 
@@ -45,19 +44,30 @@ pub(crate) async fn entrypoint(
 }
 
 struct JointHolder {
-    joint: Arc<Joint>,
+    path: Path,
     active: watch::Sender<bool>,
     subscribers: HashSet<ProviderReqId>,
     stream_type: StreamType,
 }
 
 impl JointHolder {
-    fn new(joint: Arc<Joint>, active: watch::Sender<bool>, stream_type: StreamType) -> Self {
+    fn new(path: Path, active: watch::Sender<bool>, stream_type: StreamType) -> Self {
         Self {
-            joint,
+            path,
             active,
             subscribers: HashSet::new(),
             stream_type,
+        }
+    }
+
+    fn switch(&mut self, active: bool) {
+        if let Err(err) = self.active.broadcast(active) {
+            log::error!(
+                "Can't switch the stream {} to {}: {}",
+                self.path,
+                active,
+                err
+            );
         }
     }
 }
@@ -151,7 +161,7 @@ impl RillWorker {
 
     fn stop_all(&mut self) {
         for (_, holder) in self.joints.iter_mut() {
-            holder.joint.switch(false);
+            holder.switch(false);
         }
     }
 }
@@ -205,8 +215,9 @@ impl Consumer<ControlEvent> for RillWorker {
                 log::debug!("Creating provider with path: {:?}", path);
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
+                // TODO: How to return the idx without `Joint`?
                 joint.assign(idx);
-                let holder = JointHolder::new(joint, active, stream_type);
+                let holder = JointHolder::new(path.clone(), active, stream_type);
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
@@ -260,10 +271,10 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                             // Send it before the flag switched on
                             let msg = RillToServer::BeginStream;
                             self.sender.response(direct_id.into(), msg);
-                            holder.joint.switch(true);
+                            holder.switch(true);
                         } else {
                             holder.subscribers.remove(&direct_id);
-                            holder.joint.switch(false);
+                            holder.switch(false);
                             // Send it after the flag switched off
                             let msg = RillToServer::EndStream;
                             self.sender.response(direct_id.into(), msg);
