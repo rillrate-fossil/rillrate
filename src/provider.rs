@@ -74,7 +74,15 @@ impl Provider {
         *self.active.borrow()
     }
 
-    pub async fn when_active(&mut self) -> Result<(), Error> {
+    /// Use this method to detect when stream had activated.
+    ///
+    /// It's useful if you want to spawn async coroutine that
+    /// can read a batch of data, but will wait when some streams
+    /// will be activated to avoid resources wasting.
+    ///
+    /// When the generating coroutine active you can use `is_active`
+    /// method to detect when to change it to awaiting state again.
+    pub async fn when_activated(&mut self) -> Result<(), Error> {
         loop {
             // TODO: Change to separate error type
             let is_active = self
