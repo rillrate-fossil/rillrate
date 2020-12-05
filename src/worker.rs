@@ -196,6 +196,7 @@ impl Consumer<ControlEvent> for RillWorker {
                 path,
                 stream_type,
                 joint,
+                active,
                 rx,
             } => {
                 log::debug!("Creating provider with path: {:?}", path);

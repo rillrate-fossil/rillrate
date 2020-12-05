@@ -4,6 +4,7 @@ use futures::channel::mpsc;
 use meio::prelude::Action;
 use once_cell::sync::OnceCell;
 use std::sync::Arc;
+use tokio::sync::watch;
 
 pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
@@ -12,6 +13,7 @@ pub(crate) enum ControlEvent {
         path: Path,
         joint: Arc<Joint>,
         stream_type: StreamType,
+        active: watch::Sender<bool>,
         rx: DataReceiver,
     },
 }

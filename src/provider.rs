@@ -6,6 +6,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 // TODO: Move to user featrues part
 //use std::time::{SystemTime, UNIX_EPOCH};
+use tokio::sync::watch;
 
 #[derive(Debug)]
 pub struct DataEnvelope {
@@ -47,6 +48,7 @@ impl Joint {
 
 #[derive(Debug)]
 pub struct Provider {
+    active: watch::Receiver<bool>,
     joint: Arc<Joint>,
     sender: DataSender,
 }
@@ -56,8 +58,10 @@ impl Provider {
     pub fn new(path: Path, stream_type: StreamType) -> Self {
         log::trace!("Creating Provider with path: {:?}", path);
         let (tx, rx) = mpsc::unbounded();
+        let (active_tx, active_rx) = watch::channel(false);
         let joint = Arc::new(Joint::default());
         let this = Provider {
+            active: active_rx,
             joint: joint.clone(),
             sender: tx,
         };
@@ -65,6 +69,7 @@ impl Provider {
             path,
             stream_type,
             joint,
+            active: active_tx,
             rx,
         };
         let state = RILL_STATE.get().expect("rill not installed!");
