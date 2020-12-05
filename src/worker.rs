@@ -125,10 +125,11 @@ impl RillWorker {
         let msg;
         if let Some(records) = self.index.find(path).map(Record::list) {
             let entries = records
-                .filter_map(|(entry_id, idx)| {
-                    self.joints
-                        .get(*idx)
-                        .map(|joint| (entry_id, joint.stream_type))
+                .map(|(entry_id, idx)| {
+                    let stream_type = idx
+                        .and_then(|idx| self.joints.get(*idx).map(|joint| joint.stream_type))
+                        .unwrap_or(StreamType::Container);
+                    (entry_id, stream_type)
                 })
                 .collect();
             log::trace!("Entries list for {:?}: {:?}", path, entries);

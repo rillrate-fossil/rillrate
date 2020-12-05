@@ -115,10 +115,10 @@ impl<T> Record<T> {
         Some(record)
     }
 
-    pub fn list(&self) -> impl Iterator<Item = (EntryId, &T)> {
-        self.subs.iter().filter_map(|(id, record)| {
+    pub fn list(&self) -> impl Iterator<Item = (EntryId, Option<&T>)> {
+        self.subs.iter().map(|(id, record)| {
             let id = id.to_owned();
-            record.link.as_ref().map(|value| (id, value))
+            (id, record.link.as_ref())
         })
     }
 

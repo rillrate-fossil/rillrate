@@ -265,8 +265,11 @@ pub enum RillToProvider {
     ControlStream { path: Path, active: bool },
 }
 
+// TODO: Rename to `EntryType` and add `enum StreamType` separately
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum StreamType {
+    Node,
+    Container,
     Provider,
     LogStream,
 }
@@ -274,6 +277,8 @@ pub enum StreamType {
 impl fmt::Display for StreamType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
+            Self::Node => "node",
+            Self::Container => "container",
             Self::Provider => "provider",
             Self::LogStream => "log",
         };
