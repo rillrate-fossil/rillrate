@@ -123,7 +123,14 @@ impl RillWorker {
 
     fn send_list_for(&mut self, direct_id: ProviderReqId, path: &Path) {
         let msg;
-        if let Some(entries) = self.index.find(path).map(Record::list) {
+        if let Some(records) = self.index.find(path).map(Record::list) {
+            let entries = records
+                .filter_map(|(entry_id, idx)| {
+                    self.joints
+                        .get(*idx)
+                        .map(|joint| (entry_id, joint.stream_type))
+                })
+                .collect();
             log::trace!("Entries list for {:?}: {:?}", path, entries);
             msg = RillToServer::Entries { entries };
         } else {

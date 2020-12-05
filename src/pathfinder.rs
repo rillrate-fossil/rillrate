@@ -115,8 +115,11 @@ impl<T> Record<T> {
         Some(record)
     }
 
-    pub fn list(&self) -> Vec<EntryId> {
-        self.subs.keys().cloned().collect()
+    pub fn list(&self) -> impl Iterator<Item = (EntryId, &T)> {
+        self.subs.iter().filter_map(|(id, record)| {
+            let id = id.to_owned();
+            record.link.as_ref().map(|value| (id, value))
+        })
     }
 
     pub fn set_link(&mut self, link: T) -> Option<T> {

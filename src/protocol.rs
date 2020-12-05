@@ -3,7 +3,7 @@ use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
@@ -268,7 +268,7 @@ pub enum RillToServer {
     },
     // TODO: Consider renaming to ListReady
     Entries {
-        entries: Vec<EntryId>,
+        entries: HashMap<EntryId, StreamType>,
     },
     // Snapshot { data: RillData },
     /// The response to `ControlStream { active: true }` request
