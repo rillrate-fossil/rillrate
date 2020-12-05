@@ -2,7 +2,7 @@ use super::term;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider, RillToServer,
-    WideEnvelope, PORT,
+    StreamType, WideEnvelope, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
@@ -46,13 +46,15 @@ pub(crate) async fn entrypoint(
 struct JointHolder {
     joint: Arc<Joint>,
     subscribers: HashSet<ProviderReqId>,
+    stream_type: StreamType,
 }
 
 impl JointHolder {
-    fn new(joint: Arc<Joint>) -> Self {
+    fn new(joint: Arc<Joint>, stream_type: StreamType) -> Self {
         Self {
             joint,
             subscribers: HashSet::new(),
+            stream_type,
         }
     }
 }
@@ -188,7 +190,7 @@ impl Consumer<ControlEvent> for RillWorker {
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
                 joint.assign(idx);
-                let holder = JointHolder::new(joint);
+                let holder = JointHolder::new(joint, stream_type);
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
