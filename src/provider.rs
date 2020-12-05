@@ -71,7 +71,7 @@ impl Provider {
         self.joint.is_active()
     }
 
-    pub fn send(&self, data: RillData) {
+    fn send(&self, data: RillData) {
         let envelope = DataEnvelope {
             idx: self.joint.index(),
             data,
@@ -94,4 +94,25 @@ impl Provider {
         self.send(data);
     }
     */
+}
+
+#[derive(Debug)]
+pub struct LogProvider {
+    provider: Provider,
+}
+
+impl LogProvider {
+    pub fn new(path: Path) -> Self {
+        let provider = Provider::new(path);
+        Self { provider }
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.provider.is_active()
+    }
+
+    pub fn log(&self, timestamp: String, message: String) {
+        let data = RillData::LogRecord { timestamp, message };
+        self.provider.send(data);
+    }
 }
