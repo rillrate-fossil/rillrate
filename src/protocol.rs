@@ -185,9 +185,18 @@ impl AsRef<[EntryId]> for Path {
     }
 }
 
-impl ToString for Path {
-    fn to_string(&self) -> String {
-        self.0.join(".")
+impl fmt::Display for Path {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut prefix = false;
+        for entry in self.0.iter() {
+            if prefix {
+                ".".fmt(f)?;
+            } else {
+                prefix = true;
+            }
+            entry.fmt(f)?;
+        }
+        Ok(())
     }
 }
 
