@@ -258,6 +258,7 @@ pub enum RillToProvider {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum StreamType {
+    Provider,
     LogStream,
 }
 
