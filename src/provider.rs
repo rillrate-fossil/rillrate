@@ -1,4 +1,4 @@
-use crate::protocol::{Path, RillData};
+use crate::protocol::{Path, RillData, StreamType};
 use crate::state::{ControlEvent, RILL_STATE};
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -53,7 +53,7 @@ pub struct Provider {
 
 impl Provider {
     // TODO: Add type of the stream...
-    pub fn new(path: Path) -> Self {
+    pub fn new(path: Path, stream_type: StreamType) -> Self {
         log::trace!("Creating Provider with path: {:?}", path);
         let (tx, rx) = mpsc::unbounded();
         let joint = Arc::new(Joint::default());
@@ -61,7 +61,12 @@ impl Provider {
             joint: joint.clone(),
             sender: tx,
         };
-        let event = ControlEvent::RegisterJoint { path, joint, rx };
+        let event = ControlEvent::RegisterJoint {
+            path,
+            stream_type,
+            joint,
+            rx,
+        };
         let state = RILL_STATE.get().expect("rill not installed!");
         state.send(event);
         this
@@ -103,7 +108,7 @@ pub struct LogProvider {
 
 impl LogProvider {
     pub fn new(path: Path) -> Self {
-        let provider = Provider::new(path);
+        let provider = Provider::new(path, StreamType::LogStream);
         Self { provider }
     }
 

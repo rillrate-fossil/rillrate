@@ -1,4 +1,4 @@
-use crate::protocol::Path;
+use crate::protocol::{Path, StreamType};
 use crate::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -11,6 +11,7 @@ pub(crate) enum ControlEvent {
     RegisterJoint {
         path: Path,
         joint: Arc<Joint>,
+        stream_type: StreamType,
         rx: DataReceiver,
     },
 }

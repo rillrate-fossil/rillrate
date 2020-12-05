@@ -178,7 +178,12 @@ impl Eliminated<Task<WsClient<RillProtocol, Self>>> for RillWorker {
 impl Consumer<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterJoint { path, joint, rx } => {
+            ControlEvent::RegisterJoint {
+                path,
+                stream_type,
+                joint,
+                rx,
+            } => {
                 log::debug!("Creating provider with path: {:?}", path);
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();

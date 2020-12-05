@@ -256,6 +256,11 @@ pub enum RillToProvider {
     ControlStream { path: Path, active: bool },
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum StreamType {
+    LogStream,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToServer {
     Declare {
