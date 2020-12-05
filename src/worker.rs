@@ -20,6 +20,7 @@ use slab::Slab;
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::watch;
 
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
 // of the 0,1,N items contained
@@ -45,14 +46,16 @@ pub(crate) async fn entrypoint(
 
 struct JointHolder {
     joint: Arc<Joint>,
+    active: watch::Sender<bool>,
     subscribers: HashSet<ProviderReqId>,
     stream_type: StreamType,
 }
 
 impl JointHolder {
-    fn new(joint: Arc<Joint>, stream_type: StreamType) -> Self {
+    fn new(joint: Arc<Joint>, active: watch::Sender<bool>, stream_type: StreamType) -> Self {
         Self {
             joint,
+            active,
             subscribers: HashSet::new(),
             stream_type,
         }
@@ -203,7 +206,7 @@ impl Consumer<ControlEvent> for RillWorker {
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
                 joint.assign(idx);
-                let holder = JointHolder::new(joint, stream_type);
+                let holder = JointHolder::new(joint, active, stream_type);
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
