@@ -262,6 +262,16 @@ pub enum StreamType {
     LogStream,
 }
 
+impl fmt::Display for StreamType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Self::Provider => "provider",
+            Self::LogStream => "log",
+        };
+        value.fmt(f)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToServer {
     Declare {
