@@ -1,6 +1,6 @@
 use std::thread;
 
-mod macros;
+pub mod macros;
 pub mod pathfinder;
 pub mod protocol;
 pub mod provider;
@@ -8,7 +8,7 @@ mod state;
 mod term;
 mod worker;
 
-pub use once_cell::sync::{Lazy, OnceCell};
+use once_cell::sync::{Lazy, OnceCell};
 pub use protocol::EntryId;
 pub use provider::Provider;
 use state::{RillState, RILL_STATE};

@@ -9,8 +9,9 @@ use std::time::{Duration, Instant};
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     rill::install("example-hello")?;
-    rill::awake(&module_1::RILL);
-    rill::awake(&module_2::RILL);
+    // TODO: Fix it
+    //rill::awake(&module_1::RILL);
+    //rill::awake(&module_2::RILL);
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
     ctrlc::set_handler(move || {
