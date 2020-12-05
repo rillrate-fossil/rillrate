@@ -1,8 +1,8 @@
 use super::term;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
-    Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider, RillToServer,
-    StreamType, WideEnvelope, PORT,
+    Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
+    RillToServer, StreamType, WideEnvelope, PORT,
 };
 use crate::provider::{DataEnvelope, Joint};
 use crate::state::{ControlEvent, ControlReceiver};
@@ -127,8 +127,12 @@ impl RillWorker {
             let entries = records
                 .map(|(entry_id, idx)| {
                     let stream_type = idx
-                        .and_then(|idx| self.joints.get(*idx).map(|joint| joint.stream_type))
-                        .unwrap_or(StreamType::Container);
+                        .and_then(|idx| {
+                            self.joints
+                                .get(*idx)
+                                .map(|joint| EntryType::Stream(joint.stream_type))
+                        })
+                        .unwrap_or(EntryType::Container);
                     (entry_id, stream_type)
                 })
                 .collect();

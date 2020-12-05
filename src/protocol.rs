@@ -265,21 +265,36 @@ pub enum RillToProvider {
     ControlStream { path: Path, active: bool },
 }
 
-// TODO: Rename to `EntryType` and add `enum StreamType` separately
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum StreamType {
+pub enum EntryType {
     Node,
     Container,
     Provider,
+    Stream(StreamType),
+}
+
+impl fmt::Display for EntryType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Self::Node => "node",
+            Self::Container => "container",
+            Self::Provider => "provider",
+            Self::Stream(stream_type) => {
+                return write!(f, "stream/{}", stream_type);
+            }
+        };
+        value.fmt(f)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum StreamType {
     LogStream,
 }
 
 impl fmt::Display for StreamType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
-            Self::Node => "node",
-            Self::Container => "container",
-            Self::Provider => "provider",
             Self::LogStream => "log",
         };
         value.fmt(f)
@@ -293,7 +308,7 @@ pub enum RillToServer {
     },
     // TODO: Consider renaming to ListReady
     Entries {
-        entries: HashMap<EntryId, StreamType>,
+        entries: HashMap<EntryId, EntryType>,
     },
     // Snapshot { data: RillData },
     /// The response to `ControlStream { active: true }` request
