@@ -27,8 +27,7 @@ macro_rules! log {
         {
             let rill = $crate::macros::Lazy::force(&RILL);
             if rill.is_active() {
-                let timestamp = "<todo:timestamp>";
-                rill.log(timestamp.into(), $msg);
+                rill.log($msg);
             }
         }
     }};
