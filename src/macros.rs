@@ -27,6 +27,8 @@ macro_rules! log {
         {
             let rill = $crate::macros::Lazy::force(&RILL);
             if rill.is_active() {
+                // TODO: Move that provider to a separarte module and export `chrono` there
+                let timestamp = $crate::chrono::Local::now().to_string();
                 rill.log($msg);
             }
         }
