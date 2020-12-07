@@ -1,6 +1,7 @@
 use crate::protocol::{Path, RillData, StreamType};
 use crate::state::{ControlEvent, RILL_STATE};
 use anyhow::{anyhow, Error};
+use chrono::Local;
 use derive_more::{Deref, DerefMut};
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -119,7 +120,8 @@ impl LogProvider {
         Self { provider }
     }
 
-    pub fn log(&self, timestamp: String, message: String) {
+    pub fn log(&self, message: String) {
+        let timestamp = Local::now().to_string();
         let data = RillData::LogRecord { timestamp, message };
         self.provider.send(data);
     }
