@@ -2,6 +2,7 @@
 
 pub use crate::protocol::{EntryId, Path};
 pub use crate::provider::LogProvider;
+pub use chrono::Local;
 pub use once_cell::sync::Lazy;
 
 pub fn split_module_path(module_path: &'static str) -> Path {
@@ -27,9 +28,8 @@ macro_rules! log {
         {
             let rill = $crate::macros::Lazy::force(&RILL);
             if rill.is_active() {
-                // TODO: Move that provider to a separarte module and export `chrono` there
-                let timestamp = $crate::chrono::Local::now().to_string();
-                rill.log($msg);
+                let timestamp = $crate::macros::Local::now().to_string();
+                rill.log(timestamp, $msg);
             }
         }
     }};
