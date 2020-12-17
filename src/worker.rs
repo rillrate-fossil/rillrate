@@ -18,7 +18,7 @@ use meio_connect::{
 };
 use slab::Slab;
 use std::collections::HashSet;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
@@ -304,7 +304,9 @@ impl Consumer<DataEnvelope> for RillWorker {
         if let Some(holder) = self.joints.get(envelope.idx) {
             if !holder.subscribers.is_empty() {
                 let direction = Direction::from(&holder.subscribers);
+                let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
                 let msg = RillToServer::Data {
+                    timestamp,
                     data: envelope.data,
                 };
                 self.sender.response(direction, msg);

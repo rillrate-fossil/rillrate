@@ -5,13 +5,13 @@ use futures::channel::mpsc;
 use meio::prelude::Action;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-// TODO: Move to user featrues part
-//use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 use tokio::sync::watch;
 
 #[derive(Debug)]
 pub struct DataEnvelope {
     pub idx: usize,
+    pub timestamp: SystemTime,
     pub data: RillData,
 }
 
@@ -68,9 +68,11 @@ impl Provider {
         this
     }
 
-    pub(crate) fn send(&self, data: RillData) {
+    pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
+        let timestamp = timestamp.unwrap_or_else(SystemTime::now);
         let envelope = DataEnvelope {
             idx: self.joint.index(),
+            timestamp,
             data,
         };
         if let Err(err) = self.sender.unbounded_send(envelope) {

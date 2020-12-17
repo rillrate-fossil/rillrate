@@ -8,6 +8,7 @@ use std::fmt;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::str::FromStr;
+use std::time::Duration;
 use thiserror::Error;
 
 pub const PORT: u16 = 1636;
@@ -256,11 +257,9 @@ pub enum RillData {
     /// For `module` and `level` use `Path`s hierarchy.
     // TODO: Move `timestamp` out
     LogRecord {
-        timestamp: String,
         message: String,
     },
     CounterRecord {
-        timestamp: String,
         value: u64,
     },
 }
@@ -324,6 +323,7 @@ pub enum RillToServer {
     /// The response to `ControlStream { active: true }` request
     BeginStream,
     Data {
+        timestamp: Duration,
         data: RillData,
     },
     /// The response to `ControlStream { active: false }` request
