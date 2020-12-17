@@ -2,6 +2,7 @@ use std::thread;
 
 pub mod macros;
 pub mod pathfinder;
+pub mod prelude;
 pub mod protocol;
 pub mod provider;
 mod state;
