@@ -175,7 +175,7 @@ impl StartedBy<System> for RillWorker {
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
-        ctx.bind_task(client, Group::WsConnection);
+        ctx.spawn_task(client, Group::WsConnection);
         Ok(())
     }
 }
