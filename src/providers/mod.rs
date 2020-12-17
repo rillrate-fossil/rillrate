@@ -9,3 +9,6 @@ pub use gauge::GaugeProvider;
 
 mod logger;
 pub use logger::LogProvider;
+
+mod protected;
+pub use protected::ProtectedProvider;
