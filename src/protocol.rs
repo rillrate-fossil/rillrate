@@ -255,11 +255,14 @@ pub enum RillData {
     /// Use empty strings if value is not provided.
     ///
     /// For `module` and `level` use `Path`s hierarchy.
-    // TODO: Move `timestamp` out
+    // TODO: Fix names...
     LogRecord {
         message: String,
     },
     CounterRecord {
+        value: u64,
+    },
+    GaugeValue {
         value: u64,
     },
 }
@@ -298,6 +301,7 @@ impl fmt::Display for EntryType {
 pub enum StreamType {
     LogStream,
     CounterStream,
+    GaugeStream,
 }
 
 impl fmt::Display for StreamType {
@@ -305,6 +309,7 @@ impl fmt::Display for StreamType {
         let value = match self {
             Self::LogStream => "log",
             Self::CounterStream => "counter",
+            Self::GaugeStream => "gauge",
         };
         value.fmt(f)
     }
