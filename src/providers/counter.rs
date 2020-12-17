@@ -19,8 +19,10 @@ impl CounterProvider {
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
         if let Some(mut value) = self.provider.lock() {
             *value += delta;
-            let data = RillData::CounterRecord { value: *value };
-            self.provider.send(data, timestamp);
+            if self.provider.is_active() {
+                let data = RillData::CounterRecord { value: *value };
+                self.provider.send(data, timestamp);
+            }
         }
     }
 }
