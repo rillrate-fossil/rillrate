@@ -34,7 +34,7 @@ pub(crate) async fn entrypoint(
         .blocker
         .lock()
         .map_err(|_| anyhow!("can't take termination blocker"))?;
-    let mut handle = meio::spawn(RillWorker::new(entry_id));
+    let mut handle = System::spawn(RillWorker::new(entry_id));
     handle.attach(rx);
     term_rx.notifier_rx.await?;
     handle.interrupt()?;
