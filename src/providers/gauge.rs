@@ -26,7 +26,7 @@ impl GaugeProvider {
         }
     }
 
-    pub fn sub(&self, delta: f64, timestamp: Option<SystemTime>) {
+    pub fn dec(&self, delta: f64, timestamp: Option<SystemTime>) {
         if let Some(mut value) = self.provider.lock() {
             *value -= delta;
             if self.provider.is_active() {
