@@ -254,7 +254,15 @@ pub enum RillData {
     /// Use empty strings if value is not provided.
     ///
     /// For `module` and `level` use `Path`s hierarchy.
-    LogRecord { timestamp: String, message: String },
+    // TODO: Move `timestamp` out
+    LogRecord {
+        timestamp: String,
+        message: String,
+    },
+    CounterRecord {
+        timestamp: String,
+        value: u64,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -290,12 +298,14 @@ impl fmt::Display for EntryType {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum StreamType {
     LogStream,
+    CouterStream,
 }
 
 impl fmt::Display for StreamType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
             Self::LogStream => "log",
+            Self::CouterStream => "counter",
         };
         value.fmt(f)
     }
