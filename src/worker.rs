@@ -37,7 +37,7 @@ pub(crate) async fn entrypoint(
     let mut handle = System::spawn(RillWorker::new(entry_id));
     handle.attach(rx);
     term_rx.notifier_rx.await?;
-    handle.interrupt()?;
+    System::interrupt(&mut handle)?;
     handle.join().await;
     drop(blocker);
     Ok(())
