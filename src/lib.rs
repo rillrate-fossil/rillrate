@@ -4,14 +4,13 @@ pub mod macros;
 pub mod pathfinder;
 pub mod prelude;
 pub mod protocol;
-pub mod provider;
+pub mod providers;
 mod state;
 mod term;
 mod worker;
 
-use once_cell::sync::{Lazy, OnceCell};
-pub use protocol::EntryId;
-pub use provider::Provider;
+use once_cell::sync::OnceCell;
+use protocol::EntryId;
 use state::{RillState, RILL_STATE};
 use std::sync::Mutex;
 use thiserror::Error;
@@ -43,9 +42,11 @@ pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     Ok(())
 }
 
+/* TODO: Consider what to do?
 pub fn awake(provider: &Lazy<Provider>) {
     Lazy::force(provider);
 }
+*/
 
 pub fn terminate() -> Result<(), Error> {
     let mutex = INSTANCE.get().ok_or(Error::NotInstalled)?;

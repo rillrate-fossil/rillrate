@@ -4,7 +4,7 @@ use crate::protocol::{
     Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
     RillToServer, StreamType, WideEnvelope, PORT,
 };
-use crate::provider::DataEnvelope;
+use crate::providers::provider::DataEnvelope;
 use crate::state::{ControlEvent, ControlReceiver};
 use anyhow::{anyhow, Error};
 use async_trait::async_trait;

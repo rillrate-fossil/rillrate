@@ -1,5 +1,5 @@
 use crate::protocol::{Path, StreamType};
-use crate::provider::{DataReceiver, Joint};
+use crate::providers::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use once_cell::sync::OnceCell;

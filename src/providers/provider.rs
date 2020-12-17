@@ -1,7 +1,6 @@
 use crate::protocol::{Path, RillData, StreamType};
 use crate::state::{ControlEvent, RILL_STATE};
-use anyhow::{anyhow, Error};
-use derive_more::{Deref, DerefMut};
+use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -47,8 +46,7 @@ pub struct Provider {
 }
 
 impl Provider {
-    // TODO: Add type of the stream...
-    fn new(path: Path, stream_type: StreamType) -> Self {
+    pub(crate) fn new(path: Path, stream_type: StreamType) -> Self {
         log::trace!("Creating Provider with path: {:?}", path);
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(false);
@@ -70,6 +68,19 @@ impl Provider {
         this
     }
 
+    pub(crate) fn send(&self, data: RillData) {
+        let envelope = DataEnvelope {
+            idx: self.joint.index(),
+            data,
+        };
+        if let Err(err) = self.sender.unbounded_send(envelope) {
+            log::error!("Can't transfer data to sender: {}", err);
+        }
+    }
+}
+
+impl Provider {
+    /// Returns `true` is the `Provider` has to send data.
     pub fn is_active(&self) -> bool {
         *self.active.borrow()
     }
@@ -89,38 +100,11 @@ impl Provider {
                 .active
                 .recv()
                 .await
-                .ok_or_else(|| anyhow!("rill is not available"))?;
+                .ok_or_else(|| Error::msg("rill is not available"))?;
             if is_active {
                 break;
             }
         }
         Ok(())
-    }
-
-    fn send(&self, data: RillData) {
-        let envelope = DataEnvelope {
-            idx: self.joint.index(),
-            data,
-        };
-        if let Err(err) = self.sender.unbounded_send(envelope) {
-            log::error!("Can't transfer data to sender: {}", err);
-        }
-    }
-}
-
-#[derive(Debug, Deref, DerefMut)]
-pub struct LogProvider {
-    provider: Provider,
-}
-
-impl LogProvider {
-    pub fn new(path: Path) -> Self {
-        let provider = Provider::new(path, StreamType::LogStream);
-        Self { provider }
-    }
-
-    pub fn log(&self, timestamp: String, message: String) {
-        let data = RillData::LogRecord { timestamp, message };
-        self.provider.send(data);
     }
 }

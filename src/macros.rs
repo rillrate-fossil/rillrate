@@ -1,7 +1,7 @@
 // TODO: Imports here instad of the root module?
 
 pub use crate::protocol::{EntryId, Path};
-pub use crate::provider::LogProvider;
+pub use crate::providers::LogProvider;
 pub use chrono::Local;
 pub use once_cell::sync::Lazy;
 
