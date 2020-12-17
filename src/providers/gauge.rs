@@ -1,7 +1,7 @@
 use super::provider::Provider;
 use crate::protocol::{Path, RillData, StreamType};
 use derive_more::{Deref, DerefMut};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, MutexGuard};
 use std::time::SystemTime;
 
 #[derive(Debug, Deref, DerefMut)]
@@ -9,7 +9,7 @@ pub struct GaugeProvider {
     #[deref]
     #[deref_mut]
     provider: Provider,
-    value: AtomicU64,
+    value: Mutex<f64>,
 }
 
 impl GaugeProvider {
@@ -17,29 +17,45 @@ impl GaugeProvider {
         let provider = Provider::new(path, StreamType::GaugeStream);
         Self {
             provider,
-            value: AtomicU64::new(0),
+            value: Mutex::new(0.0),
         }
     }
 
-    pub fn inc(&self, delta: u64, timestamp: Option<SystemTime>) {
-        let prev = self.value.fetch_add(delta, Ordering::SeqCst);
-        let data = RillData::CounterRecord {
-            value: prev + delta,
-        };
-        self.provider.send(data, timestamp);
+    fn lock(&self) -> Option<MutexGuard<'_, f64>> {
+        match self.value.lock() {
+            Ok(value) => Some(value),
+            Err(err) => {
+                log::error!(
+                    "Can't lock protected data of {}: {}",
+                    self.provider.path(),
+                    err
+                );
+                None
+            }
+        }
     }
 
-    pub fn sub(&self, delta: u64, timestamp: Option<SystemTime>) {
-        let prev = self.value.fetch_sub(delta, Ordering::SeqCst);
-        let data = RillData::CounterRecord {
-            value: prev - delta,
-        };
-        self.provider.send(data, timestamp);
+    pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
+        if let Some(mut value) = self.lock() {
+            *value += delta;
+            let data = RillData::CounterRecord { value: *value };
+            self.provider.send(data, timestamp);
+        }
     }
 
-    pub fn set(&self, value: u64, timestamp: Option<SystemTime>) {
-        self.value.store(value, Ordering::SeqCst);
-        let data = RillData::CounterRecord { value };
-        self.provider.send(data, timestamp);
+    pub fn sub(&self, delta: f64, timestamp: Option<SystemTime>) {
+        if let Some(mut value) = self.lock() {
+            *value -= delta;
+            let data = RillData::CounterRecord { value: *value };
+            self.provider.send(data, timestamp);
+        }
+    }
+
+    pub fn set(&self, new_value: f64, timestamp: Option<SystemTime>) {
+        if let Some(mut value) = self.lock() {
+            *value = new_value;
+            let data = RillData::CounterRecord { value: *value };
+            self.provider.send(data, timestamp);
+        }
     }
 }

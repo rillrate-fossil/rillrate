@@ -206,12 +206,12 @@ impl Consumer<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ControlEvent::RegisterJoint {
-                path,
                 stream_type,
                 joint,
                 active,
                 rx,
             } => {
+                let path = joint.path().to_owned();
                 log::debug!("Creating provider with path: {:?}", path);
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();

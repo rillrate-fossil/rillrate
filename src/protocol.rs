@@ -260,10 +260,10 @@ pub enum RillData {
         message: String,
     },
     CounterRecord {
-        value: u64,
+        value: f64,
     },
     GaugeValue {
-        value: u64,
+        value: f64,
     },
 }
 

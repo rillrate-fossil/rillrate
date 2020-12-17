@@ -1,7 +1,7 @@
 use super::provider::Provider;
 use crate::protocol::{Path, RillData, StreamType};
 use derive_more::{Deref, DerefMut};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Mutex;
 use std::time::SystemTime;
 
 #[derive(Debug, Deref, DerefMut)]
@@ -9,7 +9,7 @@ pub struct CounterProvider {
     #[deref]
     #[deref_mut]
     provider: Provider,
-    value: AtomicU64,
+    value: Mutex<f64>,
 }
 
 impl CounterProvider {
@@ -17,15 +17,20 @@ impl CounterProvider {
         let provider = Provider::new(path, StreamType::CounterStream);
         Self {
             provider,
-            value: AtomicU64::new(0),
+            value: Mutex::new(0.0),
         }
     }
 
-    pub fn inc(&self, delta: u64, timestamp: Option<SystemTime>) {
-        let prev = self.value.fetch_add(delta, Ordering::SeqCst);
-        let data = RillData::CounterRecord {
-            value: prev + delta,
-        };
-        self.provider.send(data, timestamp);
+    pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
+        match self.value.lock() {
+            Ok(mut value) => {
+                *value += delta;
+                let data = RillData::CounterRecord { value: *value };
+                self.provider.send(data, timestamp);
+            }
+            Err(err) => {
+                log::error!("Can't lock value of counter: {}", self.provider.path());
+            }
+        }
     }
 }

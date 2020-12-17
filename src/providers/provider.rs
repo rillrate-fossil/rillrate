@@ -21,19 +21,31 @@ pub type DataSender = mpsc::UnboundedSender<DataEnvelope>;
 pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
 /// Used to control the streams and interaction between a sender and a receiver.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub(crate) struct Joint {
     /// The index of the binding in the `Worker`.
     idx: AtomicUsize,
+    path: Path,
 }
 
 impl Joint {
+    fn new(path: Path) -> Self {
+        Self {
+            idx: AtomicUsize::new(0),
+            path,
+        }
+    }
+
     pub fn assign(&self, idx: usize) {
         self.idx.store(idx, Ordering::Relaxed);
     }
 
     pub fn index(&self) -> usize {
         self.idx.load(Ordering::Relaxed)
+    }
+
+    pub fn path(&self) -> &Path {
+        &self.path
     }
 }
 
@@ -50,14 +62,13 @@ impl Provider {
         log::trace!("Creating Provider with path: {:?}", path);
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(false);
-        let joint = Arc::new(Joint::default());
+        let joint = Arc::new(Joint::new(path));
         let this = Provider {
             active: active_rx,
             joint: joint.clone(),
             sender: tx,
         };
         let event = ControlEvent::RegisterJoint {
-            path,
             stream_type,
             joint,
             active: active_tx,
@@ -66,6 +77,10 @@ impl Provider {
         let state = RILL_STATE.get().expect("rill not installed!");
         state.send(event);
         this
+    }
+
+    pub fn path(&self) -> &Path {
+        self.joint.path()
     }
 
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
