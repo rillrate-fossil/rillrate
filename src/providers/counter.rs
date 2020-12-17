@@ -1,36 +1,26 @@
-use super::provider::Provider;
+use super::ProtectedProvider;
 use crate::protocol::{Path, RillData, StreamType};
 use derive_more::{Deref, DerefMut};
-use std::sync::Mutex;
 use std::time::SystemTime;
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct CounterProvider {
     #[deref]
     #[deref_mut]
-    provider: Provider,
-    value: Mutex<f64>,
+    provider: ProtectedProvider<f64>,
 }
 
 impl CounterProvider {
     pub fn new(path: Path) -> Self {
-        let provider = Provider::new(path, StreamType::CounterStream);
-        Self {
-            provider,
-            value: Mutex::new(0.0),
-        }
+        let provider = ProtectedProvider::new(path, StreamType::CounterStream, 0.0);
+        Self { provider }
     }
 
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
-        match self.value.lock() {
-            Ok(mut value) => {
-                *value += delta;
-                let data = RillData::CounterRecord { value: *value };
-                self.provider.send(data, timestamp);
-            }
-            Err(err) => {
-                log::error!("Can't lock value of counter: {}", self.provider.path());
-            }
+        if let Some(mut value) = self.provider.lock() {
+            *value += delta;
+            let data = RillData::CounterRecord { value: *value };
+            self.provider.send(data, timestamp);
         }
     }
 }
