@@ -1,5 +1,8 @@
 pub mod provider;
 pub use provider::Provider;
 
-mod log_provider;
-pub use log_provider::LogProvider;
+mod counter;
+pub use counter::CounterProvider;
+
+mod logger;
+pub use logger::LogProvider;

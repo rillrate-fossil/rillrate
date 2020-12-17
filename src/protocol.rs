@@ -298,14 +298,14 @@ impl fmt::Display for EntryType {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum StreamType {
     LogStream,
-    CouterStream,
+    CounterStream,
 }
 
 impl fmt::Display for StreamType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
             Self::LogStream => "log",
-            Self::CouterStream => "counter",
+            Self::CounterStream => "counter",
         };
         value.fmt(f)
     }
