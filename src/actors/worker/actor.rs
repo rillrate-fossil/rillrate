@@ -1,3 +1,4 @@
+use crate::actors::supervisor::RillSupervisor;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
@@ -9,7 +10,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Consumer, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy,
-    StartedBy, System, Task,
+    StartedBy, Task,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -148,7 +149,7 @@ impl RillWorker {
 }
 
 #[async_trait]
-impl StartedBy<System> for RillWorker {
+impl StartedBy<RillSupervisor> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Subscriptions, Group::WsConnection]);
         let client = WsClient::new(
@@ -162,7 +163,7 @@ impl StartedBy<System> for RillWorker {
 }
 
 #[async_trait]
-impl InterruptedBy<System> for RillWorker {
+impl InterruptedBy<RillSupervisor> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         // TODO: Stop all streams and send errors to subscribers!
         ctx.shutdown();

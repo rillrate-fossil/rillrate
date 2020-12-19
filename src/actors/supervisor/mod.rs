@@ -1,2 +1,2 @@
 mod actor;
-pub use actor::RillSupervisor;
+pub(crate) use actor::RillSupervisor;
