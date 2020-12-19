@@ -1,7 +1,10 @@
 use crate::actors::supervisor::RillSupervisor;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{Actor, Context, InterruptedBy, StartedBy};
+use meio::prelude::{
+    Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver, Task,
+};
+use warp::Filter;
 
 pub struct PrometheusExporter {}
 
@@ -18,13 +21,46 @@ impl Actor for PrometheusExporter {
 #[async_trait]
 impl StartedBy<RillSupervisor> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        todo!();
+        ctx.spawn_task(Endpoint::new(), ());
+        Ok(())
     }
 }
 
 #[async_trait]
 impl InterruptedBy<RillSupervisor> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        todo!();
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<Task<Endpoint>> for PrometheusExporter {
+    async fn handle(
+        &mut self,
+        _id: IdOf<Task<Endpoint>>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+struct Endpoint {}
+
+impl Endpoint {
+    fn new() -> Self {
+        Self {}
+    }
+}
+
+#[async_trait]
+impl LiteTask for Endpoint {
+    async fn routine(mut self, stop: StopReceiver) -> Result<(), Error> {
+        let routes = warp::any().map(|| "Hello, World!");
+        let (addr, server) = warp::serve(routes)
+            .bind_with_graceful_shutdown(([0, 0, 0, 0], 9090), stop.into_future());
+        server.await;
+        Ok(())
     }
 }

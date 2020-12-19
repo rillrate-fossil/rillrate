@@ -28,6 +28,7 @@ serde_json = "1.0.60"
 slab = "0.4.2"
 thiserror = "1.0.22"
 tokio = { version = "0.2.22", features = ["full"] }
+warp = "0.2.5"
 
 [dev-dependencies]
 ctrlc = "3.1.7"
