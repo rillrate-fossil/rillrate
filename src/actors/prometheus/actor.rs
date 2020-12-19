@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver, Task,
 };
+use std::convert::Infallible;
 use warp::Filter;
 
 pub struct PrometheusExporter {}
@@ -52,12 +53,16 @@ impl Endpoint {
     fn new() -> Self {
         Self {}
     }
+
+    async fn metrics() -> Result<impl warp::Reply, Infallible> {
+        Ok("# METRICS")
+    }
 }
 
 #[async_trait]
 impl LiteTask for Endpoint {
     async fn routine(mut self, stop: StopReceiver) -> Result<(), Error> {
-        let metrics = warp::path("metrics").map(|| "#metrics");
+        let metrics = warp::path("metrics").and_then(Self::metrics);
         let index = warp::any().map(|| "Rill Prometheus Client");
         let routes = metrics.or(index);
         let (addr, server) = warp::serve(routes)
