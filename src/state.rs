@@ -9,7 +9,7 @@ use tokio::sync::watch;
 pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
 pub(crate) enum ControlEvent {
-    RegisterJoint {
+    RegisterProvider {
         joint: Arc<Joint>,
         stream_type: StreamType,
         active: watch::Sender<bool>,

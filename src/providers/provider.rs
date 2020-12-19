@@ -68,7 +68,7 @@ impl Provider {
             joint: joint.clone(),
             sender: tx,
         };
-        let event = ControlEvent::RegisterJoint {
+        let event = ControlEvent::RegisterProvider {
             stream_type,
             joint,
             active: active_tx,

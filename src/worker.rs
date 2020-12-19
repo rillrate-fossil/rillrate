@@ -72,6 +72,7 @@ impl JointHolder {
     }
 }
 
+/// Wrapper for WebSocket connection for sending responses (notifications) to a server.
 #[derive(Default)]
 struct RillSender {
     sender: Option<WsSender<WideEnvelope<RillProtocol, RillToServer>>>,
@@ -205,7 +206,7 @@ impl Eliminated<Task<WsClient<RillProtocol, Self>>> for RillWorker {
 impl Consumer<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterJoint {
+            ControlEvent::RegisterProvider {
                 stream_type,
                 joint,
                 active,
