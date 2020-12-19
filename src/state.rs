@@ -1,4 +1,4 @@
-use crate::protocol::StreamType;
+use crate::protocol::{Path, StreamType};
 use crate::providers::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -14,6 +14,9 @@ pub(crate) enum ControlEvent {
         stream_type: StreamType,
         active: watch::Sender<bool>,
         rx: DataReceiver,
+    },
+    PublishStream {
+        path: Path,
     },
 }
 

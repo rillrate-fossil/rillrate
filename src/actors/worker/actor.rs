@@ -29,18 +29,24 @@ struct JointHolder {
     active: watch::Sender<bool>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
-    /// Local Exporters.
-    // exporters: ...,
     stream_type: StreamType,
+    /// Published to Local Exporters.
+    is_public: bool,
 }
 
 impl JointHolder {
-    fn new(path: Path, active: watch::Sender<bool>, stream_type: StreamType) -> Self {
+    fn new(
+        path: Path,
+        active: watch::Sender<bool>,
+        stream_type: StreamType,
+        is_public: bool,
+    ) -> Self {
         Self {
             path,
             active,
             subscribers: HashSet::new(),
             stream_type,
+            is_public,
         }
     }
 
@@ -84,6 +90,7 @@ pub struct RillWorker {
     sender: RillSender,
     index: Pathfinder<usize>,
     joints: Slab<JointHolder>,
+    public_streams: HashSet<Path>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -111,6 +118,7 @@ impl RillWorker {
             sender: RillSender::default(),
             index: Pathfinder::default(),
             joints: Slab::new(),
+            public_streams: HashSet::new(),
         }
     }
 
@@ -203,10 +211,19 @@ impl Consumer<ControlEvent> for RillWorker {
                 let idx = entry.key();
                 // TODO: How to return the idx without `Joint`?
                 joint.assign(idx);
-                let holder = JointHolder::new(path.clone(), active, stream_type);
+                let is_public = self.public_streams.contains(&path);
+                let holder = JointHolder::new(path.clone(), active, stream_type, is_public);
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
+            }
+            ControlEvent::PublishStream { path } => {
+                self.public_streams.insert(path.clone());
+                if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
+                    if let Some(holder) = self.joints.get_mut(*idx) {
+                        holder.is_public = true;
+                    }
+                }
             }
         }
         Ok(())
@@ -302,6 +319,9 @@ impl Consumer<DataEnvelope> for RillWorker {
                 // for the empty subscribers list that means it was the late unprocessed
                 // data generated before the stream was deactivated.
                 // This late data has to be dropped.
+            }
+            if holder.is_public {
+                todo!("send update to exporters")
             }
         }
         Ok(())
