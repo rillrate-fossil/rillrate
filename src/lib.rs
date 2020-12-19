@@ -8,7 +8,6 @@ pub mod protocol;
 pub mod providers;
 mod state;
 mod term;
-mod worker;
 
 use once_cell::sync::OnceCell;
 use protocol::EntryId;
@@ -39,7 +38,7 @@ pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     let (rx, state) = RillState::create();
     RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
     let entry_id = name.into();
-    thread::spawn(move || worker::entrypoint(entry_id, rx, term_rx));
+    thread::spawn(move || actors::worker::entrypoint(entry_id, rx, term_rx));
     Ok(())
 }
 
