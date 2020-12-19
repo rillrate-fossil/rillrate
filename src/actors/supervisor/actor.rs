@@ -65,7 +65,7 @@ impl Eliminated<PrometheusExporter> for RillSupervisor {
     async fn handle(
         &mut self,
         _id: IdOf<PrometheusExporter>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         Ok(())
     }

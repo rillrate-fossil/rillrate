@@ -67,6 +67,7 @@ impl LiteTask for Endpoint {
         let routes = metrics.or(index);
         let (addr, server) = warp::serve(routes)
             .bind_with_graceful_shutdown(([0, 0, 0, 0], 9090), stop.into_future());
+        log::info!("Prometheus endpoint binded to: {}", addr);
         server.await;
         Ok(())
     }

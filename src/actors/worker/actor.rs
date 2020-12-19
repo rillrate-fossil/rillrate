@@ -27,7 +27,10 @@ use tokio::sync::watch;
 struct JointHolder {
     path: Path,
     active: watch::Sender<bool>,
+    /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
+    /// Local Exporters.
+    // exporters: ...,
     stream_type: StreamType,
 }
 
@@ -77,6 +80,7 @@ impl RillSender {
 pub struct RillWorker {
     url: String,
     entry_id: EntryId,
+    /// Active WebScoket outgoing connection
     sender: RillSender,
     index: Pathfinder<usize>,
     joints: Slab<JointHolder>,
