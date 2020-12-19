@@ -57,7 +57,9 @@ impl Endpoint {
 #[async_trait]
 impl LiteTask for Endpoint {
     async fn routine(mut self, stop: StopReceiver) -> Result<(), Error> {
-        let routes = warp::any().map(|| "Hello, World!");
+        let metrics = warp::path("metrics").map(|| "#metrics");
+        let index = warp::any().map(|| "Rill Prometheus Client");
+        let routes = metrics.or(index);
         let (addr, server) = warp::serve(routes)
             .bind_with_graceful_shutdown(([0, 0, 0, 0], 9090), stop.into_future());
         server.await;
