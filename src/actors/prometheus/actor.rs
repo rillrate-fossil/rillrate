@@ -1,4 +1,4 @@
-use crate::actors::RillSupervisor;
+use crate::actors::supervisor::RillSupervisor;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, InterruptedBy, StartedBy};
