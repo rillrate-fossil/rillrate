@@ -1,4 +1,4 @@
-use crate::actors::worker::RillWorker;
+use crate::actors::{prometheus::PrometheusExporter, worker::RillWorker};
 use crate::state::ControlReceiver;
 use crate::EntryId;
 use anyhow::Error;
@@ -44,6 +44,10 @@ impl StartedBy<System> for RillSupervisor {
             .ok_or(Error::msg("attempt to start supervisor twice"))?;
         let mut worker = ctx.spawn_actor(worker, Group::Worker);
         worker.attach(rx);
+
+        let prometheus = PrometheusExporter::new();
+        ctx.spawn_actor(prometheus, Group::Exporters);
+
         Ok(())
     }
 }
@@ -52,6 +56,17 @@ impl StartedBy<System> for RillSupervisor {
 impl InterruptedBy<System> for RillSupervisor {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<PrometheusExporter> for RillSupervisor {
+    async fn handle(
+        &mut self,
+        _id: IdOf<PrometheusExporter>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         Ok(())
     }
 }
