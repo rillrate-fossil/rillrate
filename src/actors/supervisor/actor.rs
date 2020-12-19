@@ -10,8 +10,14 @@ pub(crate) struct RillSupervisor {
     rx: Option<ControlReceiver>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Group {
+    Worker,
+    Exporters,
+}
+
 impl Actor for RillSupervisor {
-    type GroupBy = ();
+    type GroupBy = Group;
 
     fn name(&self) -> String {
         format!("RillSupervisor({})", self.entry_id)
@@ -30,12 +36,13 @@ impl RillSupervisor {
 #[async_trait]
 impl StartedBy<System> for RillSupervisor {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(vec![Group::Exporters, Group::Worker]);
         let worker = RillWorker::new(self.entry_id.clone());
         let rx = self
             .rx
             .take()
             .ok_or(Error::msg("attempt to start supervisor twice"))?;
-        let mut worker = ctx.spawn_actor(worker, ());
+        let mut worker = ctx.spawn_actor(worker, Group::Worker);
         worker.attach(rx);
         Ok(())
     }

@@ -1,5 +1,6 @@
-pub mod supervisor;
-pub mod worker;
+mod prometheus;
+mod supervisor;
+mod worker;
 
 use crate::protocol::EntryId;
 use crate::state::ControlReceiver;
