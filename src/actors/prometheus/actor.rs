@@ -9,16 +9,20 @@ use meio::prelude::{
 };
 use std::convert::Infallible;
 use std::sync::Arc;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, RwLock};
 use warp::Filter;
 
 pub struct PrometheusExporter {
     rx: Option<broadcast::Receiver<Arc<BroadcastData>>>,
+    metrics: Arc<RwLock<String>>,
 }
 
 impl PrometheusExporter {
     pub fn new(receiver: broadcast::Receiver<Arc<BroadcastData>>) -> Self {
-        Self { rx: Some(receiver) }
+        Self {
+            rx: Some(receiver),
+            metrics: Arc::new(RwLock::new(String::new())),
+        }
     }
 }
 
@@ -38,7 +42,8 @@ impl StartedBy<RillSupervisor> for PrometheusExporter {
             .into_stream()
             .boxed();
         ctx.address().attach(rx);
-        ctx.spawn_task(Endpoint::new(), ());
+        let endpoint = Endpoint::new(self.metrics.clone());
+        ctx.spawn_task(endpoint, ());
         Ok(())
     }
 }
@@ -85,22 +90,26 @@ impl TryConsumer<Arc<BroadcastData>> for PrometheusExporter {
     }
 }
 
-struct Endpoint {}
+struct Endpoint {
+    metrics: Arc<RwLock<String>>,
+}
 
 impl Endpoint {
-    fn new() -> Self {
-        Self {}
+    fn new(metrics: Arc<RwLock<String>>) -> Self {
+        Self { metrics }
     }
 
-    async fn metrics() -> Result<impl warp::Reply, Infallible> {
-        Ok("# METRICS")
+    async fn metrics(metrics: Arc<RwLock<String>>) -> Result<impl warp::Reply, Infallible> {
+        let data = metrics.read().await;
+        Ok(data.clone())
     }
 }
 
 #[async_trait]
 impl LiteTask for Endpoint {
     async fn routine(mut self, stop: StopReceiver) -> Result<(), Error> {
-        let metrics = warp::path("metrics").and_then(Self::metrics);
+        let state = self.metrics.clone();
+        let metrics = warp::path("metrics").and_then(move || Self::metrics(state.clone()));
         let index = warp::any().map(|| "Rill Prometheus Client");
         let routes = metrics.or(index);
         let (addr, server) = warp::serve(routes)
