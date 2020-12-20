@@ -41,7 +41,7 @@ mod module_1 {
 mod module_2 {
     use std::time::Instant;
 
-    rill::provider!(public);
+    rill::provider!(public "module_2 important data metrics");
 
     pub fn work() {
         rill::log!(format!("work module_2 called: {:?}", Instant::now()));
