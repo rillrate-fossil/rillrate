@@ -1,5 +1,5 @@
 use crate::actors::worker::RillWorker;
-use crate::exporters::{BroadcastData, PrometheusExporter};
+use crate::exporters::{BroadcastData, GraphiteExporter, PrometheusExporter};
 use crate::state::ControlReceiver;
 use crate::EntryId;
 use anyhow::Error;
@@ -51,8 +51,13 @@ impl StartedBy<System> for RillSupervisor {
         let mut worker = ctx.spawn_actor(worker, Group::Worker);
         worker.attach(rx);
 
+        // TODO: Move to `SpawnPrometheus` action
         let prometheus = PrometheusExporter::new(self.broadcaster.subscribe());
         ctx.spawn_actor(prometheus, Group::Exporters);
+
+        // TODO: Move to `SpawnGraphite` action
+        let graphite = GraphiteExporter::new(self.broadcaster.subscribe());
+        ctx.spawn_actor(graphite, Group::Exporters);
 
         Ok(())
     }
@@ -71,6 +76,17 @@ impl Eliminated<PrometheusExporter> for RillSupervisor {
     async fn handle(
         &mut self,
         _id: IdOf<PrometheusExporter>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<GraphiteExporter> for RillSupervisor {
+    async fn handle(
+        &mut self,
+        _id: IdOf<GraphiteExporter>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         Ok(())
