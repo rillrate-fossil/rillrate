@@ -12,11 +12,21 @@ pub fn split_module_path(module_path: &'static str) -> Path {
 #[macro_export]
 macro_rules! provider {
     () => {
+        $crate::provider!(@public false);
+    };
+    (public) => {
+        $crate::provider!(@public true);
+    };
+    (@public $public:expr) => {
         pub static RILL: $crate::macros::Lazy<$crate::macros::LogProvider> =
             $crate::macros::Lazy::new(|| {
                 let name = std::module_path!();
                 let path = $crate::macros::split_module_path(name);
-                $crate::macros::LogProvider::new(path)
+                let provider = $crate::macros::LogProvider::new(path);
+                if $public {
+                    provider.export();
+                }
+                provider
             });
     };
 }

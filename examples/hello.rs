@@ -39,7 +39,7 @@ mod module_1 {
 }
 
 mod module_2 {
-    rill::provider!();
+    rill::provider!(public);
 
     pub fn work() {
         rill::log!("work module_2 called".into());
