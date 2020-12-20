@@ -50,7 +50,9 @@ impl JointHolder {
         }
     }
 
-    fn switch(&mut self, active: bool) {
+    /// It's force to show that's just changes the flag without any checks
+    /// the data required or not.
+    fn force_switch(&mut self, active: bool) {
         if let Err(err) = self.active.broadcast(active) {
             log::error!(
                 "Can't switch the stream {} to {}: {}",
@@ -58,6 +60,18 @@ impl JointHolder {
                 active,
                 err
             );
+        }
+    }
+
+    fn try_switch_on(&mut self) {
+        if !self.subscribers.is_empty() || self.is_public {
+            self.force_switch(true);
+        }
+    }
+
+    fn try_switch_off(&mut self) {
+        if self.subscribers.is_empty() && !self.is_public {
+            self.force_switch(false);
         }
     }
 }
@@ -155,7 +169,8 @@ impl RillWorker {
 
     fn stop_all(&mut self) {
         for (_, holder) in self.joints.iter_mut() {
-            holder.switch(false);
+            // TODO: Check there is no alive sessions or remove them before checking
+            holder.try_switch_off();
         }
     }
 }
@@ -274,10 +289,10 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                             // Send it before the flag switched on
                             let msg = RillToServer::BeginStream;
                             self.sender.response(direct_id.into(), msg);
-                            holder.switch(true);
+                            holder.try_switch_on();
                         } else {
                             holder.subscribers.remove(&direct_id);
-                            holder.switch(false);
+                            holder.try_switch_off();
                             // Send it after the flag switched off
                             let msg = RillToServer::EndStream;
                             self.sender.response(direct_id.into(), msg);
