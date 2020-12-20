@@ -245,6 +245,14 @@ impl Consumer<ControlEvent> for RillWorker {
                     Error::msg("Can't find a record of the provider to make it public.")
                 })?;
                 holder.make_public();
+                // TODO: Improve. Notifications is not a good approach at all,
+                // because some exporters can be spawned after this message sent.
+                // TODO: Use ordinary subscription mechanism on top of server-client
+                // interaction with the worker instead of this workaround with notifications.
+                if self.has_exporters() {
+                    let info = ExportEvent::SetInfo { info };
+                    self.broadcast(info);
+                }
             }
         }
         Ok(())
@@ -318,6 +326,22 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
     }
 }
 
+impl RillWorker {
+    fn has_exporters(&self) -> bool {
+        self.broadcaster.receiver_count() > 0
+    }
+
+    fn broadcast(&self, data: impl Into<ExportEvent>) {
+        let event = data.into();
+        if let Err(err) = self.broadcaster.send(event) {
+            log::error!(
+                "Can't broadcast data {:?} because all receivers lost.",
+                err.0
+            );
+        }
+    }
+}
+
 #[async_trait]
 impl Consumer<DataEnvelope> for RillWorker {
     async fn handle(
@@ -328,19 +352,13 @@ impl Consumer<DataEnvelope> for RillWorker {
         if let Some(holder) = self.joints.get(envelope.idx) {
             let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
             // Broadcasting tried before sending directional data to avoid excess data cloning
-            if holder.is_public && self.broadcaster.receiver_count() > 0 {
+            if holder.is_public && self.has_exporters() {
                 let data = BroadcastData {
                     path: holder.path.clone(),
                     data: envelope.data.clone(),
                     timestamp,
                 };
-                let event = data.into();
-                if let Err(err) = self.broadcaster.send(event) {
-                    log::error!(
-                        "Can't broadcast data {:?} because all receivers lost.",
-                        err.0
-                    );
-                }
+                self.broadcast(data);
             }
             if !holder.subscribers.is_empty() {
                 let direction = Direction::from(&holder.subscribers);
