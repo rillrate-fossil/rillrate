@@ -3,11 +3,9 @@ use crate::exporters::BroadcastData;
 use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::StreamExt;
 use meio::prelude::{
     task::{HeartBeat, Tick},
-    ActionHandler, Actor, Address, Context, Eliminated, IdOf, Interaction, InteractionHandler,
-    InterruptedBy, LiteTask, StartedBy, StopReceiver, Task, TryConsumer,
+    ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, Task, TryConsumer,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -15,14 +13,12 @@ use std::time::Duration;
 use tokio::sync::broadcast;
 
 pub struct GraphiteExporter {
-    rx: Option<broadcast::Receiver<Arc<BroadcastData>>>,
     metrics: HashMap<Path, RillData>,
 }
 
 impl GraphiteExporter {
-    pub fn new(receiver: broadcast::Receiver<Arc<BroadcastData>>) -> Self {
+    pub fn new() -> Self {
         Self {
-            rx: Some(receiver),
             metrics: HashMap::new(),
         }
     }
@@ -35,15 +31,6 @@ impl Actor for GraphiteExporter {
 #[async_trait]
 impl StartedBy<RillSupervisor> for GraphiteExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let rx = self
-            .rx
-            .take()
-            .ok_or(Error::msg(
-                "attempt to start the same graphite exporter twice",
-            ))?
-            .into_stream()
-            .boxed();
-        ctx.address().attach(rx);
         let heartbeat = HeartBeat::new(Duration::from_millis(1_000), ctx.address().clone());
         ctx.spawn_task(heartbeat, ());
         Ok(())

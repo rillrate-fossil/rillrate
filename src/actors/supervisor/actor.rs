@@ -52,12 +52,14 @@ impl StartedBy<System> for RillSupervisor {
         worker.attach(rx);
 
         // TODO: Move to `SpawnPrometheus` action
-        let prometheus = PrometheusExporter::new(self.broadcaster.subscribe());
-        ctx.spawn_actor(prometheus, Group::Exporters);
+        let prometheus = PrometheusExporter::new();
+        ctx.spawn_actor(prometheus, Group::Exporters)
+            .attach(self.broadcaster.subscribe());
 
         // TODO: Move to `SpawnGraphite` action
-        let graphite = GraphiteExporter::new(self.broadcaster.subscribe());
-        ctx.spawn_actor(graphite, Group::Exporters);
+        let graphite = GraphiteExporter::new();
+        ctx.spawn_actor(graphite, Group::Exporters)
+            .attach(self.broadcaster.subscribe());
 
         Ok(())
     }

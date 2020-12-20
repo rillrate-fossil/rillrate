@@ -3,7 +3,6 @@ use crate::exporters::BroadcastData;
 use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::StreamExt;
 use meio::prelude::{
     Actor, Address, Context, Eliminated, IdOf, Interaction, InteractionHandler, InterruptedBy,
     LiteTask, StartedBy, StopReceiver, Task, TryConsumer,
@@ -15,14 +14,12 @@ use tokio::sync::broadcast;
 use warp::Filter;
 
 pub struct PrometheusExporter {
-    rx: Option<broadcast::Receiver<Arc<BroadcastData>>>,
     metrics: BTreeMap<Path, RillData>,
 }
 
 impl PrometheusExporter {
-    pub fn new(receiver: broadcast::Receiver<Arc<BroadcastData>>) -> Self {
+    pub fn new() -> Self {
         Self {
-            rx: Some(receiver),
             metrics: BTreeMap::new(),
         }
     }
@@ -35,15 +32,6 @@ impl Actor for PrometheusExporter {
 #[async_trait]
 impl StartedBy<RillSupervisor> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let rx = self
-            .rx
-            .take()
-            .ok_or(Error::msg(
-                "attempt to start the same prometheus exporter twice",
-            ))?
-            .into_stream()
-            .boxed();
-        ctx.address().attach(rx);
         let endpoint = Endpoint::new(ctx.address().to_owned());
         ctx.spawn_task(endpoint, ());
         Ok(())
