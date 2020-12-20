@@ -69,7 +69,10 @@ impl TryConsumer<ExportEvent> for PrometheusExporter {
 
     async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ExportEvent::SetInfo { .. } => {}
+            ExportEvent::SetInfo { path, info } => {
+                let record = self.metrics.entry(path).or_default();
+                record.info = Some(info);
+            }
             ExportEvent::BroadcastData { path, data, .. } => {
                 let record = self.metrics.entry(path).or_default();
                 record.data = Some(data);
@@ -102,9 +105,15 @@ impl InteractionHandler<RenderMetrics> for PrometheusExporter {
         _ctx: &mut Context<Self>,
     ) -> Result<String, Error> {
         let mut buffer = String::new();
-        for (path, data) in &self.metrics {
-            let line = format!("{} - {:?}\n", path, data);
-            buffer.push_str(&line);
+        for (path, record) in &self.metrics {
+            if let (Some(info), Some(data)) = (record.info.as_ref(), record.data.as_ref()) {
+                let line = format!("# {}\n", path);
+                buffer.push_str(&line);
+                let line = format!("# {}\n", info);
+                buffer.push_str(&line);
+                let line = format!("{:?}\n", data);
+                buffer.push_str(&line);
+            }
         }
         Ok(buffer)
     }
