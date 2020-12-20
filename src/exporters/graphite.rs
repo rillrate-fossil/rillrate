@@ -1,5 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::exporters::BroadcastData;
+use crate::exporters::ExportEvent;
 use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -8,7 +8,6 @@ use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, Task, TryConsumer,
 };
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::broadcast;
 
@@ -68,15 +67,18 @@ impl ActionHandler<Tick> for GraphiteExporter {
 }
 
 #[async_trait]
-impl TryConsumer<Arc<BroadcastData>> for GraphiteExporter {
+impl TryConsumer<ExportEvent> for GraphiteExporter {
     type Error = broadcast::RecvError;
 
-    async fn handle(
-        &mut self,
-        item: Arc<BroadcastData>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        self.metrics.insert(item.path.clone(), item.data.clone());
+    async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        match event {
+            ExportEvent::SetInfo { .. } => {
+                todo!();
+            }
+            ExportEvent::BroadcastData(item) => {
+                self.metrics.insert(item.path.clone(), item.data.clone());
+            }
+        }
         Ok(())
     }
 

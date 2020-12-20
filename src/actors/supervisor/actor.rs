@@ -1,17 +1,16 @@
 use crate::actors::worker::RillWorker;
-use crate::exporters::{BroadcastData, GraphiteExporter, PrometheusExporter};
+use crate::exporters::{ExportEvent, GraphiteExporter, PrometheusExporter};
 use crate::state::ControlReceiver;
 use crate::EntryId;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
-use std::sync::Arc;
 use tokio::sync::broadcast;
 
 pub(crate) struct RillSupervisor {
     entry_id: EntryId,
     rx: Option<ControlReceiver>,
-    broadcaster: broadcast::Sender<Arc<BroadcastData>>,
+    broadcaster: broadcast::Sender<ExportEvent>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

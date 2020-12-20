@@ -1,5 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::exporters::BroadcastData;
+use crate::exporters::ExportEvent;
 use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -9,7 +9,6 @@ use meio::prelude::{
 };
 use std::collections::BTreeMap;
 use std::convert::Infallible;
-use std::sync::Arc;
 use tokio::sync::broadcast;
 use warp::Filter;
 
@@ -59,15 +58,16 @@ impl Eliminated<Task<Endpoint>> for PrometheusExporter {
 }
 
 #[async_trait]
-impl TryConsumer<Arc<BroadcastData>> for PrometheusExporter {
+impl TryConsumer<ExportEvent> for PrometheusExporter {
     type Error = broadcast::RecvError;
 
-    async fn handle(
-        &mut self,
-        item: Arc<BroadcastData>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        self.metrics.insert(item.path.clone(), item.data.clone());
+    async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        match event {
+            ExportEvent::SetInfo { .. } => {}
+            ExportEvent::BroadcastData(item) => {
+                self.metrics.insert(item.path.clone(), item.data.clone());
+            }
+        }
         Ok(())
     }
 

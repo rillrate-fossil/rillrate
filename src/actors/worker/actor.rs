@@ -1,5 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::exporters::BroadcastData;
+use crate::exporters::{BroadcastData, ExportEvent};
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
@@ -19,7 +19,6 @@ use meio_connect::{
 };
 use slab::Slab;
 use std::collections::HashSet;
-use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tokio::sync::{broadcast, watch};
 
@@ -107,7 +106,7 @@ pub struct RillWorker {
     sender: RillSender,
     index: Pathfinder<usize>,
     joints: Slab<JointHolder>,
-    broadcaster: broadcast::Sender<Arc<BroadcastData>>,
+    broadcaster: broadcast::Sender<ExportEvent>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -127,7 +126,7 @@ impl Actor for RillWorker {
 }
 
 impl RillWorker {
-    pub fn new(entry_id: EntryId, broadcaster: broadcast::Sender<Arc<BroadcastData>>) -> Self {
+    pub fn new(entry_id: EntryId, broadcaster: broadcast::Sender<ExportEvent>) -> Self {
         let link = format!("ws://127.0.0.1:{}/live/provider", PORT);
         Self {
             url: link,
@@ -335,8 +334,8 @@ impl Consumer<DataEnvelope> for RillWorker {
                     data: envelope.data.clone(),
                     timestamp,
                 };
-                let msg = Arc::new(data);
-                if let Err(err) = self.broadcaster.send(msg) {
+                let event = data.into();
+                if let Err(err) = self.broadcaster.send(event) {
                     log::error!(
                         "Can't broadcast data {:?} because all receivers lost.",
                         err.0
