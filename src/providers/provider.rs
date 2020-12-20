@@ -83,10 +83,11 @@ impl Provider {
         self.joint.path()
     }
 
-    pub fn export(&self) {
+    pub fn export(&self, info: impl Into<String>) {
         let state = RILL_STATE.get().expect("rill not installed!");
         let event = ControlEvent::PublishStream {
             path: self.path().clone(),
+            info: info.into(),
         };
         state.send(event);
     }

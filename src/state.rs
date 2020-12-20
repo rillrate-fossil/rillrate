@@ -19,6 +19,7 @@ pub(crate) enum ControlEvent {
     // becuase the `Worker` doesn't track published streams that don't exist.
     PublishStream {
         path: Path,
+        info: String,
     },
 }
 

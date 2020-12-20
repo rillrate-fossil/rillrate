@@ -234,7 +234,7 @@ impl Consumer<ControlEvent> for RillWorker {
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
             }
-            ControlEvent::PublishStream { path } => {
+            ControlEvent::PublishStream { path, info } => {
                 // All errors can happen if the stream published before the `Provider` registered.
                 log::info!("Publishing stream: {}", path);
                 let idx = self
