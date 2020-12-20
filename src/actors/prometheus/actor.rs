@@ -1,30 +1,29 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::exporters::BroadcastData;
+use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::prelude::{
-    Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver, Task,
-    TryConsumer,
+    Actor, Address, Context, Eliminated, IdOf, Interaction, InteractionHandler, InterruptedBy,
+    LiteTask, StartedBy, StopReceiver, Task, TryConsumer,
 };
+use std::collections::BTreeMap;
+use std::convert::Infallible;
 use std::sync::Arc;
-use tokio::sync::{broadcast, watch};
+use tokio::sync::broadcast;
 use warp::Filter;
 
 pub struct PrometheusExporter {
-    pair: Option<(
-        broadcast::Receiver<Arc<BroadcastData>>,
-        watch::Receiver<String>,
-    )>,
-    metrics: watch::Sender<String>,
+    rx: Option<broadcast::Receiver<Arc<BroadcastData>>>,
+    metrics: BTreeMap<Path, RillData>,
 }
 
 impl PrometheusExporter {
     pub fn new(receiver: broadcast::Receiver<Arc<BroadcastData>>) -> Self {
-        let (tx, rx) = watch::channel(String::new());
         Self {
-            pair: Some((receiver, rx)),
-            metrics: tx,
+            rx: Some(receiver),
+            metrics: BTreeMap::new(),
         }
     }
 }
@@ -36,12 +35,16 @@ impl Actor for PrometheusExporter {
 #[async_trait]
 impl StartedBy<RillSupervisor> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let (rx, metrics_rx) = self.pair.take().ok_or(Error::msg(
-            "attempt to start the same prometheus exporter twice",
-        ))?;
-        let rx = rx.into_stream().boxed();
+        let rx = self
+            .rx
+            .take()
+            .ok_or(Error::msg(
+                "attempt to start the same prometheus exporter twice",
+            ))?
+            .into_stream()
+            .boxed();
         ctx.address().attach(rx);
-        let endpoint = Endpoint::new(metrics_rx);
+        let endpoint = Endpoint::new(ctx.address().to_owned());
         ctx.spawn_task(endpoint, ());
         Ok(())
     }
@@ -89,21 +92,45 @@ impl TryConsumer<Arc<BroadcastData>> for PrometheusExporter {
     }
 }
 
+struct RenderMetrics;
+
+impl Interaction for RenderMetrics {
+    type Output = String;
+}
+
+#[async_trait]
+impl InteractionHandler<RenderMetrics> for PrometheusExporter {
+    async fn handle(
+        &mut self,
+        _: RenderMetrics,
+        _ctx: &mut Context<Self>,
+    ) -> Result<String, Error> {
+        Ok("rendered!".into())
+    }
+}
+
 struct Endpoint {
-    metrics: watch::Receiver<String>,
+    exporter: Address<PrometheusExporter>,
 }
 
 impl Endpoint {
-    fn new(metrics: watch::Receiver<String>) -> Self {
-        Self { metrics }
+    fn new(exporter: Address<PrometheusExporter>) -> Self {
+        Self { exporter }
+    }
+
+    async fn metrics(
+        mut exporter: Address<PrometheusExporter>,
+    ) -> Result<impl warp::Reply, Infallible> {
+        let data = exporter.interact(RenderMetrics).await.unwrap();
+        Ok(data)
     }
 }
 
 #[async_trait]
 impl LiteTask for Endpoint {
     async fn routine(mut self, stop: StopReceiver) -> Result<(), Error> {
-        let state = self.metrics.clone();
-        let metrics = warp::path("metrics").map(move || Ok(state.borrow().clone()));
+        let exporter = self.exporter.clone();
+        let metrics = warp::path("metrics").and_then(move || Self::metrics(exporter.clone()));
         let index = warp::any().map(|| "Rill Prometheus Client");
         let routes = metrics.or(index);
         let (addr, server) = warp::serve(routes)
