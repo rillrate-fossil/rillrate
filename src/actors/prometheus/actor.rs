@@ -7,21 +7,24 @@ use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver, Task,
     TryConsumer,
 };
-use std::convert::Infallible;
 use std::sync::Arc;
-use tokio::sync::{broadcast, RwLock};
+use tokio::sync::{broadcast, watch};
 use warp::Filter;
 
 pub struct PrometheusExporter {
-    rx: Option<broadcast::Receiver<Arc<BroadcastData>>>,
-    metrics: Arc<RwLock<String>>,
+    pair: Option<(
+        broadcast::Receiver<Arc<BroadcastData>>,
+        watch::Receiver<String>,
+    )>,
+    metrics: watch::Sender<String>,
 }
 
 impl PrometheusExporter {
     pub fn new(receiver: broadcast::Receiver<Arc<BroadcastData>>) -> Self {
+        let (tx, rx) = watch::channel(String::new());
         Self {
-            rx: Some(receiver),
-            metrics: Arc::new(RwLock::new(String::new())),
+            pair: Some((receiver, rx)),
+            metrics: tx,
         }
     }
 }
@@ -33,16 +36,12 @@ impl Actor for PrometheusExporter {
 #[async_trait]
 impl StartedBy<RillSupervisor> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let rx = self
-            .rx
-            .take()
-            .ok_or(Error::msg(
-                "attempt to start the same prometheus exporter twice",
-            ))?
-            .into_stream()
-            .boxed();
+        let (rx, metrics_rx) = self.pair.take().ok_or(Error::msg(
+            "attempt to start the same prometheus exporter twice",
+        ))?;
+        let rx = rx.into_stream().boxed();
         ctx.address().attach(rx);
-        let endpoint = Endpoint::new(self.metrics.clone());
+        let endpoint = Endpoint::new(metrics_rx);
         ctx.spawn_task(endpoint, ());
         Ok(())
     }
@@ -91,17 +90,12 @@ impl TryConsumer<Arc<BroadcastData>> for PrometheusExporter {
 }
 
 struct Endpoint {
-    metrics: Arc<RwLock<String>>,
+    metrics: watch::Receiver<String>,
 }
 
 impl Endpoint {
-    fn new(metrics: Arc<RwLock<String>>) -> Self {
+    fn new(metrics: watch::Receiver<String>) -> Self {
         Self { metrics }
-    }
-
-    async fn metrics(metrics: Arc<RwLock<String>>) -> Result<impl warp::Reply, Infallible> {
-        let data = metrics.read().await;
-        Ok(data.clone())
     }
 }
 
@@ -109,7 +103,7 @@ impl Endpoint {
 impl LiteTask for Endpoint {
     async fn routine(mut self, stop: StopReceiver) -> Result<(), Error> {
         let state = self.metrics.clone();
-        let metrics = warp::path("metrics").and_then(move || Self::metrics(state.clone()));
+        let metrics = warp::path("metrics").map(move || Ok(state.borrow().clone()));
         let index = warp::any().map(|| "Rill Prometheus Client");
         let routes = metrics.or(index);
         let (addr, server) = warp::serve(routes)
