@@ -1,5 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::exporters::{BroadcastData, ExportEvent};
+use crate::exporters::ExportEvent;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
@@ -250,8 +250,8 @@ impl Consumer<ControlEvent> for RillWorker {
                 // TODO: Use ordinary subscription mechanism on top of server-client
                 // interaction with the worker instead of this workaround with notifications.
                 if self.has_exporters() {
-                    let info = ExportEvent::SetInfo { info };
-                    self.broadcast(info);
+                    let event = ExportEvent::SetInfo { path, info };
+                    self.broadcast(event);
                 }
             }
         }
@@ -331,8 +331,7 @@ impl RillWorker {
         self.broadcaster.receiver_count() > 0
     }
 
-    fn broadcast(&self, data: impl Into<ExportEvent>) {
-        let event = data.into();
+    fn broadcast(&self, event: ExportEvent) {
         if let Err(err) = self.broadcaster.send(event) {
             log::error!(
                 "Can't broadcast data {:?} because all receivers lost.",
@@ -353,7 +352,7 @@ impl Consumer<DataEnvelope> for RillWorker {
             let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
             // Broadcasting tried before sending directional data to avoid excess data cloning
             if holder.is_public && self.has_exporters() {
-                let data = BroadcastData {
+                let data = ExportEvent::BroadcastData {
                     path: holder.path.clone(),
                     data: envelope.data.clone(),
                     timestamp,

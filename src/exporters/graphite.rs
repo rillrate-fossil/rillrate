@@ -75,8 +75,8 @@ impl TryConsumer<ExportEvent> for GraphiteExporter {
             ExportEvent::SetInfo { .. } => {
                 todo!();
             }
-            ExportEvent::BroadcastData(item) => {
-                self.metrics.insert(item.path.clone(), item.data.clone());
+            ExportEvent::BroadcastData { path, data, .. } => {
+                self.metrics.insert(path, data);
             }
         }
         Ok(())

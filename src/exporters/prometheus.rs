@@ -70,9 +70,9 @@ impl TryConsumer<ExportEvent> for PrometheusExporter {
     async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ExportEvent::SetInfo { .. } => {}
-            ExportEvent::BroadcastData(item) => {
-                let record = self.metrics.entry(item.path.clone()).or_default();
-                record.data = Some(item.data.clone());
+            ExportEvent::BroadcastData { path, data, .. } => {
+                let record = self.metrics.entry(path).or_default();
+                record.data = Some(data);
             }
         }
         Ok(())
