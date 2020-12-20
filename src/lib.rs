@@ -1,7 +1,7 @@
 use std::thread;
 
-pub mod actors;
-pub mod exporters;
+mod actors;
+mod exporters;
 pub mod macros;
 pub mod pathfinder;
 pub mod prelude;

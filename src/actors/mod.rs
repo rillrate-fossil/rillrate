@@ -1,4 +1,3 @@
-mod prometheus;
 pub mod runtime;
-mod supervisor;
+pub mod supervisor;
 mod worker;

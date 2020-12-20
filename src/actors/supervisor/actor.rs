@@ -1,5 +1,5 @@
-use crate::actors::{prometheus::PrometheusExporter, worker::RillWorker};
-use crate::exporters::BroadcastData;
+use crate::actors::worker::RillWorker;
+use crate::exporters::{BroadcastData, PrometheusExporter};
 use crate::state::ControlReceiver;
 use crate::EntryId;
 use anyhow::Error;

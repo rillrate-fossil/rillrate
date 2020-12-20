@@ -1,3 +1,6 @@
+mod prometheus;
+pub use prometheus::PrometheusExporter;
+
 use crate::protocol::{Path, RillData};
 use std::time::Duration;
 
