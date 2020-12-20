@@ -11,8 +11,8 @@ mod state;
 
 use actors::runtime::term;
 use once_cell::sync::OnceCell;
-use protocol::{EntryId, Path};
-use state::{ControlEvent, RillState, RILL_STATE};
+use protocol::EntryId;
+use state::{RillState, RILL_STATE};
 use std::sync::Mutex;
 use thiserror::Error;
 
@@ -41,16 +41,6 @@ pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
     let entry_id = name.into();
     thread::spawn(move || actors::runtime::entrypoint(entry_id, rx, term_rx));
-    Ok(())
-}
-
-/// Makes some metrics public.
-pub fn export(paths: Vec<Path>) -> Result<(), Error> {
-    let state = RILL_STATE.get().ok_or(Error::NotInstalled)?;
-    for path in paths {
-        let event = ControlEvent::PublishStream { path };
-        state.send(event);
-    }
     Ok(())
 }
 
