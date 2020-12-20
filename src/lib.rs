@@ -11,8 +11,8 @@ mod state;
 
 use actors::runtime::term;
 use once_cell::sync::OnceCell;
-use protocol::EntryId;
-use state::{RillState, RILL_STATE};
+use protocol::{EntryId, Path};
+use state::{ControlEvent, RillState, RILL_STATE};
 use std::sync::Mutex;
 use thiserror::Error;
 
@@ -30,6 +30,7 @@ pub enum Error {
     TerminationFailed,
 }
 
+/// Spawns rill worker.
 pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     let (term_tx, term_rx) = term::channel();
     let term_sender = Mutex::new(Some(term_tx));
@@ -43,12 +44,23 @@ pub fn install(name: impl Into<EntryId>) -> Result<(), Error> {
     Ok(())
 }
 
+/// Makes some metrics public.
+pub fn export(paths: Vec<Path>) -> Result<(), Error> {
+    let state = RILL_STATE.get().ok_or(Error::NotInstalled)?;
+    for path in paths {
+        let event = ControlEvent::PublishStream { path };
+        state.send(event);
+    }
+    Ok(())
+}
+
 /* TODO: Consider what to do?
 pub fn awake(provider: &Lazy<Provider>) {
     Lazy::force(provider);
 }
 */
 
+/// Tries to terminate rill worker.
 pub fn terminate() -> Result<(), Error> {
     let mutex = INSTANCE.get().ok_or(Error::NotInstalled)?;
     let term_sender = mutex
