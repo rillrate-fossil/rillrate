@@ -1,4 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
+use crate::exporters::BroadcastData;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
@@ -19,7 +20,7 @@ use meio_connect::{
 use slab::Slab;
 use std::collections::HashSet;
 use std::time::{Duration, SystemTime};
-use tokio::sync::watch;
+use tokio::sync::{broadcast, watch};
 
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
 // of the 0,1,N items contained
@@ -104,7 +105,9 @@ pub struct RillWorker {
     sender: RillSender,
     index: Pathfinder<usize>,
     joints: Slab<JointHolder>,
+    // TODO: Use `PathPattern` instead later
     public_streams: HashSet<Path>,
+    broadcaster: broadcast::Sender<BroadcastData>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -126,6 +129,7 @@ impl Actor for RillWorker {
 impl RillWorker {
     pub fn new(entry_id: EntryId) -> Self {
         let link = format!("ws://127.0.0.1:{}/live/provider", PORT);
+        let (broadcaster, _rx) = broadcast::channel(16);
         Self {
             url: link,
             entry_id,
@@ -133,6 +137,7 @@ impl RillWorker {
             index: Pathfinder::default(),
             joints: Slab::new(),
             public_streams: HashSet::new(),
+            broadcaster,
         }
     }
 
@@ -320,9 +325,23 @@ impl Consumer<DataEnvelope> for RillWorker {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if let Some(holder) = self.joints.get(envelope.idx) {
+            let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
+            // Broadcasting tried before sending directional data to avoid excess data cloning
+            if holder.is_public && self.broadcaster.receiver_count() > 0 {
+                let msg = BroadcastData {
+                    path: holder.path.clone(),
+                    data: envelope.data.clone(),
+                    timestamp,
+                };
+                if let Err(err) = self.broadcaster.send(msg) {
+                    log::error!(
+                        "Can't broadcast data {:?} because all receivers lost.",
+                        err.0
+                    );
+                }
+            }
             if !holder.subscribers.is_empty() {
                 let direction = Direction::from(&holder.subscribers);
-                let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
                 let msg = RillToServer::Data {
                     timestamp,
                     data: envelope.data,
@@ -334,9 +353,6 @@ impl Consumer<DataEnvelope> for RillWorker {
                 // for the empty subscribers list that means it was the late unprocessed
                 // data generated before the stream was deactivated.
                 // This late data has to be dropped.
-            }
-            if holder.is_public {
-                todo!("send update to exporters")
             }
         }
         Ok(())
