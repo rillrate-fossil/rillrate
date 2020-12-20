@@ -12,8 +12,14 @@ use std::convert::Infallible;
 use tokio::sync::broadcast;
 use warp::Filter;
 
+#[derive(Debug, Default)]
+struct Record {
+    data: Option<RillData>,
+    info: Option<String>,
+}
+
 pub struct PrometheusExporter {
-    metrics: BTreeMap<Path, RillData>,
+    metrics: BTreeMap<Path, Record>,
 }
 
 impl PrometheusExporter {
@@ -65,7 +71,8 @@ impl TryConsumer<ExportEvent> for PrometheusExporter {
         match event {
             ExportEvent::SetInfo { .. } => {}
             ExportEvent::BroadcastData(item) => {
-                self.metrics.insert(item.path.clone(), item.data.clone());
+                let record = self.metrics.entry(item.path.clone()).or_default();
+                record.data = Some(item.data.clone());
             }
         }
         Ok(())
