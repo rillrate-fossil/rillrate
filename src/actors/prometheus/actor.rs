@@ -79,7 +79,8 @@ impl TryConsumer<Arc<BroadcastData>> for PrometheusExporter {
         item: Arc<BroadcastData>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        todo!()
+        self.metrics.insert(item.path.clone(), item.data.clone());
+        Ok(())
     }
 
     async fn error(&mut self, err: Self::Error, ctx: &mut Context<Self>) -> Result<(), Error> {
@@ -105,7 +106,12 @@ impl InteractionHandler<RenderMetrics> for PrometheusExporter {
         _: RenderMetrics,
         _ctx: &mut Context<Self>,
     ) -> Result<String, Error> {
-        Ok("rendered!".into())
+        let mut buffer = String::new();
+        for (path, data) in &self.metrics {
+            let line = format!("{} - {:?}\n", path, data);
+            buffer.push_str(&line);
+        }
+        Ok(buffer)
     }
 }
 
