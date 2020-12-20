@@ -15,6 +15,8 @@ pub(crate) enum ControlEvent {
         active: watch::Sender<bool>,
         rx: DataReceiver,
     },
+    // It has to be published after registration only,
+    // becuase the `Worker` doesn't track published streams that don't exist.
     PublishStream {
         path: Path,
     },

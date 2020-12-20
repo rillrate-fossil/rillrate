@@ -107,8 +107,6 @@ pub struct RillWorker {
     sender: RillSender,
     index: Pathfinder<usize>,
     joints: Slab<JointHolder>,
-    // TODO: Use `PathPattern` instead later
-    public_streams: HashSet<Path>,
     broadcaster: broadcast::Sender<Arc<BroadcastData>>,
 }
 
@@ -137,7 +135,6 @@ impl RillWorker {
             sender: RillSender::default(),
             index: Pathfinder::default(),
             joints: Slab::new(),
-            public_streams: HashSet::new(),
             broadcaster,
         }
     }
@@ -233,21 +230,22 @@ impl Consumer<ControlEvent> for RillWorker {
                 // TODO: How to return the idx without `Joint`?
                 joint.assign(idx);
                 let mut holder = JointHolder::new(path.clone(), active, stream_type);
-                if self.public_streams.contains(&path) {
-                    holder.make_public();
-                }
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
             }
             ControlEvent::PublishStream { path } => {
                 log::info!("Publish stream: {}", path);
-                self.public_streams.insert(path.clone());
                 if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
                     if let Some(holder) = self.joints.get_mut(*idx) {
-                        log::info!("Stream published immediately: {}", path);
                         holder.make_public();
+                    } else {
+                        log::error!("Can't find a stream holder for {} to publish it.", path);
+                        // TODO: Return error here instead of `let Some`
                     }
+                } else {
+                    log::error!("Can't find a path to stream {} to publish it.", path);
+                    // TODO: Return error here instead of `let Some`
                 }
             }
         }
