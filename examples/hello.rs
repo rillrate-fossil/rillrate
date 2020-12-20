@@ -21,10 +21,10 @@ fn main() -> Result<(), Error> {
     while running.load(Ordering::SeqCst) {
         module_1::work();
         module_2::work();
-        log::trace!("Cool!");
-        log::warn!("Nice!");
+        //log::trace!("Cool!");
+        //log::warn!("Nice!");
         thread::sleep(Duration::from_millis(10));
-        log::trace!("PING: {:?}", Instant::now());
+        //log::trace!("PING: {:?}", Instant::now());
     }
     rill::terminate()?;
     Ok(())

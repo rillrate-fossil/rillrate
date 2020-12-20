@@ -37,18 +37,14 @@ struct JointHolder {
 }
 
 impl JointHolder {
-    fn new(
-        path: Path,
-        active: watch::Sender<bool>,
-        stream_type: StreamType,
-        is_public: bool,
-    ) -> Self {
+    fn new(path: Path, active: watch::Sender<bool>, stream_type: StreamType) -> Self {
         Self {
             path,
             active,
             subscribers: HashSet::new(),
             stream_type,
-            is_public,
+            // Is not public by default, because it's also not active by default
+            is_public: false,
         }
     }
 
@@ -75,6 +71,11 @@ impl JointHolder {
         if self.subscribers.is_empty() && !self.is_public {
             self.force_switch(false);
         }
+    }
+
+    fn make_public(&mut self) {
+        self.is_public = true;
+        self.try_switch_on();
     }
 }
 
@@ -231,17 +232,21 @@ impl Consumer<ControlEvent> for RillWorker {
                 let idx = entry.key();
                 // TODO: How to return the idx without `Joint`?
                 joint.assign(idx);
-                let is_public = self.public_streams.contains(&path);
-                let holder = JointHolder::new(path.clone(), active, stream_type, is_public);
+                let mut holder = JointHolder::new(path.clone(), active, stream_type);
+                if self.public_streams.contains(&path) {
+                    holder.make_public();
+                }
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
             }
             ControlEvent::PublishStream { path } => {
+                log::info!("Publish stream: {}", path);
                 self.public_streams.insert(path.clone());
                 if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
                     if let Some(holder) = self.joints.get_mut(*idx) {
-                        holder.is_public = true;
+                        log::info!("Stream published immediately: {}", path);
+                        holder.make_public();
                     }
                 }
             }

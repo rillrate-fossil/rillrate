@@ -79,6 +79,7 @@ impl TryConsumer<Arc<BroadcastData>> for PrometheusExporter {
         item: Arc<BroadcastData>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        log::debug!("Add metrics");
         self.metrics.insert(item.path.clone(), item.data.clone());
         Ok(())
     }
