@@ -19,6 +19,7 @@ use meio_connect::{
 };
 use slab::Slab;
 use std::collections::HashSet;
+use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tokio::sync::{broadcast, watch};
 
@@ -107,7 +108,7 @@ pub struct RillWorker {
     joints: Slab<JointHolder>,
     // TODO: Use `PathPattern` instead later
     public_streams: HashSet<Path>,
-    broadcaster: broadcast::Sender<BroadcastData>,
+    broadcaster: broadcast::Sender<Arc<BroadcastData>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -127,7 +128,7 @@ impl Actor for RillWorker {
 }
 
 impl RillWorker {
-    pub fn new(entry_id: EntryId, broadcaster: broadcast::Sender<BroadcastData>) -> Self {
+    pub fn new(entry_id: EntryId, broadcaster: broadcast::Sender<Arc<BroadcastData>>) -> Self {
         let link = format!("ws://127.0.0.1:{}/live/provider", PORT);
         Self {
             url: link,
@@ -327,11 +328,12 @@ impl Consumer<DataEnvelope> for RillWorker {
             let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
             // Broadcasting tried before sending directional data to avoid excess data cloning
             if holder.is_public && self.broadcaster.receiver_count() > 0 {
-                let msg = BroadcastData {
+                let data = BroadcastData {
                     path: holder.path.clone(),
                     data: envelope.data.clone(),
                     timestamp,
                 };
+                let msg = Arc::new(data);
                 if let Err(err) = self.broadcaster.send(msg) {
                     log::error!(
                         "Can't broadcast data {:?} because all receivers lost.",

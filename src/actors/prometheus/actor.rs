@@ -1,17 +1,24 @@
 use crate::actors::supervisor::RillSupervisor;
+use crate::exporters::BroadcastData;
 use anyhow::Error;
 use async_trait::async_trait;
+use futures::StreamExt;
 use meio::prelude::{
-    Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver, Task,
+    Actor, Consumer, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver,
+    Task,
 };
 use std::convert::Infallible;
+use std::sync::Arc;
+use tokio::sync::broadcast;
 use warp::Filter;
 
-pub struct PrometheusExporter {}
+pub struct PrometheusExporter {
+    rx: Option<broadcast::Receiver<Arc<BroadcastData>>>,
+}
 
 impl PrometheusExporter {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(receiver: broadcast::Receiver<Arc<BroadcastData>>) -> Self {
+        Self { rx: Some(receiver) }
     }
 }
 
@@ -22,6 +29,15 @@ impl Actor for PrometheusExporter {
 #[async_trait]
 impl StartedBy<RillSupervisor> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        let rx = self
+            .rx
+            .take()
+            .ok_or(Error::msg(
+                "attempt to start the same prometheus exporter twice",
+            ))?
+            .into_stream()
+            .boxed();
+        ctx.address().attach(rx);
         ctx.spawn_task(Endpoint::new(), ());
         Ok(())
     }
@@ -44,6 +60,17 @@ impl Eliminated<Task<Endpoint>> for PrometheusExporter {
     ) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
+    }
+}
+
+#[async_trait]
+impl Consumer<Result<Arc<BroadcastData>, broadcast::RecvError>> for PrometheusExporter {
+    async fn handle(
+        &mut self,
+        msg: Result<Arc<BroadcastData>, broadcast::RecvError>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        todo!()
     }
 }
 
