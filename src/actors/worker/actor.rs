@@ -229,24 +229,23 @@ impl Consumer<ControlEvent> for RillWorker {
                 let idx = entry.key();
                 // TODO: How to return the idx without `Joint`?
                 joint.assign(idx);
-                let mut holder = JointHolder::new(path.clone(), active, stream_type);
+                let holder = JointHolder::new(path.clone(), active, stream_type);
                 entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path).set_link(idx);
             }
             ControlEvent::PublishStream { path } => {
-                log::info!("Publish stream: {}", path);
-                if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
-                    if let Some(holder) = self.joints.get_mut(*idx) {
-                        holder.make_public();
-                    } else {
-                        log::error!("Can't find a stream holder for {} to publish it.", path);
-                        // TODO: Return error here instead of `let Some`
-                    }
-                } else {
-                    log::error!("Can't find a path to stream {} to publish it.", path);
-                    // TODO: Return error here instead of `let Some`
-                }
+                // All errors can happen if the stream published before the `Provider` registered.
+                log::info!("Publishing stream: {}", path);
+                let idx = self
+                    .index
+                    .find(&path)
+                    .and_then(Record::get_link)
+                    .ok_or_else(|| Error::msg("Can't find index of a stream to publish it."))?;
+                let holder = self.joints.get_mut(*idx).ok_or_else(|| {
+                    Error::msg("Can't find a record of the provider to make it public.")
+                })?;
+                holder.make_public();
             }
         }
         Ok(())
