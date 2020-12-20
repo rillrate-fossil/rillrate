@@ -4,8 +4,8 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::prelude::{
-    Actor, Consumer, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver,
-    Task,
+    Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver, Task,
+    TryConsumer,
 };
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -64,13 +64,24 @@ impl Eliminated<Task<Endpoint>> for PrometheusExporter {
 }
 
 #[async_trait]
-impl Consumer<Result<Arc<BroadcastData>, broadcast::RecvError>> for PrometheusExporter {
+impl TryConsumer<Arc<BroadcastData>> for PrometheusExporter {
+    type Error = broadcast::RecvError;
+
     async fn handle(
         &mut self,
-        msg: Result<Arc<BroadcastData>, broadcast::RecvError>,
+        item: Arc<BroadcastData>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         todo!()
+    }
+
+    async fn error(&mut self, err: Self::Error, ctx: &mut Context<Self>) -> Result<(), Error> {
+        log::error!(
+            "Broadcasting stream failed. Not possible to continue: {}",
+            err
+        );
+        ctx.shutdown();
+        Ok(())
     }
 }
 
