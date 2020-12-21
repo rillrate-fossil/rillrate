@@ -4,8 +4,8 @@ use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    Actor, Address, Context, Eliminated, IdOf, Interaction, InteractionHandler, InterruptedBy,
-    LiteTask, StartedBy, StopReceiver, Task, TryConsumer,
+    Actor, Address, Context, IdOf, Interaction, InteractionHandler, InterruptedBy, LiteTask,
+    StartedBy, StopReceiver, TaskEliminated, TryConsumer,
 };
 use std::collections::BTreeMap;
 use std::convert::Infallible;
@@ -52,12 +52,8 @@ impl InterruptedBy<RillSupervisor> for PrometheusExporter {
 }
 
 #[async_trait]
-impl Eliminated<Task<Endpoint>> for PrometheusExporter {
-    async fn handle(
-        &mut self,
-        _id: IdOf<Task<Endpoint>>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
+impl TaskEliminated<Endpoint> for PrometheusExporter {
+    async fn handle(&mut self, _id: IdOf<Endpoint>, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
     }

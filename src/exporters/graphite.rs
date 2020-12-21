@@ -5,8 +5,8 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     task::{HeartBeat, Tick},
-    ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy,
-    StopReceiver, Task, TryConsumer,
+    ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver,
+    TaskEliminated, TryConsumer,
 };
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -66,22 +66,18 @@ impl InterruptedBy<RillSupervisor> for GraphiteExporter {
 }
 
 #[async_trait]
-impl Eliminated<Task<HeartBeat>> for GraphiteExporter {
-    async fn handle(
-        &mut self,
-        _id: IdOf<Task<HeartBeat>>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
+impl TaskEliminated<HeartBeat> for GraphiteExporter {
+    async fn handle(&mut self, _id: IdOf<HeartBeat>, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
     }
 }
 
 #[async_trait]
-impl Eliminated<Task<Connection>> for GraphiteExporter {
+impl TaskEliminated<Connection> for GraphiteExporter {
     async fn handle(
         &mut self,
-        _id: IdOf<Task<Connection>>,
+        _id: IdOf<Connection>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.shutdown();
