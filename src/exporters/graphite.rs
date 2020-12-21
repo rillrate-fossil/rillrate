@@ -8,16 +8,25 @@ use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, Task, TryConsumer,
 };
 use std::collections::HashMap;
+use std::convert::TryInto;
+use std::io::Write;
 use std::time::Duration;
 use tokio::sync::broadcast;
 
+struct Record {
+    timestamp: Duration,
+    data: RillData,
+}
+
 pub struct GraphiteExporter {
-    metrics: HashMap<Path, RillData>,
+    pickled: bool,
+    metrics: HashMap<Path, Record>,
 }
 
 impl GraphiteExporter {
     pub fn new() -> Self {
         Self {
+            pickled: true,
             metrics: HashMap::new(),
         }
     }
@@ -59,8 +68,30 @@ impl Eliminated<Task<HeartBeat>> for GraphiteExporter {
 #[async_trait]
 impl ActionHandler<Tick> for GraphiteExporter {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
-        for (path, data) in self.metrics.drain() {
-            // TODO: Render lines and send them pickled
+        if self.pickled {
+            // Collect all metrics values into a pool
+            let mut pool = Vec::with_capacity(self.metrics.len());
+            for (path, record) in self.metrics.drain() {
+                let converted: Result<f64, _> = record.data.try_into();
+                match converted {
+                    Ok(value) => {
+                        let line = (path.to_string(), (record.timestamp.as_secs(), value));
+                        pool.push(value);
+                    }
+                    Err(err) => {
+                        log::error!("Can't send {} to the Graphite: {}", path, err);
+                    }
+                }
+            }
+            // Serialize with pickle
+            let mut buffer = Vec::new();
+            buffer.write(&0_u32.to_be_bytes())?;
+            serde_pickle::to_writer(&mut buffer, &pool, false)?;
+            let prefix_len = std::mem::size_of::<u32>();
+            let len: u32 = (buffer.len() - prefix_len).try_into()?;
+            buffer[0..prefix_len].copy_from_slice(&len.to_be_bytes());
+        } else {
+            // TODO: Support the plain-text format
         }
         Ok(())
     }
@@ -72,10 +103,14 @@ impl TryConsumer<ExportEvent> for GraphiteExporter {
 
     async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ExportEvent::SetInfo { .. } => {
-            }
-            ExportEvent::BroadcastData { path, data, .. } => {
-                self.metrics.insert(path, data);
+            ExportEvent::SetInfo { .. } => {}
+            ExportEvent::BroadcastData {
+                path,
+                data,
+                timestamp,
+            } => {
+                let record = Record { timestamp, data };
+                self.metrics.insert(path, record);
             }
         }
         Ok(())

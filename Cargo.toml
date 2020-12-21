@@ -24,6 +24,8 @@ meio = "0.40.0"
 meio-connect = "0.40.0"
 once_cell = "1.5.2"
 serde = { version = "1.0.117", features = ["derive"] }
+# TODO: Make optional for `graphite` function only
+serde-pickle = "0.6.2"
 serde_json = "1.0.60"
 slab = "0.4.2"
 thiserror = "1.0.22"

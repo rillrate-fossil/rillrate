@@ -4,6 +4,7 @@ use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
+use std::convert::TryInto;
 use std::fmt;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
@@ -265,6 +266,18 @@ pub enum RillData {
     GaugeValue {
         value: f64,
     },
+}
+
+impl TryInto<f64> for RillData {
+    type Error = std::num::ParseFloatError;
+
+    fn try_into(self) -> Result<f64, Self::Error> {
+        match self {
+            Self::LogRecord { message } => message.parse(),
+            Self::CounterRecord { value } => Ok(value),
+            Self::GaugeValue { value } => Ok(value),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
