@@ -5,12 +5,15 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     task::{HeartBeat, Tick},
-    ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, Task, TryConsumer,
+    ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy,
+    StopReceiver, Task, TryConsumer,
 };
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
 use std::time::Duration;
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 
 struct Record {
@@ -32,15 +35,24 @@ impl GraphiteExporter {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Group {
+    HeartBeat,
+    Connection,
+}
+
 impl Actor for GraphiteExporter {
-    type GroupBy = ();
+    type GroupBy = Group;
 }
 
 #[async_trait]
 impl StartedBy<RillSupervisor> for GraphiteExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
         let heartbeat = HeartBeat::new(Duration::from_millis(1_000), ctx.address().clone());
-        ctx.spawn_task(heartbeat, ());
+        ctx.spawn_task(heartbeat, Group::HeartBeat);
+        let connection = Connection::new();
+        ctx.spawn_task(connection, Group::Connection);
         Ok(())
     }
 }
@@ -58,6 +70,18 @@ impl Eliminated<Task<HeartBeat>> for GraphiteExporter {
     async fn handle(
         &mut self,
         _id: IdOf<Task<HeartBeat>>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<Task<Connection>> for GraphiteExporter {
+    async fn handle(
+        &mut self,
+        _id: IdOf<Task<Connection>>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.shutdown();
@@ -85,7 +109,7 @@ impl ActionHandler<Tick> for GraphiteExporter {
             }
             // Serialize with pickle
             let mut buffer = Vec::new();
-            buffer.write(&0_u32.to_be_bytes())?;
+            Write::write(&mut buffer, &0_u32.to_be_bytes())?;
             serde_pickle::to_writer(&mut buffer, &pool, false)?;
             let prefix_len = std::mem::size_of::<u32>();
             let len: u32 = (buffer.len() - prefix_len).try_into()?;
@@ -123,5 +147,32 @@ impl TryConsumer<ExportEvent> for GraphiteExporter {
         );
         ctx.shutdown();
         Ok(())
+    }
+}
+
+struct Connection {}
+
+impl Connection {
+    fn new() -> Self {
+        Self {}
+    }
+}
+
+#[async_trait]
+impl LiteTask for Connection {
+    async fn routine(mut self, mut stop: StopReceiver) -> Result<(), Error> {
+        loop {
+            let conn = stop.or(TcpStream::connect("127.0.0.1:2004")).await?;
+            if let Ok(mut conn) = conn {
+                loop {
+                    // TODO: Receive a message
+                    if let Err(err) = stop.or(conn.write_all(b"")).await? {
+                        break;
+                    }
+                }
+            } else {
+                // TODO: Wait for reconnection
+            }
+        }
     }
 }
