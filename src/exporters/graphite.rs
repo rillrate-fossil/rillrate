@@ -5,8 +5,8 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     task::{HeartBeat, Tick},
-    ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, StopReceiver,
-    TaskEliminated, TryConsumer,
+    ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
+    TryConsumer,
 };
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -24,13 +24,16 @@ struct Record {
 pub struct GraphiteExporter {
     pickled: bool,
     metrics: HashMap<Path, Record>,
+    sender: broadcast::Sender<Vec<u8>>,
 }
 
 impl GraphiteExporter {
     pub fn new() -> Self {
+        let (sender, _rx) = broadcast::channel(32);
         Self {
             pickled: true,
             metrics: HashMap::new(),
+            sender,
         }
     }
 }
@@ -51,7 +54,7 @@ impl StartedBy<RillSupervisor> for GraphiteExporter {
         ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
         let heartbeat = HeartBeat::new(Duration::from_millis(1_000), ctx.address().clone());
         ctx.spawn_task(heartbeat, Group::HeartBeat);
-        let connection = Connection::new();
+        let connection = Connection::new(self.sender.clone());
         ctx.spawn_task(connection, Group::Connection);
         Ok(())
     }
@@ -87,31 +90,36 @@ impl TaskEliminated<Connection> for GraphiteExporter {
 
 #[async_trait]
 impl ActionHandler<Tick> for GraphiteExporter {
-    async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
-        if self.pickled {
-            // Collect all metrics values into a pool
-            let mut pool = Vec::with_capacity(self.metrics.len());
-            for (path, record) in self.metrics.drain() {
-                let converted: Result<f64, _> = record.data.try_into();
-                match converted {
-                    Ok(value) => {
-                        let line = (path.to_string(), (record.timestamp.as_secs(), value));
-                        pool.push(value);
-                    }
-                    Err(err) => {
-                        log::error!("Can't send {} to the Graphite: {}", path, err);
+    async fn handle(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        if self.sender.receiver_count() > 0 {
+            if self.pickled {
+                // Collect all metrics values into a pool
+                let mut pool = Vec::with_capacity(self.metrics.len());
+                for (path, record) in self.metrics.drain() {
+                    let converted: Result<f64, _> = record.data.try_into();
+                    match converted {
+                        Ok(value) => {
+                            let line = (path.to_string(), (record.timestamp.as_secs(), value));
+                            pool.push(line);
+                        }
+                        Err(err) => {
+                            log::error!("Can't send {} to the Graphite: {}", path, err);
+                        }
                     }
                 }
+                // Serialize with pickle
+                let mut buffer = Vec::new();
+                Write::write(&mut buffer, &0_u32.to_be_bytes())?;
+                serde_pickle::to_writer(&mut buffer, &pool, false)?;
+                let prefix_len = std::mem::size_of::<u32>();
+                let len: u32 = (buffer.len() - prefix_len).try_into()?;
+                buffer[0..prefix_len].copy_from_slice(&len.to_be_bytes());
+                self.sender.send(buffer).map_err(|_| {
+                    Error::msg("Can't send data to Graphite (no active connections)")
+                })?;
+            } else {
+                // TODO: Support the plain-text format
             }
-            // Serialize with pickle
-            let mut buffer = Vec::new();
-            Write::write(&mut buffer, &0_u32.to_be_bytes())?;
-            serde_pickle::to_writer(&mut buffer, &pool, false)?;
-            let prefix_len = std::mem::size_of::<u32>();
-            let len: u32 = (buffer.len() - prefix_len).try_into()?;
-            buffer[0..prefix_len].copy_from_slice(&len.to_be_bytes());
-        } else {
-            // TODO: Support the plain-text format
         }
         Ok(())
     }
@@ -146,29 +154,24 @@ impl TryConsumer<ExportEvent> for GraphiteExporter {
     }
 }
 
-struct Connection {}
+struct Connection {
+    sender: broadcast::Sender<Vec<u8>>,
+}
 
 impl Connection {
-    fn new() -> Self {
-        Self {}
+    fn new(sender: broadcast::Sender<Vec<u8>>) -> Self {
+        Self { sender }
     }
 }
 
 #[async_trait]
 impl LiteTask for Connection {
-    async fn routine(mut self, mut stop: StopReceiver) -> Result<(), Error> {
+    async fn repeatable_routine(&mut self) -> Result<(), Error> {
+        let mut socket = TcpStream::connect("127.0.0.1:2004").await?;
+        let mut rx = self.sender.subscribe();
         loop {
-            let conn = stop.or(TcpStream::connect("127.0.0.1:2004")).await?;
-            if let Ok(mut conn) = conn {
-                loop {
-                    // TODO: Receive a message
-                    if let Err(err) = stop.or(conn.write_all(b"")).await? {
-                        break;
-                    }
-                }
-            } else {
-                // TODO: Wait for reconnection
-            }
+            let data = rx.recv().await?;
+            socket.write_all(&data).await?;
         }
     }
 }
