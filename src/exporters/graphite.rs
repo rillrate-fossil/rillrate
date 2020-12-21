@@ -73,7 +73,6 @@ impl TryConsumer<ExportEvent> for GraphiteExporter {
     async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
             ExportEvent::SetInfo { .. } => {
-                todo!();
             }
             ExportEvent::BroadcastData { path, data, .. } => {
                 self.metrics.insert(path, data);
