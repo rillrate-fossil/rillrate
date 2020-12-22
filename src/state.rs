@@ -6,6 +6,7 @@ use once_cell::sync::OnceCell;
 use std::sync::Arc;
 use tokio::sync::watch;
 
+/// It used by providers to register them into the state.
 pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
 pub(crate) enum ControlEvent {
