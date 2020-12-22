@@ -1,2 +1,2 @@
 mod actor;
-pub use actor::EmbeddedNode;
+pub use actor::{EmbeddedNode, EmbeddedNodeBridge};

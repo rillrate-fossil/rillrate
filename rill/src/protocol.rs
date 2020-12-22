@@ -16,8 +16,6 @@ pub const PORT: u16 = 1636;
 
 pub type ProviderReqId = DirectId<RillProtocol>;
 
-impl Origin for RillProtocol {}
-
 /// The origin of `DirectId`.
 pub trait Origin: Default + Clone {}
 
@@ -257,6 +255,12 @@ impl Protocol for RillProtocol {
     type ToClient = Envelope<Self, RillToProvider>;
     type Codec = JsonCodec;
 }
+
+impl Origin for RillProtocol {}
+
+pub type ServerRequest = Envelope<RillProtocol, RillToProvider>;
+
+pub type ProviderResponse = Envelope<RillProtocol, RillToServer>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillData {
