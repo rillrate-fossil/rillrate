@@ -356,8 +356,9 @@ impl Consumer<DataEnvelope> for RillWorker {
             let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
             // Broadcasting tried before sending directional data to avoid excess data cloning
             if holder.is_public && self.has_exporters() {
+                let full_path = holder.path.add_root(&self.entry_id);
                 let data = ExportEvent::BroadcastData {
-                    path: holder.path.clone(),
+                    path: full_path,
                     data: envelope.data.clone(),
                     timestamp,
                 };
