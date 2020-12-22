@@ -100,6 +100,7 @@ impl ActionHandler<Tick> for GraphiteExporter {
                     match converted {
                         Ok(value) => {
                             let line = (path.to_string(), (record.timestamp.as_secs(), value));
+                            log::trace!("Graphite export: {} - {}", path, value);
                             pool.push(line);
                         }
                         Err(err) => {

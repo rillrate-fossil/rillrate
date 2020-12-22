@@ -250,7 +250,11 @@ impl Consumer<ControlEvent> for RillWorker {
                 // TODO: Use ordinary subscription mechanism on top of server-client
                 // interaction with the worker instead of this workaround with notifications.
                 if self.has_exporters() {
-                    let event = ExportEvent::SetInfo { path, info };
+                    let full_path = path.add_root(&self.entry_id);
+                    let event = ExportEvent::SetInfo {
+                        path: full_path,
+                        info,
+                    };
                     self.broadcast(event);
                 }
             }

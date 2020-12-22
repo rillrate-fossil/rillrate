@@ -11,6 +11,7 @@ fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let _rill = Rill::install("basic-example")?;
     let counter = CounterProvider::new("counter".parse()?);
+    counter.export("counter of the example");
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));

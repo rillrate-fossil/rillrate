@@ -149,6 +149,13 @@ impl Path {
         Self(Vec::new())
     }
 
+    pub fn add_root(&self, entry_id: &EntryId) -> Path {
+        std::iter::once(entry_id.clone())
+            .chain(self.0.iter().cloned())
+            .collect::<Vec<_>>()
+            .into()
+    }
+
     pub fn concat(&self, other: &[EntryId]) -> Path {
         self.0
             .iter()
