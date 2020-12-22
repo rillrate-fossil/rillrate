@@ -285,16 +285,14 @@ impl InteractionHandler<WsClientStatus<RillProtocol>> for RillWorker {
     }
 }
 
-#[async_trait]
-impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillWorker {
-    async fn handle(
+impl RillWorker {
+    async fn handle_envelope(
         &mut self,
-        msg: WsIncoming<Envelope<RillProtocol, RillToProvider>>,
-        _ctx: &mut Context<Self>,
+        envelope: Envelope<RillProtocol, RillToProvider>,
     ) -> Result<(), Error> {
-        log::trace!("Incoming request: {:?}", msg.0);
-        let direct_id = msg.0.direct_id;
-        match msg.0.data {
+        log::trace!("Incoming request: {:?}", envelope);
+        let direct_id = envelope.direct_id;
+        match envelope.data {
             RillToProvider::ListOf { path } => {
                 self.send_list_for(direct_id.into(), &path);
             }
@@ -327,6 +325,17 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillWorker {
+    async fn handle(
+        &mut self,
+        msg: WsIncoming<Envelope<RillProtocol, RillToProvider>>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        self.handle_envelope(msg.0).await
     }
 }
 
