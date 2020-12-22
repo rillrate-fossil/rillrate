@@ -1,39 +1,33 @@
+use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{Actor, Bridge, Consumer, Context, StartedBy, System};
-use rill::protocol::{Envelope, ProviderResponse, RillToProvider, RillToServer, ServerRequest};
+use meio::prelude::{Actor, Bridge, Consumer, Context, Eliminated, IdOf, StartedBy, System};
 
-pub type EmbeddedNodeBridge = Bridge<ServerRequest, ProviderResponse>;
-
-pub struct EmbeddedNode {
-    bridge: EmbeddedNodeBridge,
-}
+pub struct EmbeddedNode {}
 
 impl Actor for EmbeddedNode {
     type GroupBy = ();
 }
 
 impl EmbeddedNode {
-    pub fn new(bridge: EmbeddedNodeBridge) -> Self {
-        Self { bridge }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
 #[async_trait]
 impl StartedBy<System> for EmbeddedNode {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.bridge.bind(ctx.address())?;
+        let server_actor = Server::new();
+        let server = ctx.spawn_actor(server_actor, ());
         Ok(())
     }
 }
 
 #[async_trait]
-impl Consumer<ProviderResponse> for EmbeddedNode {
-    async fn handle(
-        &mut self,
-        response: ProviderResponse,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        todo!();
+impl Eliminated<Server> for EmbeddedNode {
+    async fn handle(&mut self, _id: IdOf<Server>, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
+        Ok(())
     }
 }
