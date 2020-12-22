@@ -15,3 +15,5 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+anyhow = "1.0.36"
+meio = "0.40.0"

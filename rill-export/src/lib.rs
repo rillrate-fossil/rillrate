@@ -1,7 +1,7 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
+mod actors;
+
+use anyhow::Error;
+
+pub fn start_node() -> Result<(), Error> {
+    Ok(())
 }

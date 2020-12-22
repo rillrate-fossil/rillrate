@@ -1,5 +1,3 @@
-use std::thread;
-
 mod actors;
 mod exporters;
 pub mod macros;
@@ -12,12 +10,15 @@ mod state;
 use actors::runtime::term;
 use protocol::EntryId;
 use state::{RillState, RILL_STATE};
+use std::thread;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("alreary installed")]
     AlreadyInstalled,
+    #[error("io error {0}")]
+    IoError(#[from] std::io::Error),
     /*
     #[error("not installed")]
     NotInstalled,
@@ -38,7 +39,9 @@ impl Rill {
         let (rx, state) = RillState::create();
         RILL_STATE.set(state).map_err(|_| Error::AlreadyInstalled)?;
         let entry_id = name.into();
-        thread::spawn(move || actors::runtime::entrypoint(entry_id, rx, term_rx));
+        thread::Builder::new()
+            .name("rill".into())
+            .spawn(move || actors::runtime::entrypoint(entry_id, rx, term_rx))?;
         Ok(Self {
             sender: Some(term_tx),
         })
