@@ -4,9 +4,13 @@ mod exporters;
 use anyhow::Error;
 use std::thread;
 
-pub fn start_node() -> Result<(), Error> {
-    thread::Builder::new()
-        .name("rill-export".into())
-        .spawn(move || actors::runtime::entrypoint())?;
-    Ok(())
+pub struct RillExport {}
+
+impl RillExport {
+    pub fn start() -> Result<Self, Error> {
+        thread::Builder::new()
+            .name("rill-export".into())
+            .spawn(move || actors::runtime::entrypoint())?;
+        Ok(Self {})
+    }
 }

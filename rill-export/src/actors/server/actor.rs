@@ -104,6 +104,7 @@ impl InteractionHandler<WsRequest<Endpoint>> for Server {
         if !ctx.is_terminating() {
             match msg.section {
                 Endpoint::Provider => {
+                    log::info!("Self Connected");
                     /*
                     let session = ProviderSession::new(msg.into(), self.router.clone());
                     ctx.spawn_actor(session, Group::Providers);
