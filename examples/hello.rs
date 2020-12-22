@@ -23,7 +23,7 @@ fn main() -> Result<(), Error> {
         module_2::work();
         log::trace!("Cool!");
         log::warn!("Nice!");
-        thread::sleep(Duration::from_millis(10));
+        thread::sleep(Duration::from_millis(100));
         log::trace!("PING: {:?}", Instant::now());
     }
     rill::terminate()?;
