@@ -1,4 +1,5 @@
 use crate::actors::embedded_node::EmbeddedNode;
+use crate::actors::session::Session;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -15,12 +16,16 @@ use strum_macros::EnumString;
 
 pub struct Server {
     addr: SocketAddr,
+    connected: bool,
 }
 
 impl Server {
     pub fn new() -> Self {
         let addr = format!("127.0.0.1:{}", PORT).parse().unwrap();
-        Self { addr }
+        Self {
+            addr,
+            connected: false,
+        }
     }
 }
 
@@ -104,16 +109,29 @@ impl InteractionHandler<WsRequest<Endpoint>> for Server {
         if !ctx.is_terminating() {
             match msg.section {
                 Endpoint::Provider => {
-                    log::info!("Self Connected");
-                    /*
-                    let session = ProviderSession::new(msg.into(), self.router.clone());
-                    ctx.spawn_actor(session, Group::Providers);
-                    */
+                    if !self.connected {
+                        log::info!("Self Connected");
+                        self.connected = true;
+                        let session = Session::new(msg.into());
+                        // TODO: Add key checking to the session to prevent invalid connections.
+                        ctx.spawn_actor(session, Group::Provider);
+                    } else {
+                        log::error!("Reject the second incoming connection from: {}", msg.addr);
+                    }
                 }
             }
         } else {
             log::warn!("Incoming sesson rejected, because the server is terminating...");
         }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<Session> for Server {
+    async fn handle(&mut self, _id: IdOf<Session>, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        // Allow to connect again
+        self.connected = false;
         Ok(())
     }
 }

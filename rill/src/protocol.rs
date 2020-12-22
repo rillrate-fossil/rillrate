@@ -258,9 +258,11 @@ impl Protocol for RillProtocol {
 
 impl Origin for RillProtocol {}
 
+/* ?
 pub type ServerRequest = Envelope<RillProtocol, RillToProvider>;
 
 pub type ProviderResponse = Envelope<RillProtocol, RillToServer>;
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillData {
