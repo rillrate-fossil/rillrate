@@ -16,4 +16,6 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.36"
+async-trait = "0.1.42"
 meio = "0.40.0"
+tokio = { version = "0.2.22", features = ["full"] }
