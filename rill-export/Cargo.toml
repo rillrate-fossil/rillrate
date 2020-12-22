@@ -1,0 +1,17 @@
+[package]
+name = "rill-export"
+version = "0.1.0"
+authors = [
+    "Denis Kolodin <deniskolodin@gmail.com>",
+    "overfloat <rillrate@gmail.com>",
+]
+edition = "2018"
+repository = "https://github.com/rate-technology/rill"
+homepage = "https://github.com/rate-technology/rill"
+description = "Exporters for rill tracing system"
+categories = ["development-tools::debugging"]
+keywords = ["logging"]
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+
+[dependencies]

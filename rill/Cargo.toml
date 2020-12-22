@@ -1,11 +1,11 @@
 [package]
 name = "rill"
 version = "0.6.0"
-edition = "2018"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",
 ]
+edition = "2018"
 repository = "https://github.com/rate-technology/rill"
 homepage = "https://github.com/rate-technology/rill"
 description = "Dynamic logging and tracing system"
