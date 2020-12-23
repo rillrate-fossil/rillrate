@@ -50,6 +50,7 @@ impl StartedBy<System> for RillSupervisor {
         let mut worker = ctx.spawn_actor(worker, Group::Worker);
         worker.attach(rx);
 
+        /* TODO: Move to the `rill-export`
         // TODO: Move to `SpawnPrometheus` action
         let prometheus = PrometheusExporter::new();
         ctx.spawn_actor(prometheus, Group::Exporters)
@@ -59,6 +60,7 @@ impl StartedBy<System> for RillSupervisor {
         let graphite = GraphiteExporter::new();
         ctx.spawn_actor(graphite, Group::Exporters)
             .attach(self.broadcaster.subscribe());
+        */
 
         Ok(())
     }
