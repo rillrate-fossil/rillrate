@@ -15,11 +15,15 @@ use rill::protocol::{
 
 pub struct Session {
     handler: WsHandler<RillProtocol>,
+    registered: Option<EntryId>,
 }
 
 impl Session {
     pub fn new(handler: WsHandler<RillProtocol>) -> Self {
-        Self { handler }
+        Self {
+            handler,
+            registered: None,
+        }
     }
 
     fn send_envelope(&mut self, envelope: Envelope<RillProtocol, RillToProvider>) {
@@ -70,6 +74,14 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("WsIncoming message: {:?}", msg);
+        match msg.0.data {
+            RillToServer::Declare { entry_id } => {
+                self.registered = Some(entry_id);
+            }
+            other => {
+                log::warn!("Message {:?} not supported yet.", other);
+            }
+        }
         Ok(())
     }
 }
