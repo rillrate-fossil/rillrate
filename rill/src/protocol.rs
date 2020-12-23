@@ -295,10 +295,19 @@ impl TryInto<f64> for RillData {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToProvider {
-    ListOf { path: Path },
+    ListOf {
+        path: Path,
+    },
+    /// Turns on notifications about every added path
+    Describe {
+        active: bool,
+    },
     // TODO: Add `StartStream { path }` and `StopStream`,
     // because the `Path` is not needed to stop the stream.
-    ControlStream { path: Path, active: bool },
+    ControlStream {
+        path: Path,
+        active: bool,
+    },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -342,9 +351,18 @@ impl fmt::Display for StreamType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Description {
+    pub path: Path,
+    pub stream_type: StreamType,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RillToServer {
     Declare {
         entry_id: EntryId,
+    },
+    Description {
+        list: Vec<Description>,
     },
     // TODO: Consider renaming to ListReady
     Entries {

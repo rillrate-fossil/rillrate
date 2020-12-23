@@ -2,8 +2,8 @@ use crate::actors::supervisor::RillSupervisor;
 use crate::exporters::ExportEvent;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
-    Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
-    RillToServer, StreamType, WideEnvelope, PORT,
+    Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
+    RillToProvider, RillToServer, StreamType, WideEnvelope, PORT,
 };
 use crate::providers::provider::DataEnvelope;
 use crate::state::ControlEvent;
@@ -27,10 +27,10 @@ use tokio::sync::{broadcast, watch};
 
 struct JointHolder {
     path: Path,
+    stream_type: StreamType,
     active: watch::Sender<bool>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
-    stream_type: StreamType,
     /// Published to Local Exporters.
     is_public: bool,
 }
@@ -39,9 +39,9 @@ impl JointHolder {
     fn new(path: Path, active: watch::Sender<bool>, stream_type: StreamType) -> Self {
         Self {
             path,
+            stream_type,
             active,
             subscribers: HashSet::new(),
-            stream_type,
             // Is not public by default, because it's also not active by default
             is_public: false,
         }
@@ -105,8 +105,10 @@ pub struct RillWorker {
     /// Active WebScoket outgoing connection
     sender: RillSender,
     index: Pathfinder<usize>,
+    // TODO: Use TypedSlab here?
     joints: Slab<JointHolder>,
     broadcaster: broadcast::Sender<ExportEvent>,
+    describe: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -135,12 +137,11 @@ impl RillWorker {
             index: Pathfinder::default(),
             joints: Slab::new(),
             broadcaster,
+            describe: false,
         }
     }
 
-    fn send_entry_id(&mut self) {
-        let entry_id = self.entry_id.clone();
-        let msg = RillToServer::Declare { entry_id };
+    fn send_global(&mut self, msg: RillToServer) {
         self.sender.response(Direction::broadcast(), msg);
     }
 
@@ -231,7 +232,14 @@ impl Consumer<ControlEvent> for RillWorker {
                 let holder = JointHolder::new(path.clone(), active, stream_type);
                 entry.insert(holder);
                 ctx.address().attach(rx);
-                self.index.dig(path).set_link(idx);
+                self.index.dig(path.clone()).set_link(idx);
+                if self.describe {
+                    let description = Description { path, stream_type };
+                    let msg = RillToServer::Description {
+                        list: vec![description],
+                    };
+                    self.send_global(msg);
+                }
             }
             ControlEvent::PublishStream { path, info } => {
                 // All errors can happen if the stream published before the `Provider` registered.
@@ -273,29 +281,32 @@ impl InteractionHandler<WsClientStatus<RillProtocol>> for RillWorker {
         match status {
             WsClientStatus::Connected { sender } => {
                 self.sender.set(sender);
-                self.send_entry_id();
+                let entry_id = self.entry_id.clone();
+                let msg = RillToServer::Declare { entry_id };
+                self.send_global(msg);
             }
             WsClientStatus::Failed { reason } => {
                 log::error!("Connection failed: {}", reason);
                 // TODO: Try to reconnect...
                 self.stop_all();
+                self.describe = false;
             }
         }
         Ok(())
     }
 }
 
-impl RillWorker {
-    async fn handle_envelope(
+#[async_trait]
+impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillWorker {
+    async fn handle(
         &mut self,
-        envelope: Envelope<RillProtocol, RillToProvider>,
+        msg: WsIncoming<Envelope<RillProtocol, RillToProvider>>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let envelope = msg.0;
         log::trace!("Incoming request: {:?}", envelope);
         let direct_id = envelope.direct_id;
         match envelope.data {
-            RillToProvider::ListOf { path } => {
-                self.send_list_for(direct_id.into(), &path);
-            }
             RillToProvider::ControlStream { path, active } => {
                 log::debug!("Switching the stream {:?} to {:?}", path, active);
                 if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
@@ -323,19 +334,29 @@ impl RillWorker {
                     self.sender.response(direct_id.into(), msg);
                 }
             }
+            RillToProvider::ListOf { path } => {
+                self.send_list_for(direct_id.into(), &path);
+            }
+            RillToProvider::Describe { active } => {
+                if active {
+                    if !self.describe {
+                        // Send all exist paths
+                        let list = self
+                            .joints
+                            .iter()
+                            .map(|(_idx, joint)| Description {
+                                path: joint.path.clone(),
+                                stream_type: joint.stream_type.clone(),
+                            })
+                            .collect();
+                        let msg = RillToServer::Description { list };
+                        self.send_global(msg);
+                    }
+                }
+                self.describe = active;
+            }
         }
         Ok(())
-    }
-}
-
-#[async_trait]
-impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillWorker {
-    async fn handle(
-        &mut self,
-        msg: WsIncoming<Envelope<RillProtocol, RillToProvider>>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        self.handle_envelope(msg.0).await
     }
 }
 
