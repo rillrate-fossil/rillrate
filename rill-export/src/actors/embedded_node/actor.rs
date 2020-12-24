@@ -2,7 +2,9 @@ use crate::actors::exporter::Exporter;
 use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{Actor, Bridge, Consumer, Context, Eliminated, IdOf, StartedBy, System};
+use meio::prelude::{
+    Actor, Bridge, Consumer, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System,
+};
 
 pub struct EmbeddedNode {}
 
@@ -33,6 +35,14 @@ impl StartedBy<System> for EmbeddedNode {
         let server_actor = Server::new();
         let server = ctx.spawn_actor(server_actor, Group::Server);
 
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl InterruptedBy<System> for EmbeddedNode {
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }
