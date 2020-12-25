@@ -91,6 +91,11 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
             }
             RillToServer::Description { list } => {
                 log::trace!("Paths available: {:?}", list);
+                for description in list {
+                    if let Err(err) = self.exporter.path_declared(description).await {
+                        log::error!("Can't notify exporter about a new path: {}", err);
+                    }
+                }
             }
             other => {
                 log::warn!("Message {:?} not supported yet.", other);
