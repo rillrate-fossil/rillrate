@@ -1,12 +1,12 @@
-use crate::actors::supervisor::RillSupervisor;
+use crate::actors::embedded_node::EmbeddedNode;
 use crate::exporters::ExportEvent;
-use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     Actor, Address, Context, IdOf, Interaction, InteractionHandler, InterruptedBy, LiteTask,
     StartedBy, StopReceiver, TaskEliminated, TryConsumer,
 };
+use rill::protocol::{Path, RillData};
 use std::collections::BTreeMap;
 use std::convert::Infallible;
 use tokio::sync::broadcast;
@@ -35,7 +35,7 @@ impl Actor for PrometheusExporter {
 }
 
 #[async_trait]
-impl StartedBy<RillSupervisor> for PrometheusExporter {
+impl StartedBy<EmbeddedNode> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let endpoint = Endpoint::new(ctx.address().to_owned());
         ctx.spawn_task(endpoint, ());
@@ -44,7 +44,7 @@ impl StartedBy<RillSupervisor> for PrometheusExporter {
 }
 
 #[async_trait]
-impl InterruptedBy<RillSupervisor> for PrometheusExporter {
+impl InterruptedBy<EmbeddedNode> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

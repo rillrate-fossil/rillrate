@@ -1,6 +1,5 @@
-use crate::actors::supervisor::RillSupervisor;
+use crate::actors::embedded_node::EmbeddedNode;
 use crate::exporters::ExportEvent;
-use crate::protocol::{Path, RillData};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -8,6 +7,7 @@ use meio::prelude::{
     ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
     TryConsumer,
 };
+use rill::protocol::{Path, RillData};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
@@ -49,7 +49,7 @@ impl Actor for GraphiteExporter {
 }
 
 #[async_trait]
-impl StartedBy<RillSupervisor> for GraphiteExporter {
+impl StartedBy<EmbeddedNode> for GraphiteExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
         let heartbeat = HeartBeat::new(Duration::from_millis(1_000), ctx.address().clone());
@@ -61,7 +61,7 @@ impl StartedBy<RillSupervisor> for GraphiteExporter {
 }
 
 #[async_trait]
-impl InterruptedBy<RillSupervisor> for GraphiteExporter {
+impl InterruptedBy<EmbeddedNode> for GraphiteExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
