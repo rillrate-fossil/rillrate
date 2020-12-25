@@ -24,6 +24,7 @@ meio-connect = "0.40.0"
 rill = { version = "0.6.0", path = "../rill" }
 strum = "0.19.5"
 strum_macros = "0.19.4"
+thiserror = "1.0.22"
 tokio = { version = "0.2.22", features = ["full"] }
 
 [dev-dependencies]

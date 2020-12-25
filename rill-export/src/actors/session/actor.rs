@@ -1,3 +1,4 @@
+use super::link;
 use crate::actors::exporter::ExporterLink;
 use crate::actors::server::Server;
 use anyhow::Error;
@@ -101,6 +102,18 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
                 log::warn!("Message {:?} not supported yet.", other);
             }
         }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<link::ForwardRequest> for Session {
+    async fn handle(
+        &mut self,
+        msg: link::ForwardRequest,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        self.send_request(msg.request);
         Ok(())
     }
 }

@@ -6,6 +6,13 @@ use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, InterruptedBy, StartedBy};
 use rill::protocol::Path;
 use std::collections::HashSet;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum Reason {
+    #[error("No active session available")]
+    NoActiveSession,
+}
 
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Exporter {
@@ -19,6 +26,10 @@ impl Exporter {
             session: None,
             paths_to_export,
         }
+    }
+
+    fn session(&mut self) -> Result<&mut SessionLink, Reason> {
+        self.session.as_mut().ok_or(Reason::NoActiveSession)
     }
 }
 
@@ -53,7 +64,9 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
             Attached { session } => {
                 self.session = Some(session);
             }
-            Detached => {}
+            Detached => {
+                self.session.take();
+            }
         }
         Ok(())
     }
@@ -66,6 +79,11 @@ impl ActionHandler<link::PathDeclared> for Exporter {
         msg: link::PathDeclared,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        todo!("subscribe");
+        let path = msg.description.path;
+        // TODO: Use the set
+        //if self.paths_to_export.contains(&path) {
+        self.session()?.subscribe(path).await?;
+        //}
+        Ok(())
     }
 }
