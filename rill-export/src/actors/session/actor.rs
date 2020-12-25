@@ -11,13 +11,15 @@ use meio_connect::{
     WsIncoming,
 };
 use rill::protocol::{
-    EntryId, Envelope, ProviderReqId, RillProtocol, RillToProvider, RillToServer, WideEnvelope,
+    DirectId, EntryId, Envelope, ProviderReqId, RillProtocol, RillToProvider, RillToServer,
+    WideEnvelope,
 };
 
 pub struct Session {
     handler: WsHandler<RillProtocol>,
     registered: Option<EntryId>,
     exporter: ExporterLink,
+    counter: usize,
 }
 
 impl Session {
@@ -26,10 +28,14 @@ impl Session {
             handler,
             registered: None,
             exporter,
+            counter: 0,
         }
     }
 
-    fn send_envelope(&mut self, envelope: Envelope<RillProtocol, RillToProvider>) {
+    fn send_request(&mut self, data: RillToProvider) {
+        self.counter += 1;
+        let direct_id = DirectId::from(self.counter);
+        let envelope = Envelope { direct_id, data };
         log::trace!("Sending request to the server: {:?}", envelope);
         self.handler.send(envelope);
     }
@@ -80,6 +86,11 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
         match msg.0.data {
             RillToServer::Declare { entry_id } => {
                 self.registered = Some(entry_id);
+                let msg = RillToProvider::Describe { active: true };
+                self.send_request(msg);
+            }
+            RillToServer::Description { list } => {
+                log::trace!("Paths available: {:?}", list);
             }
             other => {
                 log::warn!("Message {:?} not supported yet.", other);

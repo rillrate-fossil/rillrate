@@ -28,6 +28,7 @@ pub struct DirectId<T: Origin> {
 impl<T: Origin> From<usize> for DirectId<T> {
     fn from(value: usize) -> Self {
         Self {
+            // TODO: TryInto
             value: value as u64,
             origin: PhantomData,
         }
@@ -36,6 +37,7 @@ impl<T: Origin> From<usize> for DirectId<T> {
 
 impl<T: Origin> Into<usize> for DirectId<T> {
     fn into(self) -> usize {
+        // TODO: TryInto
         self.value as usize
     }
 }

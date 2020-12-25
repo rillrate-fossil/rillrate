@@ -338,8 +338,9 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                 self.send_list_for(direct_id.into(), &path);
             }
             RillToProvider::Describe { active } => {
+                // TODO: Check or use `Direction` here?
                 if active {
-                    if !self.describe {
+                    if !self.describe && !self.joints.is_empty() {
                         // Send all exist paths
                         let list = self
                             .joints

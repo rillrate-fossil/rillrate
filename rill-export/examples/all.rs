@@ -20,7 +20,9 @@ fn main() -> Result<(), Error> {
         r.store(false, Ordering::SeqCst);
     })?;
 
+    let counter = CounterProvider::new("my.counter".parse()?);
     while running.load(Ordering::SeqCst) {
+        counter.inc(1.0, None);
         thread::sleep(Duration::from_millis(500));
     }
 
