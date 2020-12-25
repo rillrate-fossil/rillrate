@@ -1,4 +1,4 @@
 pub mod embedded_node;
-mod exporter;
+pub mod exporter;
 mod server;
 mod session;

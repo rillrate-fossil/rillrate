@@ -1,4 +1,4 @@
-use crate::actors::embedded_node::EmbeddedNode;
+use crate::actors::exporter::Exporter;
 use crate::exporters::ExportEvent;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -49,7 +49,7 @@ impl Actor for GraphiteExporter {
 }
 
 #[async_trait]
-impl StartedBy<EmbeddedNode> for GraphiteExporter {
+impl StartedBy<Exporter> for GraphiteExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
         let heartbeat = HeartBeat::new(Duration::from_millis(1_000), ctx.address().clone());
@@ -61,7 +61,7 @@ impl StartedBy<EmbeddedNode> for GraphiteExporter {
 }
 
 #[async_trait]
-impl InterruptedBy<EmbeddedNode> for GraphiteExporter {
+impl InterruptedBy<Exporter> for GraphiteExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

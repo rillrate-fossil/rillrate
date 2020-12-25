@@ -1,4 +1,4 @@
-use crate::actors::embedded_node::EmbeddedNode;
+use crate::actors::exporter::Exporter;
 use crate::exporters::ExportEvent;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -35,7 +35,7 @@ impl Actor for PrometheusExporter {
 }
 
 #[async_trait]
-impl StartedBy<EmbeddedNode> for PrometheusExporter {
+impl StartedBy<Exporter> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let endpoint = Endpoint::new(ctx.address().to_owned());
         ctx.spawn_task(endpoint, ());
@@ -44,7 +44,7 @@ impl StartedBy<EmbeddedNode> for PrometheusExporter {
 }
 
 #[async_trait]
-impl InterruptedBy<EmbeddedNode> for PrometheusExporter {
+impl InterruptedBy<Exporter> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
