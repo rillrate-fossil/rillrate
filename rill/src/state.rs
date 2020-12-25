@@ -1,4 +1,4 @@
-use crate::protocol::{Path, StreamType};
+use crate::protocol::StreamType;
 use crate::providers::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -15,12 +15,6 @@ pub(crate) enum ControlEvent {
         stream_type: StreamType,
         active: watch::Sender<bool>,
         rx: DataReceiver,
-    },
-    // It has to be published after registration only,
-    // becuase the `Worker` doesn't track published streams that don't exist.
-    PublishStream {
-        path: Path,
-        info: String,
     },
 }
 

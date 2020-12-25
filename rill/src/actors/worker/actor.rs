@@ -1,5 +1,4 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::exporters::ExportEvent;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
@@ -20,7 +19,7 @@ use meio_connect::{
 use slab::Slab;
 use std::collections::HashSet;
 use std::time::{Duration, SystemTime};
-use tokio::sync::{broadcast, watch};
+use tokio::sync::watch;
 
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
 // of the 0,1,N items contained
@@ -31,8 +30,6 @@ struct JointHolder {
     active: watch::Sender<bool>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
-    /// Published to Local Exporters.
-    is_public: bool,
 }
 
 impl JointHolder {
@@ -42,8 +39,6 @@ impl JointHolder {
             stream_type,
             active,
             subscribers: HashSet::new(),
-            // Is not public by default, because it's also not active by default
-            is_public: false,
         }
     }
 
@@ -61,20 +56,15 @@ impl JointHolder {
     }
 
     fn try_switch_on(&mut self) {
-        if !self.subscribers.is_empty() || self.is_public {
+        if !self.subscribers.is_empty() {
             self.force_switch(true);
         }
     }
 
     fn try_switch_off(&mut self) {
-        if self.subscribers.is_empty() && !self.is_public {
+        if self.subscribers.is_empty() {
             self.force_switch(false);
         }
-    }
-
-    fn make_public(&mut self) {
-        self.is_public = true;
-        self.try_switch_on();
     }
 }
 
@@ -107,7 +97,6 @@ pub struct RillWorker {
     index: Pathfinder<usize>,
     // TODO: Use TypedSlab here?
     joints: Slab<JointHolder>,
-    broadcaster: broadcast::Sender<ExportEvent>,
     describe: bool,
 }
 
@@ -128,7 +117,7 @@ impl Actor for RillWorker {
 }
 
 impl RillWorker {
-    pub fn new(entry_id: EntryId, broadcaster: broadcast::Sender<ExportEvent>) -> Self {
+    pub fn new(entry_id: EntryId) -> Self {
         let link = format!("ws://127.0.0.1:{}/live/provider", PORT);
         Self {
             url: link,
@@ -136,7 +125,6 @@ impl RillWorker {
             sender: RillSender::default(),
             index: Pathfinder::default(),
             joints: Slab::new(),
-            broadcaster,
             describe: false,
         }
     }
@@ -241,31 +229,6 @@ impl Consumer<ControlEvent> for RillWorker {
                     self.send_global(msg);
                 }
             }
-            ControlEvent::PublishStream { path, info } => {
-                // All errors can happen if the stream published before the `Provider` registered.
-                log::info!("Publishing stream: {}", path);
-                let idx = self
-                    .index
-                    .find(&path)
-                    .and_then(Record::get_link)
-                    .ok_or_else(|| Error::msg("Can't find index of a stream to publish it."))?;
-                let holder = self.joints.get_mut(*idx).ok_or_else(|| {
-                    Error::msg("Can't find a record of the provider to make it public.")
-                })?;
-                holder.make_public();
-                // TODO: Improve. Notifications is not a good approach at all,
-                // because some exporters can be spawned after this message sent.
-                // TODO: Use ordinary subscription mechanism on top of server-client
-                // interaction with the worker instead of this workaround with notifications.
-                if self.has_exporters() {
-                    let full_path = path.add_root(&self.entry_id);
-                    let event = ExportEvent::SetInfo {
-                        path: full_path,
-                        info,
-                    };
-                    self.broadcast(event);
-                }
-            }
         }
         Ok(())
     }
@@ -361,21 +324,6 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
     }
 }
 
-impl RillWorker {
-    fn has_exporters(&self) -> bool {
-        self.broadcaster.receiver_count() > 0
-    }
-
-    fn broadcast(&self, event: ExportEvent) {
-        if let Err(err) = self.broadcaster.send(event) {
-            log::error!(
-                "Can't broadcast data {:?} because all receivers lost.",
-                err.0
-            );
-        }
-    }
-}
-
 #[async_trait]
 impl Consumer<DataEnvelope> for RillWorker {
     async fn handle(
@@ -385,16 +333,6 @@ impl Consumer<DataEnvelope> for RillWorker {
     ) -> Result<(), Error> {
         if let Some(holder) = self.joints.get(envelope.idx) {
             let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
-            // Broadcasting tried before sending directional data to avoid excess data cloning
-            if holder.is_public && self.has_exporters() {
-                let full_path = holder.path.add_root(&self.entry_id);
-                let data = ExportEvent::BroadcastData {
-                    path: full_path,
-                    data: envelope.data.clone(),
-                    timestamp,
-                };
-                self.broadcast(data);
-            }
             if !holder.subscribers.is_empty() {
                 let direction = Direction::from(&holder.subscribers);
                 let msg = RillToServer::Data {

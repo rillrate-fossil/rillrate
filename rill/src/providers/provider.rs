@@ -83,15 +83,6 @@ impl Provider {
         self.joint.path()
     }
 
-    pub fn export(&self, info: impl Into<String>) {
-        let state = RILL_STATE.get().expect("rill not installed!");
-        let event = ControlEvent::PublishStream {
-            path: self.path().clone(),
-            info: info.into(),
-        };
-        state.send(event);
-    }
-
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
         let timestamp = timestamp.unwrap_or_else(SystemTime::now);
         let envelope = DataEnvelope {
