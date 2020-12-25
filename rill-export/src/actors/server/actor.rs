@@ -115,6 +115,7 @@ impl InteractionHandler<WsRequest<Endpoint>> for Server {
                     if !self.connected {
                         log::info!("Self Connected");
                         self.connected = true;
+                        self.exporter.session_attached().await?;
                         let session = Session::new(msg.into(), self.exporter.clone());
                         // TODO: Add key checking to the session to prevent invalid connections.
                         ctx.spawn_actor(session, Group::Provider);
@@ -133,6 +134,7 @@ impl InteractionHandler<WsRequest<Endpoint>> for Server {
 #[async_trait]
 impl Eliminated<Session> for Server {
     async fn handle(&mut self, _id: IdOf<Session>, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.exporter.session_detached().await?;
         // Allow to connect again
         self.connected = false;
         Ok(())
