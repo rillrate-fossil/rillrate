@@ -10,6 +10,8 @@ pub struct RillExport {
 
 impl RillExport {
     pub fn start() -> Result<Self, Error> {
+        // TODO: Change to `9090`
+        rill::PORT.set(8080);
         let actor = EmbeddedNode::new();
         let scoped = meio::thread::spawn(actor)?;
         Ok(Self { scoped })

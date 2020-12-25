@@ -23,8 +23,7 @@ pub struct Server {
 
 impl Server {
     pub fn new(exporter: ExporterLink) -> Self {
-        // TODO: Replace to `9090`
-        let addr = format!("127.0.0.1:{}", 8080).parse().unwrap();
+        let addr = format!("127.0.0.1:{}", rill::PORT.get()).parse().unwrap();
         Self {
             addr,
             connected: false,

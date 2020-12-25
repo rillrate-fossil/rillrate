@@ -2,7 +2,7 @@ use crate::actors::supervisor::RillSupervisor;
 use crate::pathfinder::{Pathfinder, Record};
 use crate::protocol::{
     Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
-    RillToProvider, RillToServer, StreamType, WideEnvelope, PORT,
+    RillToProvider, RillToServer, StreamType, WideEnvelope,
 };
 use crate::providers::provider::DataEnvelope;
 use crate::state::ControlEvent;
@@ -118,7 +118,7 @@ impl Actor for RillWorker {
 
 impl RillWorker {
     pub fn new(entry_id: EntryId) -> Self {
-        let link = format!("ws://127.0.0.1:{}/live/provider", PORT);
+        let link = format!("ws://127.0.0.1:{}/live/provider", crate::PORT.get());
         Self {
             url: link,
             entry_id,
