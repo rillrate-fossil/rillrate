@@ -29,7 +29,7 @@ impl StartedBy<System> for EmbeddedNode {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Exporter, Group::Server]);
 
-        let exporter_actor = Exporter::new();
+        let exporter_actor = Exporter::new(Default::default());
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
         let server_actor = Server::new(exporter.link());

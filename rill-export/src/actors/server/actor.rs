@@ -4,7 +4,8 @@ use crate::actors::session::Session;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy, TaskEliminated,
+    Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, Link, StartedBy,
+    TaskEliminated,
 };
 use meio_connect::{
     filters::{IndexRequest, WsRequest},
@@ -115,10 +116,10 @@ impl InteractionHandler<WsRequest<Endpoint>> for Server {
                     if !self.connected {
                         log::info!("Self Connected");
                         self.connected = true;
-                        self.exporter.session_attached().await?;
                         let session = Session::new(msg.into(), self.exporter.clone());
                         // TODO: Add key checking to the session to prevent invalid connections.
-                        ctx.spawn_actor(session, Group::Provider);
+                        let session_addr = ctx.spawn_actor(session, Group::Provider);
+                        self.exporter.session_attached(session_addr.link()).await?;
                     } else {
                         log::error!("Reject the second incoming connection from: {}", msg.addr);
                     }
