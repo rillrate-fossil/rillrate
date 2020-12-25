@@ -3,7 +3,7 @@ use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    Actor, Bridge, Consumer, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System,
+    Actor, Bridge, Consumer, Context, Eliminated, IdOf, InterruptedBy, Link, StartedBy, System,
 };
 
 pub struct EmbeddedNode {}
@@ -32,7 +32,7 @@ impl StartedBy<System> for EmbeddedNode {
         let exporter_actor = Exporter::new();
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
-        let server_actor = Server::new();
+        let server_actor = Server::new(exporter.link());
         let server = ctx.spawn_actor(server_actor, Group::Server);
 
         Ok(())

@@ -1,4 +1,5 @@
 use crate::actors::embedded_node::EmbeddedNode;
+use crate::actors::exporter::ExporterLink;
 use crate::actors::session::Session;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -17,14 +18,16 @@ use strum_macros::EnumString;
 pub struct Server {
     addr: SocketAddr,
     connected: bool,
+    exporter: ExporterLink,
 }
 
 impl Server {
-    pub fn new() -> Self {
+    pub fn new(exporter: ExporterLink) -> Self {
         let addr = format!("127.0.0.1:{}", PORT).parse().unwrap();
         Self {
             addr,
             connected: false,
+            exporter,
         }
     }
 }
@@ -112,7 +115,7 @@ impl InteractionHandler<WsRequest<Endpoint>> for Server {
                     if !self.connected {
                         log::info!("Self Connected");
                         self.connected = true;
-                        let session = Session::new(msg.into());
+                        let session = Session::new(msg.into(), self.exporter.clone());
                         // TODO: Add key checking to the session to prevent invalid connections.
                         ctx.spawn_actor(session, Group::Provider);
                     } else {

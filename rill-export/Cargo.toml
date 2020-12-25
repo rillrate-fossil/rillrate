@@ -17,6 +17,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.36"
 async-trait = "0.1.42"
+derive_more = "0.99.11"
 log = "0.4.11"
 meio = "0.40.0"
 meio-connect = "0.40.0"
