@@ -12,7 +12,6 @@ use meio_connect::{
     server::WebServer,
     warp::{Filter, Reply},
 };
-use rill::protocol::PORT;
 use std::net::SocketAddr;
 use strum_macros::EnumString;
 
@@ -24,7 +23,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(exporter: ExporterLink) -> Self {
-        let addr = format!("127.0.0.1:{}", PORT).parse().unwrap();
+        // TODO: Replace to `9090`
+        let addr = format!("127.0.0.1:{}", 8080).parse().unwrap();
         Self {
             addr,
             connected: false,
