@@ -39,7 +39,7 @@ impl StartedBy<System> for EmbeddedNode {
         let server_actor = HttpServer::new(addr);
         let server = ctx.spawn_actor(server_actor, Group::Server);
 
-        let endpoints_actor = Endpoints::new();
+        let endpoints_actor = Endpoints::new(server.link());
         let endpoints = ctx.spawn_actor(endpoints_actor, Group::Endpoints);
 
         /*
