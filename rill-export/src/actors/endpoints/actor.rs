@@ -57,6 +57,6 @@ impl InteractionHandler<Req<Index>> for Endpoints {
         _: Req<Index>,
         ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
-        Ok(Response::new("<Rill Embedded Server>".into()))
+        Ok(Response::new("Rill Embedded Server".into()))
     }
 }

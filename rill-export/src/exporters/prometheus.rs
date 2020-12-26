@@ -89,7 +89,7 @@ struct RenderMetrics;
 impl FromRequest for RenderMetrics {
     fn from_request(request: &Request<Body>) -> Option<Self> {
         let path = request.uri().path();
-        if path == "/metircs" {
+        if path == "/metrics" {
             Some(Self)
         } else {
             None
