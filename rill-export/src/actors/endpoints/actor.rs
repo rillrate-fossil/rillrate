@@ -89,14 +89,18 @@ impl ActionHandler<WsReq<Live, RillProtocol>> for Endpoints {
         req: WsReq<Live, RillProtocol>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        if !self.connected {
-            self.connected = true;
-            let session_actor = Session::new(req.stream, self.exporter.clone());
-            let session = ctx.spawn_actor(session_actor, ());
-            self.exporter.session_attached(session.link()).await?;
+        if !ctx.is_terminating() {
+            if !self.connected {
+                self.connected = true;
+                let session_actor = Session::new(req.stream, self.exporter.clone());
+                let session = ctx.spawn_actor(session_actor, ());
+                self.exporter.session_attached(session.link()).await?;
+            } else {
+                // TODO: Add address
+                log::error!("Reject the second incoming connection from: {}", "msg.addr");
+            }
         } else {
-            // TODO: Add address
-            log::error!("Reject the second incoming connection from: {}", "msg.addr");
+            log::warn!("Incoming ws connection rejected, because the server is terminating.");
         }
         Ok(())
     }
