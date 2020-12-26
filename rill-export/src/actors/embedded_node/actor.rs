@@ -32,12 +32,12 @@ impl StartedBy<System> for EmbeddedNode {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Exporter, Group::Server, Group::Endpoints]);
 
-        let exporter_actor = Exporter::new(Default::default());
-        let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
-
         let addr = format!("127.0.0.1:{}", rill::PORT.get()).parse().unwrap();
         let server_actor = HttpServer::new(addr);
         let server = ctx.spawn_actor(server_actor, Group::Server);
+
+        let exporter_actor = Exporter::new(server.link(), Default::default());
+        let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
         let endpoints_actor = Endpoints::new(server.link());
         let endpoints = ctx.spawn_actor(endpoints_actor, Group::Endpoints);

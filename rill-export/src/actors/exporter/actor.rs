@@ -5,6 +5,7 @@ use crate::exporters;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use meio_http::HttpServerLink;
 use rill::protocol::Path;
 use std::collections::HashSet;
 use thiserror::Error;
@@ -17,13 +18,15 @@ pub enum Reason {
 
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Exporter {
+    server: HttpServerLink,
     session: Option<SessionLink>,
     paths_to_export: HashSet<Path>,
 }
 
 impl Exporter {
-    pub fn new(paths_to_export: HashSet<Path>) -> Self {
+    pub fn new(server: HttpServerLink, paths_to_export: HashSet<Path>) -> Self {
         Self {
+            server,
             session: None,
             paths_to_export,
         }
