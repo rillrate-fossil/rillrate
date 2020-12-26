@@ -3,7 +3,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_http::hyper::{Body, Request, Response};
-use meio_http::{FromRequest, HttpServerLink, Req};
+use meio_http::{DirectPath, FromRequest, HttpServerLink, Req};
 
 pub struct Endpoints {
     server: HttpServerLink,
@@ -37,16 +37,12 @@ impl InterruptedBy<EmbeddedNode> for Endpoints {
     }
 }
 
+#[derive(Default)]
 struct Index;
 
-impl FromRequest for Index {
-    fn from_request(request: &Request<Body>) -> Option<Self> {
-        let path = request.uri().path();
-        if path == "/" || path == "/index.html" {
-            Some(Self)
-        } else {
-            None
-        }
+impl DirectPath for Index {
+    fn paths() -> &'static [&'static str] {
+        &["/", "/index.html"]
     }
 }
 

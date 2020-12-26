@@ -7,7 +7,7 @@ use meio::prelude::{
     StartedBy, StopReceiver, TaskEliminated, TryConsumer,
 };
 use meio_http::hyper::{Body, Request, Response};
-use meio_http::{FromRequest, HttpServerLink, Req};
+use meio_http::{DirectPath, FromRequest, HttpServerLink, Req};
 use rill::protocol::{Path, RillData};
 use std::collections::BTreeMap;
 use std::convert::Infallible;
@@ -84,16 +84,12 @@ impl TryConsumer<ExportEvent> for PrometheusExporter {
     }
 }
 
+#[derive(Default)]
 struct RenderMetrics;
 
-impl FromRequest for RenderMetrics {
-    fn from_request(request: &Request<Body>) -> Option<Self> {
-        let path = request.uri().path();
-        if path == "/metrics" {
-            Some(Self)
-        } else {
-            None
-        }
+impl DirectPath for RenderMetrics {
+    fn paths() -> &'static [&'static str] {
+        &["/metrics"]
     }
 }
 
