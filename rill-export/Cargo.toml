@@ -21,7 +21,6 @@ derive_more = "0.99.11"
 log = "0.4.11"
 meio = "0.41.0"
 meio-connect = "0.41.0"
-meio-http = "0.41.0"
 rill = { version = "0.6.0", path = "../rill" }
 serde-pickle = "0.6.2"
 strum = "0.19.5"

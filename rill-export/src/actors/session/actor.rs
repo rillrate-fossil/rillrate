@@ -1,6 +1,6 @@
 use super::link;
+use crate::actors::endpoints::Endpoints;
 use crate::actors::exporter::ExporterLink;
-use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -8,7 +8,7 @@ use meio::prelude::{
     TaskEliminated,
 };
 use meio_connect::{
-    server::{WsHandler, WsProcessor},
+    server_2::{WsHandler, WsProcessor},
     WsIncoming,
 };
 use rill::protocol::{
@@ -48,7 +48,7 @@ impl Actor for Session {
 }
 
 #[async_trait]
-impl StartedBy<Server> for Session {
+impl StartedBy<Endpoints> for Session {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
@@ -57,7 +57,7 @@ impl StartedBy<Server> for Session {
 }
 
 #[async_trait]
-impl InterruptedBy<Server> for Session {
+impl InterruptedBy<Endpoints> for Session {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

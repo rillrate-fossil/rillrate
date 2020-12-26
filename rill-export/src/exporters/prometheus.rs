@@ -6,8 +6,8 @@ use meio::prelude::{
     Actor, Address, Context, IdOf, Interaction, InteractionHandler, InterruptedBy, LiteTask,
     StartedBy, StopReceiver, TaskEliminated, TryConsumer,
 };
-use meio_http::hyper::{Body, Request, Response};
-use meio_http::{DirectPath, FromRequest, HttpServerLink, Req};
+use meio_connect::hyper::{Body, Request, Response};
+use meio_connect::server_2::{DirectPath, FromRequest, HttpServerLink, Req};
 use rill::protocol::{Path, RillData};
 use std::collections::BTreeMap;
 use std::convert::Infallible;

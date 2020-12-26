@@ -1,12 +1,11 @@
 use crate::actors::endpoints::Endpoints;
 use crate::actors::exporter::Exporter;
-use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     Actor, Bridge, Consumer, Context, Eliminated, IdOf, InterruptedBy, Link, StartedBy, System,
 };
-use meio_http::HttpServer;
+use meio_connect::server_2::HttpServer;
 
 pub struct EmbeddedNode {}
 
@@ -39,13 +38,8 @@ impl StartedBy<System> for EmbeddedNode {
         let exporter_actor = Exporter::new(server.link(), Default::default());
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
-        let endpoints_actor = Endpoints::new(server.link());
+        let endpoints_actor = Endpoints::new(server.link(), exporter.link());
         let endpoints = ctx.spawn_actor(endpoints_actor, Group::Endpoints);
-
-        /*
-        let server_actor = Server::new(exporter.link());
-        let server = ctx.spawn_actor(server_actor, Group::Server);
-        */
 
         Ok(())
     }
@@ -86,13 +80,3 @@ impl Eliminated<Endpoints> for EmbeddedNode {
         Ok(())
     }
 }
-
-/*
-#[async_trait]
-impl Eliminated<Server> for EmbeddedNode {
-    async fn handle(&mut self, _id: IdOf<Server>, ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::info!("Server finished");
-        Ok(())
-    }
-}
-*/
