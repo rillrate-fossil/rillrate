@@ -56,3 +56,24 @@ impl InteractionHandler<Req<Index>> for Endpoints {
         Ok(Response::new("Rill Embedded Server".into()))
     }
 }
+
+#[derive(Default)]
+struct Live;
+
+impl DirectPath for Live {
+    fn paths() -> &'static [&'static str] {
+        &["/live/provider"]
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<Req<Live>> for Endpoints {
+    async fn handle(
+        &mut self,
+        _: Req<Live>,
+        ctx: &mut Context<Self>,
+    ) -> Result<Response<Body>, Error> {
+        log::error!("How to process ws here?");
+        Ok(Response::new("Rill Embedded Server".into()))
+    }
+}
