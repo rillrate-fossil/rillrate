@@ -25,6 +25,9 @@ impl StartedBy<EmbeddedNode> for Endpoints {
         self.server
             .add_route::<Index, _>(ctx.address().clone())
             .await?;
+        self.server
+            .add_route::<Live, _>(ctx.address().clone())
+            .await?;
         Ok(())
     }
 }
