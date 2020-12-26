@@ -144,3 +144,20 @@ impl ActionHandler<link::PathDeclared> for Exporter {
         Ok(())
     }
 }
+
+#[async_trait]
+impl ActionHandler<link::DataReceived> for Exporter {
+    async fn handle(
+        &mut self,
+        msg: link::DataReceived,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let event = ExportEvent::BroadcastData {
+            path: msg.path,
+            timestamp: msg.timestamp,
+            data: msg.data,
+        };
+        self.broadcast(event)?;
+        Ok(())
+    }
+}

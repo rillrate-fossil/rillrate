@@ -12,15 +12,18 @@ use meio_connect::{
     WsIncoming,
 };
 use rill::protocol::{
-    DirectId, EntryId, Envelope, ProviderReqId, RillProtocol, RillToProvider, RillToServer,
-    WideEnvelope,
+    DirectId, Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
+    RillToServer, WideEnvelope,
 };
+use std::collections::HashMap;
 
 pub struct Session {
     handler: WsHandler<RillProtocol>,
     registered: Option<EntryId>,
     exporter: ExporterLink,
     counter: usize,
+    // TODO: Replace to `TypedSlab`
+    paths: HashMap<DirectId<RillProtocol>, Path>,
 }
 
 impl Session {
@@ -30,12 +33,20 @@ impl Session {
             registered: None,
             exporter,
             counter: 0,
+            paths: HashMap::new(),
         }
     }
 
     fn send_request(&mut self, data: RillToProvider) {
         self.counter += 1;
         let direct_id = DirectId::from(self.counter);
+        if let RillToProvider::ControlStream {
+            ref path,
+            active: true,
+        } = data
+        {
+            self.paths.insert(direct_id.clone(), path.clone());
+        }
         let envelope = Envelope { direct_id, data };
         log::trace!("Sending request to the server: {:?}", envelope);
         self.handler.send(envelope);
@@ -85,7 +96,28 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
     ) -> Result<(), Error> {
         log::trace!("WsIncoming message: {:?}", msg);
         match msg.0.data {
-            RillToServer::Data { timestamp, data } => {}
+            RillToServer::Data { timestamp, data } => {
+                if let Direction::Direct(direct_id) = msg.0.direction {
+                    let path = self.paths.get(&direct_id);
+                    if let Some(path) = path.cloned() {
+                        if let Err(err) = self.exporter.data_received(path, timestamp, data).await {
+                            log::error!("Can't send data item to the exporter: {}", err);
+                        }
+                    } else {
+                        log::error!(
+                            "Unknown direction {:?} of the incoing data {:?}",
+                            direct_id,
+                            data
+                        );
+                    }
+                } else {
+                    log::error!(
+                        "Not supported direction {:?} of the incoing data {:?}",
+                        msg.0.direction,
+                        data
+                    );
+                }
+            }
             RillToServer::BeginStream => {}
             RillToServer::EndStream => {}
             RillToServer::Declare { entry_id } => {

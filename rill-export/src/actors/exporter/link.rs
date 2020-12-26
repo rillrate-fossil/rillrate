@@ -3,7 +3,8 @@ use crate::actors::session::SessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, Address};
-use rill::protocol::{Description, Path, StreamType};
+use rill::protocol::{Description, Path, RillData, StreamType};
+use std::time::Duration;
 
 #[derive(Debug, Clone, From)]
 pub struct ExporterLink {
@@ -38,6 +39,30 @@ impl Action for PathDeclared {}
 impl ExporterLink {
     pub async fn path_declared(&mut self, description: Description) -> Result<(), Error> {
         let msg = PathDeclared { description };
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct DataReceived {
+    pub path: Path,
+    pub timestamp: Duration,
+    pub data: RillData,
+}
+
+impl Action for DataReceived {}
+
+impl ExporterLink {
+    pub async fn data_received(
+        &mut self,
+        path: Path,
+        timestamp: Duration,
+        data: RillData,
+    ) -> Result<(), Error> {
+        let msg = DataReceived {
+            path,
+            timestamp,
+            data,
+        };
         self.address.act(msg).await
     }
 }
