@@ -1,7 +1,7 @@
 use super::link;
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::session::SessionLink;
-use crate::exporters;
+use crate::exporters::{self, ExportEvent};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
@@ -9,11 +9,14 @@ use meio_connect::server_2::HttpServerLink;
 use rill::protocol::Path;
 use std::collections::HashSet;
 use thiserror::Error;
+use tokio::sync::broadcast;
 
 #[derive(Debug, Error)]
 pub enum Reason {
     #[error("No active session available")]
     NoActiveSession,
+    #[error("No active exporters available")]
+    NoExporters,
 }
 
 /// The `Actor` that subscribes to data according to available `Path`s.
@@ -21,19 +24,29 @@ pub struct Exporter {
     server: HttpServerLink,
     session: Option<SessionLink>,
     paths_to_export: HashSet<Path>,
+    sender: broadcast::Sender<ExportEvent>,
 }
 
 impl Exporter {
     pub fn new(server: HttpServerLink, paths_to_export: HashSet<Path>) -> Self {
+        let (sender, _) = broadcast::channel(32);
         Self {
             server,
             session: None,
             paths_to_export,
+            sender,
         }
     }
 
     fn session(&mut self) -> Result<&mut SessionLink, Reason> {
         self.session.as_mut().ok_or(Reason::NoActiveSession)
+    }
+
+    fn broadcast(&self, event: ExportEvent) -> Result<(), Error> {
+        if self.sender.receiver_count() > 0 {
+            self.sender.send(event).map_err(|_| Reason::NoExporters)?;
+        }
+        Ok(())
     }
 }
 
@@ -45,10 +58,14 @@ impl Actor for Exporter {
 impl StartedBy<EmbeddedNode> for Exporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let graphite_actor = exporters::GraphiteExporter::new();
-        ctx.spawn_actor(graphite_actor, ());
+        let graphite = ctx.spawn_actor(graphite_actor, ());
+        let rx = self.sender.subscribe();
+        graphite.attach(rx).await?;
 
         let prometheus_actor = exporters::PrometheusExporter::new(self.server.clone());
-        ctx.spawn_actor(prometheus_actor, ());
+        let graphite = ctx.spawn_actor(prometheus_actor, ());
+        let rx = self.sender.subscribe();
+        graphite.attach(rx).await?;
 
         Ok(())
     }
@@ -116,6 +133,11 @@ impl ActionHandler<link::PathDeclared> for Exporter {
         let path = msg.description.path;
         // TODO: Use the set
         //if self.paths_to_export.contains(&path) {
+        let event = ExportEvent::SetInfo {
+            path: path.clone(),
+            info: "<todo>".into(),
+        };
+        self.broadcast(event)?;
         self.session()?.subscribe(path).await?;
         //}
         Ok(())

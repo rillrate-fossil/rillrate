@@ -85,6 +85,9 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
     ) -> Result<(), Error> {
         log::trace!("WsIncoming message: {:?}", msg);
         match msg.0.data {
+            RillToServer::Data { timestamp, data } => {}
+            RillToServer::BeginStream => {}
+            RillToServer::EndStream => {}
             RillToServer::Declare { entry_id } => {
                 self.registered = Some(entry_id);
                 let msg = RillToProvider::Describe { active: true };
