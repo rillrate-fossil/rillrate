@@ -47,7 +47,7 @@ impl StartedBy<EmbeddedNode> for Exporter {
         let graphite_actor = exporters::GraphiteExporter::new();
         ctx.spawn_actor(graphite_actor, ());
 
-        let prometheus_actor = exporters::PrometheusExporter::new();
+        let prometheus_actor = exporters::PrometheusExporter::new(self.server.clone());
         ctx.spawn_actor(prometheus_actor, ());
 
         Ok(())

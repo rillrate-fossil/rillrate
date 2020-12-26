@@ -6,6 +6,8 @@ use meio::prelude::{
     Actor, Address, Context, IdOf, Interaction, InteractionHandler, InterruptedBy, LiteTask,
     StartedBy, StopReceiver, TaskEliminated, TryConsumer,
 };
+use meio_http::hyper::{Body, Request, Response};
+use meio_http::{FromRequest, HttpServerLink, Req};
 use rill::protocol::{Path, RillData};
 use std::collections::BTreeMap;
 use std::convert::Infallible;
@@ -19,12 +21,14 @@ struct Record {
 }
 
 pub struct PrometheusExporter {
+    server: HttpServerLink,
     metrics: BTreeMap<Path, Record>,
 }
 
 impl PrometheusExporter {
-    pub fn new() -> Self {
+    pub fn new(server: HttpServerLink) -> Self {
         Self {
+            server,
             metrics: BTreeMap::new(),
         }
     }
@@ -37,8 +41,9 @@ impl Actor for PrometheusExporter {
 #[async_trait]
 impl StartedBy<Exporter> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let endpoint = Endpoint::new(ctx.address().to_owned());
-        ctx.spawn_task(endpoint, ());
+        self.server
+            .add_route::<RenderMetrics, _>(ctx.address().clone())
+            .await?;
         Ok(())
     }
 }
@@ -46,14 +51,6 @@ impl StartedBy<Exporter> for PrometheusExporter {
 #[async_trait]
 impl InterruptedBy<Exporter> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl TaskEliminated<Endpoint> for PrometheusExporter {
-    async fn handle(&mut self, _id: IdOf<Endpoint>, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
     }
@@ -89,17 +86,24 @@ impl TryConsumer<ExportEvent> for PrometheusExporter {
 
 struct RenderMetrics;
 
-impl Interaction for RenderMetrics {
-    type Output = String;
+impl FromRequest for RenderMetrics {
+    fn from_request(request: &Request<Body>) -> Option<Self> {
+        let path = request.uri().path();
+        if path == "/metircs" {
+            Some(Self)
+        } else {
+            None
+        }
+    }
 }
 
 #[async_trait]
-impl InteractionHandler<RenderMetrics> for PrometheusExporter {
+impl InteractionHandler<Req<RenderMetrics>> for PrometheusExporter {
     async fn handle(
         &mut self,
-        _: RenderMetrics,
+        _: Req<RenderMetrics>,
         _ctx: &mut Context<Self>,
-    ) -> Result<String, Error> {
+    ) -> Result<Response<Body>, Error> {
         let mut buffer = String::new();
         for (path, record) in &self.metrics {
             if let (Some(info), Some(data)) = (record.info.as_ref(), record.data.as_ref()) {
@@ -111,38 +115,6 @@ impl InteractionHandler<RenderMetrics> for PrometheusExporter {
                 buffer.push_str(&line);
             }
         }
-        Ok(buffer)
-    }
-}
-
-struct Endpoint {
-    exporter: Address<PrometheusExporter>,
-}
-
-impl Endpoint {
-    fn new(exporter: Address<PrometheusExporter>) -> Self {
-        Self { exporter }
-    }
-
-    async fn metrics(
-        mut exporter: Address<PrometheusExporter>,
-    ) -> Result<impl warp::Reply, Infallible> {
-        let data = exporter.interact(RenderMetrics).await.unwrap();
-        Ok(data)
-    }
-}
-
-#[async_trait]
-impl LiteTask for Endpoint {
-    async fn routine(mut self, stop: StopReceiver) -> Result<(), Error> {
-        let exporter = self.exporter.clone();
-        let metrics = warp::path("metrics").and_then(move || Self::metrics(exporter.clone()));
-        let index = warp::any().map(|| "Rill Prometheus Client");
-        let routes = metrics.or(index);
-        let (addr, server) = warp::serve(routes)
-            .bind_with_graceful_shutdown(([0, 0, 0, 0], 9090), stop.into_future());
-        log::info!("Prometheus endpoint binded to: {}", addr);
-        server.await;
-        Ok(())
+        Ok(Response::new(buffer.into()))
     }
 }
