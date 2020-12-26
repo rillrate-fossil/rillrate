@@ -1,9 +1,9 @@
 use crate::actors::embedded_node::EmbeddedNode;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
+use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_http::hyper::{Body, Request, Response};
-use meio_http::{DirectPath, FromRequest, HttpServerLink, Req};
+use meio_http::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
 
 pub struct Endpoints {
     server: HttpServerLink,
@@ -26,7 +26,7 @@ impl StartedBy<EmbeddedNode> for Endpoints {
             .add_route::<Index, _>(ctx.address().clone())
             .await?;
         self.server
-            .add_route::<Live, _>(ctx.address().clone())
+            .add_ws_route::<Live, _>(ctx.address().clone())
             .await?;
         Ok(())
     }
@@ -70,13 +70,8 @@ impl DirectPath for Live {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<Live>> for Endpoints {
-    async fn handle(
-        &mut self,
-        _: Req<Live>,
-        ctx: &mut Context<Self>,
-    ) -> Result<Response<Body>, Error> {
-        log::error!("How to process ws here?");
-        Ok(Response::new("Rill Embedded Server".into()))
+impl ActionHandler<WsReq<Live>> for Endpoints {
+    async fn handle(&mut self, req: WsReq<Live>, ctx: &mut Context<Self>) -> Result<(), Error> {
+        Ok(())
     }
 }
