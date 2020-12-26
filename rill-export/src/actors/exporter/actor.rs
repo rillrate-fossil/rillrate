@@ -60,12 +60,12 @@ impl StartedBy<EmbeddedNode> for Exporter {
         let graphite_actor = exporters::GraphiteExporter::new();
         let graphite = ctx.spawn_actor(graphite_actor, ());
         let rx = self.sender.subscribe();
-        graphite.attach(rx).await?;
+        graphite.attach(rx);
 
         let prometheus_actor = exporters::PrometheusExporter::new(self.server.clone());
-        let graphite = ctx.spawn_actor(prometheus_actor, ());
+        let prometheus = ctx.spawn_actor(prometheus_actor, ());
         let rx = self.sender.subscribe();
-        graphite.attach(rx).await?;
+        prometheus.attach(rx);
 
         Ok(())
     }
@@ -131,6 +131,7 @@ impl ActionHandler<link::PathDeclared> for Exporter {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.description.path;
+        log::debug!("Declare path: {}", path);
         // TODO: Use the set
         //if self.paths_to_export.contains(&path) {
         let event = ExportEvent::SetInfo {
