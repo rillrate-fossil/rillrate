@@ -4,8 +4,7 @@ use crate::actors::session::Session;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, Link,
-    StartedBy,
+    ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
 };
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WsReq};
