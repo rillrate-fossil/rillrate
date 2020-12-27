@@ -7,7 +7,7 @@ use meio::prelude::{
     ActionHandler, Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated,
 };
 use meio_connect::{
-    server_2::{WsHandler, WsProcessor},
+    server::{WsHandler, WsProcessor},
     WsIncoming,
 };
 use rill::protocol::{

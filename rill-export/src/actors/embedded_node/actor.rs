@@ -3,7 +3,7 @@ use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, Link, StartedBy, System};
-use meio_connect::server_2::HttpServer;
+use meio_connect::server::HttpServer;
 
 pub struct EmbeddedNode {}
 

@@ -5,7 +5,7 @@ use crate::actors::session::SessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
-use meio_connect::server_2::HttpServerLink;
+use meio_connect::server::HttpServerLink;
 use rill::protocol::Path;
 use std::collections::HashSet;
 use thiserror::Error;

@@ -8,7 +8,7 @@ use meio::prelude::{
     StartedBy,
 };
 use meio_connect::hyper::{Body, Response};
-use meio_connect::server_2::{DirectPath, HttpServerLink, Req, WsReq};
+use meio_connect::server::{DirectPath, HttpServerLink, Req, WsReq};
 use rill::protocol::RillProtocol;
 
 pub struct Server {
