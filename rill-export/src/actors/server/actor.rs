@@ -66,7 +66,7 @@ impl InteractionHandler<Req<Index>> for Server {
     async fn handle(
         &mut self,
         _: Req<Index>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
         Ok(Response::new("Rill Embedded Server".into()))
     }
@@ -107,7 +107,7 @@ impl ActionHandler<WsReq<Live, RillProtocol>> for Server {
 
 #[async_trait]
 impl Eliminated<Session> for Server {
-    async fn handle(&mut self, _id: IdOf<Session>, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, _id: IdOf<Session>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         self.exporter.session_detached().await?;
         // It allows to connect again
         self.connected = false;

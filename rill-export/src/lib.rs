@@ -4,7 +4,7 @@ use actors::embedded_node::EmbeddedNode;
 use anyhow::Error;
 
 pub struct RillExport {
-    scoped: meio::thread::ScopedRuntime,
+    _scoped_to_drop: meio::thread::ScopedRuntime,
 }
 
 impl RillExport {
@@ -12,6 +12,8 @@ impl RillExport {
         rill::PORT.set(9090);
         let actor = EmbeddedNode::new();
         let scoped = meio::thread::spawn(actor)?;
-        Ok(Self { scoped })
+        Ok(Self {
+            _scoped_to_drop: scoped,
+        })
     }
 }

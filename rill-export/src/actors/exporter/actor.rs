@@ -84,7 +84,7 @@ impl Eliminated<GraphiteExporter> for Exporter {
     async fn handle(
         &mut self,
         _id: IdOf<GraphiteExporter>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::info!("GraphiteExporter finished");
         Ok(())
@@ -96,7 +96,7 @@ impl Eliminated<PrometheusExporter> for Exporter {
     async fn handle(
         &mut self,
         _id: IdOf<PrometheusExporter>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::info!("PrometheusExporter finished");
         Ok(())
@@ -108,7 +108,7 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
     async fn handle(
         &mut self,
         msg: link::SessionLifetime,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         use link::SessionLifetime::*;
         match msg {
@@ -128,7 +128,7 @@ impl ActionHandler<link::PathDeclared> for Exporter {
     async fn handle(
         &mut self,
         msg: link::PathDeclared,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.description.path;
         log::debug!("Declare path: {}", path);
@@ -150,7 +150,7 @@ impl ActionHandler<link::DataReceived> for Exporter {
     async fn handle(
         &mut self,
         msg: link::DataReceived,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let event = ExportEvent::BroadcastData {
             path: msg.path,

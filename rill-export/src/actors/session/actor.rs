@@ -91,7 +91,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
     async fn handle(
         &mut self,
         msg: WsIncoming<WideEnvelope<RillProtocol, RillToServer>>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("WsIncoming message: {:?}", msg);
         match msg.0.data {
@@ -145,7 +145,7 @@ impl ActionHandler<link::ForwardRequest> for Session {
     async fn handle(
         &mut self,
         msg: link::ForwardRequest,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         self.send_request(msg.request);
         Ok(())
