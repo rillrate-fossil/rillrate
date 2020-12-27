@@ -11,14 +11,13 @@ use meio_connect::hyper::{Body, Response};
 use meio_connect::server_2::{DirectPath, HttpServerLink, Req, WsReq};
 use rill::protocol::RillProtocol;
 
-// TODO: Rename to server?
-pub struct Endpoints {
+pub struct Server {
     server: HttpServerLink,
     exporter: ExporterLink,
     connected: bool,
 }
 
-impl Endpoints {
+impl Server {
     pub fn new(server: HttpServerLink, exporter: ExporterLink) -> Self {
         Self {
             server,
@@ -28,12 +27,12 @@ impl Endpoints {
     }
 }
 
-impl Actor for Endpoints {
+impl Actor for Server {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl StartedBy<EmbeddedNode> for Endpoints {
+impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.server
             .add_route::<Index, _>(ctx.address().clone())
@@ -46,7 +45,7 @@ impl StartedBy<EmbeddedNode> for Endpoints {
 }
 
 #[async_trait]
-impl InterruptedBy<EmbeddedNode> for Endpoints {
+impl InterruptedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -63,7 +62,7 @@ impl DirectPath for Index {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<Index>> for Endpoints {
+impl InteractionHandler<Req<Index>> for Server {
     async fn handle(
         &mut self,
         _: Req<Index>,
@@ -83,7 +82,7 @@ impl DirectPath for Live {
 }
 
 #[async_trait]
-impl ActionHandler<WsReq<Live, RillProtocol>> for Endpoints {
+impl ActionHandler<WsReq<Live, RillProtocol>> for Server {
     async fn handle(
         &mut self,
         req: WsReq<Live, RillProtocol>,
@@ -107,7 +106,7 @@ impl ActionHandler<WsReq<Live, RillProtocol>> for Endpoints {
 }
 
 #[async_trait]
-impl Eliminated<Session> for Endpoints {
+impl Eliminated<Session> for Server {
     async fn handle(&mut self, _id: IdOf<Session>, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.exporter.session_detached().await?;
         // It allows to connect again
