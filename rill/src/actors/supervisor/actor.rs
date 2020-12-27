@@ -42,7 +42,7 @@ impl StartedBy<System> for RillSupervisor {
             .rx
             .take()
             .ok_or(Error::msg("attempt to start supervisor twice"))?;
-        let mut worker = ctx.spawn_actor(worker, Group::Worker);
+        let worker = ctx.spawn_actor(worker, Group::Worker);
         worker.attach(rx);
 
         Ok(())

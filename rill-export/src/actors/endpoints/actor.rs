@@ -7,8 +7,8 @@ use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, Link,
     StartedBy,
 };
-use meio_connect::hyper::{Body, Request, Response};
-use meio_connect::server_2::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
+use meio_connect::hyper::{Body, Response};
+use meio_connect::server_2::{DirectPath, HttpServerLink, Req, WsReq};
 use rill::protocol::RillProtocol;
 
 // TODO: Rename to server?

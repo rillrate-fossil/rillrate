@@ -1,7 +1,7 @@
 use super::link;
+use super::{ExportEvent, GraphiteExporter, PrometheusExporter};
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::session::SessionLink;
-use crate::exporters::{self, ExportEvent};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
@@ -57,12 +57,12 @@ impl Actor for Exporter {
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Exporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let graphite_actor = exporters::GraphiteExporter::new();
+        let graphite_actor = GraphiteExporter::new();
         let graphite = ctx.spawn_actor(graphite_actor, ());
         let rx = self.sender.subscribe();
         graphite.attach(rx);
 
-        let prometheus_actor = exporters::PrometheusExporter::new(self.server.clone());
+        let prometheus_actor = PrometheusExporter::new(self.server.clone());
         let prometheus = ctx.spawn_actor(prometheus_actor, ());
         let rx = self.sender.subscribe();
         prometheus.attach(rx);
@@ -80,10 +80,10 @@ impl InterruptedBy<EmbeddedNode> for Exporter {
 }
 
 #[async_trait]
-impl Eliminated<exporters::GraphiteExporter> for Exporter {
+impl Eliminated<GraphiteExporter> for Exporter {
     async fn handle(
         &mut self,
-        _id: IdOf<exporters::GraphiteExporter>,
+        _id: IdOf<GraphiteExporter>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::info!("GraphiteExporter finished");
@@ -92,10 +92,10 @@ impl Eliminated<exporters::GraphiteExporter> for Exporter {
 }
 
 #[async_trait]
-impl Eliminated<exporters::PrometheusExporter> for Exporter {
+impl Eliminated<PrometheusExporter> for Exporter {
     async fn handle(
         &mut self,
-        _id: IdOf<exporters::PrometheusExporter>,
+        _id: IdOf<PrometheusExporter>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::info!("PrometheusExporter finished");

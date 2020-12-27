@@ -1,5 +1,5 @@
+use super::ExportEvent;
 use crate::actors::exporter::Exporter;
-use crate::exporters::ExportEvent;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{

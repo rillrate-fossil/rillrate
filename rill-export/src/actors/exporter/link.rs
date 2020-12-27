@@ -3,7 +3,7 @@ use crate::actors::session::SessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, Address};
-use rill::protocol::{Description, Path, RillData, StreamType};
+use rill::protocol::{Description, Path, RillData};
 use std::time::Duration;
 
 #[derive(Debug, Clone, From)]

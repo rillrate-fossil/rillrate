@@ -2,9 +2,7 @@ use crate::actors::endpoints::Endpoints;
 use crate::actors::exporter::Exporter;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{
-    Actor, Bridge, Consumer, Context, Eliminated, IdOf, InterruptedBy, Link, StartedBy, System,
-};
+use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, Link, StartedBy, System};
 use meio_connect::server_2::HttpServer;
 
 pub struct EmbeddedNode {}
