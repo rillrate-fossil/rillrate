@@ -1,5 +1,6 @@
 use crate::actors::exporter::Exporter;
 use crate::actors::server::Server;
+use crate::actors::tuner::Tuner;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
@@ -9,6 +10,7 @@ pub struct EmbeddedNode {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
+    Tuning,
     Exporter,
     HttpServer,
     Endpoints,
@@ -27,7 +29,12 @@ impl EmbeddedNode {
 #[async_trait]
 impl StartedBy<System> for EmbeddedNode {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Exporter, Group::HttpServer, Group::Endpoints]);
+        ctx.termination_sequence(vec![
+            Group::Tuning,
+            Group::Exporter,
+            Group::HttpServer,
+            Group::Endpoints,
+        ]);
 
         let addr = format!("127.0.0.1:{}", rill::PORT.get()).parse().unwrap();
         let http_server_actor = HttpServer::new(addr);
@@ -38,6 +45,9 @@ impl StartedBy<System> for EmbeddedNode {
 
         let server_actor = Server::new(http_server.link(), exporter.link());
         let server = ctx.spawn_actor(server_actor, Group::Endpoints);
+
+        let tuner_actor = Tuner::new();
+        ctx.spawn_actor(tuner_actor, Group::Tuning);
 
         Ok(())
     }
@@ -75,6 +85,14 @@ impl Eliminated<HttpServer> for EmbeddedNode {
 impl Eliminated<Server> for EmbeddedNode {
     async fn handle(&mut self, _id: IdOf<Server>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Server finished");
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<Tuner> for EmbeddedNode {
+    async fn handle(&mut self, _id: IdOf<Tuner>, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        log::info!("Tuner finished");
         Ok(())
     }
 }
