@@ -4,11 +4,11 @@ use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated,
+    ActionHandler, Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     server::{WsHandler, WsProcessor},
-    WsIncoming,
+    TermReason, WsIncoming,
 };
 use rill::protocol::{
     DirectId, Direction, EntryId, Envelope, Path, RillProtocol, RillToProvider, RillToServer,
@@ -79,6 +79,7 @@ impl TaskEliminated<WsProcessor<RillProtocol, Self>> for Session {
     async fn handle(
         &mut self,
         _id: IdOf<WsProcessor<RillProtocol, Self>>,
+        _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.shutdown();

@@ -10,7 +10,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Consumer, Context, IdOf, InteractionHandler, InterruptedBy, StartedBy,
-    TaskEliminated,
+    TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -194,6 +194,7 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
     async fn handle(
         &mut self,
         _id: IdOf<WsClient<RillProtocol, Self>>,
+        _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         // TODO: Drop unfinished tasks
