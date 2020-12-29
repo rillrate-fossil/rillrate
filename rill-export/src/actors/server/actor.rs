@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
 };
-use meio_connect::hyper::{Body, Request, Response};
+use meio_connect::hyper::{Body, Request, Response, StatusCode};
 use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
 use rill::protocol::RillProtocol;
 use std::path::{Path, PathBuf};
@@ -142,19 +142,10 @@ impl FromRequest for Ui {
     }
 }
 
-/// WARNING! This implementation serves any static files by any paths.
-/// It's unsafe to use in prod, because you can load any file using `ui` endpoint.
-/// It used for UI-debugging purposes only.
-#[cfg(debug_assertions)]
-#[async_trait]
-impl InteractionHandler<Req<Ui>> for Server {
-    async fn handle(
-        &mut self,
-        msg: Req<Ui>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<Response<Body>, Error> {
+impl Server {
+    async fn serve_file(&self, path: &Path) -> Result<Response<Body>, Error> {
         let mut full_path = self.ui_path.clone();
-        full_path.push(msg.request.tail);
+        full_path.push(path);
         log::warn!(
             "Read overriden file asset from the path: {}",
             full_path.display()
@@ -172,5 +163,31 @@ impl InteractionHandler<Req<Ui>> for Server {
         */
         let response = Response::new(Body::from(data));
         Ok(response)
+    }
+}
+
+/// WARNING! This implementation serves any static files by any paths.
+/// It's unsafe to use in prod, because you can load any file using `ui` endpoint.
+/// It used for UI-debugging purposes only.
+#[cfg(debug_assertions)]
+#[async_trait]
+impl InteractionHandler<Req<Ui>> for Server {
+    async fn handle(
+        &mut self,
+        msg: Req<Ui>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<Response<Body>, Error> {
+        let path: &Path = msg.request.tail.as_ref();
+        let res = self.serve_file(path).await;
+        match res {
+            Ok(response) => Ok(response),
+            Err(err) => {
+                log::error!("Can't serve '{}' file: {}", path.display(), err);
+                let response = Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(Body::empty())?;
+                Ok(response)
+            }
+        }
     }
 }
