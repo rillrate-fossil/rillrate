@@ -51,6 +51,9 @@ impl StartedBy<EmbeddedNode> for Server {
         self.server
             .add_route::<Ui, _>(ctx.address().clone())
             .await?;
+        self.server
+            .add_route::<Info, _>(ctx.address().clone())
+            .await?;
         Ok(())
     }
 }
@@ -99,8 +102,12 @@ impl InteractionHandler<Req<Info>> for Server {
         _: Req<Info>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
-        let content = format!("Rill ver. {}\nRill Export ver. {}\n", rill::meta::VERSION, crate::meta::VERSION);
-        Ok(Response::new("Rill Embedded Server: version {}".into()))
+        let content = format!(
+            "Rill ver. {}\nRill Export ver. {}\n",
+            rill::meta::VERSION,
+            crate::meta::VERSION
+        );
+        Ok(Response::new(content.into()))
     }
 }
 
