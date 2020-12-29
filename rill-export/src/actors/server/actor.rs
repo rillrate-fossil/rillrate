@@ -6,8 +6,8 @@ use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
 };
-use meio_connect::headers::{ContentType, HeaderMapExt};
-use meio_connect::hyper::{Body, Request, Response, StatusCode};
+use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
+use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
 use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
 use rill::protocol::RillProtocol;
 use std::path::{Path, PathBuf};
@@ -82,6 +82,13 @@ impl InteractionHandler<Req<Index>> for Server {
         _: Req<Index>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
+        let mut response = Response::builder()
+            .status(StatusCode::TEMPORARY_REDIRECT)
+            .body(Body::empty())?;
+        // My eyes cry
+        response
+            .headers_mut()
+            .insert(header::LOCATION, HeaderValue::from_static("/ui/"));
         Ok(Response::new("Rill Embedded Server".into()))
     }
 }
@@ -213,7 +220,10 @@ impl InteractionHandler<Req<Ui>> for Server {
         msg: Req<Ui>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
-        let path: &Path = msg.request.tail.as_ref();
+        let mut path: &Path = msg.request.tail.as_ref();
+        if path == Path::new("") {
+            path = Path::new("index.html");
+        }
         let res = self.serve_file(path).await;
         match res {
             Ok(response) => Ok(response),
