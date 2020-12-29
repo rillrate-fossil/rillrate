@@ -162,7 +162,7 @@ impl ActionHandler<link::PathDeclared> for Exporter {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.description.path;
-        log::debug!("Declare path: {}", path);
+        log::info!("Declare path: {}", path);
         self.declared_paths.insert(path.clone());
         if self.paths_to_export.contains(&path) {
             self.begin_export(path).await?;
