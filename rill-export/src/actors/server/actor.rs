@@ -6,9 +6,12 @@ use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
 };
-use meio_connect::hyper::{Body, Response};
-use meio_connect::server::{DirectPath, HttpServerLink, Req, WsReq};
+use meio_connect::hyper::{Body, Request, Response};
+use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
 use rill::protocol::RillProtocol;
+use std::path::{Path, PathBuf};
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
 
 pub struct Server {
     server: HttpServerLink,
@@ -17,6 +20,7 @@ pub struct Server {
     // - and for controls
     exporter: ExporterLinkForData,
     connected: bool,
+    ui_path: PathBuf,
 }
 
 impl Server {
@@ -25,6 +29,7 @@ impl Server {
             server,
             exporter,
             connected: false,
+            ui_path: Path::new(".").to_path_buf(),
         }
     }
 }
@@ -41,6 +46,9 @@ impl StartedBy<EmbeddedNode> for Server {
             .await?;
         self.server
             .add_ws_route::<Live, RillProtocol, _>(ctx.address().clone())
+            .await?;
+        self.server
+            .add_route::<Ui, _>(ctx.address().clone())
             .await?;
         Ok(())
     }
@@ -114,5 +122,51 @@ impl Eliminated<Session> for Server {
         // It allows to connect again
         self.connected = false;
         Ok(())
+    }
+}
+
+#[derive(Default)]
+struct Ui {
+    tail: PathBuf,
+}
+
+impl FromRequest for Ui {
+    fn from_request(request: &Request<Body>) -> Option<Self> {
+        let path = request.uri().path();
+        if path.starts_with("/ui/") {
+            let tail = Path::new(&path[4..]).to_path_buf();
+            Some(Self { tail })
+        } else {
+            None
+        }
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<Req<Ui>> for Server {
+    async fn handle(
+        &mut self,
+        msg: Req<Ui>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<Response<Body>, Error> {
+        let mut full_path = self.ui_path.clone();
+        full_path.push(msg.request.tail);
+        log::warn!(
+            "Read overriden file asset from the path: {}",
+            full_path.display()
+        );
+        let mut file = File::open(full_path).await?;
+        let mut contents = Vec::new();
+        file.read_to_end(&mut contents).await?;
+        let data = contents;
+        /*
+        let mime = mime_guess::from_path(tail.as_str()).first_or_octet_stream();
+        let mut resp = data
+            .map(Reply::into_response)
+            .unwrap_or_else(|| StatusCode::NOT_FOUND.into_response());
+        resp.headers_mut().typed_insert(ContentType::from(mime));
+        */
+        let response = Response::new(Body::from(data));
+        Ok(response)
     }
 }
