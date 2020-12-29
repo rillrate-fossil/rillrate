@@ -82,7 +82,8 @@ impl LiteTask for ReadConfigFile {
     type Output = Config;
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
-        let mut file = File::open("rill.toml").await?;
+        let config_path = std::env::var("RILL_CONFIG").unwrap_or_else(|_err| "rill.toml".into());
+        let mut file = File::open(config_path).await?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents).await?;
         let config: Config = toml::from_slice(&contents)?;
