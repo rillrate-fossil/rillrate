@@ -1,6 +1,6 @@
 [package]
 name = "rill-export"
-version = "0.6.0"
+version = "0.7.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",
@@ -19,10 +19,10 @@ anyhow = "1.0.36"
 async-trait = "0.1.42"
 derive_more = "0.99.11"
 log = "0.4.11"
-meio = "0.41.0"
-meio-connect = "0.41.0"
+meio = "0.50.0"
+meio-connect = "0.50.0"
 mime_guess = "2.0.3"
-rill = { version = "0.6.0", path = "../rill" }
+rill = { version = "0.7.0", path = "../rill" }
 serde = "1.0.118"
 serde-pickle = "0.6.2"
 strum = "0.19.5"
