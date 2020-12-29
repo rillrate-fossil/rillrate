@@ -16,7 +16,7 @@ use rill::protocol::{
 };
 use std::collections::HashMap;
 
-pub struct Session {
+pub struct ProviderSession {
     handler: WsHandler<RillProtocol>,
     registered: Option<EntryId>,
     exporter: ExporterLinkForData,
@@ -25,7 +25,7 @@ pub struct Session {
     paths: HashMap<DirectId<RillProtocol>, Path>,
 }
 
-impl Session {
+impl ProviderSession {
     pub fn new(handler: WsHandler<RillProtocol>, exporter: ExporterLinkForData) -> Self {
         Self {
             handler,
@@ -53,12 +53,12 @@ impl Session {
 }
 
 #[async_trait]
-impl Actor for Session {
+impl Actor for ProviderSession {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl StartedBy<Server> for Session {
+impl StartedBy<Server> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
@@ -67,7 +67,7 @@ impl StartedBy<Server> for Session {
 }
 
 #[async_trait]
-impl InterruptedBy<Server> for Session {
+impl InterruptedBy<Server> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -75,7 +75,7 @@ impl InterruptedBy<Server> for Session {
 }
 
 #[async_trait]
-impl TaskEliminated<WsProcessor<RillProtocol, Self>> for Session {
+impl TaskEliminated<WsProcessor<RillProtocol, Self>> for ProviderSession {
     async fn handle(
         &mut self,
         _id: IdOf<WsProcessor<RillProtocol, Self>>,
@@ -88,7 +88,7 @@ impl TaskEliminated<WsProcessor<RillProtocol, Self>> for Session {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Session {
+impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for ProviderSession {
     async fn handle(
         &mut self,
         msg: WsIncoming<WideEnvelope<RillProtocol, RillToServer>>,
@@ -142,7 +142,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Ses
 }
 
 #[async_trait]
-impl ActionHandler<link::ForwardRequest> for Session {
+impl ActionHandler<link::ForwardRequest> for ProviderSession {
     async fn handle(
         &mut self,
         msg: link::ForwardRequest,

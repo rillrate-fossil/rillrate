@@ -1,7 +1,7 @@
 use super::link;
 use super::{ExportEvent, GraphiteExporter, PrometheusExporter};
 use crate::actors::embedded_node::EmbeddedNode;
-use crate::actors::session::SessionLink;
+use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
@@ -22,7 +22,7 @@ pub enum Reason {
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Exporter {
     server: HttpServerLink,
-    session: Option<SessionLink>,
+    session: Option<ProviderSessionLink>,
     paths_to_export: HashSet<Path>,
     declared_paths: HashSet<Path>,
     sender: broadcast::Sender<ExportEvent>,
@@ -40,7 +40,7 @@ impl Exporter {
         }
     }
 
-    fn session(&mut self) -> Result<&mut SessionLink, Reason> {
+    fn session(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
         self.session.as_mut().ok_or(Reason::NoActiveSession)
     }
 

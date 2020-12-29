@@ -1,5 +1,5 @@
 use super::Exporter;
-use crate::actors::session::SessionLink;
+use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, Address};
@@ -12,14 +12,14 @@ pub struct ExporterLinkForData {
 }
 
 pub(super) enum SessionLifetime {
-    Attached { session: SessionLink },
+    Attached { session: ProviderSessionLink },
     Detached,
 }
 
 impl Action for SessionLifetime {}
 
 impl ExporterLinkForData {
-    pub async fn session_attached(&mut self, session: SessionLink) -> Result<(), Error> {
+    pub async fn session_attached(&mut self, session: ProviderSessionLink) -> Result<(), Error> {
         let msg = SessionLifetime::Attached { session };
         self.address.act(msg).await
     }

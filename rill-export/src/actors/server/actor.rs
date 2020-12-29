@@ -1,6 +1,6 @@
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::exporter::ExporterLinkForData;
-use crate::actors::session::Session;
+use crate::actors::provider_session::ProviderSession;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -130,7 +130,7 @@ impl ActionHandler<WsReq<Live, RillProtocol>> for Server {
         if !ctx.is_terminating() {
             if !self.connected {
                 self.connected = true;
-                let session_actor = Session::new(req.stream, self.exporter.clone());
+                let session_actor = ProviderSession::new(req.stream, self.exporter.clone());
                 let session = ctx.spawn_actor(session_actor, ());
                 self.exporter.session_attached(session.link()).await?;
             } else {
@@ -145,8 +145,12 @@ impl ActionHandler<WsReq<Live, RillProtocol>> for Server {
 }
 
 #[async_trait]
-impl Eliminated<Session> for Server {
-    async fn handle(&mut self, _id: IdOf<Session>, _ctx: &mut Context<Self>) -> Result<(), Error> {
+impl Eliminated<ProviderSession> for Server {
+    async fn handle(
+        &mut self,
+        _id: IdOf<ProviderSession>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         self.exporter.session_detached().await?;
         // It allows to connect again
         self.connected = false;
