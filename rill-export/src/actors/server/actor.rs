@@ -6,6 +6,7 @@ use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
 };
+use meio_connect::headers::{ContentType, HeaderMapExt};
 use meio_connect::hyper::{Body, Request, Response, StatusCode};
 use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
 use rill::protocol::RillProtocol;
@@ -153,15 +154,13 @@ impl Server {
         let mut file = File::open(full_path).await?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents).await?;
-        let data = contents;
-        /*
-        let mime = mime_guess::from_path(tail.as_str()).first_or_octet_stream();
-        let mut resp = data
-            .map(Reply::into_response)
-            .unwrap_or_else(|| StatusCode::NOT_FOUND.into_response());
-        resp.headers_mut().typed_insert(ContentType::from(mime));
-        */
-        let response = Response::new(Body::from(data));
+        let mime = mime_guess::from_path(path).first_or_octet_stream();
+        // No one person on the planet knows how I hate
+        // that hyper/http/headers/warp are not
+        // convenient crates. I'm crying....
+        let mut response = Response::builder().body(contents.into())?;
+        // Why?!?!?!?!?!?!!?!111
+        response.headers_mut().typed_insert(ContentType::from(mime));
         Ok(response)
     }
 }
