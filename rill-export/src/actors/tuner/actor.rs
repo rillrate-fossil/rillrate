@@ -1,19 +1,23 @@
 use crate::actors::embedded_node::EmbeddedNode;
+use crate::actors::exporter::ExporterLinkForCtrl;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     Action, ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy,
     TaskEliminated, TaskError,
 };
+use rill::protocol::Path;
 use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
-pub struct Tuner {}
+pub struct Tuner {
+    exporter: ExporterLinkForCtrl,
+}
 
 impl Tuner {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(exporter: ExporterLinkForCtrl) -> Self {
+        Self { exporter }
     }
 }
 
@@ -48,8 +52,10 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
         match result {
             Ok(mut config) => {
                 if let Some(export) = config.export.take() {
-                    for path_to_export in export {
-                        log::info!("Export path: {}", path_to_export);
+                    for path_str in export {
+                        let path: Path = path_str.parse()?;
+                        log::info!("Export path: {}", path);
+                        self.exporter.export_path(path).await?;
                     }
                 }
             }

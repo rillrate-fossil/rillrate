@@ -11,7 +11,7 @@ use std::time::Duration;
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let _rill_export = RillExport::start()?;
-    let _rill = Rill::install("export-example")?;
+    let _rill = Rill::install("example")?;
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));

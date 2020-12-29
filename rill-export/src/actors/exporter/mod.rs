@@ -2,7 +2,7 @@ mod actor;
 pub use actor::Exporter;
 
 mod link;
-pub use link::ExporterLinkForData;
+pub use link::{ExporterLinkForCtrl, ExporterLinkForData};
 
 mod graphite;
 use graphite::GraphiteExporter;
