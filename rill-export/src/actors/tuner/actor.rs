@@ -46,9 +46,11 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match result {
-            Ok(config) => {
-                for path_to_export in config.export {
-                    log::info!("Export path: {}", path_to_export);
+            Ok(mut config) => {
+                if let Some(export) = config.export.take() {
+                    for path_to_export in export {
+                        log::info!("Export path: {}", path_to_export);
+                    }
                 }
             }
             Err(err) => {
@@ -64,7 +66,7 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
 
 #[derive(Serialize, Deserialize)]
 struct Config {
-    export: Vec<String>,
+    export: Option<Vec<String>>,
 }
 
 struct ReadConfigFile;
