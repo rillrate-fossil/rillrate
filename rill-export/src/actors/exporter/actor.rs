@@ -24,16 +24,18 @@ pub struct Exporter {
     server: HttpServerLink,
     session: Option<SessionLink>,
     paths_to_export: HashSet<Path>,
+    declared_paths: HashSet<Path>,
     sender: broadcast::Sender<ExportEvent>,
 }
 
 impl Exporter {
-    pub fn new(server: HttpServerLink, paths_to_export: HashSet<Path>) -> Self {
+    pub fn new(server: HttpServerLink) -> Self {
         let (sender, _) = broadcast::channel(32);
         Self {
             server,
             session: None,
-            paths_to_export,
+            paths_to_export: HashSet::new(),
+            declared_paths: HashSet::new(),
             sender,
         }
     }
@@ -124,28 +126,6 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::PathDeclared> for Exporter {
-    async fn handle(
-        &mut self,
-        msg: link::PathDeclared,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let path = msg.description.path;
-        log::debug!("Declare path: {}", path);
-        // TODO: Use the set
-        //if self.paths_to_export.contains(&path) {
-        let event = ExportEvent::SetInfo {
-            path: path.clone(),
-            info: "<todo>".into(),
-        };
-        self.broadcast(event)?;
-        self.session()?.subscribe(path).await?;
-        //}
-        Ok(())
-    }
-}
-
-#[async_trait]
 impl ActionHandler<link::DataReceived> for Exporter {
     async fn handle(
         &mut self,
@@ -158,6 +138,51 @@ impl ActionHandler<link::DataReceived> for Exporter {
             data: msg.data,
         };
         self.broadcast(event)?;
+        Ok(())
+    }
+}
+
+impl Exporter {
+    async fn begin_export(&mut self, path: Path) -> Result<(), Error> {
+        let event = ExportEvent::SetInfo {
+            path: path.clone(),
+            info: "<todo>".into(),
+        };
+        self.broadcast(event)?;
+        self.session()?.subscribe(path).await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<link::PathDeclared> for Exporter {
+    async fn handle(
+        &mut self,
+        msg: link::PathDeclared,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let path = msg.description.path;
+        log::debug!("Declare path: {}", path);
+        self.declared_paths.insert(path.clone());
+        if self.paths_to_export.contains(&path) {
+            self.begin_export(path).await?;
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<link::ExportPath> for Exporter {
+    async fn handle(
+        &mut self,
+        msg: link::ExportPath,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let path = msg.path;
+        self.paths_to_export.insert(path.clone());
+        if self.declared_paths.contains(&path) {
+            self.begin_export(path).await?;
+        }
         Ok(())
     }
 }

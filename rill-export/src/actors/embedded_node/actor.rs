@@ -40,7 +40,7 @@ impl StartedBy<System> for EmbeddedNode {
         let http_server_actor = HttpServer::new(addr);
         let http_server = ctx.spawn_actor(http_server_actor, Group::HttpServer);
 
-        let exporter_actor = Exporter::new(http_server.link(), Default::default());
+        let exporter_actor = Exporter::new(http_server.link());
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
         let server_actor = Server::new(http_server.link(), exporter.link());

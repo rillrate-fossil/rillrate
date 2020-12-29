@@ -66,3 +66,22 @@ impl ExporterLinkForData {
         self.address.act(msg).await
     }
 }
+
+#[derive(Debug, Clone, From)]
+pub struct ExporterLinkForCtrl {
+    address: Address<Exporter>,
+}
+
+pub(super) struct ExportPath {
+    pub path: Path,
+}
+
+impl Action for ExportPath {}
+
+impl ExporterLinkForCtrl {
+    // TODO: Use Pattern instead of Path
+    pub async fn export_path(&mut self, path: Path) -> Result<(), Error> {
+        let msg = ExportPath { path };
+        self.address.act(msg).await
+    }
+}
