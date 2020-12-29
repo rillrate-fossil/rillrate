@@ -3,6 +3,8 @@ mod actors;
 use actors::embedded_node::EmbeddedNode;
 use anyhow::Error;
 
+metacrate::meta!();
+
 mod env {
     use std::env::var;
 

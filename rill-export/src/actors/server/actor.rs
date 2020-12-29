@@ -84,6 +84,27 @@ impl InteractionHandler<Req<Index>> for Server {
 }
 
 #[derive(Default)]
+struct Info;
+
+impl DirectPath for Info {
+    fn paths() -> &'static [&'static str] {
+        &["/info"]
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<Req<Info>> for Server {
+    async fn handle(
+        &mut self,
+        _: Req<Info>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<Response<Body>, Error> {
+        let content = format!("Rill ver. {}\nRill Export ver. {}\n", rill::meta::VERSION, crate::meta::VERSION);
+        Ok(Response::new("Rill Embedded Server: version {}".into()))
+    }
+}
+
+#[derive(Default)]
 struct Live;
 
 impl DirectPath for Live {

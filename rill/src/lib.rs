@@ -13,6 +13,8 @@ use state::{RillState, RILL_STATE};
 use std::sync::atomic::{AtomicU16, Ordering};
 use thiserror::Error;
 
+metacrate::meta!();
+
 pub static PORT: Port = Port::new(crate::protocol::PORT);
 
 pub struct Port {
