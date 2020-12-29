@@ -142,6 +142,10 @@ impl FromRequest for Ui {
     }
 }
 
+/// WARNING! This implementation serves any static files by any paths.
+/// It's unsafe to use in prod, because you can load any file using `ui` endpoint.
+/// It used for UI-debugging purposes only.
+#[cfg(debug_assertions)]
 #[async_trait]
 impl InteractionHandler<Req<Ui>> for Server {
     async fn handle(
