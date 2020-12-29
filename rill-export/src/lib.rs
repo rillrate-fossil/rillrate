@@ -3,6 +3,18 @@ mod actors;
 use actors::embedded_node::EmbeddedNode;
 use anyhow::Error;
 
+mod env {
+    use std::env::var;
+
+    pub fn config() -> String {
+        var("RILL_CONFIG").unwrap_or_else(|_| "rill.toml".into())
+    }
+
+    pub fn ui() -> String {
+        var("RILL_UI").unwrap_or_else(|_| ".".into())
+    }
+}
+
 pub struct RillExport {
     _scoped_to_drop: meio::thread::ScopedRuntime,
 }

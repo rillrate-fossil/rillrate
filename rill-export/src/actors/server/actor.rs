@@ -30,7 +30,7 @@ impl Server {
             server,
             exporter,
             connected: false,
-            ui_path: Path::new(".").to_path_buf(),
+            ui_path: Path::new(&crate::env::ui()).to_path_buf(),
         }
     }
 }
