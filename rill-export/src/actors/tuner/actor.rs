@@ -72,6 +72,7 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
 
 #[derive(Serialize, Deserialize)]
 struct Config {
+    // TODO: Deserialize paths here directly using `FromStr`
     export: Option<Vec<String>>,
 }
 
