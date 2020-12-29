@@ -7,7 +7,7 @@ use rill::protocol::{Description, Path, RillData};
 use std::time::Duration;
 
 #[derive(Debug, Clone, From)]
-pub struct ExporterLink {
+pub struct ExporterLinkForData {
     address: Address<Exporter>,
 }
 
@@ -18,7 +18,7 @@ pub(super) enum SessionLifetime {
 
 impl Action for SessionLifetime {}
 
-impl ExporterLink {
+impl ExporterLinkForData {
     pub async fn session_attached(&mut self, session: SessionLink) -> Result<(), Error> {
         let msg = SessionLifetime::Attached { session };
         self.address.act(msg).await
@@ -36,7 +36,7 @@ pub(super) struct PathDeclared {
 
 impl Action for PathDeclared {}
 
-impl ExporterLink {
+impl ExporterLinkForData {
     pub async fn path_declared(&mut self, description: Description) -> Result<(), Error> {
         let msg = PathDeclared { description };
         self.address.act(msg).await
@@ -51,7 +51,7 @@ pub(super) struct DataReceived {
 
 impl Action for DataReceived {}
 
-impl ExporterLink {
+impl ExporterLinkForData {
     pub async fn data_received(
         &mut self,
         path: Path,

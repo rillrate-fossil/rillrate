@@ -1,5 +1,5 @@
 use crate::actors::embedded_node::EmbeddedNode;
-use crate::actors::exporter::ExporterLink;
+use crate::actors::exporter::ExporterLinkForData;
 use crate::actors::session::Session;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -12,12 +12,15 @@ use rill::protocol::RillProtocol;
 
 pub struct Server {
     server: HttpServerLink,
-    exporter: ExporterLink,
+    // TODO: Or maybe use `Address` here if different types of links required:
+    // - for data
+    // - and for controls
+    exporter: ExporterLinkForData,
     connected: bool,
 }
 
 impl Server {
-    pub fn new(server: HttpServerLink, exporter: ExporterLink) -> Self {
+    pub fn new(server: HttpServerLink, exporter: ExporterLinkForData) -> Self {
         Self {
             server,
             exporter,

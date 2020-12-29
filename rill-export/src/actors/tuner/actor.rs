@@ -46,7 +46,11 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match result {
-            Ok(config) => for path_to_export in config.export {},
+            Ok(config) => {
+                for path_to_export in config.export {
+                    log::info!("Export path: {}", path_to_export);
+                }
+            }
             Err(err) => {
                 log::warn!(
                     "Can't read config file. No special configuration parameters applied: {}",

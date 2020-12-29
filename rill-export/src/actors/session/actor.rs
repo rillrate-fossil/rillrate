@@ -1,5 +1,5 @@
 use super::link;
-use crate::actors::exporter::ExporterLink;
+use crate::actors::exporter::ExporterLinkForData;
 use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -19,14 +19,14 @@ use std::collections::HashMap;
 pub struct Session {
     handler: WsHandler<RillProtocol>,
     registered: Option<EntryId>,
-    exporter: ExporterLink,
+    exporter: ExporterLinkForData,
     counter: usize,
     // TODO: Replace to `TypedSlab`
     paths: HashMap<DirectId<RillProtocol>, Path>,
 }
 
 impl Session {
-    pub fn new(handler: WsHandler<RillProtocol>, exporter: ExporterLink) -> Self {
+    pub fn new(handler: WsHandler<RillProtocol>, exporter: ExporterLinkForData) -> Self {
         Self {
             handler,
             registered: None,
