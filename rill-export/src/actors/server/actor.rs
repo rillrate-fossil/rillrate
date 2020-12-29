@@ -89,7 +89,7 @@ impl InteractionHandler<Req<Index>> for Server {
         response
             .headers_mut()
             .insert(header::LOCATION, HeaderValue::from_static("/ui/"));
-        Ok(Response::new("Rill Embedded Server".into()))
+        Ok(response)
     }
 }
 
