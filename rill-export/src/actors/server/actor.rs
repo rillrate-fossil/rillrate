@@ -1,3 +1,4 @@
+use crate::actors::client_session::ClientSession;
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::exporter::ExporterLinkForData;
 use crate::actors::provider_session::ProviderSession;
@@ -46,7 +47,10 @@ impl StartedBy<EmbeddedNode> for Server {
             .add_route::<Index, _>(ctx.address().clone())
             .await?;
         self.server
-            .add_ws_route::<Live, RillProtocol, _>(ctx.address().clone())
+            .add_ws_route::<ProviderLive, RillProtocol, _>(ctx.address().clone())
+            .await?;
+        self.server
+            .add_ws_route::<ClientLive, RillProtocol, _>(ctx.address().clone())
             .await?;
         self.server
             .add_route::<Ui, _>(ctx.address().clone())
@@ -119,19 +123,19 @@ impl InteractionHandler<Req<Info>> for Server {
 }
 
 #[derive(Default)]
-struct Live;
+struct ProviderLive;
 
-impl DirectPath for Live {
+impl DirectPath for ProviderLive {
     fn paths() -> &'static [&'static str] {
         &["/live/provider"]
     }
 }
 
 #[async_trait]
-impl ActionHandler<WsReq<Live, RillProtocol>> for Server {
+impl ActionHandler<WsReq<ProviderLive, RillProtocol>> for Server {
     async fn handle(
         &mut self,
-        req: WsReq<Live, RillProtocol>,
+        req: WsReq<ProviderLive, RillProtocol>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
@@ -145,7 +149,7 @@ impl ActionHandler<WsReq<Live, RillProtocol>> for Server {
                 log::error!("Reject the second incoming connection from: {}", "msg.addr");
             }
         } else {
-            log::warn!("Incoming ws connection rejected, because the server is terminating.");
+            log::warn!("Incoming provider connection rejected, because the server is terminating.");
         }
         Ok(())
     }
@@ -161,6 +165,43 @@ impl Eliminated<ProviderSession> for Server {
         self.exporter.session_detached().await?;
         // It allows to connect again
         self.connected = false;
+        Ok(())
+    }
+}
+
+#[derive(Default)]
+struct ClientLive;
+
+impl DirectPath for ClientLive {
+    fn paths() -> &'static [&'static str] {
+        &["/live/client"]
+    }
+}
+
+#[async_trait]
+impl ActionHandler<WsReq<ClientLive, RillProtocol>> for Server {
+    async fn handle(
+        &mut self,
+        req: WsReq<ClientLive, RillProtocol>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        if !ctx.is_terminating() {
+            let session_actor = ClientSession::new(req.stream);
+            let session = ctx.spawn_actor(session_actor, ());
+        } else {
+            log::warn!("Incoming client connection rejected, because the server is terminating.");
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<ClientSession> for Server {
+    async fn handle(
+        &mut self,
+        _id: IdOf<ClientSession>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         Ok(())
     }
 }
@@ -224,6 +265,7 @@ impl InteractionHandler<Req<Ui>> for Server {
         if path == Path::new("") {
             path = Path::new("index.html");
         }
+        log::trace!("Reading asset: {}", path.display());
         let res = self.serve_file(path).await;
         match res {
             Ok(response) => Ok(response),

@@ -94,7 +94,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
         msg: WsIncoming<WideEnvelope<RillProtocol, RillToServer>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        log::trace!("WsIncoming message: {:?}", msg);
+        log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
             RillToServer::Data { timestamp, data } => {
                 if let Direction::Direct(direct_id) = msg.0.direction {
