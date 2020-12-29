@@ -9,7 +9,7 @@ use crate::state::ControlEvent;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Consumer, Context, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+    ActionHandler, Actor, Consumer, Context, IdOf, InstantActionHandler, InterruptedBy, StartedBy,
     TaskEliminated, TaskError,
 };
 use meio_connect::{
@@ -236,7 +236,7 @@ impl Consumer<ControlEvent> for RillWorker {
 }
 
 #[async_trait]
-impl InteractionHandler<WsClientStatus<RillProtocol>> for RillWorker {
+impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
     async fn handle(
         &mut self,
         status: WsClientStatus<RillProtocol>,
