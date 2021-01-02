@@ -1,5 +1,5 @@
 use crate::codec::JsonCodec;
-use crate::provider::{Envelope, Origin};
+use crate::provider::{Envelope, Origin, RillToProvider, RillToServer};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +15,11 @@ impl Protocol for ViewProtocol {
 impl Origin for ViewProtocol {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ViewRequest {}
+pub enum ViewRequest {
+    Forward(RillToProvider),
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ViewResponse {}
+pub enum ViewResponse {
+    Forward(RillToServer),
+}
