@@ -4,7 +4,7 @@ use crate::actors::exporter::ExporterLinkForCtrl;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError};
-use rill_protocol::Path;
+use rill_protocol::provider::Path;
 
 pub struct Tuner {
     exporter: ExporterLinkForCtrl,

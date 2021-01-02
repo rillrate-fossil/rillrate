@@ -2,7 +2,7 @@ use super::ProviderSession;
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, Address};
-use rill_protocol::{Path, RillToProvider};
+use rill_protocol::provider::{Path, RillToProvider};
 
 #[derive(Debug, Clone, From)]
 pub struct ProviderSessionLink {

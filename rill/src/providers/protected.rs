@@ -1,6 +1,6 @@
 use super::provider::Provider;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::{Path, StreamType};
+use rill_protocol::provider::{Path, StreamType};
 use std::sync::{Mutex, MutexGuard};
 
 #[derive(Debug, Deref, DerefMut)]

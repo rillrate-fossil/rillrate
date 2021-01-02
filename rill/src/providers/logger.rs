@@ -1,6 +1,6 @@
 use super::provider::Provider;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::{Path, RillData, StreamType};
+use rill_protocol::provider::{Path, RillData, StreamType};
 use std::time::SystemTime;
 
 #[derive(Debug, Deref, DerefMut)]

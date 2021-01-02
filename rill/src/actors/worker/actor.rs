@@ -12,7 +12,7 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::pathfinder::{Pathfinder, Record};
-use rill_protocol::{
+use rill_protocol::provider::{
     Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
     RillToProvider, RillToServer, StreamType, WideEnvelope,
 };

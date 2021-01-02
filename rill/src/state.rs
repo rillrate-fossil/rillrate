@@ -2,7 +2,7 @@ use crate::providers::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use once_cell::sync::OnceCell;
-use rill_protocol::StreamType;
+use rill_protocol::provider::StreamType;
 use std::sync::Arc;
 use tokio::sync::watch;
 

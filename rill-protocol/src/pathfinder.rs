@@ -1,4 +1,4 @@
-use crate::protocol::{EntryId, Path};
+use crate::provider::{EntryId, Path};
 use derive_more::{Deref, DerefMut};
 use std::collections::HashMap;
 

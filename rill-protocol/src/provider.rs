@@ -223,6 +223,7 @@ impl FromStr for Path {
 
 pub type Timestamp = i64;
 
+// TODO: Consider to move it to `meio-protocol`
 pub struct JsonCodec;
 
 impl ProtocolCodec for JsonCodec {

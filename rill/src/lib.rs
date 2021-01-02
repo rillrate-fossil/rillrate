@@ -7,7 +7,7 @@ mod state;
 
 use crate::actors::supervisor::RillSupervisor;
 use anyhow::Error;
-use rill_protocol::EntryId;
+use rill_protocol::provider::EntryId;
 use state::{RillState, RILL_STATE};
 use thiserror::Error;
 
