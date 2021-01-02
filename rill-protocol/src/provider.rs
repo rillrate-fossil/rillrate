@@ -1,6 +1,6 @@
-use anyhow::Error;
+use crate::codec::JsonCodec;
 use derive_more::{Deref, From, FromStr, Index, Into};
-use meio_protocol::{Protocol, ProtocolCodec, ProtocolData};
+use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
@@ -222,19 +222,6 @@ impl FromStr for Path {
 }
 
 pub type Timestamp = i64;
-
-// TODO: Consider to move it to `meio-protocol`
-pub struct JsonCodec;
-
-impl ProtocolCodec for JsonCodec {
-    fn decode<T: ProtocolData>(data: &[u8]) -> Result<T, Error> {
-        serde_json::from_slice(data).map_err(Error::from)
-    }
-
-    fn encode<T: ProtocolData>(value: &T) -> Result<Vec<u8>, Error> {
-        serde_json::to_vec(value).map_err(Error::from)
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Envelope<T: Origin, D> {

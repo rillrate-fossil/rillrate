@@ -1,5 +1,7 @@
+pub mod codec;
 pub mod pathfinder;
 pub mod provider;
+pub mod view;
 
 use std::sync::atomic::{AtomicU16, Ordering};
 
