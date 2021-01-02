@@ -6,6 +6,7 @@ use meio::prelude::{Action, Address};
 use rill::protocol::{Description, Path, RillData};
 use std::time::Duration;
 
+/// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
 pub struct ExporterLinkForData {
     address: Address<Exporter>,
@@ -67,6 +68,7 @@ impl ExporterLinkForData {
     }
 }
 
+/// This `Link` used by `Tuner` actor.
 #[derive(Debug, Clone, From)]
 pub struct ExporterLinkForCtrl {
     address: Address<Exporter>,
@@ -82,6 +84,28 @@ impl ExporterLinkForCtrl {
     // TODO: Use Pattern instead of Path
     pub async fn export_path(&mut self, path: Path) -> Result<(), Error> {
         let msg = ExportPath { path };
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct StartPrometheus {}
+
+impl Action for StartPrometheus {}
+
+impl ExporterLinkForCtrl {
+    pub async fn start_prometheus(&mut self) -> Result<(), Error> {
+        let msg = StartPrometheus {};
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct StartGraphite {}
+
+impl Action for StartGraphite {}
+
+impl ExporterLinkForCtrl {
+    pub async fn start_graphite(&mut self) -> Result<(), Error> {
+        let msg = StartGraphite {};
         self.address.act(msg).await
     }
 }

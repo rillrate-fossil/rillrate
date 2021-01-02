@@ -55,6 +55,12 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
                         self.exporter.export_path(path).await?;
                     }
                 }
+                if let Some(_) = config.export.prometheus.take() {
+                    self.exporter.start_prometheus().await?;
+                }
+                if let Some(_) = config.export.graphite.take() {
+                    self.exporter.start_graphite().await?;
+                }
             }
             Err(err) => {
                 log::warn!(

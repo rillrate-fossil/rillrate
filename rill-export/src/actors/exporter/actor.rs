@@ -59,16 +59,6 @@ impl Actor for Exporter {
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Exporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let graphite_actor = GraphiteExporter::new();
-        let graphite = ctx.spawn_actor(graphite_actor, ());
-        let rx = self.sender.subscribe();
-        graphite.attach(rx);
-
-        let prometheus_actor = PrometheusExporter::new(self.server.clone());
-        let prometheus = ctx.spawn_actor(prometheus_actor, ());
-        let rx = self.sender.subscribe();
-        prometheus.attach(rx);
-
         Ok(())
     }
 }
@@ -183,6 +173,36 @@ impl ActionHandler<link::ExportPath> for Exporter {
         if self.declared_paths.contains(&path) {
             self.begin_export(path).await?;
         }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<link::StartPrometheus> for Exporter {
+    async fn handle(
+        &mut self,
+        _msg: link::StartPrometheus,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let prometheus_actor = PrometheusExporter::new(self.server.clone());
+        let prometheus = ctx.spawn_actor(prometheus_actor, ());
+        let rx = self.sender.subscribe();
+        prometheus.attach(rx);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<link::StartGraphite> for Exporter {
+    async fn handle(
+        &mut self,
+        _msg: link::StartGraphite,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let graphite_actor = GraphiteExporter::new();
+        let graphite = ctx.spawn_actor(graphite_actor, ());
+        let rx = self.sender.subscribe();
+        graphite.attach(rx);
         Ok(())
     }
 }
