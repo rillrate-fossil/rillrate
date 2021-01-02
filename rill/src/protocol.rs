@@ -1,6 +1,6 @@
 use anyhow::Error;
 use derive_more::{Deref, From, FromStr, Index, Into};
-use meio_connect::{Protocol, ProtocolCodec, ProtocolData};
+use meio_protocol::{Protocol, ProtocolCodec, ProtocolData};
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
