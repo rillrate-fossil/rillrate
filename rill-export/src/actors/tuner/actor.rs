@@ -1,3 +1,4 @@
+use super::{Config, ReadConfigFile};
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::exporter::ExporterLinkForCtrl;
 use anyhow::Error;
@@ -6,9 +7,6 @@ use meio::prelude::{
     Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated, TaskError,
 };
 use rill::protocol::Path;
-use serde::{Deserialize, Serialize};
-use tokio::fs::File;
-use tokio::io::AsyncReadExt;
 
 pub struct Tuner {
     exporter: ExporterLinkForCtrl,
@@ -66,26 +64,5 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
             }
         }
         Ok(())
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-struct Config {
-    // TODO: Deserialize paths here directly using `FromStr`
-    export: Option<Vec<String>>,
-}
-
-struct ReadConfigFile;
-
-#[async_trait]
-impl LiteTask for ReadConfigFile {
-    type Output = Config;
-
-    async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
-        let mut file = File::open(crate::env::config()).await?;
-        let mut contents = Vec::new();
-        file.read_to_end(&mut contents).await?;
-        let config: Config = toml::from_slice(&contents)?;
-        Ok(config)
     }
 }
