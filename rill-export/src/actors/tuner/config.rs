@@ -1,6 +1,6 @@
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{LiteTask, TaskError};
+use meio::prelude::LiteTask;
 use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;

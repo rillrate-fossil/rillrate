@@ -58,7 +58,7 @@ impl Actor for Exporter {
 
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Exporter {
-    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }

@@ -3,9 +3,7 @@ use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::exporter::ExporterLinkForCtrl;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{
-    Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated, TaskError,
-};
+use meio::prelude::{Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError};
 use rill::protocol::Path;
 
 pub struct Tuner {
@@ -44,7 +42,7 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
         &mut self,
         _id: IdOf<ReadConfigFile>,
         result: Result<Config, TaskError>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match result {
             Ok(mut config) => {

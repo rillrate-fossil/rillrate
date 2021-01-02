@@ -54,7 +54,7 @@ pub enum RillError {
 }
 
 pub struct Rill {
-    scoped: meio::thread::ScopedRuntime,
+    _scoped: meio::thread::ScopedRuntime,
 }
 
 impl Rill {
@@ -65,6 +65,6 @@ impl Rill {
             .map_err(|_| RillError::AlreadyInstalled)?;
         let actor = RillSupervisor::new(name.into(), rx);
         let scoped = meio::thread::spawn(actor)?;
-        Ok(Self { scoped })
+        Ok(Self { _scoped: scoped })
     }
 }

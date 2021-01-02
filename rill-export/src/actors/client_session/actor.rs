@@ -8,10 +8,7 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
-use rill::protocol::{
-    DirectId, Direction, EntryId, Envelope, Path, RillProtocol, RillToProvider, RillToServer,
-    WideEnvelope,
-};
+use rill::protocol::{RillProtocol, RillToServer, WideEnvelope};
 
 pub struct ClientSession {
     handler: WsHandler<RillProtocol>,

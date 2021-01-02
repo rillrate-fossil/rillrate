@@ -44,7 +44,7 @@ impl StartedBy<System> for EmbeddedNode {
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
         let server_actor = Server::new(http_server.link(), exporter.link());
-        let server = ctx.spawn_actor(server_actor, Group::Endpoints);
+        let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
 
         let tuner_actor = Tuner::new(exporter.link());
         ctx.spawn_actor(tuner_actor, Group::Tuning);
