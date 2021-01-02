@@ -10,7 +10,7 @@ use meio::prelude::{
 use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
 use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
 use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
-use rill::protocol::RillProtocol;
+use rill_protocol::RillProtocol;
 use std::path::{Path, PathBuf};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;

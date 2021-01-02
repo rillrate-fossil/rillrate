@@ -3,7 +3,7 @@ use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, Address};
-use rill::protocol::{Description, Path, RillData};
+use rill_protocol::{Description, Path, RillData};
 use std::time::Duration;
 
 /// This `Link` used by `Session` actor.

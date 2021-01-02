@@ -1,9 +1,4 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::pathfinder::{Pathfinder, Record};
-use crate::protocol::{
-    Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
-    RillToProvider, RillToServer, StreamType, WideEnvelope,
-};
 use crate::providers::provider::DataEnvelope;
 use crate::state::ControlEvent;
 use anyhow::Error;
@@ -15,6 +10,11 @@ use meio::prelude::{
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
+};
+use rill_protocol::pathfinder::{Pathfinder, Record};
+use rill_protocol::{
+    Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
+    RillToProvider, RillToServer, StreamType, WideEnvelope,
 };
 use slab::Slab;
 use std::collections::HashSet;

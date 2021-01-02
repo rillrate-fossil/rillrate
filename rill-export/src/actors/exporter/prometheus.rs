@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use meio::prelude::{Actor, Context, InteractionHandler, InterruptedBy, StartedBy, TryConsumer};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
-use rill::protocol::{Path, RillData};
+use rill_protocol::{Path, RillData};
 use std::collections::BTreeMap;
 use tokio::sync::broadcast;
 

@@ -1,6 +1,5 @@
 mod actors;
 pub mod macros;
-pub mod pathfinder;
 pub mod prelude;
 pub mod protocol;
 pub mod providers;
@@ -8,14 +7,14 @@ mod state;
 
 use crate::actors::supervisor::RillSupervisor;
 use anyhow::Error;
-use protocol::EntryId;
+use rill_protocol::EntryId;
 use state::{RillState, RILL_STATE};
 use std::sync::atomic::{AtomicU16, Ordering};
 use thiserror::Error;
 
 metacrate::meta!();
 
-pub static PORT: Port = Port::new(crate::protocol::PORT);
+pub static PORT: Port = Port::new(rill_protocol::PORT);
 
 pub struct Port {
     value: AtomicU16,

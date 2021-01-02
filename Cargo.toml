@@ -2,4 +2,5 @@
 members = [
     "rill",
     "rill-export",
+    "rill-protocol",
 ]

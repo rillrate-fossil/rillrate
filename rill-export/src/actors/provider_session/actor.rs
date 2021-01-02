@@ -10,7 +10,7 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
-use rill::protocol::{
+use rill_protocol::{
     DirectId, Direction, EntryId, Envelope, Path, RillProtocol, RillToProvider, RillToServer,
     WideEnvelope,
 };

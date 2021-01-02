@@ -7,7 +7,7 @@ use meio::prelude::{
     ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
     TaskError, TryConsumer,
 };
-use rill::protocol::{Path, RillData};
+use rill_protocol::{Path, RillData};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;

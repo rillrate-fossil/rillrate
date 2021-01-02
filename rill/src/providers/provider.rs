@@ -1,8 +1,8 @@
-use crate::protocol::{Path, RillData, StreamType};
 use crate::state::{ControlEvent, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
+use rill_protocol::{Path, RillData, StreamType};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::SystemTime;

@@ -1,5 +1,5 @@
 [package]
-name = "rill"
+name = "rill-protocol"
 version = "0.8.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
@@ -15,21 +15,9 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-anyhow = "1.0.34"
-async-trait = "0.1.42"
+anyhow = "1.0.37"
 derive_more = "0.99.11"
-futures = "0.3.8"
-log = "0.4.11"
-meio = "0.63.0"
-meio-connect = "0.63.0"
-metacrate = "0.1.0"
-once_cell = "1.5.2"
-rill-protocol = { version = "0.8.0", path = "../rill-protocol" }
-serde = { version = "1.0.117", features = ["derive"] }
-slab = "0.4.2"
-thiserror = "1.0.22"
-tokio = { version = "0.2.22", features = ["full"] }
-
-[dev-dependencies]
-ctrlc = "3.1.7"
-env_logger = "0.8.2"
+meio-protocol = "0.63.0"
+serde = "1.0.118"
+serde_json = "1.0.60"
+thiserror = "1.0.23"
