@@ -6,9 +6,16 @@ use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
 #[derive(Serialize, Deserialize)]
-pub struct Config {
+pub struct Export {
     // TODO: Deserialize paths here directly using `FromStr`
-    pub export: Option<Vec<String>>,
+    pub paths: Option<Vec<String>>,
+    pub prometheus: Option<()>,
+    pub graphite: Option<()>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Config {
+    pub export: Export,
 }
 
 pub struct ReadConfigFile;

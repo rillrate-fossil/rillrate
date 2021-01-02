@@ -48,7 +48,7 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
     ) -> Result<(), Error> {
         match result {
             Ok(mut config) => {
-                if let Some(export) = config.export.take() {
+                if let Some(export) = config.export.paths.take() {
                     for path_str in export {
                         let path: Path = path_str.parse()?;
                         log::info!("Export path: {}", path);

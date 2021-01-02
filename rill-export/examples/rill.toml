@@ -1,3 +1,8 @@
-export = [
+[export]
+paths = [
     "my.counter",
 ]
+
+[export.prometheus]
+
+[export.graphite]
