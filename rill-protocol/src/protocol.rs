@@ -12,8 +12,6 @@ use std::str::FromStr;
 use std::time::Duration;
 use thiserror::Error;
 
-pub const PORT: u16 = 1636;
-
 pub type ProviderReqId = DirectId<RillProtocol>;
 
 /// The origin of `DirectId`.

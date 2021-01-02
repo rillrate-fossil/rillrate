@@ -115,7 +115,7 @@ impl InteractionHandler<Req<Info>> for Server {
     ) -> Result<Response<Body>, Error> {
         let content = format!(
             "Rill ver. {}\nRill Export ver. {}\n",
-            rill::meta::VERSION,
+            rill_protocol::meta::VERSION,
             crate::meta::VERSION
         );
         Ok(Response::new(content.into()))

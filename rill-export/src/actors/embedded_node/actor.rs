@@ -36,7 +36,9 @@ impl StartedBy<System> for EmbeddedNode {
             Group::Endpoints,
         ]);
 
-        let addr = format!("127.0.0.1:{}", rill::PORT.get()).parse().unwrap();
+        let addr = format!("127.0.0.1:{}", rill_protocol::PORT.get())
+            .parse()
+            .unwrap();
         let http_server_actor = HttpServer::new(addr);
         let http_server = ctx.spawn_actor(http_server_actor, Group::HttpServer);
 

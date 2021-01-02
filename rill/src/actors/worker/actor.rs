@@ -118,7 +118,7 @@ impl Actor for RillWorker {
 
 impl RillWorker {
     pub fn new(entry_id: EntryId) -> Self {
-        let link = format!("ws://127.0.0.1:{}/live/provider", crate::PORT.get());
+        let link = format!("ws://127.0.0.1:{}/live/provider", rill_protocol::PORT.get());
         Self {
             url: link,
             entry_id,
