@@ -35,3 +35,4 @@ toml = "0.5.8"
 [dev-dependencies]
 ctrlc = "3.1.7"
 env_logger = "0.8.2"
+rill = { version = "0.9.0", path = "../rill" }
