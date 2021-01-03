@@ -12,6 +12,7 @@ use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
 use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
 use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
 use rill_protocol::provider::RillProtocol;
+use rill_protocol::view::ViewProtocol;
 use std::path::{Path, PathBuf};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -48,7 +49,7 @@ impl StartedBy<EmbeddedNode> for Server {
             .add_ws_route::<ProviderLive, RillProtocol, _>(ctx.address().clone())
             .await?;
         self.server
-            .add_ws_route::<ClientLive, RillProtocol, _>(ctx.address().clone())
+            .add_ws_route::<ClientLive, ViewProtocol, _>(ctx.address().clone())
             .await?;
         self.server
             .add_route::<Ui, _>(ctx.address().clone())
@@ -175,10 +176,10 @@ impl DirectPath for ClientLive {
 }
 
 #[async_trait]
-impl ActionHandler<WsReq<ClientLive, RillProtocol>> for Server {
+impl ActionHandler<WsReq<ClientLive, ViewProtocol>> for Server {
     async fn handle(
         &mut self,
-        req: WsReq<ClientLive, RillProtocol>,
+        req: WsReq<ClientLive, ViewProtocol>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {

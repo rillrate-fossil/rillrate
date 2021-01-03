@@ -9,15 +9,15 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
-use rill_protocol::provider::{RillProtocol, RillToServer, WideEnvelope};
+use rill_protocol::view::{ViewProtocol, ViewRequest};
 
 pub struct ClientSession {
-    handler: WsHandler<RillProtocol>,
+    handler: WsHandler<ViewProtocol>,
     exporter: ExporterLinkForClient,
 }
 
 impl ClientSession {
-    pub fn new(handler: WsHandler<RillProtocol>, exporter: ExporterLinkForClient) -> Self {
+    pub fn new(handler: WsHandler<ViewProtocol>, exporter: ExporterLinkForClient) -> Self {
         Self { handler, exporter }
     }
 }
@@ -45,10 +45,10 @@ impl InterruptedBy<Server> for ClientSession {
 }
 
 #[async_trait]
-impl TaskEliminated<WsProcessor<RillProtocol, Self>> for ClientSession {
+impl TaskEliminated<WsProcessor<ViewProtocol, Self>> for ClientSession {
     async fn handle(
         &mut self,
-        _id: IdOf<WsProcessor<RillProtocol, Self>>,
+        _id: IdOf<WsProcessor<ViewProtocol, Self>>,
         _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
@@ -58,10 +58,10 @@ impl TaskEliminated<WsProcessor<RillProtocol, Self>> for ClientSession {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for ClientSession {
+impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
     async fn handle(
         &mut self,
-        msg: WsIncoming<WideEnvelope<RillProtocol, RillToServer>>,
+        msg: WsIncoming<ViewRequest>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);

@@ -1,16 +1,14 @@
 use crate::codec::JsonCodec;
-use crate::provider::{DirectId, Envelope, Origin, RillToProvider, RillToServer};
+use crate::provider::{Origin, RillToProvider, RillToServer};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
-
-pub type ViewReqId = DirectId<ViewProtocol>;
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ViewProtocol;
 
 impl Protocol for ViewProtocol {
-    type ToServer = Envelope<Self, ViewRequest>;
-    type ToClient = Envelope<Self, ViewResponse>;
+    type ToServer = ViewRequest;
+    type ToClient = ViewResponse;
     type Codec = JsonCodec;
 }
 
