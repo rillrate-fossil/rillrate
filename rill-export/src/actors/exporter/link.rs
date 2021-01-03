@@ -2,9 +2,28 @@ use super::Exporter;
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{Action, Address};
+use meio::prelude::{Action, Address, Interaction};
 use rill_protocol::provider::{Description, Path, RillData};
+use std::collections::HashSet;
 use std::time::Duration;
+
+/// This `Link` used by `Session` actor.
+#[derive(Debug, Clone, From)]
+pub struct ExporterLinkForClient {
+    address: Address<Exporter>,
+}
+
+pub(super) struct GetPaths;
+
+impl Interaction for GetPaths {
+    type Output = HashSet<Path>;
+}
+
+impl ExporterLinkForClient {
+    pub async fn get_paths(&mut self) -> Result<HashSet<Path>, Error> {
+        self.address.interact(GetPaths).await
+    }
+}
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]

@@ -4,7 +4,9 @@ use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use meio::prelude::{
+    ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+};
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::Path;
 use std::collections::HashSet;
@@ -204,5 +206,16 @@ impl ActionHandler<link::StartGraphite> for Exporter {
         let rx = self.sender.subscribe();
         graphite.attach(rx);
         Ok(())
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<link::GetPaths> for Exporter {
+    async fn handle(
+        &mut self,
+        _: link::GetPaths,
+        _ctx: &mut Context<Self>,
+    ) -> Result<HashSet<Path>, Error> {
+        Ok(self.declared_paths.clone())
     }
 }
