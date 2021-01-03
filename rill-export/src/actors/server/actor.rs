@@ -1,11 +1,12 @@
 use crate::actors::client_session::ClientSession;
 use crate::actors::embedded_node::EmbeddedNode;
-use crate::actors::exporter::ExporterLinkForProvider;
+use crate::actors::exporter::Exporter;
 use crate::actors::provider_session::ProviderSession;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+    ActionHandler, Actor, Address, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy,
+    StartedBy,
 };
 use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
 use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
@@ -17,16 +18,13 @@ use tokio::io::AsyncReadExt;
 
 pub struct Server {
     server: HttpServerLink,
-    // TODO: Or maybe use `Address` here if different types of links required:
-    // - for data
-    // - and for controls
-    exporter: ExporterLinkForProvider,
+    exporter: Address<Exporter>,
     connected: bool,
     ui_path: PathBuf,
 }
 
 impl Server {
-    pub fn new(server: HttpServerLink, exporter: ExporterLinkForProvider) -> Self {
+    pub fn new(server: HttpServerLink, exporter: Address<Exporter>) -> Self {
         Self {
             server,
             exporter,
@@ -141,9 +139,8 @@ impl ActionHandler<WsReq<ProviderLive, RillProtocol>> for Server {
         if !ctx.is_terminating() {
             if !self.connected {
                 self.connected = true;
-                let session_actor = ProviderSession::new(req.stream, self.exporter.clone());
-                let session = ctx.spawn_actor(session_actor, ());
-                self.exporter.session_attached(session.link()).await?;
+                let session_actor = ProviderSession::new(req.stream, self.exporter.link());
+                ctx.spawn_actor(session_actor, ());
             } else {
                 // TODO: Add address
                 log::error!("Reject the second incoming connection from: {}", "msg.addr");
@@ -162,7 +159,6 @@ impl Eliminated<ProviderSession> for Server {
         _id: IdOf<ProviderSession>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        self.exporter.session_detached().await?;
         // It allows to connect again
         self.connected = false;
         Ok(())

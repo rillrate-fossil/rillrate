@@ -50,6 +50,11 @@ impl ProviderSession {
         log::trace!("Sending request to the server: {:?}", envelope);
         self.handler.send(envelope);
     }
+
+    async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        self.exporter.session_detached().await.ok();
+        ctx.shutdown();
+    }
 }
 
 #[async_trait]
@@ -60,6 +65,7 @@ impl Actor for ProviderSession {
 #[async_trait]
 impl StartedBy<Server> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.exporter.session_attached(ctx.address().link()).await?;
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
         Ok(())
@@ -69,7 +75,7 @@ impl StartedBy<Server> for ProviderSession {
 #[async_trait]
 impl InterruptedBy<Server> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }
@@ -82,7 +88,7 @@ impl TaskEliminated<WsProcessor<RillProtocol, Self>> for ProviderSession {
         _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }
