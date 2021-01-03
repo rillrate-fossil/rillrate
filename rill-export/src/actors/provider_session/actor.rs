@@ -11,10 +11,11 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_protocol::provider::{
-    DirectId, Direction, EntryId, Envelope, Path, RillProtocol, RillToProvider, RillToServer,
-    WideEnvelope,
+    DirectId, Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
+    RillToServer, WideEnvelope,
 };
 use std::collections::HashMap;
+use typed_slab::TypedSlab;
 
 pub struct ProviderSession {
     handler: WsHandler<RillProtocol>,
@@ -23,6 +24,7 @@ pub struct ProviderSession {
     counter: usize,
     // TODO: Replace to `TypedSlab`
     paths: HashMap<DirectId<RillProtocol>, Path>,
+    active_requests: TypedSlab<ProviderReqId, ()>,
 }
 
 impl ProviderSession {
@@ -33,6 +35,7 @@ impl ProviderSession {
             exporter,
             counter: 0,
             paths: HashMap::new(),
+            active_requests: TypedSlab::new(),
         }
     }
 
