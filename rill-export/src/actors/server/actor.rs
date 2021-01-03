@@ -182,7 +182,7 @@ impl ActionHandler<WsReq<ClientLive, RillProtocol>> for Server {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
-            let session_actor = ClientSession::new(req.stream);
+            let session_actor = ClientSession::new(req.stream, self.exporter.link());
             let _session = ctx.spawn_actor(session_actor, ());
         } else {
             log::warn!("Incoming client connection rejected, because the server is terminating.");

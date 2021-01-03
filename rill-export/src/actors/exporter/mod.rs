@@ -2,7 +2,7 @@ mod actor;
 pub use actor::Exporter;
 
 mod link;
-pub use link::{ExporterLinkForProvider, ExporterLinkForTuner};
+pub use link::{ExporterLinkForClient, ExporterLinkForProvider, ExporterLinkForTuner};
 
 mod graphite;
 use graphite::GraphiteExporter;

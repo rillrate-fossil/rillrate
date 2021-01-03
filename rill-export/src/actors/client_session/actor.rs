@@ -1,3 +1,4 @@
+use crate::actors::exporter::ExporterLinkForClient;
 use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -12,11 +13,12 @@ use rill_protocol::provider::{RillProtocol, RillToServer, WideEnvelope};
 
 pub struct ClientSession {
     handler: WsHandler<RillProtocol>,
+    exporter: ExporterLinkForClient,
 }
 
 impl ClientSession {
-    pub fn new(handler: WsHandler<RillProtocol>) -> Self {
-        Self { handler }
+    pub fn new(handler: WsHandler<RillProtocol>, exporter: ExporterLinkForClient) -> Self {
+        Self { handler, exporter }
     }
 }
 
