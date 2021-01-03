@@ -1,6 +1,6 @@
 use crate::actors::client_session::ClientSession;
 use crate::actors::embedded_node::EmbeddedNode;
-use crate::actors::exporter::ExporterLinkForData;
+use crate::actors::exporter::ExporterLinkForProvider;
 use crate::actors::provider_session::ProviderSession;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -20,13 +20,13 @@ pub struct Server {
     // TODO: Or maybe use `Address` here if different types of links required:
     // - for data
     // - and for controls
-    exporter: ExporterLinkForData,
+    exporter: ExporterLinkForProvider,
     connected: bool,
     ui_path: PathBuf,
 }
 
 impl Server {
-    pub fn new(server: HttpServerLink, exporter: ExporterLinkForData) -> Self {
+    pub fn new(server: HttpServerLink, exporter: ExporterLinkForProvider) -> Self {
         Self {
             server,
             exporter,

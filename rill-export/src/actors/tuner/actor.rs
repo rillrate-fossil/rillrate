@@ -1,17 +1,17 @@
 use super::{Config, ReadConfigFile};
 use crate::actors::embedded_node::EmbeddedNode;
-use crate::actors::exporter::ExporterLinkForCtrl;
+use crate::actors::exporter::ExporterLinkForTuner;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError};
 use rill_protocol::provider::Path;
 
 pub struct Tuner {
-    exporter: ExporterLinkForCtrl,
+    exporter: ExporterLinkForTuner,
 }
 
 impl Tuner {
-    pub fn new(exporter: ExporterLinkForCtrl) -> Self {
+    pub fn new(exporter: ExporterLinkForTuner) -> Self {
         Self { exporter }
     }
 }

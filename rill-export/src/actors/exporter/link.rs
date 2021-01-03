@@ -8,7 +8,7 @@ use std::time::Duration;
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
-pub struct ExporterLinkForData {
+pub struct ExporterLinkForProvider {
     address: Address<Exporter>,
 }
 
@@ -19,7 +19,7 @@ pub(super) enum SessionLifetime {
 
 impl Action for SessionLifetime {}
 
-impl ExporterLinkForData {
+impl ExporterLinkForProvider {
     pub async fn session_attached(&mut self, session: ProviderSessionLink) -> Result<(), Error> {
         let msg = SessionLifetime::Attached { session };
         self.address.act(msg).await
@@ -37,7 +37,7 @@ pub(super) struct PathDeclared {
 
 impl Action for PathDeclared {}
 
-impl ExporterLinkForData {
+impl ExporterLinkForProvider {
     pub async fn path_declared(&mut self, description: Description) -> Result<(), Error> {
         let msg = PathDeclared { description };
         self.address.act(msg).await
@@ -52,7 +52,7 @@ pub(super) struct DataReceived {
 
 impl Action for DataReceived {}
 
-impl ExporterLinkForData {
+impl ExporterLinkForProvider {
     pub async fn data_received(
         &mut self,
         path: Path,
@@ -70,7 +70,7 @@ impl ExporterLinkForData {
 
 /// This `Link` used by `Tuner` actor.
 #[derive(Debug, Clone, From)]
-pub struct ExporterLinkForCtrl {
+pub struct ExporterLinkForTuner {
     address: Address<Exporter>,
 }
 
@@ -80,7 +80,7 @@ pub(super) struct ExportPath {
 
 impl Action for ExportPath {}
 
-impl ExporterLinkForCtrl {
+impl ExporterLinkForTuner {
     // TODO: Use Pattern instead of Path
     pub async fn export_path(&mut self, path: Path) -> Result<(), Error> {
         let msg = ExportPath { path };
@@ -92,7 +92,7 @@ pub(super) struct StartPrometheus {}
 
 impl Action for StartPrometheus {}
 
-impl ExporterLinkForCtrl {
+impl ExporterLinkForTuner {
     pub async fn start_prometheus(&mut self) -> Result<(), Error> {
         let msg = StartPrometheus {};
         self.address.act(msg).await
@@ -103,7 +103,7 @@ pub(super) struct StartGraphite {}
 
 impl Action for StartGraphite {}
 
-impl ExporterLinkForCtrl {
+impl ExporterLinkForTuner {
     pub async fn start_graphite(&mut self) -> Result<(), Error> {
         let msg = StartGraphite {};
         self.address.act(msg).await
