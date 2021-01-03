@@ -1,4 +1,5 @@
 use crate::actors::exporter::ExporterLinkForClient;
+use crate::actors::provider_session::ProviderSessionLink;
 use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -9,16 +10,21 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
-use rill_protocol::view::{ViewProtocol, ViewRequest};
+use rill_protocol::view::{ViewProtocol, ViewRequest, ViewResponse};
 
 pub struct ClientSession {
     handler: WsHandler<ViewProtocol>,
     exporter: ExporterLinkForClient,
+    provider: Option<ProviderSessionLink>,
 }
 
 impl ClientSession {
     pub fn new(handler: WsHandler<ViewProtocol>, exporter: ExporterLinkForClient) -> Self {
-        Self { handler, exporter }
+        Self {
+            handler,
+            exporter,
+            provider: None,
+        }
     }
 }
 
@@ -65,6 +71,19 @@ impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);
+        match msg.0 {
+            ViewRequest::GetAvailablePaths => {
+                let paths = self.exporter.get_paths().await?;
+                let response = ViewResponse::Paths(paths);
+                self.handler.send(response);
+            }
+            ViewRequest::Subscribe(path) => {
+                todo!();
+            }
+            ViewRequest::Unsubscribe => {
+                todo!();
+            }
+        }
         Ok(())
     }
 }

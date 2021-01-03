@@ -15,7 +15,7 @@ use tokio::sync::broadcast;
 
 #[derive(Debug, Error)]
 pub enum Reason {
-    #[error("No active session available")]
+    #[error("No active provider available")]
     NoActiveSession,
     #[error("No active exporters available")]
     NoExporters,
@@ -24,7 +24,7 @@ pub enum Reason {
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Exporter {
     server: HttpServerLink,
-    session: Option<ProviderSessionLink>,
+    provider: Option<ProviderSessionLink>,
     paths_to_export: HashSet<Path>,
     declared_paths: HashSet<Path>,
     sender: broadcast::Sender<ExportEvent>,
@@ -35,15 +35,15 @@ impl Exporter {
         let (sender, _) = broadcast::channel(32);
         Self {
             server,
-            session: None,
+            provider: None,
             paths_to_export: HashSet::new(),
             declared_paths: HashSet::new(),
             sender,
         }
     }
 
-    fn session(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
-        self.session.as_mut().ok_or(Reason::NoActiveSession)
+    fn provider(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
+        self.provider.as_mut().ok_or(Reason::NoActiveSession)
     }
 
     fn broadcast(&self, event: ExportEvent) -> Result<(), Error> {
@@ -107,10 +107,10 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
         use link::SessionLifetime::*;
         match msg {
             Attached { session } => {
-                self.session = Some(session);
+                self.provider = Some(session);
             }
             Detached => {
-                self.session.take();
+                self.provider.take();
             }
         }
         Ok(())
@@ -141,7 +141,7 @@ impl Exporter {
             info: "<todo>".into(),
         };
         self.broadcast(event)?;
-        self.session()?.subscribe(path).await?;
+        self.provider()?.subscribe(path).await?;
         Ok(())
     }
 }
