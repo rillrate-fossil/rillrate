@@ -25,6 +25,18 @@ impl ExporterLinkForClient {
     }
 }
 
+pub(super) struct GetProviderSession;
+
+impl Interaction for GetProviderSession {
+    type Output = ProviderSessionLink;
+}
+
+impl ExporterLinkForClient {
+    pub async fn get_provider_session(&mut self) -> Result<ProviderSessionLink, Error> {
+        self.address.interact(GetProviderSession).await
+    }
+}
+
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
 pub struct ExporterLinkForProvider {

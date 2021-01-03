@@ -219,3 +219,17 @@ impl InteractionHandler<link::GetPaths> for Exporter {
         Ok(self.declared_paths.clone())
     }
 }
+
+#[async_trait]
+impl InteractionHandler<link::GetProviderSession> for Exporter {
+    async fn handle(
+        &mut self,
+        _: link::GetProviderSession,
+        _ctx: &mut Context<Self>,
+    ) -> Result<ProviderSessionLink, Error> {
+        self.provider
+            .clone()
+            .ok_or(Reason::NoActiveSession)
+            .map_err(Error::from)
+    }
+}
