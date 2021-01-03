@@ -73,11 +73,16 @@ impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
         log::trace!("Client incoming message: {:?}", msg);
         match msg.0 {
             ViewRequest::GetAvailablePaths => {
+                // TODO: Send error in case of fail
                 let paths = self.exporter.get_paths().await?;
                 let response = ViewResponse::Paths(paths);
                 self.handler.send(response);
             }
             ViewRequest::Subscribe(path) => {
+                // TODO: Send error in case of fail
+                let mut session = self.exporter.get_provider_session().await?;
+                // TODO: Use address as well
+                session.subscribe(path).await?;
                 todo!();
             }
             ViewRequest::Unsubscribe => {
