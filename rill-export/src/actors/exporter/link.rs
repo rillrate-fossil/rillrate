@@ -16,6 +16,7 @@ pub struct ExporterLinkForClient {
     address: Address<Exporter>,
 }
 
+/*
 pub(super) struct GetPaths;
 
 impl Interaction for GetPaths {
@@ -39,6 +40,7 @@ impl ExporterLinkForClient {
         self.address.interact(GetProviderSession).await
     }
 }
+*/
 
 pub(super) struct ExportPath {
     pub path: Path,

@@ -240,6 +240,7 @@ where
     }
 }
 
+/*
 #[async_trait]
 impl InteractionHandler<link::GetPaths> for Exporter {
     async fn handle(
@@ -264,3 +265,4 @@ impl InteractionHandler<link::GetProviderSession> for Exporter {
             .map_err(Error::from)
     }
 }
+*/
