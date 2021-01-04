@@ -37,6 +37,42 @@ impl ExporterLinkForClient {
     }
 }
 
+pub(super) struct ExportPath {
+    pub path: Path,
+}
+
+impl Action for ExportPath {}
+
+impl ExporterLinkForClient {
+    // TODO: Use Pattern instead of Path
+    pub async fn export_path(&mut self, path: Path) -> Result<(), Error> {
+        let msg = ExportPath { path };
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct StartPrometheus {}
+
+impl Action for StartPrometheus {}
+
+impl ExporterLinkForClient {
+    pub async fn start_prometheus(&mut self) -> Result<(), Error> {
+        let msg = StartPrometheus {};
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct StartGraphite {}
+
+impl Action for StartGraphite {}
+
+impl ExporterLinkForClient {
+    pub async fn start_graphite(&mut self) -> Result<(), Error> {
+        let msg = StartGraphite {};
+        self.address.act(msg).await
+    }
+}
+
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
 pub struct ExporterLinkForProvider {
@@ -95,48 +131,6 @@ impl ExporterLinkForProvider {
             timestamp,
             data,
         };
-        self.address.act(msg).await
-    }
-}
-
-/// This `Link` used by `Tuner` actor.
-#[derive(Debug, Clone, From)]
-pub struct ExporterLinkForTuner {
-    address: Address<Exporter>,
-}
-
-pub(super) struct ExportPath {
-    pub path: Path,
-}
-
-impl Action for ExportPath {}
-
-impl ExporterLinkForTuner {
-    // TODO: Use Pattern instead of Path
-    pub async fn export_path(&mut self, path: Path) -> Result<(), Error> {
-        let msg = ExportPath { path };
-        self.address.act(msg).await
-    }
-}
-
-pub(super) struct StartPrometheus {}
-
-impl Action for StartPrometheus {}
-
-impl ExporterLinkForTuner {
-    pub async fn start_prometheus(&mut self) -> Result<(), Error> {
-        let msg = StartPrometheus {};
-        self.address.act(msg).await
-    }
-}
-
-pub(super) struct StartGraphite {}
-
-impl Action for StartGraphite {}
-
-impl ExporterLinkForTuner {
-    pub async fn start_graphite(&mut self) -> Result<(), Error> {
-        let msg = StartGraphite {};
         self.address.act(msg).await
     }
 }
