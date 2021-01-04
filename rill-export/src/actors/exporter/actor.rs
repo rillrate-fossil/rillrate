@@ -6,6 +6,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+    TryConsumer,
 };
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::Path;
@@ -205,6 +206,22 @@ impl ActionHandler<link::StartGraphite> for Exporter {
         let graphite = ctx.spawn_actor(graphite_actor, ());
         let rx = self.sender.subscribe();
         graphite.attach(rx);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<A> ActionHandler<link::GraspExportStream<A>> for Exporter
+where
+    A: Actor + TryConsumer<ExportEvent, Error = broadcast::RecvError>,
+{
+    async fn handle(
+        &mut self,
+        msg: link::GraspExportStream<A>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let rx = self.sender.subscribe();
+        msg.listener.attach(rx);
         Ok(())
     }
 }

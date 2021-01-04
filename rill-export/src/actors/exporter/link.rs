@@ -1,11 +1,12 @@
-use super::Exporter;
+use super::{ExportEvent, Exporter};
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{Action, Address, Interaction};
+use meio::prelude::{Action, Actor, Address, Interaction, TryConsumer};
 use rill_protocol::provider::{Description, Path, RillData};
 use std::collections::HashSet;
 use std::time::Duration;
+use tokio::sync::broadcast;
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
@@ -69,6 +70,22 @@ impl Action for StartGraphite {}
 impl ExporterLinkForClient {
     pub async fn start_graphite(&mut self) -> Result<(), Error> {
         let msg = StartGraphite {};
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct GraspExportStream<A: Actor> {
+    pub listener: Address<A>,
+}
+
+impl<A: Actor> Action for GraspExportStream<A> {}
+
+impl ExporterLinkForClient {
+    pub async fn grasp_export_stream<A>(&mut self, address: Address<A>) -> Result<(), Error>
+    where
+        A: Actor + TryConsumer<ExportEvent, Error = broadcast::RecvError>,
+    {
+        let msg = GraspExportStream { listener: address };
         self.address.act(msg).await
     }
 }
