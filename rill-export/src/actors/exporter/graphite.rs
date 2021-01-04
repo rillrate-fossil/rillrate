@@ -1,4 +1,4 @@
-use super::{ExportEvent, ExporterLinkForClient};
+use super::{ExportEvent, ExporterLinkForClient, PathNotification};
 use crate::actors::exporter::Exporter;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -58,6 +58,9 @@ impl StartedBy<Exporter> for GraphiteExporter {
         ctx.spawn_task(heartbeat, Group::HeartBeat);
         let connection = Connection::new(self.sender.clone());
         ctx.spawn_task(connection, Group::Connection);
+        self.exporter
+            .subscribe_to_paths(ctx.address().clone())
+            .await?;
         Ok(())
     }
 }
@@ -131,6 +134,17 @@ impl ActionHandler<Tick> for GraphiteExporter {
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<PathNotification> for GraphiteExporter {
+    async fn handle(
+        &mut self,
+        msg: PathNotification,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        todo!();
     }
 }
 

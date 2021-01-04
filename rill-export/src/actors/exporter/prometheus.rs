@@ -1,8 +1,10 @@
-use super::{ExportEvent, ExporterLinkForClient};
+use super::{ExportEvent, ExporterLinkForClient, PathNotification};
 use crate::actors::exporter::Exporter;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{Actor, Context, InteractionHandler, InterruptedBy, StartedBy, TryConsumer};
+use meio::prelude::{
+    ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy, TryConsumer,
+};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
 use rill_protocol::provider::{Path, RillData};
@@ -41,6 +43,9 @@ impl StartedBy<Exporter> for PrometheusExporter {
         self.server
             .add_route::<RenderMetrics, _>(ctx.address().clone())
             .await?;
+        self.exporter
+            .subscribe_to_paths(ctx.address().clone())
+            .await?;
         Ok(())
     }
 }
@@ -50,6 +55,17 @@ impl InterruptedBy<Exporter> for PrometheusExporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<PathNotification> for PrometheusExporter {
+    async fn handle(
+        &mut self,
+        msg: PathNotification,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        todo!();
     }
 }
 
