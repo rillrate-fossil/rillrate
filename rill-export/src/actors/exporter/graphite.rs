@@ -1,4 +1,4 @@
-use super::ExportEvent;
+use super::{ExportEvent, ExporterLinkForClient};
 use crate::actors::exporter::Exporter;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -22,15 +22,17 @@ struct Record {
 }
 
 pub struct GraphiteExporter {
+    exporter: ExporterLinkForClient,
     pickled: bool,
     metrics: HashMap<Path, Record>,
     sender: broadcast::Sender<Vec<u8>>,
 }
 
 impl GraphiteExporter {
-    pub fn new() -> Self {
+    pub fn new(exporter: ExporterLinkForClient) -> Self {
         let (sender, _rx) = broadcast::channel(32);
         Self {
+            exporter,
             pickled: true,
             metrics: HashMap::new(),
             sender,

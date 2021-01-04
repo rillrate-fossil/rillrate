@@ -11,7 +11,6 @@ use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::Path;
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
-use tokio::sync::broadcast;
 
 #[derive(Debug, Error)]
 pub enum Reason {
@@ -30,12 +29,10 @@ pub struct Exporter {
 
     paths_to_export: HashSet<Path>,
     declared_paths: HashSet<Path>,
-    sender: broadcast::Sender<ExportEvent>,
 }
 
 impl Exporter {
     pub fn new(server: HttpServerLink) -> Self {
-        let (sender, _) = broadcast::channel(32);
         Self {
             server,
             provider: None,
@@ -44,22 +41,12 @@ impl Exporter {
 
             paths_to_export: HashSet::new(),
             declared_paths: HashSet::new(),
-            sender,
         }
     }
 
     fn provider(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
         self.provider.as_mut().ok_or(Reason::NoActiveSession)
     }
-
-    /*
-    fn broadcast(&self, event: ExportEvent) -> Result<(), Error> {
-        if self.sender.receiver_count() > 0 {
-            self.sender.send(event).map_err(|_| Reason::NoExporters)?;
-        }
-        Ok(())
-    }
-    */
 }
 
 impl Actor for Exporter {
@@ -212,10 +199,8 @@ impl ActionHandler<link::StartPrometheus> for Exporter {
         _msg: link::StartPrometheus,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let prometheus_actor = PrometheusExporter::new(self.server.clone());
+        let prometheus_actor = PrometheusExporter::new(ctx.address().link(), self.server.clone());
         let prometheus = ctx.spawn_actor(prometheus_actor, ());
-        let rx = self.sender.subscribe();
-        prometheus.attach(rx);
         Ok(())
     }
 }
@@ -227,10 +212,8 @@ impl ActionHandler<link::StartGraphite> for Exporter {
         _msg: link::StartGraphite,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let graphite_actor = GraphiteExporter::new();
+        let graphite_actor = GraphiteExporter::new(ctx.address().link());
         let graphite = ctx.spawn_actor(graphite_actor, ());
-        let rx = self.sender.subscribe();
-        graphite.attach(rx);
         Ok(())
     }
 }

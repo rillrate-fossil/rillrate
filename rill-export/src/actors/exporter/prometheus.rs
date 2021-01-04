@@ -1,4 +1,4 @@
-use super::ExportEvent;
+use super::{ExportEvent, ExporterLinkForClient};
 use crate::actors::exporter::Exporter;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -16,13 +16,15 @@ struct Record {
 }
 
 pub struct PrometheusExporter {
+    exporter: ExporterLinkForClient,
     server: HttpServerLink,
     metrics: BTreeMap<Path, Record>,
 }
 
 impl PrometheusExporter {
-    pub fn new(server: HttpServerLink) -> Self {
+    pub fn new(exporter: ExporterLinkForClient, server: HttpServerLink) -> Self {
         Self {
+            exporter,
             server,
             metrics: BTreeMap::new(),
         }
