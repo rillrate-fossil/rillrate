@@ -10,6 +10,7 @@ use graphite::GraphiteExporter;
 mod prometheus;
 use prometheus::PrometheusExporter;
 
+use meio::prelude::Action;
 use rill_protocol::provider::{Path, RillData};
 use std::time::Duration;
 
@@ -25,3 +26,5 @@ pub enum ExportEvent {
         data: RillData,
     },
 }
+
+impl Action for ExportEvent {}

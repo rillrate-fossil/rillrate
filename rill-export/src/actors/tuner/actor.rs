@@ -46,6 +46,7 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
     ) -> Result<(), Error> {
         match result {
             Ok(mut config) => {
+                /* TODO: Send export path in related configs of every exporter instance.
                 if let Some(export) = config.export.paths.take() {
                     for path_str in export {
                         let path: Path = path_str.parse()?;
@@ -53,6 +54,7 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
                         self.exporter.export_path(path).await?;
                     }
                 }
+                */
                 if let Some(_) = config.export.prometheus.take() {
                     self.exporter.start_prometheus().await?;
                 }

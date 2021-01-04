@@ -2,7 +2,9 @@ use super::{ExportEvent, Exporter};
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{Action, Actor, Address, Interaction, TryConsumer};
+use meio::prelude::{
+    Action, ActionHandler, ActionRecipient, Actor, Address, Interaction, TryConsumer,
+};
 use rill_protocol::provider::{Description, Path, RillData};
 use std::collections::HashSet;
 use std::time::Duration;
@@ -40,14 +42,19 @@ impl ExporterLinkForClient {
 
 pub(super) struct ExportPath {
     pub path: Path,
+    pub recipient: Box<dyn ActionRecipient<ExportEvent>>,
 }
 
 impl Action for ExportPath {}
 
 impl ExporterLinkForClient {
     // TODO: Use Pattern instead of Path
-    pub async fn export_path(&mut self, path: Path) -> Result<(), Error> {
-        let msg = ExportPath { path };
+    pub async fn export_path<A>(&mut self, path: Path, address: Address<A>) -> Result<(), Error>
+    where
+        A: Actor + ActionHandler<ExportEvent>,
+    {
+        let recipient = Box::new(address);
+        let msg = ExportPath { path, recipient };
         self.address.act(msg).await
     }
 }

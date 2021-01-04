@@ -5,12 +5,12 @@ use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
-    TryConsumer,
+    ActionHandler, ActionRecipient, Actor, Context, Eliminated, Id, IdOf, InteractionHandler,
+    InterruptedBy, StartedBy, TryConsumer,
 };
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::Path;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 use tokio::sync::broadcast;
 
@@ -26,6 +26,8 @@ pub enum Reason {
 pub struct Exporter {
     server: HttpServerLink,
     provider: Option<ProviderSessionLink>,
+    recipients: HashMap<Path, HashMap<Id, Box<dyn ActionRecipient<ExportEvent>>>>,
+
     paths_to_export: HashSet<Path>,
     declared_paths: HashSet<Path>,
     sender: broadcast::Sender<ExportEvent>,
@@ -37,6 +39,8 @@ impl Exporter {
         Self {
             server,
             provider: None,
+            recipients: HashMap::new(),
+
             paths_to_export: HashSet::new(),
             declared_paths: HashSet::new(),
             sender,
@@ -47,12 +51,14 @@ impl Exporter {
         self.provider.as_mut().ok_or(Reason::NoActiveSession)
     }
 
+    /*
     fn broadcast(&self, event: ExportEvent) -> Result<(), Error> {
         if self.sender.receiver_count() > 0 {
             self.sender.send(event).map_err(|_| Reason::NoExporters)?;
         }
         Ok(())
     }
+    */
 }
 
 impl Actor for Exporter {
@@ -125,17 +131,22 @@ impl ActionHandler<link::DataReceived> for Exporter {
         msg: link::DataReceived,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let path = msg.path.clone();
         let event = ExportEvent::BroadcastData {
             path: msg.path,
             timestamp: msg.timestamp,
             data: msg.data,
         };
-        self.broadcast(event)?;
+        let recipients = self.recipients.entry(path).or_default();
+        for (_id, recipient) in recipients {
+            recipient.act(event.clone()).await.ok();
+        }
         Ok(())
     }
 }
 
 impl Exporter {
+    /*
     async fn begin_export(&mut self, path: Path) -> Result<(), Error> {
         let event = ExportEvent::SetInfo {
             path: path.clone(),
@@ -145,6 +156,7 @@ impl Exporter {
         self.provider()?.subscribe(path).await?;
         Ok(())
     }
+    */
 }
 
 #[async_trait]
@@ -156,10 +168,13 @@ impl ActionHandler<link::PathDeclared> for Exporter {
     ) -> Result<(), Error> {
         let path = msg.description.path;
         log::info!("Declare path: {}", path);
+        // TODO: Send to all exporters
+        /*
         self.declared_paths.insert(path.clone());
         if self.paths_to_export.contains(&path) {
             self.begin_export(path).await?;
         }
+        */
         Ok(())
     }
 }
@@ -171,11 +186,10 @@ impl ActionHandler<link::ExportPath> for Exporter {
         msg: link::ExportPath,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let path = msg.path;
-        self.paths_to_export.insert(path.clone());
-        if self.declared_paths.contains(&path) {
-            self.begin_export(path).await?;
-        }
+        self.recipients
+            .entry(msg.path)
+            .or_default()
+            .insert(msg.recipient.id_ref().to_owned(), msg.recipient);
         Ok(())
     }
 }
