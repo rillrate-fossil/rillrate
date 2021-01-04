@@ -1,4 +1,4 @@
-use crate::actors::exporter::{ExportEvent, ExporterLinkForClient};
+use crate::actors::exporter::{ExportEvent, ExporterLinkForClient, PathNotification};
 use crate::actors::provider_session::ProviderSessionLink;
 use crate::actors::server::Server;
 use anyhow::Error;
@@ -40,11 +40,9 @@ impl StartedBy<Server> for ClientSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
-        /*
         self.exporter
-            .grasp_export_stream(ctx.address().clone())
+            .subscribe_to_paths(ctx.address().clone())
             .await?;
-        */
         Ok(())
     }
 }
@@ -99,6 +97,18 @@ impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<PathNotification> for ClientSession {
+    async fn handle(
+        &mut self,
+        msg: PathNotification,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        // TODO: Store all paths
+        todo!();
     }
 }
 
