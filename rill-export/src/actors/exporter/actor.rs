@@ -1,12 +1,11 @@
-use super::link;
-use super::{ExportEvent, GraphiteExporter, PrometheusExporter};
+use super::{link, ExportEvent, GraphiteExporter, PathNotification, PrometheusExporter};
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, ActionRecipient, Actor, Context, Eliminated, Id, IdOf, InteractionHandler,
-    InterruptedBy, StartedBy, TryConsumer,
+    InterruptedBy, MultiRecipient, StartedBy, TryConsumer,
 };
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::Path;
@@ -26,7 +25,8 @@ pub enum Reason {
 pub struct Exporter {
     server: HttpServerLink,
     provider: Option<ProviderSessionLink>,
-    recipients: HashMap<Path, HashMap<Id, Box<dyn ActionRecipient<ExportEvent>>>>,
+    paths_trackers: MultiRecipient<PathNotification>,
+    recipients: HashMap<Path, MultiRecipient<ExportEvent>>,
 
     paths_to_export: HashSet<Path>,
     declared_paths: HashSet<Path>,
@@ -39,6 +39,7 @@ impl Exporter {
         Self {
             server,
             provider: None,
+            paths_trackers: MultiRecipient::new(),
             recipients: HashMap::new(),
 
             paths_to_export: HashSet::new(),
@@ -138,9 +139,7 @@ impl ActionHandler<link::DataReceived> for Exporter {
             data: msg.data,
         };
         let recipients = self.recipients.entry(path).or_default();
-        for (_id, recipient) in recipients {
-            recipient.act(event.clone()).await.ok();
-        }
+        recipients.act_all(event).await?;
         Ok(())
     }
 }
@@ -180,16 +179,28 @@ impl ActionHandler<link::PathDeclared> for Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::ExportPath> for Exporter {
+impl ActionHandler<link::SubscribeToPaths> for Exporter {
     async fn handle(
         &mut self,
-        msg: link::ExportPath,
+        msg: link::SubscribeToPaths,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        self.paths_trackers.insert(msg.recipient);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ActionHandler<link::SubscribeToData> for Exporter {
+    async fn handle(
+        &mut self,
+        msg: link::SubscribeToData,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         self.recipients
             .entry(msg.path)
             .or_default()
-            .insert(msg.recipient.id_ref().to_owned(), msg.recipient);
+            .insert(msg.recipient);
         Ok(())
     }
 }
@@ -224,6 +235,7 @@ impl ActionHandler<link::StartGraphite> for Exporter {
     }
 }
 
+/*
 #[async_trait]
 impl<A> ActionHandler<link::GraspExportStream<A>> for Exporter
 where
@@ -240,7 +252,6 @@ where
     }
 }
 
-/*
 #[async_trait]
 impl InteractionHandler<link::GetPaths> for Exporter {
     async fn handle(

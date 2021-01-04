@@ -40,9 +40,11 @@ impl StartedBy<Server> for ClientSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
+        /*
         self.exporter
             .grasp_export_stream(ctx.address().clone())
             .await?;
+        */
         Ok(())
     }
 }

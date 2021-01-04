@@ -1,4 +1,4 @@
-use super::{ExportEvent, Exporter};
+use super::{ExportEvent, Exporter, PathNotification};
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
@@ -42,21 +42,42 @@ impl ExporterLinkForClient {
 }
 */
 
-pub(super) struct ExportPath {
+pub(super) struct SubscribeToData {
     pub path: Path,
     pub recipient: Box<dyn ActionRecipient<ExportEvent>>,
 }
 
-impl Action for ExportPath {}
+impl Action for SubscribeToData {}
 
 impl ExporterLinkForClient {
     // TODO: Use Pattern instead of Path
-    pub async fn export_path<A>(&mut self, path: Path, address: Address<A>) -> Result<(), Error>
+    pub async fn subscribe_to_data<A>(
+        &mut self,
+        path: Path,
+        address: Address<A>,
+    ) -> Result<(), Error>
     where
         A: Actor + ActionHandler<ExportEvent>,
     {
         let recipient = Box::new(address);
-        let msg = ExportPath { path, recipient };
+        let msg = SubscribeToData { path, recipient };
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct SubscribeToPaths {
+    pub recipient: Box<dyn ActionRecipient<PathNotification>>,
+}
+
+impl Action for SubscribeToPaths {}
+
+impl ExporterLinkForClient {
+    pub async fn subscribe_to_paths<A>(&mut self, address: Address<A>) -> Result<(), Error>
+    where
+        A: Actor + ActionHandler<PathNotification>,
+    {
+        let recipient = Box::new(address);
+        let msg = SubscribeToPaths { recipient };
         self.address.act(msg).await
     }
 }
@@ -83,6 +104,7 @@ impl ExporterLinkForClient {
     }
 }
 
+/*
 pub(super) struct GraspExportStream<A: Actor> {
     pub listener: Address<A>,
 }
@@ -98,6 +120,7 @@ impl ExporterLinkForClient {
         self.address.act(msg).await
     }
 }
+*/
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
