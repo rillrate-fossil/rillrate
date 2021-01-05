@@ -4,14 +4,11 @@ use crate::actors::exporter::{
 use crate::config::PrometheusConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{
-    ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy, TryConsumer,
-};
+use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
-use rill_protocol::provider::{Description, Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData};
 use std::collections::BTreeMap;
-use tokio::sync::broadcast;
 
 #[derive(Debug)]
 struct Record {

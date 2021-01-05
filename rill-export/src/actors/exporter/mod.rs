@@ -6,9 +6,9 @@ pub use link::{ExporterLinkForClient, ExporterLinkForProvider};
 
 pub mod publishers;
 
-use meio::prelude::{Action, Actor, Address, InterruptedBy, StartedBy};
+use meio::prelude::{Action, Actor, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Description, Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData};
 use std::time::Duration;
 
 #[derive(Debug, Clone)]

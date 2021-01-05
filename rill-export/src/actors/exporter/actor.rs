@@ -4,12 +4,11 @@ use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, ActionRecipient, Actor, Context, Distributor, Eliminated, Id, IdOf,
-    InteractionHandler, InterruptedBy, StartedBy, TryConsumer,
+    ActionHandler, Actor, Context, Distributor, Eliminated, IdOf, InterruptedBy, StartedBy,
 };
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::{Description, Path};
-use std::collections::{hash_map::Entry, HashMap, HashSet};
+use std::collections::{hash_map::Entry, HashMap};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -218,46 +217,3 @@ impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Exporter {
         Ok(())
     }
 }
-
-/*
-#[async_trait]
-impl<A> ActionHandler<link::GraspExportStream<A>> for Exporter
-where
-    A: Actor + TryConsumer<ExportEvent, Error = broadcast::RecvError>,
-{
-    async fn handle(
-        &mut self,
-        msg: link::GraspExportStream<A>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let rx = self.sender.subscribe();
-        msg.listener.attach(rx);
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl InteractionHandler<link::GetPaths> for Exporter {
-    async fn handle(
-        &mut self,
-        _: link::GetPaths,
-        _ctx: &mut Context<Self>,
-    ) -> Result<HashSet<Path>, Error> {
-        Ok(self.declared_paths.clone())
-    }
-}
-
-#[async_trait]
-impl InteractionHandler<link::GetProviderSession> for Exporter {
-    async fn handle(
-        &mut self,
-        _: link::GetProviderSession,
-        _ctx: &mut Context<Self>,
-    ) -> Result<ProviderSessionLink, Error> {
-        self.provider
-            .clone()
-            .ok_or(Reason::NoActiveSession)
-            .map_err(Error::from)
-    }
-}
-*/

@@ -5,7 +5,6 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError,
-    TryConsumer,
 };
 use meio_connect::{
     server::{WsHandler, WsProcessor},
@@ -14,7 +13,6 @@ use meio_connect::{
 use rill_protocol::provider::Path;
 use rill_protocol::view::{ViewProtocol, ViewRequest, ViewResponse};
 use std::collections::HashSet;
-use tokio::sync::broadcast;
 
 pub struct ClientSession {
     handler: WsHandler<ViewProtocol>,

@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use meio::prelude::{
     task::{HeartBeat, Tick},
     ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
-    TaskError, TryConsumer,
+    TaskError,
 };
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::{Path, RillData};

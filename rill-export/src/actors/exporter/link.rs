@@ -1,47 +1,16 @@
 use super::{ExportEvent, Exporter, PathNotification, Publisher};
 use crate::actors::provider_session::ProviderSessionLink;
-use crate::config::{GraphiteConfig, PrometheusConfig};
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{
-    Action, ActionHandler, ActionRecipient, Actor, Address, Interaction, TryConsumer,
-};
+use meio::prelude::{Action, ActionHandler, ActionRecipient, Actor, Address};
 use rill_protocol::provider::{Description, Path, RillData};
-use std::collections::HashSet;
 use std::time::Duration;
-use tokio::sync::broadcast;
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
 pub struct ExporterLinkForClient {
     address: Address<Exporter>,
 }
-
-/*
-pub(super) struct GetPaths;
-
-impl Interaction for GetPaths {
-    type Output = HashSet<Path>;
-}
-
-impl ExporterLinkForClient {
-    pub async fn get_paths(&mut self) -> Result<HashSet<Path>, Error> {
-        self.address.interact(GetPaths).await
-    }
-}
-
-pub(super) struct GetProviderSession;
-
-impl Interaction for GetProviderSession {
-    type Output = ProviderSessionLink;
-}
-
-impl ExporterLinkForClient {
-    pub async fn get_provider_session(&mut self) -> Result<ProviderSessionLink, Error> {
-        self.address.interact(GetProviderSession).await
-    }
-}
-*/
 
 pub(super) struct SubscribeToData {
     pub path: Path,
