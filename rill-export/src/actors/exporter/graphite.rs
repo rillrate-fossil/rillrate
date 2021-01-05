@@ -1,4 +1,4 @@
-use super::{ExportEvent, ExporterLinkForClient, PathNotification};
+use super::{ExportEvent, ExporterLinkForClient, PathNotification, Publisher};
 use crate::actors::exporter::Exporter;
 use crate::config::GraphiteConfig;
 use anyhow::Error;
@@ -8,6 +8,7 @@ use meio::prelude::{
     ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
     TaskError, TryConsumer,
 };
+use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::{Path, RillData};
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -30,13 +31,19 @@ pub struct GraphiteExporter {
     sender: broadcast::Sender<Vec<u8>>,
 }
 
-impl GraphiteExporter {
-    pub fn new(config: GraphiteConfig, exporter: ExporterLinkForClient) -> Self {
+impl Publisher for GraphiteExporter {
+    type Config = GraphiteConfig;
+
+    fn create(
+        config: Self::Config,
+        exporter: ExporterLinkForClient,
+        _server: &HttpServerLink,
+    ) -> Self {
         let (sender, _rx) = broadcast::channel(32);
         Self {
             config,
             exporter,
-            pickled: true,
+            pickled: true, // TODO: Get from the config
             metrics: HashMap::new(),
             sender,
         }

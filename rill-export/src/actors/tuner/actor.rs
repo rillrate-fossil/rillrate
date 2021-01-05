@@ -1,5 +1,5 @@
 use crate::actors::embedded_node::EmbeddedNode;
-use crate::actors::exporter::ExporterLinkForClient;
+use crate::actors::exporter::{ExporterLinkForClient, GraphiteExporter, PrometheusExporter};
 use crate::config::{Config, ReadConfigFile};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -47,10 +47,14 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
         match result {
             Ok(mut config) => {
                 if let Some(config) = config.export.prometheus.take() {
-                    self.exporter.start_prometheus(config).await?;
+                    self.exporter
+                        .start_publisher::<PrometheusExporter>(config)
+                        .await?;
                 }
                 if let Some(config) = config.export.graphite.take() {
-                    self.exporter.start_graphite(config).await?;
+                    self.exporter
+                        .start_publisher::<GraphiteExporter>(config)
+                        .await?;
                 }
             }
             Err(err) => {

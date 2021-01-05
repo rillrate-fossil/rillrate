@@ -5,10 +5,10 @@ mod link;
 pub use link::{ExporterLinkForClient, ExporterLinkForProvider};
 
 mod graphite;
-use graphite::GraphiteExporter;
+pub use graphite::GraphiteExporter;
 
 mod prometheus;
-use prometheus::PrometheusExporter;
+pub use prometheus::PrometheusExporter;
 
 use meio::prelude::{Action, Actor, Address, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
@@ -41,5 +41,9 @@ impl Action for PathNotification {}
 /// An `Actor` that exports metrics to a third-party system.
 pub trait Publisher: Actor + StartedBy<Exporter> + InterruptedBy<Exporter> {
     type Config: Send;
-    fn create(config: Self::Config, address: &Address<Exporter>, server: &HttpServerLink) -> Self;
+    fn create(
+        config: Self::Config,
+        exporter: ExporterLinkForClient,
+        server: &HttpServerLink,
+    ) -> Self;
 }

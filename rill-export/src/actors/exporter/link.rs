@@ -99,50 +99,6 @@ impl ExporterLinkForClient {
     }
 }
 
-pub(super) struct StartPrometheus {
-    pub config: PrometheusConfig,
-}
-
-impl Action for StartPrometheus {}
-
-impl ExporterLinkForClient {
-    pub async fn start_prometheus(&mut self, config: PrometheusConfig) -> Result<(), Error> {
-        let msg = StartPrometheus { config };
-        self.address.act(msg).await
-    }
-}
-
-pub(super) struct StartGraphite {
-    pub config: GraphiteConfig,
-}
-
-impl Action for StartGraphite {}
-
-impl ExporterLinkForClient {
-    pub async fn start_graphite(&mut self, config: GraphiteConfig) -> Result<(), Error> {
-        let msg = StartGraphite { config };
-        self.address.act(msg).await
-    }
-}
-
-/*
-pub(super) struct GraspExportStream<A: Actor> {
-    pub listener: Address<A>,
-}
-
-impl<A: Actor> Action for GraspExportStream<A> {}
-
-impl ExporterLinkForClient {
-    pub async fn grasp_export_stream<A>(&mut self, address: Address<A>) -> Result<(), Error>
-    where
-        A: Actor + TryConsumer<ExportEvent, Error = broadcast::RecvError>,
-    {
-        let msg = GraspExportStream { listener: address };
-        self.address.act(msg).await
-    }
-}
-*/
-
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
 pub struct ExporterLinkForProvider {

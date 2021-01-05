@@ -77,30 +77,6 @@ impl<T: Publisher> Eliminated<T> for Exporter {
 }
 
 #[async_trait]
-impl Eliminated<GraphiteExporter> for Exporter {
-    async fn handle(
-        &mut self,
-        _id: IdOf<GraphiteExporter>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        log::info!("GraphiteExporter finished");
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl Eliminated<PrometheusExporter> for Exporter {
-    async fn handle(
-        &mut self,
-        _id: IdOf<PrometheusExporter>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        log::info!("PrometheusExporter finished");
-        Ok(())
-    }
-}
-
-#[async_trait]
 impl ActionHandler<link::SessionLifetime> for Exporter {
     async fn handle(
         &mut self,
@@ -205,40 +181,13 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::StartPrometheus> for Exporter {
-    async fn handle(
-        &mut self,
-        msg: link::StartPrometheus,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let prometheus_actor =
-            PrometheusExporter::new(msg.config, ctx.address().link(), self.server.clone());
-        let prometheus = ctx.spawn_actor(prometheus_actor, ());
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl ActionHandler<link::StartGraphite> for Exporter {
-    async fn handle(
-        &mut self,
-        msg: link::StartGraphite,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let graphite_actor = GraphiteExporter::new(msg.config, ctx.address().link());
-        let graphite = ctx.spawn_actor(graphite_actor, ());
-        Ok(())
-    }
-}
-
-#[async_trait]
 impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Exporter {
     async fn handle(
         &mut self,
         msg: link::StartPublisher<T>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let publisher = T::create(msg.config, ctx.address(), &self.server);
+        let publisher = T::create(msg.config, ctx.address().link(), &self.server);
         let address = ctx.spawn_actor(publisher, ());
         Ok(())
     }

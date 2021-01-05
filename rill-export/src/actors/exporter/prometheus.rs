@@ -1,4 +1,4 @@
-use super::{ExportEvent, ExporterLinkForClient, PathNotification};
+use super::{ExportEvent, ExporterLinkForClient, PathNotification, Publisher};
 use crate::actors::exporter::Exporter;
 use crate::config::PrometheusConfig;
 use anyhow::Error;
@@ -25,16 +25,18 @@ pub struct PrometheusExporter {
     metrics: BTreeMap<Path, Record>,
 }
 
-impl PrometheusExporter {
-    pub fn new(
-        config: PrometheusConfig,
+impl Publisher for PrometheusExporter {
+    type Config = PrometheusConfig;
+
+    fn create(
+        config: Self::Config,
         exporter: ExporterLinkForClient,
-        server: HttpServerLink,
+        server: &HttpServerLink,
     ) -> Self {
         Self {
             config,
             exporter,
-            server,
+            server: server.clone(),
             metrics: BTreeMap::new(),
         }
     }
