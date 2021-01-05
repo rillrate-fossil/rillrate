@@ -22,5 +22,5 @@ pub enum ViewRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ViewResponse {
     Paths(Vec<Description>),
-    Data(RillData),
+    Data(Path, RillData),
 }
