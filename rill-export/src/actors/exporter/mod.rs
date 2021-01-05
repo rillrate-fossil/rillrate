@@ -4,11 +4,7 @@ pub use actor::Exporter;
 mod link;
 pub use link::{ExporterLinkForClient, ExporterLinkForProvider};
 
-mod graphite;
-pub use graphite::GraphiteExporter;
-
-mod prometheus;
-pub use prometheus::PrometheusExporter;
+pub mod publishers;
 
 use meio::prelude::{Action, Actor, Address, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;

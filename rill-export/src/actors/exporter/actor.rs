@@ -1,4 +1,4 @@
-use super::{link, ExportEvent, GraphiteExporter, PathNotification, PrometheusExporter, Publisher};
+use super::{link, ExportEvent, PathNotification, Publisher};
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;

@@ -1,5 +1,6 @@
-use super::{ExportEvent, ExporterLinkForClient, PathNotification, Publisher};
-use crate::actors::exporter::Exporter;
+use crate::actors::exporter::{
+    ExportEvent, Exporter, ExporterLinkForClient, PathNotification, Publisher,
+};
 use crate::config::PrometheusConfig;
 use anyhow::Error;
 use async_trait::async_trait;
