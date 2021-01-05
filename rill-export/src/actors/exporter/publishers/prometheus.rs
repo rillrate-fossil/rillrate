@@ -80,29 +80,20 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 }
 
 #[async_trait]
-impl TryConsumer<ExportEvent> for PrometheusPublisher {
-    type Error = broadcast::RecvError;
-
-    async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        match event {
+impl ActionHandler<ExportEvent> for PrometheusPublisher {
+    async fn handle(&mut self, msg: ExportEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+        match msg {
+            /*
             ExportEvent::SetInfo { path, info } => {
                 let record = self.metrics.entry(path).or_default();
                 record.info = Some(info);
             }
+            */
             ExportEvent::BroadcastData { path, data, .. } => {
                 let record = self.metrics.entry(path).or_default();
                 record.data = Some(data);
             }
         }
-        Ok(())
-    }
-
-    async fn error(&mut self, err: Self::Error, ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::error!(
-            "Broadcasting stream failed. Not possible to continue: {}",
-            err
-        );
-        ctx.shutdown();
         Ok(())
     }
 }

@@ -74,6 +74,14 @@ impl StartedBy<Exporter> for GraphitePublisher {
         self.exporter
             .subscribe_to_paths(ctx.address().clone())
             .await?;
+        /*
+        let paths = self.config.paths.clone().unwrap_or_default();
+        for raw_path in paths {
+            // TODO: Expect parsed values here!
+            let path: Path = raw_path.parse()?;
+            self.exporter.subscribe_to_data(path, ctx.address().clone()).await?;
+        }
+        */
         Ok(())
     }
 }
@@ -162,12 +170,9 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 }
 
 #[async_trait]
-impl TryConsumer<ExportEvent> for GraphitePublisher {
-    type Error = broadcast::RecvError;
-
-    async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        match event {
-            ExportEvent::SetInfo { .. } => {}
+impl ActionHandler<ExportEvent> for GraphitePublisher {
+    async fn handle(&mut self, msg: ExportEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+        match msg {
             ExportEvent::BroadcastData {
                 path,
                 data,
@@ -177,15 +182,6 @@ impl TryConsumer<ExportEvent> for GraphitePublisher {
                 self.metrics.insert(path, record);
             }
         }
-        Ok(())
-    }
-
-    async fn error(&mut self, err: Self::Error, ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::error!(
-            "Broadcasting stream failed. Not possible to continue: {}",
-            err
-        );
-        ctx.shutdown();
         Ok(())
     }
 }

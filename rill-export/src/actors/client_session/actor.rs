@@ -113,12 +113,9 @@ impl ActionHandler<PathNotification> for ClientSession {
 }
 
 #[async_trait]
-impl TryConsumer<ExportEvent> for ClientSession {
-    type Error = broadcast::RecvError;
-
-    async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        match event {
-            ExportEvent::SetInfo { .. } => {}
+impl ActionHandler<ExportEvent> for ClientSession {
+    async fn handle(&mut self, msg: ExportEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+        match msg {
             ExportEvent::BroadcastData {
                 path,
                 data,
@@ -127,15 +124,6 @@ impl TryConsumer<ExportEvent> for ClientSession {
                 todo!("filter and forward");
             }
         }
-        Ok(())
-    }
-
-    async fn error(&mut self, err: Self::Error, ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::error!(
-            "Broadcasting stream failed. Not possible to continue: {}",
-            err
-        );
-        ctx.shutdown();
         Ok(())
     }
 }

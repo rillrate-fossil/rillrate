@@ -13,10 +13,6 @@ use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub enum ExportEvent {
-    SetInfo {
-        path: Path,
-        info: String,
-    },
     BroadcastData {
         path: Path,
         timestamp: Duration,
