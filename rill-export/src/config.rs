@@ -26,6 +26,7 @@ pub struct PrometheusConfig {
 pub struct GraphiteConfig {
     // TODO: Deserialize paths here directly using `FromStr`
     pub paths: Option<Vec<String>>,
+    pub interval: Option<u64>,
 }
 
 pub struct ReadConfigFile;

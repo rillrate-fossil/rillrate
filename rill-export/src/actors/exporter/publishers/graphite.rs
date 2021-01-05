@@ -65,7 +65,9 @@ impl Actor for GraphitePublisher {
 impl StartedBy<Exporter> for GraphitePublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
-        let heartbeat = HeartBeat::new(Duration::from_millis(1_000), ctx.address().clone());
+        let interval = self.config.interval.unwrap_or(1_000);
+        let duration = Duration::from_millis(interval);
+        let heartbeat = HeartBeat::new(duration, ctx.address().clone());
         ctx.spawn_task(heartbeat, Group::HeartBeat);
         let connection = Connection::new(self.sender.clone());
         ctx.spawn_task(connection, Group::Connection);
