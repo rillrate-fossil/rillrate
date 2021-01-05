@@ -8,8 +8,8 @@ use meio::prelude::{
     InteractionHandler, InterruptedBy, StartedBy, TryConsumer,
 };
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::Path;
-use std::collections::{HashMap, HashSet};
+use rill_protocol::provider::{Description, Path};
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -20,9 +20,10 @@ pub enum Reason {
     NoExporters,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Record {
     distributor: Distributor<ExportEvent>,
+    description: Description,
     declared: bool,
 }
 
@@ -113,24 +114,28 @@ impl ActionHandler<link::DataReceived> for Exporter {
             timestamp: msg.timestamp,
             data: msg.data,
         };
-        let record = self.recipients.entry(path).or_default();
-        record.distributor.act_all(event).await?;
-        Ok(())
+        if let Some(record) = self.recipients.get_mut(&path) {
+            record.distributor.act_all(event).await?;
+            Ok(())
+        } else {
+            Err(Error::msg(format!("no meta for path: {}", path)))
+        }
     }
 }
 
 impl Exporter {
-    /*
-    async fn begin_export(&mut self, path: Path) -> Result<(), Error> {
-        let event = ExportEvent::SetInfo {
-            path: path.clone(),
-            info: "<todo>".into(),
-        };
-        self.broadcast(event)?;
-        self.provider()?.subscribe(path).await?;
-        Ok(())
+    fn declared_paths(&self) -> Vec<Description> {
+        self.recipients
+            .iter()
+            .filter_map(|(_, record)| {
+                if record.declared {
+                    Some(record.description.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
-    */
 }
 
 #[async_trait]
@@ -140,14 +145,29 @@ impl ActionHandler<link::PathDeclared> for Exporter {
         msg: link::PathDeclared,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let path = msg.description.path;
-        let stream_type = msg.description.stream_type;
+        let path = msg.description.path.clone();
+        //let stream_type = msg.description.stream_type;
         log::info!("Declare path: {}", path);
-        let record = self.recipients.entry(path.clone()).or_default();
-        record.declared = true;
-        let msg = PathNotification { path, stream_type };
-        self.paths_trackers.act_all(msg).await?;
-        Ok(())
+        let entry = self.recipients.entry(path);
+        match entry {
+            Entry::Vacant(entry) => {
+                let record = Record {
+                    distributor: Distributor::new(),
+                    description: msg.description.clone(),
+                    declared: true,
+                };
+                entry.insert(record);
+                let msg = PathNotification {
+                    descriptions: vec![msg.description],
+                };
+                self.paths_trackers.act_all(msg).await?;
+                Ok(())
+            }
+            Entry::Occupied(entry) => {
+                let path = &entry.get().description.path;
+                Err(Error::msg(format!("path already declared: {}", path)))
+            }
+        }
     }
 }
 
@@ -155,9 +175,12 @@ impl ActionHandler<link::PathDeclared> for Exporter {
 impl ActionHandler<link::SubscribeToPaths> for Exporter {
     async fn handle(
         &mut self,
-        msg: link::SubscribeToPaths,
+        mut msg: link::SubscribeToPaths,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let descriptions = self.declared_paths();
+        let event = PathNotification { descriptions };
+        msg.recipient.act(event).await?;
         self.paths_trackers.insert(msg.recipient);
         Ok(())
     }
@@ -171,12 +194,15 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.path.clone();
-        let record = self.recipients.entry(msg.path).or_default();
-        record.distributor.insert(msg.recipient);
-        if record.distributor.len() == 1 && record.declared {
-            self.provider()?.subscribe(path).await?;
+        if let Some(record) = self.recipients.get_mut(&msg.path) {
+            record.distributor.insert(msg.recipient);
+            if record.distributor.len() == 1 && record.declared {
+                self.provider()?.subscribe(path).await?;
+            }
+            Ok(())
+        } else {
+            Err(Error::msg(format!("Path not declared {}", msg.path)))
         }
-        Ok(())
     }
 }
 

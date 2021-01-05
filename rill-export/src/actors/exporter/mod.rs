@@ -8,7 +8,7 @@ pub mod publishers;
 
 use meio::prelude::{Action, Actor, Address, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::time::Duration;
 
 #[derive(Debug, Clone)]
@@ -24,8 +24,7 @@ impl Action for ExportEvent {}
 
 #[derive(Debug, Clone)]
 pub struct PathNotification {
-    pub path: Path,
-    pub stream_type: StreamType,
+    descriptions: Vec<Description>,
 }
 
 impl Action for PathNotification {}

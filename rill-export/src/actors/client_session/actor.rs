@@ -11,13 +11,16 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
+use rill_protocol::provider::Path;
 use rill_protocol::view::{ViewProtocol, ViewRequest, ViewResponse};
+use std::collections::HashSet;
 use tokio::sync::broadcast;
 
 pub struct ClientSession {
     handler: WsHandler<ViewProtocol>,
     exporter: ExporterLinkForClient,
     provider: Option<ProviderSessionLink>,
+    available_paths: HashSet<Path>,
 }
 
 impl ClientSession {
@@ -26,6 +29,7 @@ impl ClientSession {
             handler,
             exporter,
             provider: None,
+            available_paths: HashSet::new(),
         }
     }
 }

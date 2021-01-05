@@ -9,15 +9,14 @@ use meio::prelude::{
 };
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
-use rill_protocol::provider::{Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::collections::BTreeMap;
 use tokio::sync::broadcast;
 
 #[derive(Debug)]
 struct Record {
     data: Option<RillData>,
-    info: String,
-    stream_type: StreamType,
+    description: Description,
 }
 
 pub struct PrometheusPublisher {
@@ -76,20 +75,21 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
         msg: PathNotification,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let path = msg.path;
-        // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
-        let pattern = crate::config::PathPattern { path: path.clone() };
-        if self.config.paths.contains(&pattern) {
-            self.exporter
-                .subscribe_to_data(path.clone(), ctx.address().clone())
-                .await?;
-            if !self.metrics.contains_key(&path) {
-                let record = Record {
-                    data: None,
-                    info: String::new(),
-                    stream_type: msg.stream_type,
-                };
-                self.metrics.insert(path, record);
+        for description in msg.descriptions {
+            let path = description.path.clone();
+            // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
+            let pattern = crate::config::PathPattern { path: path.clone() };
+            if self.config.paths.contains(&pattern) {
+                self.exporter
+                    .subscribe_to_data(path.clone(), ctx.address().clone())
+                    .await?;
+                if !self.metrics.contains_key(&path) {
+                    let record = Record {
+                        data: None,
+                        description,
+                    };
+                    self.metrics.insert(path, record);
+                }
             }
         }
         Ok(())
@@ -131,7 +131,7 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
             if let Some(data) = record.data.as_ref() {
                 let line = format!("# {}\n", path);
                 buffer.push_str(&line);
-                let line = format!("# {}\n", record.info);
+                let line = format!("# {}\n", "<record.info>");
                 buffer.push_str(&line);
                 let line = format!("{:?}\n", data);
                 buffer.push_str(&line);
