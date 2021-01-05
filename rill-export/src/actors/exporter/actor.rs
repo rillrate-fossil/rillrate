@@ -32,9 +32,6 @@ pub struct Exporter {
     provider: Option<ProviderSessionLink>,
     paths_trackers: Distributor<PathNotification>,
     recipients: HashMap<Path, Record>,
-
-    paths_to_export: HashSet<Path>,
-    declared_paths: HashSet<Path>,
 }
 
 impl Exporter {
@@ -44,9 +41,6 @@ impl Exporter {
             provider: None,
             paths_trackers: Distributor::new(),
             recipients: HashMap::new(),
-
-            paths_to_export: HashSet::new(),
-            declared_paths: HashSet::new(),
         }
     }
 
@@ -108,15 +102,14 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
         use link::SessionLifetime::*;
         match msg {
             Attached { mut session } => {
-                // Subscribing to all awaiting paths when provider's session connected
-                let paths: Vec<_> = self.recipients.keys().cloned().collect();
-                for path in paths {
-                    session.subscribe(path).await?;
-                }
+                // Don't subscribe here till the stream (path) will be declared.
                 self.provider = Some(session);
             }
             Detached => {
                 self.provider.take();
+                for record in self.recipients.values_mut() {
+                    record.declared = false;
+                }
             }
         }
         Ok(())
@@ -164,14 +157,12 @@ impl ActionHandler<link::PathDeclared> for Exporter {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.description.path;
+        let stream_type = msg.description.stream_type;
         log::info!("Declare path: {}", path);
-        // TODO: Send to all exporters
-        /*
-        self.declared_paths.insert(path.clone());
-        if self.paths_to_export.contains(&path) {
-            self.begin_export(path).await?;
-        }
-        */
+        let record = self.recipients.entry(path.clone()).or_default();
+        record.declared = true;
+        let msg = PathNotification { path, stream_type };
+        self.paths_trackers.act_all(msg).await?;
         Ok(())
     }
 }
@@ -198,8 +189,8 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
         let path = msg.path.clone();
         let record = self.recipients.entry(msg.path).or_default();
         record.distributor.insert(msg.recipient);
-        if record.distributor.len() == 1 {
-            self.provider()?.subscribe(path);
+        if record.distributor.len() == 1 && record.declared {
+            self.provider()?.subscribe(path).await?;
         }
         Ok(())
     }
