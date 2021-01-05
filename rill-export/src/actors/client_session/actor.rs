@@ -115,7 +115,8 @@ impl ActionHandler<ExportEvent> for ClientSession {
                 data,
                 timestamp,
             } => {
-                todo!("filter and forward");
+                let response = ViewResponse::Data(path, data);
+                self.handler.send(response);
             }
         }
         Ok(())
