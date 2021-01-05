@@ -79,13 +79,14 @@ impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);
         match msg.0 {
-            ViewRequest::Subscribe(path) => {
-                self.exporter
-                    .subscribe_to_data(path, ctx.address().clone())
-                    .await?;
-            }
-            ViewRequest::Unsubscribe => {
-                todo!();
+            ViewRequest::ControlStream { path, active } => {
+                if active {
+                    self.exporter
+                        .subscribe_to_data(path, ctx.address().clone())
+                        .await?;
+                } else {
+                    todo!();
+                }
             }
         }
         Ok(())

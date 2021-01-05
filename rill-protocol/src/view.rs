@@ -16,8 +16,7 @@ impl Origin for ViewProtocol {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ViewRequest {
-    Subscribe(Path),
-    Unsubscribe,
+    ControlStream { path: Path, active: bool },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
