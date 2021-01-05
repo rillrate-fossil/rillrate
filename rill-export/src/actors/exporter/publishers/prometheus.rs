@@ -83,7 +83,7 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
             self.exporter
                 .subscribe_to_data(path.clone(), ctx.address().clone())
                 .await?;
-            if self.metrics.contains_key(&path) {
+            if !self.metrics.contains_key(&path) {
                 let record = Record {
                     data: None,
                     info: String::new(),
