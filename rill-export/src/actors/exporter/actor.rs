@@ -20,12 +20,18 @@ pub enum Reason {
     NoExporters,
 }
 
+#[derive(Debug, Default)]
+struct Record {
+    distributor: Distributor<ExportEvent>,
+    declared: bool,
+}
+
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Exporter {
     server: HttpServerLink,
     provider: Option<ProviderSessionLink>,
     paths_trackers: Distributor<PathNotification>,
-    recipients: HashMap<Path, Distributor<ExportEvent>>,
+    recipients: HashMap<Path, Record>,
 
     paths_to_export: HashSet<Path>,
     declared_paths: HashSet<Path>,
@@ -101,7 +107,12 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
     ) -> Result<(), Error> {
         use link::SessionLifetime::*;
         match msg {
-            Attached { session } => {
+            Attached { mut session } => {
+                // Subscribing to all awaiting paths when provider's session connected
+                let paths: Vec<_> = self.recipients.keys().cloned().collect();
+                for path in paths {
+                    session.subscribe(path).await?;
+                }
                 self.provider = Some(session);
             }
             Detached => {
@@ -125,8 +136,8 @@ impl ActionHandler<link::DataReceived> for Exporter {
             timestamp: msg.timestamp,
             data: msg.data,
         };
-        let recipients = self.recipients.entry(path).or_default();
-        recipients.act_all(event).await?;
+        let record = self.recipients.entry(path).or_default();
+        record.distributor.act_all(event).await?;
         Ok(())
     }
 }
@@ -185,9 +196,9 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.path.clone();
-        let recipients = self.recipients.entry(msg.path).or_default();
-        recipients.insert(msg.recipient);
-        if recipients.len() == 1 {
+        let record = self.recipients.entry(msg.path).or_default();
+        record.distributor.insert(msg.recipient);
+        if record.distributor.len() == 1 {
             self.provider()?.subscribe(path);
         }
         Ok(())
