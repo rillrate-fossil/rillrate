@@ -4,8 +4,8 @@ use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, ActionRecipient, Actor, Context, Eliminated, Id, IdOf, InteractionHandler,
-    InterruptedBy, MultiRecipient, StartedBy, TryConsumer,
+    ActionHandler, ActionRecipient, Actor, Context, Distributor, Eliminated, Id, IdOf,
+    InteractionHandler, InterruptedBy, StartedBy, TryConsumer,
 };
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::Path;
@@ -24,8 +24,8 @@ pub enum Reason {
 pub struct Exporter {
     server: HttpServerLink,
     provider: Option<ProviderSessionLink>,
-    paths_trackers: MultiRecipient<PathNotification>,
-    recipients: HashMap<Path, MultiRecipient<ExportEvent>>,
+    paths_trackers: Distributor<PathNotification>,
+    recipients: HashMap<Path, Distributor<ExportEvent>>,
 
     paths_to_export: HashSet<Path>,
     declared_paths: HashSet<Path>,
@@ -36,7 +36,7 @@ impl Exporter {
         Self {
             server,
             provider: None,
-            paths_trackers: MultiRecipient::new(),
+            paths_trackers: Distributor::new(),
             recipients: HashMap::new(),
 
             paths_to_export: HashSet::new(),
@@ -184,10 +184,12 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
         msg: link::SubscribeToData,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        self.recipients
-            .entry(msg.path)
-            .or_default()
-            .insert(msg.recipient);
+        let path = msg.path.clone();
+        let recipients = self.recipients.entry(msg.path).or_default();
+        recipients.insert(msg.recipient);
+        if recipients.len() == 1 {
+            self.provider()?.subscribe(path);
+        }
         Ok(())
     }
 }
