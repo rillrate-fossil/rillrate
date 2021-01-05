@@ -1,5 +1,6 @@
 use super::{ExportEvent, ExporterLinkForClient, PathNotification};
 use crate::actors::exporter::Exporter;
+use crate::config::PrometheusConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -18,14 +19,20 @@ struct Record {
 }
 
 pub struct PrometheusExporter {
+    config: PrometheusConfig,
     exporter: ExporterLinkForClient,
     server: HttpServerLink,
     metrics: BTreeMap<Path, Record>,
 }
 
 impl PrometheusExporter {
-    pub fn new(exporter: ExporterLinkForClient, server: HttpServerLink) -> Self {
+    pub fn new(
+        config: PrometheusConfig,
+        exporter: ExporterLinkForClient,
+        server: HttpServerLink,
+    ) -> Self {
         Self {
+            config,
             exporter,
             server,
             metrics: BTreeMap::new(),

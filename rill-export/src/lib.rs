@@ -1,4 +1,5 @@
 mod actors;
+mod config;
 
 use actors::embedded_node::EmbeddedNode;
 use anyhow::Error;

@@ -1,5 +1,6 @@
 use super::{ExportEvent, Exporter, PathNotification};
 use crate::actors::provider_session::ProviderSessionLink;
+use crate::config::{GraphiteConfig, PrometheusConfig};
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{
@@ -82,24 +83,28 @@ impl ExporterLinkForClient {
     }
 }
 
-pub(super) struct StartPrometheus {}
+pub(super) struct StartPrometheus {
+    pub config: PrometheusConfig,
+}
 
 impl Action for StartPrometheus {}
 
 impl ExporterLinkForClient {
-    pub async fn start_prometheus(&mut self) -> Result<(), Error> {
-        let msg = StartPrometheus {};
+    pub async fn start_prometheus(&mut self, config: PrometheusConfig) -> Result<(), Error> {
+        let msg = StartPrometheus { config };
         self.address.act(msg).await
     }
 }
 
-pub(super) struct StartGraphite {}
+pub(super) struct StartGraphite {
+    pub config: GraphiteConfig,
+}
 
 impl Action for StartGraphite {}
 
 impl ExporterLinkForClient {
-    pub async fn start_graphite(&mut self) -> Result<(), Error> {
-        let msg = StartGraphite {};
+    pub async fn start_graphite(&mut self, config: GraphiteConfig) -> Result<(), Error> {
+        let msg = StartGraphite { config };
         self.address.act(msg).await
     }
 }

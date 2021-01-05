@@ -1,5 +1,6 @@
 use super::{ExportEvent, ExporterLinkForClient, PathNotification};
 use crate::actors::exporter::Exporter;
+use crate::config::GraphiteConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -22,6 +23,7 @@ struct Record {
 }
 
 pub struct GraphiteExporter {
+    config: GraphiteConfig,
     exporter: ExporterLinkForClient,
     pickled: bool,
     metrics: HashMap<Path, Record>,
@@ -29,9 +31,10 @@ pub struct GraphiteExporter {
 }
 
 impl GraphiteExporter {
-    pub fn new(exporter: ExporterLinkForClient) -> Self {
+    pub fn new(config: GraphiteConfig, exporter: ExporterLinkForClient) -> Self {
         let (sender, _rx) = broadcast::channel(32);
         Self {
+            config,
             exporter,
             pickled: true,
             metrics: HashMap::new(),

@@ -1,6 +1,6 @@
-use super::{Config, ReadConfigFile};
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::exporter::ExporterLinkForClient;
+use crate::config::{Config, ReadConfigFile};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError};
@@ -46,20 +46,11 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
     ) -> Result<(), Error> {
         match result {
             Ok(mut config) => {
-                /* TODO: Send export path in related configs of every exporter instance.
-                if let Some(export) = config.export.paths.take() {
-                    for path_str in export {
-                        let path: Path = path_str.parse()?;
-                        log::info!("Export path: {}", path);
-                        self.exporter.export_path(path).await?;
-                    }
+                if let Some(config) = config.export.prometheus.take() {
+                    self.exporter.start_prometheus(config).await?;
                 }
-                */
-                if let Some(_) = config.export.prometheus.take() {
-                    self.exporter.start_prometheus().await?;
-                }
-                if let Some(_) = config.export.graphite.take() {
-                    self.exporter.start_graphite().await?;
+                if let Some(config) = config.export.graphite.take() {
+                    self.exporter.start_graphite(config).await?;
                 }
             }
             Err(err) => {

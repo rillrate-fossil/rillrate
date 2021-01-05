@@ -101,7 +101,7 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
     ) -> Result<(), Error> {
         use link::SessionLifetime::*;
         match msg {
-            Attached { mut session } => {
+            Attached { session } => {
                 // Don't subscribe here till the stream (path) will be declared.
                 self.provider = Some(session);
             }
@@ -200,10 +200,11 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
 impl ActionHandler<link::StartPrometheus> for Exporter {
     async fn handle(
         &mut self,
-        _msg: link::StartPrometheus,
+        msg: link::StartPrometheus,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let prometheus_actor = PrometheusExporter::new(ctx.address().link(), self.server.clone());
+        let prometheus_actor =
+            PrometheusExporter::new(msg.config, ctx.address().link(), self.server.clone());
         let prometheus = ctx.spawn_actor(prometheus_actor, ());
         Ok(())
     }
@@ -213,10 +214,10 @@ impl ActionHandler<link::StartPrometheus> for Exporter {
 impl ActionHandler<link::StartGraphite> for Exporter {
     async fn handle(
         &mut self,
-        _msg: link::StartGraphite,
+        msg: link::StartGraphite,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let graphite_actor = GraphiteExporter::new(ctx.address().link());
+        let graphite_actor = GraphiteExporter::new(msg.config, ctx.address().link());
         let graphite = ctx.spawn_actor(graphite_actor, ());
         Ok(())
     }
