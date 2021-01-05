@@ -12,17 +12,21 @@ pub struct Config {
 
 #[derive(Serialize, Deserialize)]
 pub struct ExportConfig {
-    // TODO: Deserialize paths here directly using `FromStr`
-    pub paths: Option<Vec<String>>,
     pub prometheus: Option<PrometheusConfig>,
     pub graphite: Option<GraphiteConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PrometheusConfig {}
+pub struct PrometheusConfig {
+    // TODO: Deserialize paths here directly using `FromStr`
+    pub paths: Option<Vec<String>>,
+}
 
 #[derive(Serialize, Deserialize)]
-pub struct GraphiteConfig {}
+pub struct GraphiteConfig {
+    // TODO: Deserialize paths here directly using `FromStr`
+    pub paths: Option<Vec<String>>,
+}
 
 pub struct ReadConfigFile;
 
