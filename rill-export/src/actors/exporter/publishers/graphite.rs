@@ -24,7 +24,7 @@ struct Record {
     data: RillData,
 }
 
-pub struct GraphiteExporter {
+pub struct GraphitePublisher {
     config: GraphiteConfig,
     exporter: ExporterLinkForClient,
     pickled: bool,
@@ -32,7 +32,7 @@ pub struct GraphiteExporter {
     sender: broadcast::Sender<Vec<u8>>,
 }
 
-impl Publisher for GraphiteExporter {
+impl Publisher for GraphitePublisher {
     type Config = GraphiteConfig;
 
     fn create(
@@ -57,12 +57,12 @@ pub enum Group {
     Connection,
 }
 
-impl Actor for GraphiteExporter {
+impl Actor for GraphitePublisher {
     type GroupBy = Group;
 }
 
 #[async_trait]
-impl StartedBy<Exporter> for GraphiteExporter {
+impl StartedBy<Exporter> for GraphitePublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
         let heartbeat = HeartBeat::new(Duration::from_millis(1_000), ctx.address().clone());
@@ -77,7 +77,7 @@ impl StartedBy<Exporter> for GraphiteExporter {
 }
 
 #[async_trait]
-impl InterruptedBy<Exporter> for GraphiteExporter {
+impl InterruptedBy<Exporter> for GraphitePublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -85,7 +85,7 @@ impl InterruptedBy<Exporter> for GraphiteExporter {
 }
 
 #[async_trait]
-impl TaskEliminated<HeartBeat> for GraphiteExporter {
+impl TaskEliminated<HeartBeat> for GraphitePublisher {
     async fn handle(
         &mut self,
         _id: IdOf<HeartBeat>,
@@ -98,7 +98,7 @@ impl TaskEliminated<HeartBeat> for GraphiteExporter {
 }
 
 #[async_trait]
-impl TaskEliminated<Connection> for GraphiteExporter {
+impl TaskEliminated<Connection> for GraphitePublisher {
     async fn handle(
         &mut self,
         _id: IdOf<Connection>,
@@ -111,7 +111,7 @@ impl TaskEliminated<Connection> for GraphiteExporter {
 }
 
 #[async_trait]
-impl ActionHandler<Tick> for GraphiteExporter {
+impl ActionHandler<Tick> for GraphitePublisher {
     async fn handle(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<(), Error> {
         if self.sender.receiver_count() > 0 {
             if self.pickled {
@@ -149,7 +149,7 @@ impl ActionHandler<Tick> for GraphiteExporter {
 }
 
 #[async_trait]
-impl ActionHandler<PathNotification> for GraphiteExporter {
+impl ActionHandler<PathNotification> for GraphitePublisher {
     async fn handle(
         &mut self,
         msg: PathNotification,
@@ -160,7 +160,7 @@ impl ActionHandler<PathNotification> for GraphiteExporter {
 }
 
 #[async_trait]
-impl TryConsumer<ExportEvent> for GraphiteExporter {
+impl TryConsumer<ExportEvent> for GraphitePublisher {
     type Error = broadcast::RecvError;
 
     async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {

@@ -19,14 +19,14 @@ struct Record {
     info: Option<String>,
 }
 
-pub struct PrometheusExporter {
+pub struct PrometheusPublisher {
     config: PrometheusConfig,
     exporter: ExporterLinkForClient,
     server: HttpServerLink,
     metrics: BTreeMap<Path, Record>,
 }
 
-impl Publisher for PrometheusExporter {
+impl Publisher for PrometheusPublisher {
     type Config = PrometheusConfig;
 
     fn create(
@@ -43,12 +43,12 @@ impl Publisher for PrometheusExporter {
     }
 }
 
-impl Actor for PrometheusExporter {
+impl Actor for PrometheusPublisher {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl StartedBy<Exporter> for PrometheusExporter {
+impl StartedBy<Exporter> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.server
             .add_route::<RenderMetrics, _>(ctx.address().clone())
@@ -61,7 +61,7 @@ impl StartedBy<Exporter> for PrometheusExporter {
 }
 
 #[async_trait]
-impl InterruptedBy<Exporter> for PrometheusExporter {
+impl InterruptedBy<Exporter> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -69,7 +69,7 @@ impl InterruptedBy<Exporter> for PrometheusExporter {
 }
 
 #[async_trait]
-impl ActionHandler<PathNotification> for PrometheusExporter {
+impl ActionHandler<PathNotification> for PrometheusPublisher {
     async fn handle(
         &mut self,
         msg: PathNotification,
@@ -80,7 +80,7 @@ impl ActionHandler<PathNotification> for PrometheusExporter {
 }
 
 #[async_trait]
-impl TryConsumer<ExportEvent> for PrometheusExporter {
+impl TryConsumer<ExportEvent> for PrometheusPublisher {
     type Error = broadcast::RecvError;
 
     async fn handle(&mut self, event: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
@@ -117,7 +117,7 @@ impl DirectPath for RenderMetrics {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<RenderMetrics>> for PrometheusExporter {
+impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
     async fn handle(
         &mut self,
         _: Req<RenderMetrics>,

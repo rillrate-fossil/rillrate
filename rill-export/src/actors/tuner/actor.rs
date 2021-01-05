@@ -48,12 +48,12 @@ impl TaskEliminated<ReadConfigFile> for Tuner {
             Ok(mut config) => {
                 if let Some(config) = config.export.prometheus.take() {
                     self.exporter
-                        .start_publisher::<publishers::PrometheusExporter>(config)
+                        .start_publisher::<publishers::PrometheusPublisher>(config)
                         .await?;
                 }
                 if let Some(config) = config.export.graphite.take() {
                     self.exporter
-                        .start_publisher::<publishers::GraphiteExporter>(config)
+                        .start_publisher::<publishers::GraphitePublisher>(config)
                         .await?;
                 }
             }

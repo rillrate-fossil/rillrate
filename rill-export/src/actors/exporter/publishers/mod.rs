@@ -1,5 +1,5 @@
 mod graphite;
-pub use graphite::GraphiteExporter;
+pub use graphite::GraphitePublisher;
 
 mod prometheus;
-pub use prometheus::PrometheusExporter;
+pub use prometheus::PrometheusPublisher;
