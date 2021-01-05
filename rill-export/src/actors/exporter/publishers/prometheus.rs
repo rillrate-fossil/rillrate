@@ -77,7 +77,9 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.path;
-        if self.config.paths.contains(&path) {
+        // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
+        let pattern = crate::config::PathPattern { path: path.clone() };
+        if self.config.paths.contains(&pattern) {
             self.exporter
                 .subscribe_to_data(path.clone(), ctx.address().clone())
                 .await?;
