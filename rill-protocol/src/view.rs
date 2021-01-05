@@ -1,8 +1,7 @@
 use crate::codec::JsonCodec;
-use crate::provider::{Origin, Path, RillData};
+use crate::provider::{Description, Origin, Path, RillData};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ViewProtocol;
@@ -17,13 +16,12 @@ impl Origin for ViewProtocol {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ViewRequest {
-    GetAvailablePaths,
     Subscribe(Path),
     Unsubscribe,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ViewResponse {
-    Paths(HashSet<Path>),
+    Paths(Vec<Description>),
     Data(RillData),
 }

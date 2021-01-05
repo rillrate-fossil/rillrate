@@ -18,7 +18,7 @@ pub struct ClientSession {
     handler: WsHandler<ViewProtocol>,
     exporter: ExporterLinkForClient,
     provider: Option<ProviderSessionLink>,
-    available_paths: HashSet<Path>,
+    //available_paths: HashSet<Path>,
 }
 
 impl ClientSession {
@@ -27,7 +27,7 @@ impl ClientSession {
             handler,
             exporter,
             provider: None,
-            available_paths: HashSet::new(),
+            //available_paths: HashSet::new(),
         }
     }
 }
@@ -79,11 +79,6 @@ impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);
         match msg.0 {
-            ViewRequest::GetAvailablePaths => {
-                let paths = self.available_paths.clone();
-                let response = ViewResponse::Paths(paths);
-                self.handler.send(response);
-            }
             ViewRequest::Subscribe(path) => {
                 self.exporter
                     .subscribe_to_data(path, ctx.address().clone())
@@ -104,8 +99,8 @@ impl ActionHandler<PathNotification> for ClientSession {
         msg: PathNotification,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let paths = msg.descriptions.into_iter().map(|d| d.path);
-        self.available_paths.extend(paths);
+        let response = ViewResponse::Paths(msg.descriptions);
+        self.handler.send(response);
         Ok(())
     }
 }
