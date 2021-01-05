@@ -13,13 +13,6 @@ pub struct PathPattern {
     pub path: Path,
 }
 
-impl FromStr for PathPattern {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        unimplemented!()
-    }
-}
-
 impl<'de> Deserialize<'de> for PathPattern {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
