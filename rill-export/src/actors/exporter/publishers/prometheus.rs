@@ -9,14 +9,15 @@ use meio::prelude::{
 };
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
-use rill_protocol::provider::{Path, RillData};
+use rill_protocol::provider::{Path, RillData, StreamType};
 use std::collections::BTreeMap;
 use tokio::sync::broadcast;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Record {
     data: Option<RillData>,
-    info: Option<String>,
+    info: String,
+    stream_type: StreamType,
 }
 
 pub struct PrometheusPublisher {
@@ -75,7 +76,21 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
         msg: PathNotification,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        todo!();
+        let path = msg.path;
+        if self.config.paths.contains(&path) {
+            self.exporter
+                .subscribe_to_data(path.clone(), ctx.address().clone())
+                .await?;
+            if self.metrics.contains_key(&path) {
+                let record = Record {
+                    data: None,
+                    info: String::new(),
+                    stream_type: msg.stream_type,
+                };
+                self.metrics.insert(path, record);
+            }
+        }
+        Ok(())
     }
 }
 
@@ -83,15 +98,10 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 impl ActionHandler<ExportEvent> for PrometheusPublisher {
     async fn handle(&mut self, msg: ExportEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
-            /*
-            ExportEvent::SetInfo { path, info } => {
-                let record = self.metrics.entry(path).or_default();
-                record.info = Some(info);
-            }
-            */
             ExportEvent::BroadcastData { path, data, .. } => {
-                let record = self.metrics.entry(path).or_default();
-                record.data = Some(data);
+                if let Some(record) = self.metrics.get_mut(&path) {
+                    record.data = Some(data);
+                }
             }
         }
         Ok(())
@@ -116,10 +126,10 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
     ) -> Result<Response<Body>, Error> {
         let mut buffer = String::new();
         for (path, record) in &self.metrics {
-            if let (Some(info), Some(data)) = (record.info.as_ref(), record.data.as_ref()) {
+            if let Some(data) = record.data.as_ref() {
                 let line = format!("# {}\n", path);
                 buffer.push_str(&line);
-                let line = format!("# {}\n", info);
+                let line = format!("# {}\n", record.info);
                 buffer.push_str(&line);
                 let line = format!("{:?}\n", data);
                 buffer.push_str(&line);

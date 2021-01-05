@@ -1,7 +1,9 @@
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::LiteTask;
+use rill_protocol::provider::Path;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
@@ -19,13 +21,13 @@ pub struct ExportConfig {
 #[derive(Serialize, Deserialize)]
 pub struct PrometheusConfig {
     // TODO: Deserialize paths here directly using `FromStr`
-    pub paths: Option<Vec<String>>,
+    pub paths: HashSet<Path>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct GraphiteConfig {
     // TODO: Deserialize paths here directly using `FromStr`
-    pub paths: Option<Vec<String>>,
+    pub paths: HashSet<Path>,
     pub interval: Option<u64>,
 }
 

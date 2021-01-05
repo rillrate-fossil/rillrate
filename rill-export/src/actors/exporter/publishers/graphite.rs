@@ -74,14 +74,6 @@ impl StartedBy<Exporter> for GraphitePublisher {
         self.exporter
             .subscribe_to_paths(ctx.address().clone())
             .await?;
-        /*
-        let paths = self.config.paths.clone().unwrap_or_default();
-        for raw_path in paths {
-            // TODO: Expect parsed values here!
-            let path: Path = raw_path.parse()?;
-            self.exporter.subscribe_to_data(path, ctx.address().clone()).await?;
-        }
-        */
         Ok(())
     }
 }
@@ -165,7 +157,13 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
         msg: PathNotification,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        todo!();
+        let path = msg.path;
+        if self.config.paths.contains(&path) {
+            self.exporter
+                .subscribe_to_data(path, ctx.address().clone())
+                .await?;
+        }
+        Ok(())
     }
 }
 
