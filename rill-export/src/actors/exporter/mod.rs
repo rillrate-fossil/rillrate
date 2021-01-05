@@ -24,7 +24,7 @@ impl Action for ExportEvent {}
 
 #[derive(Debug, Clone)]
 pub struct PathNotification {
-    descriptions: Vec<Description>,
+    pub descriptions: Vec<Description>,
 }
 
 impl Action for PathNotification {}
