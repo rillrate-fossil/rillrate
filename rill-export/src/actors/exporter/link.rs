@@ -1,4 +1,4 @@
-use super::{ExportEvent, Exporter, PathNotification};
+use super::{ExportEvent, Exporter, PathNotification, Publisher};
 use crate::actors::provider_session::ProviderSessionLink;
 use crate::config::{GraphiteConfig, PrometheusConfig};
 use anyhow::Error;
@@ -79,6 +79,22 @@ impl ExporterLinkForClient {
     {
         let recipient = Box::new(address);
         let msg = SubscribeToPaths { recipient };
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct StartPublisher<T: Publisher> {
+    pub config: T::Config,
+}
+
+impl<T: Publisher> Action for StartPublisher<T> {}
+
+impl ExporterLinkForClient {
+    pub async fn start_publisher<T>(&mut self, config: T::Config) -> Result<(), Error>
+    where
+        T: Publisher,
+    {
+        let msg: StartPublisher<T> = StartPublisher { config };
         self.address.act(msg).await
     }
 }

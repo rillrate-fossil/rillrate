@@ -10,7 +10,8 @@ use graphite::GraphiteExporter;
 mod prometheus;
 use prometheus::PrometheusExporter;
 
-use meio::prelude::Action;
+use meio::prelude::{Action, Actor, Address, InterruptedBy, StartedBy};
+use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::{Path, RillData, StreamType};
 use std::time::Duration;
 
@@ -36,3 +37,9 @@ pub struct PathNotification {
 }
 
 impl Action for PathNotification {}
+
+/// An `Actor` that exports metrics to a third-party system.
+pub trait Publisher: Actor + StartedBy<Exporter> + InterruptedBy<Exporter> {
+    type Config: Send;
+    fn create(config: Self::Config, address: &Address<Exporter>, server: &HttpServerLink) -> Self;
+}

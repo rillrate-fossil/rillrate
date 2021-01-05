@@ -1,4 +1,4 @@
-use super::{link, ExportEvent, GraphiteExporter, PathNotification, PrometheusExporter};
+use super::{link, ExportEvent, GraphiteExporter, PathNotification, PrometheusExporter, Publisher};
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
@@ -64,6 +64,14 @@ impl StartedBy<EmbeddedNode> for Exporter {
 impl InterruptedBy<EmbeddedNode> for Exporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: Publisher> Eliminated<T> for Exporter {
+    async fn handle(&mut self, id: IdOf<T>, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        log::info!("Publisher {} finished", id);
         Ok(())
     }
 }
@@ -219,6 +227,19 @@ impl ActionHandler<link::StartGraphite> for Exporter {
     ) -> Result<(), Error> {
         let graphite_actor = GraphiteExporter::new(msg.config, ctx.address().link());
         let graphite = ctx.spawn_actor(graphite_actor, ());
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Exporter {
+    async fn handle(
+        &mut self,
+        msg: link::StartPublisher<T>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let publisher = T::create(msg.config, ctx.address(), &self.server);
+        let address = ctx.spawn_actor(publisher, ());
         Ok(())
     }
 }
