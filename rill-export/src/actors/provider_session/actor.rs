@@ -157,6 +157,7 @@ impl ActionHandler<link::ForwardRequest> for ProviderSession {
         msg: link::ForwardRequest,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        // TODO: Return optional id here!
         self.send_request(msg.request);
         Ok(())
     }

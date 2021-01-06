@@ -77,6 +77,8 @@ impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
         match msg.0 {
             ViewRequest::ControlStream { path, active } => {
                 if active {
+                    // TODO: Generate a new link that tracks a subscription.
+                    // TODO: And store it in the `Self`.
                     self.exporter
                         .subscribe_to_data(path, ctx.address().clone())
                         .await?;

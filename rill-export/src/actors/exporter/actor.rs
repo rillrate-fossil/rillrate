@@ -202,6 +202,7 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
         if let Some(record) = self.recipients.get_mut(&msg.path) {
             record.distributor.insert(msg.recipient);
             if record.distributor.len() == 1 && record.declared {
+                log::info!("Subscribing to: {}", path);
                 self.provider()?.subscribe(path).await?;
             }
             Ok(())
@@ -222,6 +223,7 @@ impl ActionHandler<link::UnsubscribeFromData> for Exporter {
         if let Some(record) = self.recipients.get_mut(&msg.path) {
             record.distributor.remove(&msg.id);
             if record.distributor.is_empty() && record.declared {
+                log::info!("Unsubscribing from: {}", path);
                 self.provider()?.unsubscribe(path).await?;
             }
             Ok(())
