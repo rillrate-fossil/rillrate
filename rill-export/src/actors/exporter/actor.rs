@@ -17,6 +17,12 @@ pub enum Reason {
     NoActiveSession,
     #[error("No active exporters available")]
     NoExporters,
+    #[error("Path already declared {0}")]
+    AlreadyDeclaredPath(Path),
+    #[error("Path was not declared {0}")]
+    NotDeclaredPath(Path),
+    #[error("No meta for path {0}")]
+    NoMetaForPath(Path),
 }
 
 #[derive(Debug)]
@@ -117,7 +123,7 @@ impl ActionHandler<link::DataReceived> for Exporter {
             record.distributor.act_all(event).await?;
             Ok(())
         } else {
-            Err(Error::msg(format!("no meta for path: {}", path)))
+            Err(Reason::NoMetaForPath(path).into())
         }
     }
 }
@@ -163,8 +169,8 @@ impl ActionHandler<link::PathDeclared> for Exporter {
                 Ok(())
             }
             Entry::Occupied(entry) => {
-                let path = &entry.get().description.path;
-                Err(Error::msg(format!("path already declared: {}", path)))
+                let path = entry.get().description.path.clone();
+                Err(Reason::AlreadyDeclaredPath(path).into())
             }
         }
     }
@@ -200,7 +206,7 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
             }
             Ok(())
         } else {
-            Err(Error::msg(format!("Path not declared {}", msg.path)))
+            Err(Reason::NotDeclaredPath(msg.path).into())
         }
     }
 }
