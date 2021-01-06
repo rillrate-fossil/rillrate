@@ -15,8 +15,6 @@ use thiserror::Error;
 pub enum Reason {
     #[error("No active provider available")]
     NoActiveSession,
-    #[error("No active exporters available")]
-    NoExporters,
     #[error("Path already declared {0}")]
     AlreadyDeclaredPath(Path),
     #[error("Path was not declared {0}")]
@@ -53,6 +51,13 @@ impl Exporter {
     fn provider(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
         self.provider.as_mut().ok_or(Reason::NoActiveSession)
     }
+
+    async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        if let Ok(provider) = self.provider() {
+            provider.unsubscribe_all().await.ok();
+        }
+        ctx.shutdown();
+    }
 }
 
 impl Actor for Exporter {
@@ -69,7 +74,7 @@ impl StartedBy<EmbeddedNode> for Exporter {
 #[async_trait]
 impl InterruptedBy<EmbeddedNode> for Exporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }
@@ -181,8 +186,9 @@ impl ActionHandler<link::SubscribeToPaths> for Exporter {
     async fn handle(
         &mut self,
         mut msg: link::SubscribeToPaths,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        ctx.not_terminating()?;
         let descriptions = self.declared_paths();
         let event = PathNotification { descriptions };
         msg.recipient.act(event).await?;
@@ -196,8 +202,9 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
     async fn handle(
         &mut self,
         msg: link::SubscribeToData,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        ctx.not_terminating()?;
         let path = msg.path.clone();
         if let Some(record) = self.recipients.get_mut(&msg.path) {
             record.distributor.insert(msg.recipient);

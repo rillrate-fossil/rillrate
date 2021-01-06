@@ -77,4 +77,12 @@ impl ProviderSessionLink {
             Err(Reason::NeverSubscribed(path).into())
         }
     }
+
+    pub async fn unsubscribe_all(&mut self) -> Result<(), Error> {
+        let paths: Vec<_> = self.subscriptions.keys().cloned().collect();
+        for path in paths {
+            self.unsubscribe(path).await?;
+        }
+        Ok(())
+    }
 }
