@@ -1,5 +1,4 @@
 use crate::actors::exporter::{ExportEvent, ExporterLinkForClient, PathNotification};
-use crate::actors::provider_session::ProviderSessionLink;
 use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -15,16 +14,16 @@ use rill_protocol::view::{ViewProtocol, ViewRequest, ViewResponse};
 pub struct ClientSession {
     handler: WsHandler<ViewProtocol>,
     exporter: ExporterLinkForClient,
-    provider: Option<ProviderSessionLink>,
 }
 
 impl ClientSession {
     pub fn new(handler: WsHandler<ViewProtocol>, exporter: ExporterLinkForClient) -> Self {
-        Self {
-            handler,
-            exporter,
-            provider: None,
-        }
+        Self { handler, exporter }
+    }
+
+    async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        ctx.shutdown();
     }
 }
 
@@ -48,7 +47,7 @@ impl StartedBy<Server> for ClientSession {
 #[async_trait]
 impl InterruptedBy<Server> for ClientSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }
@@ -61,7 +60,7 @@ impl TaskEliminated<WsProcessor<ViewProtocol, Self>> for ClientSession {
         _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }

@@ -71,8 +71,7 @@ impl ProviderSessionLink {
                 path,
             };
             let msg = SubRequest { direct_id, request };
-            self.address.act(msg).await?;
-            Ok(())
+            self.address.act(msg).await
         } else {
             Err(Reason::NeverSubscribed(path).into())
         }

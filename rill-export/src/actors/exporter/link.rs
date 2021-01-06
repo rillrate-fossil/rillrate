@@ -4,12 +4,32 @@ use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, ActionHandler, ActionRecipient, Actor, Address, Id};
 use rill_protocol::provider::{Description, Path, RillData};
+use std::collections::HashSet;
 use std::time::Duration;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+enum Reason {
+    #[error("Already subscribed {0}")]
+    AlreadySubscribed(Path),
+    #[error("Never subscribed {0}")]
+    NeverSubscribed(Path),
+}
 
 /// This `Link` used by `Session` actor.
-#[derive(Debug, Clone, From)]
+#[derive(Debug)]
 pub struct ExporterLinkForClient {
     address: Address<Exporter>,
+    active_streams: HashSet<Path>,
+}
+
+impl From<Address<Exporter>> for ExporterLinkForClient {
+    fn from(address: Address<Exporter>) -> Self {
+        Self {
+            address,
+            active_streams: HashSet::new(),
+        }
+    }
 }
 
 pub(super) struct SubscribeToData {
@@ -29,9 +49,13 @@ impl ExporterLinkForClient {
     where
         A: Actor + ActionHandler<ExportEvent>,
     {
-        let recipient = Box::new(address);
-        let msg = SubscribeToData { path, recipient };
-        self.address.act(msg).await
+        if self.active_streams.insert(path.clone()) {
+            let recipient = Box::new(address);
+            let msg = SubscribeToData { path, recipient };
+            self.address.act(msg).await
+        } else {
+            Err(Reason::AlreadySubscribed(path).into())
+        }
     }
 }
 
@@ -51,9 +75,23 @@ impl ExporterLinkForClient {
     where
         A: Actor + ActionHandler<ExportEvent>,
     {
-        let id = address.id().into();
-        let msg = UnsubscribeFromData { path, id };
-        self.address.act(msg).await
+        if self.active_streams.remove(&path) {
+            let id = address.id().into();
+            let msg = UnsubscribeFromData { path, id };
+            self.address.act(msg).await
+        } else {
+            Err(Reason::NeverSubscribed(path).into())
+        }
+    }
+
+    pub async fn unsubscribe_all<A>(&mut self, address: &Address<A>) -> Result<(), Error>
+    where
+        A: Actor + ActionHandler<ExportEvent>,
+    {
+        for path in self.active_streams.clone() {
+            self.unsubscribe_from_data(path, address).await.ok();
+        }
+        Ok(())
     }
 }
 
