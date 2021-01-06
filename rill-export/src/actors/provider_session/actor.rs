@@ -4,7 +4,8 @@ use crate::actors::server::Server;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Context, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError,
+    ActionHandler, Actor, Context, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+    TaskEliminated, TaskError,
 };
 use meio_connect::{
     server::{WsHandler, WsProcessor},
@@ -39,7 +40,7 @@ impl ProviderSession {
         }
     }
 
-    fn send_request(&mut self, data: RillToProvider) {
+    fn send_request(&mut self, data: RillToProvider) -> ProviderReqId {
         self.counter += 1;
         let direct_id = DirectId::from(self.counter);
         if let RillToProvider::ControlStream {
@@ -52,6 +53,7 @@ impl ProviderSession {
         let envelope = Envelope { direct_id, data };
         log::trace!("Sending request to the server: {:?}", envelope);
         self.handler.send(envelope);
+        direct_id
     }
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
@@ -151,14 +153,13 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
 }
 
 #[async_trait]
-impl ActionHandler<link::ForwardRequest> for ProviderSession {
+impl InteractionHandler<link::ForwardRequest> for ProviderSession {
     async fn handle(
         &mut self,
         msg: link::ForwardRequest,
         _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        // TODO: Return optional id here!
-        self.send_request(msg.request);
-        Ok(())
+    ) -> Result<ProviderReqId, Error> {
+        let id = self.send_request(msg.request);
+        Ok(id)
     }
 }
