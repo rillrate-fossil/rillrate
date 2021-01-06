@@ -40,6 +40,13 @@ impl Publisher for PrometheusPublisher {
     }
 }
 
+impl PrometheusPublisher {
+    async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        ctx.shutdown();
+    }
+}
+
 impl Actor for PrometheusPublisher {
     type GroupBy = ();
 }
@@ -60,7 +67,7 @@ impl StartedBy<Exporter> for PrometheusPublisher {
 #[async_trait]
 impl InterruptedBy<Exporter> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }

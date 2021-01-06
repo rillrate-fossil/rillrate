@@ -51,6 +51,13 @@ impl Publisher for GraphitePublisher {
     }
 }
 
+impl GraphitePublisher {
+    async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        ctx.shutdown();
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
     HeartBeat,
@@ -81,7 +88,7 @@ impl StartedBy<Exporter> for GraphitePublisher {
 #[async_trait]
 impl InterruptedBy<Exporter> for GraphitePublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }
@@ -94,7 +101,7 @@ impl TaskEliminated<HeartBeat> for GraphitePublisher {
         _result: Result<(), TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }
@@ -107,7 +114,7 @@ impl TaskEliminated<Connection> for GraphitePublisher {
         _result: Result<(), TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx).await;
         Ok(())
     }
 }
