@@ -1,41 +1,76 @@
 use super::ProviderSession;
 use anyhow::Error;
-use derive_more::From;
 use meio::prelude::{Action, Address, Interaction};
 use rill_protocol::provider::{Path, ProviderReqId, RillToProvider};
+use std::collections::HashMap;
+use thiserror::Error;
 
-/// It's not cloneable, because it tracks subscriptions.
-#[derive(Debug, From)]
-pub struct ProviderSessionLink {
-    address: Address<ProviderSession>,
+#[derive(Debug, Error)]
+enum Reason {
+    #[error("Already subscribed {0}")]
+    AlreadySubscribed(Path),
+    #[error("Never subscribed {0}")]
+    NeverSubscribed(Path),
 }
 
-// TODO: Rename to NewRequest
-pub(super) struct ForwardRequest {
+/// It's not cloneable, because it tracks subscriptions.
+#[derive(Debug)]
+pub struct ProviderSessionLink {
+    address: Address<ProviderSession>,
+    subscriptions: HashMap<Path, ProviderReqId>,
+}
+
+impl From<Address<ProviderSession>> for ProviderSessionLink {
+    fn from(address: Address<ProviderSession>) -> Self {
+        Self {
+            address,
+            subscriptions: HashMap::new(),
+        }
+    }
+}
+
+pub(super) struct NewRequest {
     pub request: RillToProvider,
 }
 
-impl Interaction for ForwardRequest {
+impl Interaction for NewRequest {
     type Output = ProviderReqId;
 }
 
 impl ProviderSessionLink {
     pub async fn subscribe(&mut self, path: Path) -> Result<(), Error> {
-        let request = RillToProvider::ControlStream { active: true, path };
-        let msg = ForwardRequest { request };
-        self.address.interact(msg).await?;
-        Ok(())
+        if !self.subscriptions.contains_key(&path) {
+            let request = RillToProvider::ControlStream { active: true, path };
+            let msg = NewRequest { request };
+            self.address.interact(msg).await?;
+            Ok(())
+        } else {
+            Err(Reason::AlreadySubscribed(path).into())
+        }
     }
+}
 
+pub(super) struct SubRequest {
+    pub direct_id: ProviderReqId,
+    pub request: RillToProvider,
+}
+
+impl Action for SubRequest {}
+
+impl ProviderSessionLink {
     // TODO: Move to the separate link
     // TODO: Add id of the stream (returned before by subscribe call)
     pub async fn unsubscribe(&mut self, path: Path) -> Result<(), Error> {
-        let request = RillToProvider::ControlStream {
-            active: false,
-            path,
-        };
-        let msg = ForwardRequest { request };
-        self.address.interact(msg).await?;
-        Ok(())
+        if let Some(direct_id) = self.subscriptions.remove(&path) {
+            let request = RillToProvider::ControlStream {
+                active: false,
+                path,
+            };
+            let msg = SubRequest { direct_id, request };
+            self.address.act(msg).await?;
+            Ok(())
+        } else {
+            Err(Reason::NeverSubscribed(path).into())
+        }
     }
 }

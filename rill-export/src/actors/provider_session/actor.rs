@@ -40,20 +40,10 @@ impl ProviderSession {
         }
     }
 
-    fn send_request(&mut self, data: RillToProvider) -> ProviderReqId {
-        self.counter += 1;
-        let direct_id = DirectId::from(self.counter);
-        if let RillToProvider::ControlStream {
-            ref path,
-            active: true,
-        } = data
-        {
-            self.paths.insert(direct_id.clone(), path.clone());
-        }
+    fn send_request(&mut self, direct_id: ProviderReqId, data: RillToProvider) {
         let envelope = Envelope { direct_id, data };
         log::trace!("Sending request to the server: {:?}", envelope);
         self.handler.send(envelope);
-        direct_id
     }
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
@@ -134,7 +124,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
             RillToServer::Declare { entry_id } => {
                 self.registered = Some(entry_id);
                 let msg = RillToProvider::Describe { active: true };
-                self.send_request(msg);
+                self.send_request(0.into(), msg);
             }
             RillToServer::Description { list } => {
                 log::trace!("Paths available: {:?}", list);
@@ -153,13 +143,39 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
 }
 
 #[async_trait]
-impl InteractionHandler<link::ForwardRequest> for ProviderSession {
+impl InteractionHandler<link::NewRequest> for ProviderSession {
     async fn handle(
         &mut self,
-        msg: link::ForwardRequest,
+        msg: link::NewRequest,
         _ctx: &mut Context<Self>,
     ) -> Result<ProviderReqId, Error> {
-        let id = self.send_request(msg.request);
-        Ok(id)
+        self.counter += 1;
+        let direct_id = DirectId::from(self.counter);
+
+        if let RillToProvider::ControlStream {
+            ref path,
+            active: true,
+        } = msg.request
+        {
+            self.paths.insert(direct_id, path.clone());
+        }
+
+        self.send_request(direct_id, msg.request);
+
+        Ok(direct_id)
+    }
+}
+
+#[async_trait]
+impl ActionHandler<link::SubRequest> for ProviderSession {
+    async fn handle(
+        &mut self,
+        msg: link::SubRequest,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let direct_id = msg.direct_id;
+        self.paths.remove(&direct_id);
+        self.send_request(direct_id, msg.request);
+        Ok(())
     }
 }
