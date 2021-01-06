@@ -81,7 +81,9 @@ impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
                         .subscribe_to_data(path, ctx.address().clone())
                         .await?;
                 } else {
-                    todo!();
+                    self.exporter
+                        .unsubscribe_from_data(path, ctx.address())
+                        .await?;
                 }
             }
         }

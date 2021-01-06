@@ -2,7 +2,7 @@ use super::{ExportEvent, Exporter, PathNotification, Publisher};
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{Action, ActionHandler, ActionRecipient, Actor, Address};
+use meio::prelude::{Action, ActionHandler, ActionRecipient, Actor, Address, Id};
 use rill_protocol::provider::{Description, Path, RillData};
 use std::time::Duration;
 
@@ -31,6 +31,28 @@ impl ExporterLinkForClient {
     {
         let recipient = Box::new(address);
         let msg = SubscribeToData { path, recipient };
+        self.address.act(msg).await
+    }
+}
+
+pub(super) struct UnsubscribeFromData {
+    pub path: Path,
+    pub id: Id,
+}
+
+impl Action for UnsubscribeFromData {}
+
+impl ExporterLinkForClient {
+    pub async fn unsubscribe_from_data<A>(
+        &mut self,
+        path: Path,
+        address: &Address<A>,
+    ) -> Result<(), Error>
+    where
+        A: Actor + ActionHandler<ExportEvent>,
+    {
+        let id = address.id().into();
+        let msg = UnsubscribeFromData { path, id };
         self.address.act(msg).await
     }
 }

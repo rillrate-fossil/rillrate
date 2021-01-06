@@ -21,4 +21,13 @@ impl ProviderSessionLink {
         let msg = ForwardRequest { request };
         self.address.act(msg).await
     }
+
+    pub async fn unsubscribe(&mut self, path: Path) -> Result<(), Error> {
+        let request = RillToProvider::ControlStream {
+            active: false,
+            path,
+        };
+        let msg = ForwardRequest { request };
+        self.address.act(msg).await
+    }
 }

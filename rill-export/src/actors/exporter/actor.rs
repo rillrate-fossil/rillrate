@@ -212,6 +212,26 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
 }
 
 #[async_trait]
+impl ActionHandler<link::UnsubscribeFromData> for Exporter {
+    async fn handle(
+        &mut self,
+        msg: link::UnsubscribeFromData,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let path = msg.path.clone();
+        if let Some(record) = self.recipients.get_mut(&msg.path) {
+            record.distributor.remove(&msg.id);
+            if record.distributor.is_empty() && record.declared {
+                self.provider()?.unsubscribe(path).await?;
+            }
+            Ok(())
+        } else {
+            Err(Reason::NotDeclaredPath(msg.path).into())
+        }
+    }
+}
+
+#[async_trait]
 impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Exporter {
     async fn handle(
         &mut self,
