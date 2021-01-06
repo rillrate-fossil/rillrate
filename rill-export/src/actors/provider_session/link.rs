@@ -40,9 +40,13 @@ impl Interaction for NewRequest {
 impl ProviderSessionLink {
     pub async fn subscribe(&mut self, path: Path) -> Result<(), Error> {
         if !self.subscriptions.contains_key(&path) {
-            let request = RillToProvider::ControlStream { active: true, path };
+            let request = RillToProvider::ControlStream {
+                active: true,
+                path: path.clone(),
+            };
             let msg = NewRequest { request };
-            self.address.interact(msg).await?;
+            let direct_id = self.address.interact(msg).await?;
+            self.subscriptions.insert(path, direct_id);
             Ok(())
         } else {
             Err(Reason::AlreadySubscribed(path).into())
