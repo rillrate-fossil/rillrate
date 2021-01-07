@@ -333,7 +333,10 @@ impl Consumer<DataEnvelope> for RillWorker {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if let Some(holder) = self.joints.get(envelope.idx) {
-            let timestamp = envelope.timestamp.duration_since(SystemTime::UNIX_EPOCH)?;
+            let timestamp = envelope
+                .timestamp
+                .duration_since(SystemTime::UNIX_EPOCH)?
+                .into();
             if !holder.subscribers.is_empty() {
                 let direction = Direction::from(&holder.subscribers);
                 let msg = RillToServer::Data {

@@ -1,8 +1,7 @@
 use crate::codec::JsonCodec;
-use crate::provider::{Description, Origin, Path, RillData};
+use crate::provider::{Description, Origin, Path, RillData, Timestamp};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ViewProtocol;
@@ -23,5 +22,5 @@ pub enum ViewRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ViewResponse {
     Paths(Vec<Description>),
-    Data(Path, Duration, RillData),
+    Data(Path, Timestamp, RillData),
 }

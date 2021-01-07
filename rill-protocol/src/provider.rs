@@ -221,7 +221,27 @@ impl FromStr for Path {
     }
 }
 
-pub type Timestamp = i64;
+#[derive(
+    Serialize, Deserialize, From, Into, Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash,
+)]
+pub struct Timestamp(pub u128);
+
+impl From<Duration> for Timestamp {
+    fn from(duration: Duration) -> Self {
+        Self(duration.as_millis().into())
+    }
+}
+
+impl Timestamp {
+    // TODO: Maybe just impl `ToPrimitive`?
+    pub fn to_f64(&self) -> f64 {
+        self.0 as f64
+    }
+
+    pub fn as_secs(&self) -> u128 {
+        self.0 / 1_000
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Envelope<T: Origin, D> {
@@ -360,7 +380,7 @@ pub enum RillToServer {
     /// The response to `ControlStream { active: true }` request
     BeginStream,
     Data {
-        timestamp: Duration,
+        timestamp: Timestamp,
         data: RillData,
     },
     /// The response to `ControlStream { active: false }` request

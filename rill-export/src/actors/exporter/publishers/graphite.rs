@@ -10,7 +10,7 @@ use meio::prelude::{
     TaskError,
 };
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Path, RillData};
+use rill_protocol::provider::{Path, RillData, Timestamp};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
@@ -20,7 +20,7 @@ use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 
 struct Record {
-    timestamp: Duration,
+    timestamp: Timestamp,
     data: RillData,
 }
 

@@ -8,14 +8,13 @@ pub mod publishers;
 
 use meio::prelude::{Action, Actor, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Description, Path, RillData};
-use std::time::Duration;
+use rill_protocol::provider::{Description, Path, RillData, Timestamp};
 
 #[derive(Debug, Clone)]
 pub enum ExportEvent {
     BroadcastData {
         path: Path,
-        timestamp: Duration,
+        timestamp: Timestamp,
         data: RillData,
     },
 }

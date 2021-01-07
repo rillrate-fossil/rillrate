@@ -3,9 +3,8 @@ use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, ActionHandler, ActionRecipient, Actor, Address, Id};
-use rill_protocol::provider::{Description, Path, RillData};
+use rill_protocol::provider::{Description, Path, RillData, Timestamp};
 use std::collections::HashSet;
-use std::time::Duration;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -168,7 +167,7 @@ impl ExporterLinkForProvider {
 
 pub(super) struct DataReceived {
     pub path: Path,
-    pub timestamp: Duration,
+    pub timestamp: Timestamp,
     pub data: RillData,
 }
 
@@ -178,7 +177,7 @@ impl ExporterLinkForProvider {
     pub async fn data_received(
         &mut self,
         path: Path,
-        timestamp: Duration,
+        timestamp: Timestamp,
         data: RillData,
     ) -> Result<(), Error> {
         let msg = DataReceived {
