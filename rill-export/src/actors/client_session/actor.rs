@@ -114,7 +114,7 @@ impl ActionHandler<ExportEvent> for ClientSession {
                 data,
                 timestamp,
             } => {
-                let response = ViewResponse::Data(path, data);
+                let response = ViewResponse::Data(path, timestamp, data);
                 self.handler.send(response);
             }
         }
