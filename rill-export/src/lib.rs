@@ -1,3 +1,7 @@
+//! RillExport crate.
+
+#![warn(missing_docs)]
+
 mod actors;
 mod config;
 
@@ -18,11 +22,13 @@ mod env {
     }
 }
 
+/// The standalone server that provides access to metrics in different ways.
 pub struct RillExport {
     _scoped_to_drop: meio::thread::ScopedRuntime,
 }
 
 impl RillExport {
+    /// Starts an exporting server.
     pub fn start() -> Result<Self, Error> {
         rill_protocol::PORT.set(9090);
         let actor = EmbeddedNode::new();

@@ -1,3 +1,5 @@
+//! Rill crate.
+
 #![warn(missing_docs)]
 
 mod actors;

@@ -1,3 +1,5 @@
+//! Providers to send specific types of tracing data.
+
 pub mod provider;
 pub use provider::Provider;
 

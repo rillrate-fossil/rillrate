@@ -1,3 +1,4 @@
+//! This module contains a generic `Provider`'s methods.
 use crate::state::{ControlEvent, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
