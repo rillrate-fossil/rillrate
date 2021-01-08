@@ -248,7 +248,7 @@ impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Exporter {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let publisher = T::create(msg.config, ctx.address().link(), &self.server);
-        let address = ctx.spawn_actor(publisher, ());
+        let _address = ctx.spawn_actor(publisher, ());
         Ok(())
     }
 }

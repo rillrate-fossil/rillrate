@@ -102,7 +102,7 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 
 #[async_trait]
 impl ActionHandler<ExportEvent> for PrometheusPublisher {
-    async fn handle(&mut self, msg: ExportEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
             ExportEvent::BroadcastData { path, data, .. } => {
                 if let Some(record) = self.metrics.get_mut(&path) {

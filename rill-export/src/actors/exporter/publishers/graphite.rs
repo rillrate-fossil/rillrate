@@ -180,7 +180,7 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 
 #[async_trait]
 impl ActionHandler<ExportEvent> for GraphitePublisher {
-    async fn handle(&mut self, msg: ExportEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
             ExportEvent::BroadcastData {
                 path,

@@ -97,7 +97,7 @@ impl ActionHandler<PathNotification> for ClientSession {
     async fn handle(
         &mut self,
         msg: PathNotification,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let response = ViewResponse::Paths(msg.descriptions);
         self.handler.send(response);
@@ -107,7 +107,7 @@ impl ActionHandler<PathNotification> for ClientSession {
 
 #[async_trait]
 impl ActionHandler<ExportEvent> for ClientSession {
-    async fn handle(&mut self, msg: ExportEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
             ExportEvent::BroadcastData {
                 path,
