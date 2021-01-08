@@ -3,6 +3,7 @@ use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Path, RillData, StreamType};
 use std::time::SystemTime;
 
+/// Providers `Counter` metrics that can increments only.
 #[derive(Debug, Deref, DerefMut)]
 pub struct CounterProvider {
     #[deref]
@@ -11,11 +12,13 @@ pub struct CounterProvider {
 }
 
 impl CounterProvider {
+    /// Creates a new provider instance.
     pub fn new(path: Path) -> Self {
         let provider = ProtectedProvider::new(path, StreamType::CounterStream, 0.0);
         Self { provider }
     }
 
+    /// Increments value by the sepcific delta.
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
         if let Some(mut value) = self.provider.lock() {
             *value += delta;

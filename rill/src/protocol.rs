@@ -1,3 +1,4 @@
+/// The module contains internal action wrapper.
 pub mod internal {
     use meio::prelude::Action;
 

@@ -3,6 +3,7 @@ use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Path, RillData, StreamType};
 use std::time::SystemTime;
 
+/// Sends metrics as `gauge` that can change value to any.
 #[derive(Debug, Deref, DerefMut)]
 pub struct GaugeProvider {
     #[deref]
@@ -11,11 +12,13 @@ pub struct GaugeProvider {
 }
 
 impl GaugeProvider {
+    /// Creates a new `Gauge` provider.
     pub fn new(path: Path) -> Self {
         let provider = ProtectedProvider::new(path, StreamType::GaugeStream, 0.0);
         Self { provider }
     }
 
+    /// Increments the value by the specific delta.
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
         if let Some(mut value) = self.provider.lock() {
             *value += delta;
@@ -26,6 +29,7 @@ impl GaugeProvider {
         }
     }
 
+    /// Decrements the value by the specific delta.
     pub fn dec(&self, delta: f64, timestamp: Option<SystemTime>) {
         if let Some(mut value) = self.provider.lock() {
             *value -= delta;
@@ -36,6 +40,7 @@ impl GaugeProvider {
         }
     }
 
+    /// Set the value.
     pub fn set(&self, new_value: f64, timestamp: Option<SystemTime>) {
         if let Some(mut value) = self.provider.lock() {
             *value = new_value;

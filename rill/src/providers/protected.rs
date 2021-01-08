@@ -3,6 +3,7 @@ use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Path, StreamType};
 use std::sync::{Mutex, MutexGuard};
 
+/// Special wrapper to give shared access to the `Provider`.
 #[derive(Debug, Deref, DerefMut)]
 pub struct ProtectedProvider<T> {
     #[deref]

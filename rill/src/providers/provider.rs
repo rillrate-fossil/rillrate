@@ -10,7 +10,7 @@ use std::time::SystemTime;
 use tokio::sync::watch;
 
 #[derive(Debug)]
-pub struct DataEnvelope {
+pub(crate) struct DataEnvelope {
     pub idx: usize,
     pub timestamp: SystemTime,
     pub data: RillData,
@@ -18,8 +18,8 @@ pub struct DataEnvelope {
 
 impl Action for DataEnvelope {}
 
-pub type DataSender = mpsc::UnboundedSender<DataEnvelope>;
-pub type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
+pub(crate) type DataSender = mpsc::UnboundedSender<DataEnvelope>;
+pub(crate) type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
 /// Used to control the streams and interaction between a sender and a receiver.
 #[derive(Debug)]
@@ -50,6 +50,8 @@ impl Joint {
     }
 }
 
+/// The generic provider that forwards metrics to worker and keeps a flag
+/// for checking the activitiy status of the `Provider`.
 #[derive(Debug)]
 pub struct Provider {
     /// The receiver that used to activate/deactivate streams.
@@ -80,6 +82,7 @@ impl Provider {
         this
     }
 
+    /// Returns a reference to a `Path` of the `Provider`.
     pub fn path(&self) -> &Path {
         self.joint.path()
     }

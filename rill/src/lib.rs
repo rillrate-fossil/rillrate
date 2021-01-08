@@ -5,7 +5,7 @@
 mod actors;
 pub mod macros;
 pub mod prelude;
-pub mod protocol;
+mod protocol;
 pub mod providers;
 mod state;
 
