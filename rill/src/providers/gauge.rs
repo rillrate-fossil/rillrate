@@ -20,7 +20,7 @@ impl GaugeProvider {
         if let Some(mut value) = self.provider.lock() {
             *value += delta;
             if self.provider.is_active() {
-                let data = RillData::CounterRecord { value: *value };
+                let data = RillData::GaugeValue { value: *value };
                 self.provider.send(data, timestamp);
             }
         }
@@ -30,7 +30,7 @@ impl GaugeProvider {
         if let Some(mut value) = self.provider.lock() {
             *value -= delta;
             if self.provider.is_active() {
-                let data = RillData::CounterRecord { value: *value };
+                let data = RillData::GaugeValue { value: *value };
                 self.provider.send(data, timestamp);
             }
         }
@@ -40,7 +40,7 @@ impl GaugeProvider {
         if let Some(mut value) = self.provider.lock() {
             *value = new_value;
             if self.provider.is_active() {
-                let data = RillData::CounterRecord { value: *value };
+                let data = RillData::GaugeValue { value: *value };
                 self.provider.send(data, timestamp);
             }
         }

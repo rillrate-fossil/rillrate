@@ -22,11 +22,18 @@ fn main() -> Result<(), Error> {
 
     let counter = CounterProvider::new("my.counter".parse()?);
     let gauge = GaugeProvider::new("my.gauge".parse()?);
+    let fast_gauge = GaugeProvider::new("my.fast.gauge".parse()?);
     while running.load(Ordering::SeqCst) {
+        for x in 0..3 {
+            fast_gauge.set(x as f64, None);
+            thread::sleep(Duration::from_millis(100));
+        }
         gauge.set(1.0, None);
-        thread::sleep(Duration::from_millis(300));
+        for x in 0..7 {
+            fast_gauge.set(x as f64, None);
+            thread::sleep(Duration::from_millis(100));
+        }
         gauge.set(10.0, None);
-        thread::sleep(Duration::from_millis(700));
         counter.inc(1.0, None);
     }
 
