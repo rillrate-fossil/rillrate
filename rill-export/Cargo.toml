@@ -36,4 +36,5 @@ typed-slab = "0.1.0"
 [dev-dependencies]
 ctrlc = "3.1.7"
 env_logger = "0.8.2"
+rand = "0.8.1"
 rill = { version = "0.10.0", path = "../rill" }
