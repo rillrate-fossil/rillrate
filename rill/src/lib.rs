@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 mod actors;
 pub mod macros;
 pub mod prelude;
@@ -14,26 +16,20 @@ use thiserror::Error;
 metacrate::meta!();
 
 #[derive(Debug, Error)]
-pub enum RillError {
+enum RillError {
     #[error("alreary installed")]
     AlreadyInstalled,
     #[error("io error {0}")]
     IoError(#[from] std::io::Error),
-    /*
-    #[error("not installed")]
-    NotInstalled,
-    #[error("can't find termination handler")]
-    NoTerminationHandler,
-    #[error("termination failed")]
-    TerminationFailed,
-    */
 }
 
+/// The tracer instance that can be configured.
 pub struct Rill {
     _scoped: meio::thread::ScopedRuntime,
 }
 
 impl Rill {
+    /// Initializes tracing system and all created `Provider`s will be attached to it.
     pub fn install(name: impl Into<EntryId>) -> Result<Self, Error> {
         let (rx, state) = RillState::create();
         RILL_STATE
