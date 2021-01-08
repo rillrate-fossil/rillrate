@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rill::prelude::{CounterProvider, GaugeProvider, Rill};
+use rill::prelude::{CounterProvider, GaugeProvider, LogProvider, Rill};
 use rill_export::RillExport;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -23,6 +23,7 @@ fn main() -> Result<(), Error> {
     let counter = CounterProvider::new("my.counter".parse()?);
     let gauge = GaugeProvider::new("my.gauge".parse()?);
     let fast_gauge = GaugeProvider::new("my.fast.gauge".parse()?);
+    let logger = LogProvider::new("my.direct.logs.trace".parse()?);
     while running.load(Ordering::SeqCst) {
         for x in 0..3 {
             fast_gauge.set(x as f64, None);
@@ -35,6 +36,7 @@ fn main() -> Result<(), Error> {
         }
         gauge.set(10.0, None);
         counter.inc(1.0, None);
+        logger.log(format!("okay :)"), None);
     }
 
     Ok(())
