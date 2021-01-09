@@ -232,6 +232,16 @@ impl From<Duration> for Timestamp {
     }
 }
 
+// TODO: Change to `Into` when possible.
+// When `from_millis(u128)` will be supported.
+impl TryInto<Duration> for Timestamp {
+    type Error = std::num::TryFromIntError;
+
+    fn try_into(self) -> Result<Duration, Self::Error> {
+        self.0.try_into().map(Duration::from_millis)
+    }
+}
+
 impl Timestamp {
     // TODO: Maybe just impl `ToPrimitive`?
     pub fn to_f64(&self) -> f64 {
