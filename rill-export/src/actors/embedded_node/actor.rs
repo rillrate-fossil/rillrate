@@ -1,9 +1,12 @@
 use crate::actors::exporter::Exporter;
+use crate::actors::exporter::{publishers, ExporterLinkForClient};
 use crate::actors::server::Server;
-use crate::actors::tuner::Tuner;
+use crate::config::{Config, ReadConfigFile};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
+use meio::prelude::{
+    Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System, TaskEliminated, TaskError,
+};
 use meio_connect::server::HttpServer;
 
 pub struct EmbeddedNode {}
@@ -35,22 +38,57 @@ impl StartedBy<System> for EmbeddedNode {
             Group::HttpServer,
             Group::Endpoints,
         ]);
+        ctx.spawn_task(ReadConfigFile, Group::Tuning);
 
-        let addr = format!("127.0.0.1:{}", rill_protocol::PORT.get())
-            .parse()
-            .unwrap();
-        let http_server_actor = HttpServer::new(addr);
-        let http_server = ctx.spawn_actor(http_server_actor, Group::HttpServer);
+        Ok(())
+    }
+}
 
-        let exporter_actor = Exporter::new(http_server.link());
-        let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
+#[async_trait]
+impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
+    async fn handle(
+        &mut self,
+        _id: IdOf<ReadConfigFile>,
+        result: Result<Config, TaskError>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        match result {
+            Ok(mut config) => {
+                // Starting all basic actors
+                // TODO: Use IP addr from a config
+                let addr = format!("0.0.0.0:{}", rill_protocol::PORT.get())
+                    .parse()
+                    .unwrap();
+                let http_server_actor = HttpServer::new(addr);
+                let http_server = ctx.spawn_actor(http_server_actor, Group::HttpServer);
 
-        let server_actor = Server::new(http_server.link(), exporter.link());
-        let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
+                let exporter_actor = Exporter::new(http_server.link());
+                let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
-        let tuner_actor = Tuner::new(exporter.link());
-        ctx.spawn_actor(tuner_actor, Group::Tuning);
+                let server_actor = Server::new(http_server.link(), exporter.link());
+                let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
 
+                let mut exporter: ExporterLinkForClient = exporter.link();
+
+                // Spawn exporter if they are exist
+                if let Some(config) = config.export.prometheus.take() {
+                    exporter
+                        .start_publisher::<publishers::PrometheusPublisher>(config)
+                        .await?;
+                }
+                if let Some(config) = config.export.graphite.take() {
+                    exporter
+                        .start_publisher::<publishers::GraphitePublisher>(config)
+                        .await?;
+                }
+            }
+            Err(err) => {
+                log::warn!(
+                    "Can't read config file. No special configuration parameters applied: {}",
+                    err
+                );
+            }
+        }
         Ok(())
     }
 }
@@ -87,14 +125,6 @@ impl Eliminated<HttpServer> for EmbeddedNode {
 impl Eliminated<Server> for EmbeddedNode {
     async fn handle(&mut self, _id: IdOf<Server>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Server finished");
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl Eliminated<Tuner> for EmbeddedNode {
-    async fn handle(&mut self, _id: IdOf<Tuner>, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::info!("Tuner finished");
         Ok(())
     }
 }
