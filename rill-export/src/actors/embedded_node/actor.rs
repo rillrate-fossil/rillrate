@@ -52,43 +52,43 @@ impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
         result: Result<Config, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        match result {
-            Ok(mut config) => {
-                // Starting all basic actors
-                // TODO: Use IP addr from a config
-                let addr = format!("0.0.0.0:{}", rill_protocol::PORT.get())
-                    .parse()
-                    .unwrap();
-                let http_server_actor = HttpServer::new(addr);
-                let http_server = ctx.spawn_actor(http_server_actor, Group::HttpServer);
-
-                let exporter_actor = Exporter::new(http_server.link());
-                let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
-
-                let server_actor = Server::new(http_server.link(), exporter.link());
-                let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
-
-                let mut exporter: ExporterLinkForClient = exporter.link();
-
-                // Spawn exporter if they are exist
-                if let Some(config) = config.export.prometheus.take() {
-                    exporter
-                        .start_publisher::<publishers::PrometheusPublisher>(config)
-                        .await?;
-                }
-                if let Some(config) = config.export.graphite.take() {
-                    exporter
-                        .start_publisher::<publishers::GraphitePublisher>(config)
-                        .await?;
-                }
-            }
-            Err(err) => {
+        let mut config = result
+            .map_err(|err| {
                 log::warn!(
                     "Can't read config file. No special configuration parameters applied: {}",
                     err
                 );
-            }
+            })
+            .unwrap_or_default();
+
+        // Starting all basic actors
+        let addr = format!("{}:{}", config.server_address(), rill_protocol::PORT.get())
+            // TODO: Don't parse and unwrapping it
+            .parse()
+            .unwrap();
+        let http_server_actor = HttpServer::new(addr);
+        let http_server = ctx.spawn_actor(http_server_actor, Group::HttpServer);
+
+        let exporter_actor = Exporter::new(http_server.link());
+        let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
+
+        let server_actor = Server::new(http_server.link(), exporter.link());
+        let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
+
+        let mut exporter: ExporterLinkForClient = exporter.link();
+
+        // Spawn exporter if they are exist
+        if let Some(config) = config.export.prometheus.take() {
+            exporter
+                .start_publisher::<publishers::PrometheusPublisher>(config)
+                .await?;
         }
+        if let Some(config) = config.export.graphite.take() {
+            exporter
+                .start_publisher::<publishers::GraphitePublisher>(config)
+                .await?;
+        }
+
         Ok(())
     }
 }

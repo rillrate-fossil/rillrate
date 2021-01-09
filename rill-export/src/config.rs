@@ -4,6 +4,7 @@ use meio::prelude::LiteTask;
 use rill_protocol::provider::Path;
 use serde::{de, Deserialize, Deserializer};
 use std::collections::HashSet;
+use std::net::IpAddr;
 use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -26,7 +27,34 @@ impl<'de> Deserialize<'de> for PathPattern {
 
 #[derive(Deserialize)]
 pub struct Config {
+    pub server: ServerConfig,
     pub export: ExportConfig,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            server: ServerConfig { address: None },
+            export: ExportConfig {
+                prometheus: None,
+                graphite: None,
+            },
+        }
+    }
+}
+
+impl Config {
+    pub fn server_address(&self) -> IpAddr {
+        self.server
+            .address
+            .clone()
+            .unwrap_or_else(|| "127.0.0.1".parse().unwrap())
+    }
+}
+
+#[derive(Deserialize)]
+pub struct ServerConfig {
+    pub address: Option<IpAddr>,
 }
 
 #[derive(Deserialize)]
