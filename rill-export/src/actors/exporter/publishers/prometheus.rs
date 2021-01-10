@@ -7,13 +7,13 @@ use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
-use rill_protocol::provider::{Description, Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, StreamType, Timestamp};
 use std::collections::BTreeMap;
 use std::convert::TryInto;
 
 #[derive(Debug)]
 struct Record {
-    data: Option<RillData>,
+    data: Option<(RillData, Timestamp)>,
     description: Description,
 }
 
@@ -105,9 +105,13 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 impl ActionHandler<ExportEvent> for PrometheusPublisher {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
-            ExportEvent::BroadcastData { path, data, .. } => {
+            ExportEvent::BroadcastData {
+                path,
+                data,
+                timestamp,
+            } => {
                 if let Some(record) = self.metrics.get_mut(&path) {
-                    record.data = Some(data);
+                    record.data = Some((data, timestamp));
                 }
             }
         }
@@ -147,7 +151,7 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
                         continue;
                     }
                 };
-                let value: f64 = match data.try_into() {
+                let value: f64 = match data.0.try_into() {
                     Ok(n) => n, // TODO: Round?
                     Err(err) => {
                         log::error!(
@@ -158,12 +162,12 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
                         continue;
                     }
                 };
+                let ts = data.1;
                 let line = format!("# HELP {}\n", info);
                 buffer.push_str(&line);
                 let line = format!("# TYPE {} {}\n", name, typ);
                 buffer.push_str(&line);
-                // TODO: Add timestamp as well
-                let line = format!("{}={}\n\n", name, value);
+                let line = format!("{} {} {}\n\n", name, value, ts.as_millis());
                 buffer.push_str(&line);
             }
         }

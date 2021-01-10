@@ -251,6 +251,10 @@ impl Timestamp {
     pub fn as_secs(&self) -> u128 {
         self.0 / 1_000
     }
+
+    pub fn as_millis(&self) -> u128 {
+        self.0
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
