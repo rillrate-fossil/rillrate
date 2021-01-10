@@ -56,7 +56,7 @@ impl StartedBy<EmbeddedNode> for Server {
             .await?;
 
         self.extern_server
-            .add_route::<Index, _>(ctx.address().clone())
+            .add_route::<ForwardToUi, _>(ctx.address().clone())
             .await?;
         self.extern_server
             .add_ws_route::<ClientLive, ViewProtocol, _>(ctx.address().clone())
@@ -93,6 +93,27 @@ impl InteractionHandler<Req<Index>> for Server {
     async fn handle(
         &mut self,
         _: Req<Index>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<Response<Body>, Error> {
+        let response = Response::builder().body(Body::from("Rill Export Inner Server"))?;
+        Ok(response)
+    }
+}
+
+#[derive(Default)]
+struct ForwardToUi;
+
+impl DirectPath for ForwardToUi {
+    fn paths() -> &'static [&'static str] {
+        &["/", "/index.html"]
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<Req<ForwardToUi>> for Server {
+    async fn handle(
+        &mut self,
+        _: Req<ForwardToUi>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
         let mut response = Response::builder()
