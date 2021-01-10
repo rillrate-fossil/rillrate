@@ -132,10 +132,11 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
     ) -> Result<Response<Body>, Error> {
         let mut buffer = String::new();
         for (path, record) in &self.metrics {
+            let info = &record.description.info;
             if let Some(data) = record.data.as_ref() {
                 let line = format!("# {}\n", path);
                 buffer.push_str(&line);
-                let line = format!("# {}\n", "<record.info>");
+                let line = format!("# {}\n", info);
                 buffer.push_str(&line);
                 let line = format!("{:?}\n", data);
                 buffer.push_str(&line);
