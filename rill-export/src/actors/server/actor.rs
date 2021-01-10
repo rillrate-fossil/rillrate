@@ -49,6 +49,9 @@ impl Actor for Server {
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.inner_server
+            .add_route::<Index, _>(ctx.address().clone())
+            .await?;
+        self.inner_server
             .add_ws_route::<ProviderLive, RillProtocol, _>(ctx.address().clone())
             .await?;
 
