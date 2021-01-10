@@ -15,7 +15,7 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-anyhow = "1.0.36"
+anyhow = "1.0.37"
 async-trait = "0.1.42"
 derive_more = "0.99.11"
 log = "0.4.11"
@@ -26,10 +26,10 @@ mime_guess = "2.0.3"
 rill-protocol = { version = "0.10.0", path = "../rill-protocol" }
 serde = "1.0.118"
 serde-pickle = "0.6.2"
-strum = "0.19.5"
-strum_macros = "0.19.4"
-thiserror = "1.0.22"
-tokio = { version = "0.2.22", features = ["full"] }
+strum = "0.20.0"
+strum_macros = "0.20.1"
+thiserror = "1.0.23"
+tokio = { version = "1.0.1", features = ["full"] }
 toml = "0.5.8"
 typed-slab = "0.1.0"
 
