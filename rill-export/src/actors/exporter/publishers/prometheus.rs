@@ -56,7 +56,7 @@ impl Actor for PrometheusPublisher {
 impl StartedBy<Exporter> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.server
-            .add_route::<RenderMetrics, _>(ctx.address().clone())
+            .add_route(RenderMetrics, ctx.address().clone())
             .await?;
         self.exporter
             .subscribe_to_paths(ctx.address().clone())

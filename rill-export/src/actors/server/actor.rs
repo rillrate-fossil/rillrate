@@ -49,23 +49,23 @@ impl Actor for Server {
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.inner_server
-            .add_route::<Index, _>(ctx.address().clone())
+            .add_route(Index, ctx.address().clone())
             .await?;
         self.inner_server
-            .add_ws_route::<ProviderLive, RillProtocol, _>(ctx.address().clone())
+            .add_ws_route::<_, RillProtocol, _>(ProviderLive, ctx.address().clone())
             .await?;
 
         self.extern_server
-            .add_route::<ForwardToUi, _>(ctx.address().clone())
+            .add_route(ForwardToUi, ctx.address().clone())
             .await?;
         self.extern_server
-            .add_ws_route::<ClientLive, ViewProtocol, _>(ctx.address().clone())
+            .add_ws_route::<_, ViewProtocol, _>(ClientLive, ctx.address().clone())
             .await?;
         self.extern_server
-            .add_route::<Ui, _>(ctx.address().clone())
+            .add_route(Ui, ctx.address().clone())
             .await?;
         self.extern_server
-            .add_route::<Info, _>(ctx.address().clone())
+            .add_route(Info, ctx.address().clone())
             .await?;
         Ok(())
     }
@@ -235,16 +235,20 @@ impl Eliminated<ClientSession> for Server {
 }
 
 #[derive(Default)]
-struct Ui {
+struct Ui;
+
+struct UiReq {
     tail: PathBuf,
 }
 
 impl FromRequest for Ui {
-    fn from_request(request: &Request<Body>) -> Option<Self> {
+    type Output = UiReq;
+
+    fn from_request(request: &Request<Body>) -> Option<Self::Output> {
         let path = request.uri().path();
         if path.starts_with("/ui/") {
             let tail = Path::new(&path[4..]).to_path_buf();
-            Some(Self { tail })
+            Some(UiReq { tail })
         } else {
             None
         }
@@ -283,10 +287,10 @@ impl Server {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<Ui>> for Server {
+impl InteractionHandler<Req<UiReq>> for Server {
     async fn handle(
         &mut self,
-        msg: Req<Ui>,
+        msg: Req<UiReq>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
         let mut path: &Path = msg.request.tail.as_ref();
