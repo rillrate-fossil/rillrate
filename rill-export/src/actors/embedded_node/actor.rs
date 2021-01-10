@@ -62,17 +62,24 @@ impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
             .unwrap_or_default();
 
         // Starting all basic actors
-        let addr = format!("{}:{}", config.server_address(), rill_protocol::PORT.get())
-            // TODO: Don't parse and unwrapping it
-            .parse()
-            .unwrap();
-        let http_server_actor = HttpServer::new(addr);
-        let http_server = ctx.spawn_actor(http_server_actor, Group::HttpServer);
+        // TODO: Don't parse it
+        let extern_addr = format!("{}:{}", config.server_address(), 9090).parse()?;
+        let extern_http_server_actor = HttpServer::new(extern_addr);
+        let extern_http_server = ctx.spawn_actor(extern_http_server_actor, Group::HttpServer);
 
-        let exporter_actor = Exporter::new(http_server.link());
+        // TODO: Don't parse it
+        let inner_addr = format!("127.0.0.1:{}", rill_protocol::PORT.get()).parse()?;
+        let inner_http_server_actor = HttpServer::new(inner_addr);
+        let inner_http_server = ctx.spawn_actor(inner_http_server_actor, Group::HttpServer);
+
+        let exporter_actor = Exporter::new(extern_http_server.link());
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
-        let server_actor = Server::new(http_server.link(), exporter.link());
+        let server_actor = Server::new(
+            inner_http_server.link(),
+            extern_http_server.link(),
+            exporter.link(),
+        );
         let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
 
         let mut exporter: ExporterLinkForClient = exporter.link();

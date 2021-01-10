@@ -18,16 +18,22 @@ use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
 pub struct Server {
-    server: HttpServerLink,
+    inner_server: HttpServerLink,
+    extern_server: HttpServerLink,
     exporter: Address<Exporter>,
     connected: bool,
     ui_path: PathBuf,
 }
 
 impl Server {
-    pub fn new(server: HttpServerLink, exporter: Address<Exporter>) -> Self {
+    pub fn new(
+        inner_server: HttpServerLink,
+        extern_server: HttpServerLink,
+        exporter: Address<Exporter>,
+    ) -> Self {
         Self {
-            server,
+            inner_server,
+            extern_server,
             exporter,
             connected: false,
             ui_path: Path::new(&crate::env::ui()).to_path_buf(),
@@ -42,19 +48,20 @@ impl Actor for Server {
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.server
-            .add_route::<Index, _>(ctx.address().clone())
-            .await?;
-        self.server
+        self.inner_server
             .add_ws_route::<ProviderLive, RillProtocol, _>(ctx.address().clone())
             .await?;
-        self.server
+
+        self.extern_server
+            .add_route::<Index, _>(ctx.address().clone())
+            .await?;
+        self.extern_server
             .add_ws_route::<ClientLive, ViewProtocol, _>(ctx.address().clone())
             .await?;
-        self.server
+        self.extern_server
             .add_route::<Ui, _>(ctx.address().clone())
             .await?;
-        self.server
+        self.extern_server
             .add_route::<Info, _>(ctx.address().clone())
             .await?;
         Ok(())
