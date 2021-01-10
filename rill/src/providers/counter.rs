@@ -1,6 +1,6 @@
 use super::ProtectedProvider;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::time::SystemTime;
 
 /// Providers `Counter` metrics that can increments only.
@@ -14,7 +14,11 @@ pub struct CounterProvider {
 impl CounterProvider {
     /// Creates a new provider instance.
     pub fn new(path: Path) -> Self {
-        let provider = ProtectedProvider::new(path, StreamType::CounterStream, 0.0);
+        let description = Description {
+            path,
+            stream_type: StreamType::CounterStream,
+        };
+        let provider = ProtectedProvider::new(description, 0.0);
         Self { provider }
     }
 

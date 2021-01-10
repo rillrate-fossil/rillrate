@@ -1,6 +1,6 @@
 use super::provider::Provider;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::time::SystemTime;
 
 /// This provider sends text messages.
@@ -12,7 +12,11 @@ pub struct LogProvider {
 impl LogProvider {
     /// Create a new instance of the `Provider`.
     pub fn new(path: Path) -> Self {
-        let provider = Provider::new(path, StreamType::LogStream);
+        let description = Description {
+            path,
+            stream_type: StreamType::LogStream,
+        };
+        let provider = Provider::new(description);
         Self { provider }
     }
 

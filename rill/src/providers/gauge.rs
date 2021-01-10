@@ -1,6 +1,6 @@
 use super::ProtectedProvider;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::time::SystemTime;
 
 /// Sends metrics as `gauge` that can change value to any.
@@ -14,7 +14,11 @@ pub struct GaugeProvider {
 impl GaugeProvider {
     /// Creates a new `Gauge` provider.
     pub fn new(path: Path) -> Self {
-        let provider = ProtectedProvider::new(path, StreamType::GaugeStream, 0.0);
+        let description = Description {
+            path,
+            stream_type: StreamType::GaugeStream,
+        };
+        let provider = ProtectedProvider::new(description, 0.0);
         Self { provider }
     }
 

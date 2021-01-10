@@ -3,7 +3,7 @@ use crate::state::{ControlEvent, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
-use rill_protocol::provider::{Description, Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::SystemTime;
@@ -61,12 +61,10 @@ pub struct Provider {
 }
 
 impl Provider {
-    // TODO: Expect description here (not separate args)
-    pub(crate) fn new(path: Path, stream_type: StreamType) -> Self {
-        log::trace!("Creating Provider with path: {:?}", path);
+    pub(crate) fn new(description: Description) -> Self {
+        log::trace!("Creating Provider with path: {:?}", description.path);
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(false);
-        let description = Description { path, stream_type };
         let joint = Arc::new(Joint::new(description));
         let this = Provider {
             active: active_rx,

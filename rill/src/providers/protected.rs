@@ -1,6 +1,6 @@
 use super::provider::Provider;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Path, StreamType};
+use rill_protocol::provider::Description;
 use std::sync::{Mutex, MutexGuard};
 
 /// Special wrapper to give shared access to the `Provider`.
@@ -13,8 +13,8 @@ pub struct ProtectedProvider<T> {
 }
 
 impl<T> ProtectedProvider<T> {
-    pub(super) fn new(path: Path, stream_type: StreamType, data: T) -> Self {
-        let provider = Provider::new(path, stream_type);
+    pub(super) fn new(description: Description, data: T) -> Self {
+        let provider = Provider::new(description);
         Self {
             provider,
             value: Mutex::new(data),
