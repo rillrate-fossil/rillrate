@@ -116,15 +116,10 @@ impl Provider {
     /// method to detect when to change it to awaiting state again.
     pub async fn when_activated(&mut self) -> Result<(), Error> {
         loop {
-            // TODO: Change to separate error type
-            let is_active = self
-                .active
-                .recv()
-                .await
-                .ok_or_else(|| Error::msg("rill is not available"))?;
-            if is_active {
+            if *self.active.borrow() {
                 break;
             }
+            self.active.changed().await?;
         }
         Ok(())
     }

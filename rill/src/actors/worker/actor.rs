@@ -45,7 +45,7 @@ impl JointHolder {
     /// It's force to show that's just changes the flag without any checks
     /// the data required or not.
     fn force_switch(&mut self, active: bool) {
-        if let Err(err) = self.active.broadcast(active) {
+        if let Err(err) = self.active.send(active) {
             log::error!(
                 "Can't switch the stream {} to {}: {}",
                 self.path,
