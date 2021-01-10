@@ -14,8 +14,10 @@ pub struct GaugeProvider {
 impl GaugeProvider {
     /// Creates a new `Gauge` provider.
     pub fn new(path: Path) -> Self {
+        let info = format!("{} gauge", path);
         let description = Description {
             path,
+            info,
             stream_type: StreamType::GaugeStream,
         };
         let provider = ProtectedProvider::new(description, 0.0);

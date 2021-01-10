@@ -371,6 +371,7 @@ impl fmt::Display for StreamType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Description {
     pub path: Path,
+    pub info: String,
     pub stream_type: StreamType,
 }
 

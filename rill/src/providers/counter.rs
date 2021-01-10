@@ -14,8 +14,10 @@ pub struct CounterProvider {
 impl CounterProvider {
     /// Creates a new provider instance.
     pub fn new(path: Path) -> Self {
+        let info = format!("{} counter", path);
         let description = Description {
             path,
+            info,
             stream_type: StreamType::CounterStream,
         };
         let provider = ProtectedProvider::new(description, 0.0);

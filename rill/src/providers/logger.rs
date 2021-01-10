@@ -12,8 +12,10 @@ pub struct LogProvider {
 impl LogProvider {
     /// Create a new instance of the `Provider`.
     pub fn new(path: Path) -> Self {
+        let info = format!("{} logger", path);
         let description = Description {
             path,
+            info,
             stream_type: StreamType::LogStream,
         };
         let provider = Provider::new(description);
