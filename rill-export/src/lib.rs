@@ -10,6 +10,7 @@ use anyhow::Error;
 
 metacrate::meta!();
 
+// TODO: Remove env vars here
 mod env {
     use std::env::var;
 
