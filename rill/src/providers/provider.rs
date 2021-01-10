@@ -3,7 +3,7 @@ use crate::state::{ControlEvent, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
-use rill_protocol::provider::{Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::SystemTime;
@@ -26,14 +26,14 @@ pub(crate) type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 pub(crate) struct Joint {
     /// The index of the binding in the `Worker`.
     idx: AtomicUsize,
-    path: Path,
+    description: Description,
 }
 
 impl Joint {
-    fn new(path: Path) -> Self {
+    fn new(description: Description) -> Self {
         Self {
             idx: AtomicUsize::new(0),
-            path,
+            description,
         }
     }
 
@@ -45,8 +45,8 @@ impl Joint {
         self.idx.load(Ordering::Relaxed)
     }
 
-    pub fn path(&self) -> &Path {
-        &self.path
+    pub fn description(&self) -> &Description {
+        &self.description
     }
 }
 
@@ -61,18 +61,19 @@ pub struct Provider {
 }
 
 impl Provider {
+    // TODO: Expect description here (not separate args)
     pub(crate) fn new(path: Path, stream_type: StreamType) -> Self {
         log::trace!("Creating Provider with path: {:?}", path);
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(false);
-        let joint = Arc::new(Joint::new(path));
+        let description = Description { path, stream_type };
+        let joint = Arc::new(Joint::new(description));
         let this = Provider {
             active: active_rx,
             joint: joint.clone(),
             sender: tx,
         };
         let event = ControlEvent::RegisterProvider {
-            stream_type,
             joint,
             active: active_tx,
             rx,
@@ -84,7 +85,7 @@ impl Provider {
 
     /// Returns a reference to a `Path` of the `Provider`.
     pub fn path(&self) -> &Path {
-        self.joint.path()
+        &self.joint.description().path
     }
 
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {

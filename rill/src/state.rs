@@ -2,7 +2,6 @@ use crate::providers::provider::{DataReceiver, Joint};
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use once_cell::sync::OnceCell;
-use rill_protocol::provider::StreamType;
 use std::sync::Arc;
 use tokio::sync::watch;
 
@@ -12,7 +11,6 @@ pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 pub(crate) enum ControlEvent {
     RegisterProvider {
         joint: Arc<Joint>,
-        stream_type: StreamType,
         active: watch::Sender<bool>,
         rx: DataReceiver,
     },
