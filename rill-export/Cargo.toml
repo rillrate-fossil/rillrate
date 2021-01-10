@@ -1,6 +1,6 @@
 [package]
 name = "rill-export"
-version = "0.10.0"
+version = "0.11.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",
@@ -23,7 +23,7 @@ meio = "0.70.0"
 meio-connect = "0.65.0"
 metacrate = "0.1.2"
 mime_guess = "2.0.3"
-rill-protocol = { version = "0.10.0", path = "../rill-protocol" }
+rill-protocol = { version = "0.11.0", path = "../rill-protocol" }
 serde = "1.0.118"
 serde-pickle = "0.6.2"
 strum = "0.20.0"
@@ -37,4 +37,4 @@ typed-slab = "0.1.0"
 ctrlc = "3.1.7"
 env_logger = "0.8.2"
 rand = "0.8.1"
-rill = { version = "0.10.0", path = "../rill" }
+rill = { version = "0.11.0", path = "../rill" }
