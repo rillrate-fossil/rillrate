@@ -7,8 +7,9 @@ use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
-use rill_protocol::provider::{Description, Path, RillData};
+use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::collections::BTreeMap;
+use std::convert::TryInto;
 
 #[derive(Debug)]
 struct Record {
@@ -133,12 +134,36 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
         let mut buffer = String::new();
         for (path, record) in &self.metrics {
             let info = &record.description.info;
-            if let Some(data) = record.data.as_ref() {
-                let line = format!("# {}\n", path);
+            if let Some(data) = record.data.clone() {
+                let name = path.as_ref().join("_");
+                let typ = match record.description.stream_type {
+                    StreamType::CounterStream => "counter",
+                    StreamType::GaugeStream => "gauge",
+                    _ => {
+                        log::error!(
+                            "Prometheus publisher is not supported type of stream: {}",
+                            record.description.stream_type
+                        );
+                        continue;
+                    }
+                };
+                let value: f64 = match data.try_into() {
+                    Ok(n) => n, // TODO: Round?
+                    Err(err) => {
+                        log::error!(
+                            "Can't convert data {:?} into a number: {}",
+                            record.data,
+                            err
+                        );
+                        continue;
+                    }
+                };
+                let line = format!("# HELP {}\n", info);
                 buffer.push_str(&line);
-                let line = format!("# {}\n", info);
+                let line = format!("# TYPE {} {}\n", name, typ);
                 buffer.push_str(&line);
-                let line = format!("{:?}\n", data);
+                // TODO: Add timestamp as well
+                let line = format!("{}={}\n\n", name, value);
                 buffer.push_str(&line);
             }
         }
