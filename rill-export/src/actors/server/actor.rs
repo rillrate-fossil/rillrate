@@ -55,19 +55,15 @@ impl Server {
         }
     }
 
-    async fn read_assets(&mut self) -> Result<AssetsMode, Error> {
-        if let Some(path) = crate::env::ui() {
-            let ui_path = Path::new(&path).to_path_buf();
-            let metadata = tokio::fs::metadata(&ui_path).await?;
-            if metadata.is_dir() {
-                Ok(AssetsMode::Local(ui_path))
-            } else {
-                let data = read_file(&ui_path).await?;
-                let assets = Assets::parse(&data)?;
-                Ok(AssetsMode::Packed(assets))
-            }
+    async fn read_assets(&mut self, path: &str) -> Result<AssetsMode, Error> {
+        let ui_path = Path::new(path).to_path_buf();
+        let metadata = tokio::fs::metadata(&ui_path).await?;
+        if metadata.is_dir() {
+            Ok(AssetsMode::Local(ui_path))
         } else {
-            Err(Error::msg(""))
+            let data = read_file(&ui_path).await?;
+            let assets = Assets::parse(&data)?;
+            Ok(AssetsMode::Packed(assets))
         }
     }
 }
@@ -79,17 +75,11 @@ impl Actor for Server {
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        match self.read_assets().await {
-            Ok(assets) => {
-                self.assets = assets;
-            }
-            Err(err) => {
-                ctx.spawn_task(FetchUiPack, ());
-                log::warn!(
-                    "Request cached from CDN and load it when downloaded: {}",
-                    err
-                );
-            }
+        if let Some(path) = crate::env::ui() {
+            log::warn!("Assets overriden to: {}", path);
+            self.read_assets(&path).await?;
+        } else {
+            ctx.spawn_task(FetchUiPack, ());
         }
 
         self.inner_server
