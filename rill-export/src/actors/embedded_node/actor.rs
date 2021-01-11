@@ -8,8 +8,11 @@ use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System, TaskEliminated, TaskError,
 };
 use meio_connect::server::HttpServer;
+use std::path::PathBuf;
 
-pub struct EmbeddedNode {}
+pub struct EmbeddedNode {
+    config_path: Option<PathBuf>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
@@ -24,8 +27,10 @@ impl Actor for EmbeddedNode {
 }
 
 impl EmbeddedNode {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(config_path: Option<PathBuf>) -> Self {
+        Self {
+            config_path,
+        }
     }
 }
 
@@ -38,9 +43,12 @@ impl StartedBy<System> for EmbeddedNode {
             Group::HttpServer,
             Group::Endpoints,
         ]);
-        let config_task = ReadConfigFile(crate::env::config());
-        ctx.spawn_task(config_task, Group::Tuning);
-
+        if let Some(config_path) = self.config_path.clone() {
+            let config_task = ReadConfigFile(config_path);
+            ctx.spawn_task(config_task, Group::Tuning);
+        } else {
+            log::info!("No config file provided. Default settings will be used.");
+        }
         Ok(())
     }
 }

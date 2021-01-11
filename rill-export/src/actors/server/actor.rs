@@ -66,6 +66,16 @@ impl Server {
             Ok(AssetsMode::Packed(assets))
         }
     }
+
+    async fn init_assets(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        if let Ok(path) = std::env::var("_ASSETS_") {
+            log::warn!("Assets overriden to: {}", path);
+            self.read_assets(&path).await?;
+        } else {
+            ctx.spawn_task(FetchUiPack, ());
+        }
+        Ok(())
+    }
 }
 
 impl Actor for Server {
@@ -75,13 +85,7 @@ impl Actor for Server {
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        if let Some(path) = crate::env::ui() {
-            log::warn!("Assets overriden to: {}", path);
-            self.read_assets(&path).await?;
-        } else {
-            ctx.spawn_task(FetchUiPack, ());
-        }
-
+        self.init_assets(ctx).await?;
         self.inner_server
             .add_route(Index, ctx.address().clone())
             .await?;

@@ -15,5 +15,6 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+anyhow = "1.0.38"
 rill = { version = "0.11.0", path = "../rill" }
 rill-export = { version = "0.11.0", path = "../rill-export" }
