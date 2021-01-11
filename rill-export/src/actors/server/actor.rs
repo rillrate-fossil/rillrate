@@ -1,3 +1,4 @@
+use super::Assets;
 use crate::actors::client_session::ClientSession;
 use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::exporter::Exporter;
@@ -17,12 +18,19 @@ use std::path::{Path, PathBuf};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
+enum AssetsMode {
+    Loading,
+    Local(PathBuf),
+    Packed(Assets),
+    //Proxy(Uri),
+}
+
 pub struct Server {
     inner_server: HttpServerLink,
     extern_server: HttpServerLink,
     exporter: Address<Exporter>,
     connected: bool,
-    ui_path: PathBuf,
+    assets: AssetsMode,
 }
 
 impl Server {
@@ -36,7 +44,7 @@ impl Server {
             extern_server,
             exporter,
             connected: false,
-            ui_path: Path::new(&crate::env::ui()).to_path_buf(),
+            assets: AssetsMode::Loading,
         }
     }
 }
@@ -48,6 +56,10 @@ impl Actor for Server {
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        // TODO: Check var
+        let ui_path = Path::new(&crate::env::ui()).to_path_buf();
+        self.assets = AssetsMode::Local(ui_path);
+
         self.inner_server
             .add_route(Index, ctx.address().clone())
             .await?;
@@ -273,16 +285,23 @@ impl Server {
     /// It used for UI-debugging purposes only.
     #[cfg(debug_assertions)]
     async fn load_content(&self, path: &Path) -> Result<Vec<u8>, Error> {
-        let mut full_path = self.ui_path.clone();
-        full_path.push(path);
-        log::warn!(
-            "Read overriden file asset from the path: {}",
-            full_path.display()
-        );
-        let mut file = File::open(full_path).await?;
-        let mut content = Vec::new();
-        file.read_to_end(&mut content).await?;
-        Ok(content)
+        match &self.assets {
+            AssetsMode::Local(ui_path) => {
+                let mut full_path = ui_path.clone();
+                full_path.push(path);
+                log::warn!(
+                    "Read overriden file asset from the path: {}",
+                    full_path.display()
+                );
+                let mut file = File::open(full_path).await?;
+                let mut content = Vec::new();
+                file.read_to_end(&mut content).await?;
+                Ok(content)
+            }
+            _ => {
+                todo!();
+            }
+        }
     }
 }
 
