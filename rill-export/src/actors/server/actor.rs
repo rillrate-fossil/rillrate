@@ -383,6 +383,7 @@ impl TaskEliminated<FetchUiPack> for Server {
         match result {
             Ok(assets) => {
                 self.assets = AssetsMode::Packed(assets);
+                log::info!("Assets pack attached.");
                 Ok(())
             }
             Err(err) => {
@@ -401,7 +402,8 @@ impl LiteTask for FetchUiPack {
     type Output = Assets;
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
-        let bytes = reqwest::get("https://ui.rillrate.com/rate-ui.tar.gz")
+        log::info!("Fetching UI assets...");
+        let bytes = reqwest::get("http://ui.rillrate.com/rate-ui.tar.gz")
             .await?
             .bytes()
             .await?;
