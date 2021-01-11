@@ -306,10 +306,10 @@ impl Server {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<UiReq>> for Server {
+impl InteractionHandler<Req<Ui>> for Server {
     async fn handle(
         &mut self,
-        msg: Req<UiReq>,
+        msg: Req<Ui>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
         let mut path: &Path = msg.request.tail.as_ref();
