@@ -18,8 +18,8 @@ mod env {
         var("RILL_CONFIG").unwrap_or_else(|_| "rill.toml".into())
     }
 
-    pub fn ui() -> String {
-        var("RILL_UI").unwrap_or_else(|_| ".".into())
+    pub fn ui() -> Option<String> {
+        var("RILL_UI").ok()
     }
 }
 

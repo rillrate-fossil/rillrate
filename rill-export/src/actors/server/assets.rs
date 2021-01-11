@@ -19,7 +19,7 @@ pub struct Assets {
 
 impl Assets {
     /// Expected gzipped tar file contents.
-    pub fn parse_assets(assets: &[u8]) -> Result<Assets, Error> {
+    pub fn parse(assets: &[u8]) -> Result<Assets, Error> {
         let tar = GzDecoder::new(assets);
         let mut archive = Archive::new(tar);
         let mut files = HashMap::new();

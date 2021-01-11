@@ -18,6 +18,13 @@ use std::path::{Path, PathBuf};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
+async fn read_file(path: &Path) -> Result<Vec<u8>, Error> {
+    let mut file = File::open(path).await?;
+    let mut content = Vec::new();
+    file.read_to_end(&mut content).await?;
+    Ok(content)
+}
+
 enum AssetsMode {
     Loading,
     Local(PathBuf),
@@ -47,6 +54,22 @@ impl Server {
             assets: AssetsMode::Loading,
         }
     }
+
+    async fn read_assets(&mut self) -> Result<AssetsMode, Error> {
+        if let Some(path) = crate::env::ui() {
+            let ui_path = Path::new(&path).to_path_buf();
+            let metadata = tokio::fs::metadata(&ui_path).await?;
+            if metadata.is_dir() {
+                Ok(AssetsMode::Local(ui_path))
+            } else {
+                let data = read_file(&ui_path).await?;
+                let assets = Assets::parse(&data)?;
+                Ok(AssetsMode::Packed(assets))
+            }
+        } else {
+            Err(Error::msg(""))
+        }
+    }
 }
 
 impl Actor for Server {
@@ -56,9 +79,17 @@ impl Actor for Server {
 #[async_trait]
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        // TODO: Check var
-        let ui_path = Path::new(&crate::env::ui()).to_path_buf();
-        self.assets = AssetsMode::Local(ui_path);
+        match self.read_assets().await {
+            Ok(assets) => {
+                self.assets = assets;
+            }
+            Err(err) => {
+                todo!(
+                    "Request cached from CDN and load it when downloaded: {}",
+                    err
+                );
+            }
+        }
 
         self.inner_server
             .add_route(Index, ctx.address().clone())
@@ -292,7 +323,21 @@ impl Server {
     /// It used for UI-debugging purposes only.
     #[cfg(debug_assertions)]
     async fn load_content(&self, path: &Path) -> Result<Vec<u8>, Error> {
+        use thiserror::Error;
+        #[derive(Debug, Error)]
+        enum Fail {
+            #[error("wrong path")]
+            WrongPath,
+            #[error("not found")]
+            NotFound,
+        }
+
         match &self.assets {
+            AssetsMode::Packed(assets) => {
+                let path = path.to_str().ok_or(Fail::WrongPath)?;
+                let content = assets.get(path).ok_or(Fail::NotFound)?.to_vec();
+                Ok(content)
+            }
             AssetsMode::Local(ui_path) => {
                 let mut full_path = ui_path.clone();
                 full_path.push(path);
@@ -300,12 +345,10 @@ impl Server {
                     "Read overriden file asset from the path: {}",
                     full_path.display()
                 );
-                let mut file = File::open(full_path).await?;
-                let mut content = Vec::new();
-                file.read_to_end(&mut content).await?;
+                let content = read_file(&full_path).await?;
                 Ok(content)
             }
-            _ => {
+            AssetsMode::Loading => {
                 todo!();
             }
         }
