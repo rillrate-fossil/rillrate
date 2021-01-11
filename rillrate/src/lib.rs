@@ -1,5 +1,9 @@
 mod env;
 
+pub use rill;
+pub use rill::prelude::*;
+pub use rill_export;
+
 use anyhow::Error;
 use rill::Rill;
 use rill_export::RillExport;

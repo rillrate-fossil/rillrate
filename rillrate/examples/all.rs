@@ -1,6 +1,5 @@
 use anyhow::Error;
-use rill::prelude::{CounterProvider, GaugeProvider, LogProvider, Rill};
-use rill_export::RillExport;
+use rillrate::{CounterProvider, GaugeProvider, LogProvider, RillRate};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -10,8 +9,7 @@ use std::time::Duration;
 
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
-    let _rill_export = RillExport::start()?;
-    let _rill = Rill::install("example")?;
+    let _rillrate = RillRate::from_env("all-example")?;
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));

@@ -28,9 +28,7 @@ impl Actor for EmbeddedNode {
 
 impl EmbeddedNode {
     pub fn new(config_path: Option<PathBuf>) -> Self {
-        Self {
-            config_path,
-        }
+        Self { config_path }
     }
 }
 
