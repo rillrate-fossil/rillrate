@@ -7,7 +7,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Address, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy,
-    StartedBy,
+    LiteTask, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
 use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
@@ -84,7 +84,8 @@ impl StartedBy<EmbeddedNode> for Server {
                 self.assets = assets;
             }
             Err(err) => {
-                todo!(
+                ctx.spawn_task(FetchUiPack, ());
+                log::warn!(
                     "Request cached from CDN and load it when downloaded: {}",
                     err
                 );
@@ -378,5 +379,42 @@ impl InteractionHandler<Req<Ui>> for Server {
                 Ok(response)
             }
         }
+    }
+}
+
+#[async_trait]
+impl TaskEliminated<FetchUiPack> for Server {
+    async fn handle(
+        &mut self,
+        _id: IdOf<FetchUiPack>,
+        result: Result<Assets, TaskError>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        match result {
+            Ok(assets) => {
+                self.assets = AssetsMode::Packed(assets);
+                Ok(())
+            }
+            Err(err) => {
+                // TODO: Schedule refetching...
+                log::error!("Can't load UI pack: {}", err);
+                Err(err.into())
+            }
+        }
+    }
+}
+
+pub struct FetchUiPack;
+
+#[async_trait]
+impl LiteTask for FetchUiPack {
+    type Output = Assets;
+
+    async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
+        let bytes = reqwest::get("https://ui.rillrate.com/rate-ui.tar.gz")
+            .await?
+            .bytes()
+            .await?;
+        Assets::parse(&bytes)
     }
 }

@@ -24,6 +24,7 @@ meio = "0.70.0"
 meio-connect = "0.65.0"
 metacrate = "0.1.2"
 mime_guess = "2.0.3"
+reqwest = "0.11.0"
 rill-protocol = { version = "0.11.0", path = "../rill-protocol" }
 serde = "1.0.118"
 serde-pickle = "0.6.2"
