@@ -64,14 +64,14 @@ impl StartedBy<EmbeddedNode> for Server {
             .add_route(Index, ctx.address().clone())
             .await?;
         self.inner_server
-            .add_ws_route::<_, RillProtocol, _>(ProviderLive, ctx.address().clone())
+            .add_ws_route(ProviderLive, ctx.address().clone())
             .await?;
 
         self.extern_server
             .add_route(ForwardToUi, ctx.address().clone())
             .await?;
         self.extern_server
-            .add_ws_route::<_, ViewProtocol, _>(ClientLive, ctx.address().clone())
+            .add_ws_route(ClientLive, ctx.address().clone())
             .await?;
         self.extern_server
             .add_route(Ui, ctx.address().clone())
@@ -95,6 +95,7 @@ impl InterruptedBy<EmbeddedNode> for Server {
 struct Index;
 
 impl DirectPath for Index {
+    type Parameter = ();
     fn paths() -> &'static [&'static str] {
         &["/", "/index.html"]
     }
@@ -116,6 +117,7 @@ impl InteractionHandler<Req<Index>> for Server {
 struct ForwardToUi;
 
 impl DirectPath for ForwardToUi {
+    type Parameter = ();
     fn paths() -> &'static [&'static str] {
         &["/", "/index.html"]
     }
@@ -143,6 +145,7 @@ impl InteractionHandler<Req<ForwardToUi>> for Server {
 struct Info;
 
 impl DirectPath for Info {
+    type Parameter = ();
     fn paths() -> &'static [&'static str] {
         &["/info"]
     }
@@ -168,16 +171,18 @@ impl InteractionHandler<Req<Info>> for Server {
 struct ProviderLive;
 
 impl DirectPath for ProviderLive {
+    type Parameter = RillProtocol;
+
     fn paths() -> &'static [&'static str] {
         &["/live/provider"]
     }
 }
 
 #[async_trait]
-impl ActionHandler<WsReq<ProviderLive, RillProtocol>> for Server {
+impl ActionHandler<WsReq<ProviderLive>> for Server {
     async fn handle(
         &mut self,
-        req: WsReq<ProviderLive, RillProtocol>,
+        req: WsReq<ProviderLive>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
@@ -213,16 +218,18 @@ impl Eliminated<ProviderSession> for Server {
 struct ClientLive;
 
 impl DirectPath for ClientLive {
+    type Parameter = ViewProtocol;
+
     fn paths() -> &'static [&'static str] {
         &["/live/client"]
     }
 }
 
 #[async_trait]
-impl ActionHandler<WsReq<ClientLive, ViewProtocol>> for Server {
+impl ActionHandler<WsReq<ClientLive>> for Server {
     async fn handle(
         &mut self,
-        req: WsReq<ClientLive, ViewProtocol>,
+        req: WsReq<ClientLive>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {

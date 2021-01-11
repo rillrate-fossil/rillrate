@@ -123,6 +123,7 @@ impl ActionHandler<ExportEvent> for PrometheusPublisher {
 struct RenderMetrics;
 
 impl DirectPath for RenderMetrics {
+    type Parameter = ();
     fn paths() -> &'static [&'static str] {
         &["/metrics"]
     }
