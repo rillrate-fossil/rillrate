@@ -38,7 +38,8 @@ impl StartedBy<System> for EmbeddedNode {
             Group::HttpServer,
             Group::Endpoints,
         ]);
-        ctx.spawn_task(ReadConfigFile, Group::Tuning);
+        let config_task = ReadConfigFile(crate::env::config());
+        ctx.spawn_task(config_task, Group::Tuning);
 
         Ok(())
     }

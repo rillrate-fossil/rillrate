@@ -5,6 +5,7 @@ use rill_protocol::provider::Path;
 use serde::{de, Deserialize, Deserializer};
 use std::collections::HashSet;
 use std::net::IpAddr;
+use std::path::PathBuf;
 use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -76,14 +77,14 @@ pub struct GraphiteConfig {
     pub interval: Option<u64>,
 }
 
-pub struct ReadConfigFile;
+pub struct ReadConfigFile(pub PathBuf);
 
 #[async_trait]
 impl LiteTask for ReadConfigFile {
     type Output = Config;
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
-        let mut file = File::open(crate::env::config()).await?;
+        let mut file = File::open(self.0).await?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents).await?;
         let config: Config = toml::from_slice(&contents)?;
