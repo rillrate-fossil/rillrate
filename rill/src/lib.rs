@@ -26,6 +26,7 @@ enum RillError {
 }
 
 /// The tracer instance that can be configured.
+#[derive(Debug)]
 pub struct Rill {
     _scoped: meio::thread::ScopedRuntime,
 }

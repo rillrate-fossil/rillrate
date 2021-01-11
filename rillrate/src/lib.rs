@@ -9,6 +9,7 @@ use rill::Rill;
 use rill_export::RillExport;
 
 /// `RillRate` tracer.
+#[derive(Debug)]
 pub struct RillRate {
     _rill_export: RillExport,
     _rill: Rill,

@@ -12,6 +12,7 @@ use std::path::PathBuf;
 metacrate::meta!();
 
 /// The standalone server that provides access to metrics in different ways.
+#[derive(Debug)]
 pub struct RillExport {
     _scoped_to_drop: meio::thread::ScopedRuntime,
 }
