@@ -1,6 +1,6 @@
 [package]
 name = "rillrate"
-version = "0.1.0"
+version = "0.12.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",
@@ -16,8 +16,8 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.38"
-rill = { version = "0.11.0", path = "../rill" }
-rill-export = { version = "0.11.0", path = "../rill-export" }
+rill = { version = "0.12.0", path = "../rill" }
+rill-export = { version = "0.12.0", path = "../rill-export" }
 
 [dev-dependencies]
 # TODO: Use own interruptor (with a flag)
