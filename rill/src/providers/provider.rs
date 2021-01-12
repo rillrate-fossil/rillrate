@@ -46,7 +46,7 @@ impl Provider {
             active: active_tx,
             rx,
         };
-        let state = RILL_STATE.get().expect("rill not installed!");
+        let state = RILL_STATE.get().expect("rill is not installed!");
         state.send(event);
         this
     }
@@ -93,5 +93,15 @@ impl Provider {
             self.active.changed().await?;
         }
         Ok(())
+    }
+}
+
+impl Drop for Provider {
+    fn drop(&mut self) {
+        let event = ControlEvent::UnRegisterProvider {
+            description: self.description.clone(),
+        };
+        let state = RILL_STATE.get().expect("rill was not installed!");
+        state.send(event);
     }
 }

@@ -15,6 +15,9 @@ pub(crate) enum ControlEvent {
         active: watch::Sender<Option<usize>>,
         rx: DataReceiver,
     },
+    UnRegisterProvider {
+        description: Arc<Description>,
+    },
 }
 
 impl Action for ControlEvent {}

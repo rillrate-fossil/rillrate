@@ -52,6 +52,8 @@ impl Joint {
     /// the data required or not.
     fn force_switch(&mut self, active: bool) {
         let flag = if active { Some(self.idx) } else { None };
+        // TODO: Implement Provider unregistering
+        // TODO: Check the watch is not closed
         if let Err(err) = self.active.send(flag) {
             log::error!(
                 "Can't switch the stream {} to {}: {}",
@@ -233,6 +235,28 @@ impl Consumer<ControlEvent> for RillWorker {
                         list: vec![description],
                     };
                     self.send_global(msg);
+                }
+            }
+            ControlEvent::UnRegisterProvider { description } => {
+                if let Some(pf_record) = self.index.remove(&description.path) {
+                    // TODO: Use `Record::try_into()?` instead of `get_link`
+                    if let Some(idx) = pf_record.get_link() {
+                        if self.joints.contains(*idx) {
+                            // TODO: Send to all subscribers that this stream was ended (or error).
+                            let mut joint = self.joints.remove(*idx);
+                            // Just check it was turned off, but actually
+                            // this code will be called when a provider dropped.
+                            joint.force_switch(false);
+                        // TODO: WARNING! The channel can contain not processed messages.
+                        // It's better to keep the idx for a while.
+                        } else {
+                            log::error!("FATAL! Inconsistent state of the joints slab.");
+                            // TODO: Return error here
+                        }
+                    } else {
+                        log::error!("Attempt to remove not linked path record.");
+                        // TODO: Return error here
+                    }
                 }
             }
         }
