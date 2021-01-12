@@ -8,11 +8,12 @@ authors = [
 edition = "2018"
 repository = "https://github.com/rate-technology/rill"
 homepage = "https://github.com/rate-technology/rill"
-description = "Dynamic logging and tracing system"
-categories = ["development-tools::debugging"]
-keywords = ["logging"]
+documentation = "https://docs.rs/rillrate/"
+license = "MIT/Apache-2.0"
 readme = "README.md"
-license = "MIT OR Apache-2.0"
+keywords = ["logging"]
+categories = ["development-tools::debugging"]
+description = "Dynamic logging and tracing system"
 
 [dependencies]
 anyhow = "1.0.38"
