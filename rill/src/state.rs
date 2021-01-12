@@ -11,7 +11,7 @@ pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 pub(crate) enum ControlEvent {
     RegisterProvider {
         joint: Arc<Joint>,
-        active: watch::Sender<bool>,
+        active: watch::Sender<Option<usize>>,
         rx: DataReceiver,
     },
 }

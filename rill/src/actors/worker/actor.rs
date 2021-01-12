@@ -26,15 +26,17 @@ use tokio::sync::watch;
 // of the 0,1,N items contained
 
 struct JointHolder {
+    idx: usize,
     joint: Arc<Joint>,
-    active: watch::Sender<bool>,
+    active: watch::Sender<Option<usize>>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
 }
 
 impl JointHolder {
-    fn new(joint: Arc<Joint>, active: watch::Sender<bool>) -> Self {
+    fn new(idx: usize, joint: Arc<Joint>, active: watch::Sender<Option<usize>>) -> Self {
         Self {
+            idx,
             joint,
             active,
             subscribers: HashSet::new(),
@@ -44,7 +46,8 @@ impl JointHolder {
     /// It's force to show that's just changes the flag without any checks
     /// the data required or not.
     fn force_switch(&mut self, active: bool) {
-        if let Err(err) = self.active.send(active) {
+        let flag = if active { Some(self.idx) } else { None };
+        if let Err(err) = self.active.send(flag) {
             log::error!(
                 "Can't switch the stream {} to {}: {}",
                 self.joint.description().path,
@@ -212,8 +215,7 @@ impl Consumer<ControlEvent> for RillWorker {
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
                 // TODO: How to return the idx without `Joint`?
-                joint.assign(idx);
-                let holder = JointHolder::new(joint, active);
+                let holder = JointHolder::new(idx, joint, active);
                 let holder_ref = entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path.clone()).set_link(idx);

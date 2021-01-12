@@ -4,7 +4,6 @@ use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use rill_protocol::provider::{Description, Path, RillData};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::watch;
@@ -24,25 +23,12 @@ pub(crate) type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 /// Used to control the streams and interaction between a sender and a receiver.
 #[derive(Debug)]
 pub(crate) struct Joint {
-    /// The index of the binding in the `Worker`.
-    idx: AtomicUsize,
     description: Description,
 }
 
 impl Joint {
     fn new(description: Description) -> Self {
-        Self {
-            idx: AtomicUsize::new(0),
-            description,
-        }
-    }
-
-    pub fn assign(&self, idx: usize) {
-        self.idx.store(idx, Ordering::Relaxed);
-    }
-
-    pub fn index(&self) -> usize {
-        self.idx.load(Ordering::Relaxed)
+        Self { description }
     }
 
     pub fn description(&self) -> &Description {
@@ -55,7 +41,7 @@ impl Joint {
 #[derive(Debug)]
 pub struct Provider {
     /// The receiver that used to activate/deactivate streams.
-    active: watch::Receiver<bool>,
+    active: watch::Receiver<Option<usize>>,
     joint: Arc<Joint>,
     sender: DataSender,
 }
@@ -64,7 +50,7 @@ impl Provider {
     pub(crate) fn new(description: Description) -> Self {
         log::trace!("Creating Provider with path: {:?}", description.path);
         let (tx, rx) = mpsc::unbounded();
-        let (active_tx, active_rx) = watch::channel(false);
+        let (active_tx, active_rx) = watch::channel(None);
         let joint = Arc::new(Joint::new(description));
         let this = Provider {
             active: active_rx,
@@ -87,14 +73,16 @@ impl Provider {
     }
 
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
-        let timestamp = timestamp.unwrap_or_else(SystemTime::now);
-        let envelope = DataEnvelope {
-            idx: self.joint.index(),
-            timestamp,
-            data,
-        };
-        if let Err(err) = self.sender.unbounded_send(envelope) {
-            log::error!("Can't transfer data to sender: {}", err);
+        if let Some(idx) = *self.active.borrow() {
+            let timestamp = timestamp.unwrap_or_else(SystemTime::now);
+            let envelope = DataEnvelope {
+                idx,
+                timestamp,
+                data,
+            };
+            if let Err(err) = self.sender.unbounded_send(envelope) {
+                log::error!("Can't transfer data to sender: {}", err);
+            }
         }
     }
 }
@@ -102,7 +90,7 @@ impl Provider {
 impl Provider {
     /// Returns `true` is the `Provider` has to send data.
     pub fn is_active(&self) -> bool {
-        *self.active.borrow()
+        self.active.borrow().is_some()
     }
 
     /// Use this method to detect when stream had activated.
@@ -115,7 +103,7 @@ impl Provider {
     /// method to detect when to change it to awaiting state again.
     pub async fn when_activated(&mut self) -> Result<(), Error> {
         loop {
-            if *self.active.borrow() {
+            if self.is_active() {
                 break;
             }
             self.active.changed().await?;
