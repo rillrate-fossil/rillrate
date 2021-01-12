@@ -20,29 +20,13 @@ impl Action for DataEnvelope {}
 pub(crate) type DataSender = mpsc::UnboundedSender<DataEnvelope>;
 pub(crate) type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
-/// Used to control the streams and interaction between a sender and a receiver.
-#[derive(Debug)]
-pub(crate) struct Joint {
-    description: Description,
-}
-
-impl Joint {
-    fn new(description: Description) -> Self {
-        Self { description }
-    }
-
-    pub fn description(&self) -> &Description {
-        &self.description
-    }
-}
-
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Provider`.
 #[derive(Debug)]
 pub struct Provider {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<Option<usize>>,
-    joint: Arc<Joint>,
+    description: Arc<Description>,
     sender: DataSender,
 }
 
@@ -51,14 +35,14 @@ impl Provider {
         log::trace!("Creating Provider with path: {:?}", description.path);
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(None);
-        let joint = Arc::new(Joint::new(description));
+        let description = Arc::new(description);
         let this = Provider {
             active: active_rx,
-            joint: joint.clone(),
+            description: description.clone(),
             sender: tx,
         };
         let event = ControlEvent::RegisterProvider {
-            joint,
+            description,
             active: active_tx,
             rx,
         };
@@ -69,7 +53,7 @@ impl Provider {
 
     /// Returns a reference to a `Path` of the `Provider`.
     pub fn path(&self) -> &Path {
-        &self.joint.description().path
+        &self.description.path
     }
 
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {

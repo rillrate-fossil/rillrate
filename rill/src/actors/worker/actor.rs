@@ -1,5 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::providers::provider::{DataEnvelope, Joint};
+use crate::providers::provider::DataEnvelope;
 use crate::state::ControlEvent;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -13,8 +13,8 @@ use meio_connect::{
 };
 use rill_protocol::pathfinder::{Pathfinder, Record};
 use rill_protocol::provider::{
-    Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
-    RillToServer, WideEnvelope,
+    Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
+    RillToProvider, RillToServer, WideEnvelope,
 };
 use slab::Slab;
 use std::collections::HashSet;
@@ -25,19 +25,25 @@ use tokio::sync::watch;
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
 // of the 0,1,N items contained
 
+// TODO: Rename to Joint
 struct JointHolder {
+    // TODO: How about remove it? Looks like it's enough to have `subscribers` field.
     idx: usize,
-    joint: Arc<Joint>,
+    description: Arc<Description>,
     active: watch::Sender<Option<usize>>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
 }
 
 impl JointHolder {
-    fn new(idx: usize, joint: Arc<Joint>, active: watch::Sender<Option<usize>>) -> Self {
+    fn new(
+        idx: usize,
+        description: Arc<Description>,
+        active: watch::Sender<Option<usize>>,
+    ) -> Self {
         Self {
             idx,
-            joint,
+            description,
             active,
             subscribers: HashSet::new(),
         }
@@ -50,7 +56,7 @@ impl JointHolder {
         if let Err(err) = self.active.send(flag) {
             log::error!(
                 "Can't switch the stream {} to {}: {}",
-                self.joint.description().path,
+                self.description.path,
                 active,
                 err
             );
@@ -143,7 +149,7 @@ impl RillWorker {
                     let stream_type = idx
                         .and_then(|idx| {
                             self.joints.get(*idx).map(|holder| {
-                                let stream_type = holder.joint.description().stream_type;
+                                let stream_type = holder.description.stream_type;
                                 EntryType::Stream(stream_type)
                             })
                         })
@@ -209,18 +215,21 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 impl Consumer<ControlEvent> for RillWorker {
     async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
         match event {
-            ControlEvent::RegisterProvider { joint, active, rx } => {
-                let path = joint.description().path.clone();
+            ControlEvent::RegisterProvider {
+                description,
+                active,
+                rx,
+            } => {
+                let path = description.path.clone();
                 log::debug!("Creating provider with path: {:?}", path);
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
-                // TODO: How to return the idx without `Joint`?
-                let holder = JointHolder::new(idx, joint, active);
+                let holder = JointHolder::new(idx, description, active);
                 let holder_ref = entry.insert(holder);
                 ctx.address().attach(rx);
                 self.index.dig(path.clone()).set_link(idx);
                 if self.describe {
-                    let description = holder_ref.joint.description().clone();
+                    let description = (&*holder_ref.description).clone();
                     let msg = RillToServer::Description {
                         list: vec![description],
                     };
@@ -306,7 +315,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                         let list = self
                             .joints
                             .iter()
-                            .map(|(_idx, holder)| holder.joint.description().clone())
+                            .map(|(_idx, holder)| (&*holder.description).clone())
                             .collect();
                         let msg = RillToServer::Description { list };
                         self.send_global(msg);

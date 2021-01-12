@@ -1,7 +1,8 @@
-use crate::providers::provider::{DataReceiver, Joint};
+use crate::providers::provider::DataReceiver;
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use once_cell::sync::OnceCell;
+use rill_protocol::provider::Description;
 use std::sync::Arc;
 use tokio::sync::watch;
 
@@ -10,7 +11,7 @@ pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
 pub(crate) enum ControlEvent {
     RegisterProvider {
-        joint: Arc<Joint>,
+        description: Arc<Description>,
         active: watch::Sender<Option<usize>>,
         rx: DataReceiver,
     },
