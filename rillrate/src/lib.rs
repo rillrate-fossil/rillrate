@@ -3,6 +3,7 @@ mod env;
 pub use rill;
 pub use rill::prelude::*;
 pub use rill_export;
+pub use rill_protocol;
 
 use anyhow::Error;
 use rill::Rill;
@@ -30,4 +31,6 @@ impl RillRate {
             _rill,
         })
     }
+
+    // TODO: Add `from_config` method
 }
