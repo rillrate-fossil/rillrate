@@ -9,10 +9,15 @@ use std::time::SystemTime;
 use tokio::sync::watch;
 
 #[derive(Debug)]
-pub(crate) struct DataEnvelope {
-    pub idx: usize,
-    pub timestamp: SystemTime,
-    pub data: RillData,
+pub(crate) enum DataEnvelope {
+    DataEvent {
+        idx: usize,
+        timestamp: SystemTime,
+        data: RillData,
+    },
+    EndStream {
+        description: Arc<Description>,
+    },
 }
 
 impl Action for DataEnvelope {}
@@ -59,7 +64,7 @@ impl Provider {
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
         if let Some(idx) = *self.active.borrow() {
             let timestamp = timestamp.unwrap_or_else(SystemTime::now);
-            let envelope = DataEnvelope {
+            let envelope = DataEnvelope::DataEvent {
                 idx,
                 timestamp,
                 data,
@@ -98,10 +103,14 @@ impl Provider {
 
 impl Drop for Provider {
     fn drop(&mut self) {
-        let event = ControlEvent::UnRegisterProvider {
+        let end_stream = DataEnvelope::EndStream {
             description: self.description.clone(),
         };
-        let state = RILL_STATE.get().expect("rill was not installed!");
-        state.send(event);
+        if let Err(_err) = self.sender.unbounded_send(end_stream) {
+            log::error!(
+                "Can't send `EndStream` to the worker actor from: {}",
+                self.description.path
+            );
+        }
     }
 }

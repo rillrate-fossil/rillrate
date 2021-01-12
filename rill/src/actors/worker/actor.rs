@@ -222,7 +222,7 @@ impl Consumer<ControlEvent> for RillWorker {
                 rx,
             } => {
                 let path = description.path.clone();
-                log::debug!("Creating provider with path: {:?}", path);
+                log::info!("Add provider: {:?}", path);
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
                 let joint = Joint::new(idx, description, active);
@@ -235,28 +235,6 @@ impl Consumer<ControlEvent> for RillWorker {
                         list: vec![description],
                     };
                     self.send_global(msg);
-                }
-            }
-            ControlEvent::UnRegisterProvider { description } => {
-                if let Some(pf_record) = self.index.remove(&description.path) {
-                    // TODO: Use `Record::try_into()?` instead of `get_link`
-                    if let Some(idx) = pf_record.get_link() {
-                        if self.joints.contains(*idx) {
-                            // TODO: Send to all subscribers that this stream was ended (or error).
-                            let mut joint = self.joints.remove(*idx);
-                            // Just check it was turned off, but actually
-                            // this code will be called when a provider dropped.
-                            joint.force_switch(false);
-                        // TODO: WARNING! The channel can contain not processed messages.
-                        // It's better to keep the idx for a while.
-                        } else {
-                            log::error!("FATAL! Inconsistent state of the joints slab.");
-                            // TODO: Return error here
-                        }
-                    } else {
-                        log::error!("Attempt to remove not linked path record.");
-                        // TODO: Return error here
-                    }
                 }
             }
         }
@@ -358,24 +336,49 @@ impl Consumer<DataEnvelope> for RillWorker {
         envelope: DataEnvelope,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        if let Some(joint) = self.joints.get(envelope.idx) {
-            let timestamp = envelope
-                .timestamp
-                .duration_since(SystemTime::UNIX_EPOCH)?
-                .into();
-            if !joint.subscribers.is_empty() {
-                let direction = Direction::from(&joint.subscribers);
-                let msg = RillToServer::Data {
-                    timestamp,
-                    data: envelope.data,
-                };
-                self.sender.response(direction, msg);
-            } else {
-                // Passive filtering in action:
-                // Never `Broasdcast` data events. If the `Data` message received
-                // for the empty subscribers list that means it was the late unprocessed
-                // data generated before the stream was deactivated.
-                // This late data has to be dropped.
+        match envelope {
+            DataEnvelope::DataEvent {
+                idx,
+                timestamp,
+                data,
+            } => {
+                if let Some(joint) = self.joints.get(idx) {
+                    let timestamp = timestamp.duration_since(SystemTime::UNIX_EPOCH)?.into();
+                    if !joint.subscribers.is_empty() {
+                        let direction = Direction::from(&joint.subscribers);
+                        let msg = RillToServer::Data { timestamp, data };
+                        self.sender.response(direction, msg);
+                    } else {
+                        // Passive filtering in action:
+                        // Never `Broasdcast` data events. If the `Data` message received
+                        // for the empty subscribers list that means it was the late unprocessed
+                        // data generated before the stream was deactivated.
+                        // This late data has to be dropped.
+                    }
+                } else {
+                    log::error!("No joint for index: {}", idx);
+                }
+            }
+            DataEnvelope::EndStream { description } => {
+                log::info!("Remove provider: {:?}", description.path);
+                // It's the last message in the stream. Safe to remove it from joints.
+                if let Some(pf_record) = self.index.remove(&description.path) {
+                    // TODO: Use `Record::try_into()?` instead of `get_link`
+                    if let Some(idx) = pf_record.get_link() {
+                        if self.joints.contains(*idx) {
+                            self.joints.remove(*idx);
+                        // The thread that dropped the provider can not exists anymore.
+                        // The switch message will never be delivered.
+                        // Not needed to switch off: `joint.force_switch(false);`
+                        } else {
+                            log::error!("FATAL! Inconsistent state of the joints slab.");
+                            // TODO: Return error here
+                        }
+                    } else {
+                        log::error!("Attempt to remove not linked path record.");
+                        // TODO: Return error here
+                    }
+                }
             }
         }
         Ok(())
