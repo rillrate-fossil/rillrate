@@ -25,8 +25,7 @@ use tokio::sync::watch;
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
 // of the 0,1,N items contained
 
-// TODO: Rename to Joint
-struct JointHolder {
+struct Joint {
     // TODO: How about remove it? Looks like it's enough to have `subscribers` field.
     idx: usize,
     description: Arc<Description>,
@@ -35,7 +34,7 @@ struct JointHolder {
     subscribers: HashSet<ProviderReqId>,
 }
 
-impl JointHolder {
+impl Joint {
     fn new(
         idx: usize,
         description: Arc<Description>,
@@ -104,7 +103,7 @@ pub struct RillWorker {
     sender: RillSender,
     index: Pathfinder<usize>,
     // TODO: Use TypedSlab here?
-    joints: Slab<JointHolder>,
+    joints: Slab<Joint>,
     describe: bool,
 }
 
@@ -148,8 +147,8 @@ impl RillWorker {
                 .map(|(entry_id, idx)| {
                     let stream_type = idx
                         .and_then(|idx| {
-                            self.joints.get(*idx).map(|holder| {
-                                let stream_type = holder.description.stream_type;
+                            self.joints.get(*idx).map(|joint| {
+                                let stream_type = joint.description.stream_type;
                                 EntryType::Stream(stream_type)
                             })
                         })
@@ -168,9 +167,9 @@ impl RillWorker {
     }
 
     fn stop_all(&mut self) {
-        for (_, holder) in self.joints.iter_mut() {
+        for (_, joint) in self.joints.iter_mut() {
             // TODO: Check there is no alive sessions or remove them before checking
-            holder.try_switch_off();
+            joint.try_switch_off();
         }
     }
 }
@@ -224,12 +223,12 @@ impl Consumer<ControlEvent> for RillWorker {
                 log::debug!("Creating provider with path: {:?}", path);
                 let entry = self.joints.vacant_entry();
                 let idx = entry.key();
-                let holder = JointHolder::new(idx, description, active);
-                let holder_ref = entry.insert(holder);
+                let joint = Joint::new(idx, description, active);
+                let joint_ref = entry.insert(joint);
                 ctx.address().attach(rx);
                 self.index.dig(path.clone()).set_link(idx);
                 if self.describe {
-                    let description = (&*holder_ref.description).clone();
+                    let description = (&*joint_ref.description).clone();
                     let msg = RillToServer::Description {
                         list: vec![description],
                     };
@@ -280,16 +279,16 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
             RillToProvider::ControlStream { path, active } => {
                 log::debug!("Switching the stream {:?} to {:?}", path, active);
                 if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
-                    if let Some(holder) = self.joints.get_mut(*idx) {
+                    if let Some(joint) = self.joints.get_mut(*idx) {
                         if active {
-                            holder.subscribers.insert(direct_id);
+                            joint.subscribers.insert(direct_id);
                             // Send it before the flag switched on
                             let msg = RillToServer::BeginStream;
                             self.sender.response(direct_id.into(), msg);
-                            holder.try_switch_on();
+                            joint.try_switch_on();
                         } else {
-                            holder.subscribers.remove(&direct_id);
-                            holder.try_switch_off();
+                            joint.subscribers.remove(&direct_id);
+                            joint.try_switch_off();
                             // Send it after the flag switched off
                             let msg = RillToServer::EndStream;
                             self.sender.response(direct_id.into(), msg);
@@ -315,7 +314,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                         let list = self
                             .joints
                             .iter()
-                            .map(|(_idx, holder)| (&*holder.description).clone())
+                            .map(|(_idx, joint)| (&*joint.description).clone())
                             .collect();
                         let msg = RillToServer::Description { list };
                         self.send_global(msg);
@@ -335,13 +334,13 @@ impl Consumer<DataEnvelope> for RillWorker {
         envelope: DataEnvelope,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        if let Some(holder) = self.joints.get(envelope.idx) {
+        if let Some(joint) = self.joints.get(envelope.idx) {
             let timestamp = envelope
                 .timestamp
                 .duration_since(SystemTime::UNIX_EPOCH)?
                 .into();
-            if !holder.subscribers.is_empty() {
-                let direction = Direction::from(&holder.subscribers);
+            if !joint.subscribers.is_empty() {
+                let direction = Direction::from(&joint.subscribers);
                 let msg = RillToServer::Data {
                     timestamp,
                     data: envelope.data,
