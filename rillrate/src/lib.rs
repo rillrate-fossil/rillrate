@@ -3,7 +3,7 @@ mod env;
 pub use rill;
 pub use rill::prelude::*;
 pub use rill_export;
-pub use rill_protocol;
+pub use rill_protocol as protocol;
 
 use anyhow::Error;
 use rill::Rill;
