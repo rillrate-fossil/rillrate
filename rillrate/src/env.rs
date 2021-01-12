@@ -1,6 +1,8 @@
 use std::env::{current_exe, var};
-use std::net::SocketAddr;
+//use std::net::{SocketAddr, Ipv4Addr};
 use std::path::PathBuf;
+
+// TODO: Refactor this module... Use proper error types with logging.
 
 pub fn config() -> PathBuf {
     var("RILL_CONFIG")
@@ -18,7 +20,8 @@ pub fn name() -> Option<String> {
     })
 }
 
-pub fn node() -> Option<SocketAddr> {
+/* TODO: Use this
+pub fn node() -> SocketAddr {
     var("RILL_NODE").ok().and_then(|s| {
         s.parse::<SocketAddr>()
             .map_err(|err| {
@@ -27,4 +30,10 @@ pub fn node() -> Option<SocketAddr> {
             })
             .ok()
     })
+    .unwrap_or_else(|| SocketAddr::new(Ipv4Addr::new(127, 0, 0, 1).into(), rill_protocol::PORT.get()))
+}
+*/
+
+pub fn standalone() -> bool {
+    var("RILL_EXPORT").is_ok()
 }

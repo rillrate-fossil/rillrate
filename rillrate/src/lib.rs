@@ -20,7 +20,7 @@ impl RillRate {
     pub fn from_env(default_name: &str) -> Result<Self, Error> {
         let config_path = Some(env::config());
         let mut _rill_export = None;
-        if env::node().is_none() {
+        if env::standalone() {
             _rill_export = Some(RillExport::start(config_path)?);
         }
         let name = env::name().unwrap_or_else(|| default_name.into());
