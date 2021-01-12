@@ -223,18 +223,23 @@ impl Consumer<ControlEvent> for RillWorker {
             } => {
                 let path = description.path.clone();
                 log::info!("Add provider: {:?}", path);
-                let entry = self.joints.vacant_entry();
-                let idx = entry.key();
-                let joint = Joint::new(idx, description, active);
-                let joint_ref = entry.insert(joint);
-                ctx.address().attach(rx);
-                self.index.dig(path.clone()).set_link(idx);
-                if self.describe {
-                    let description = (&*joint_ref.description).clone();
-                    let msg = RillToServer::Description {
-                        list: vec![description],
-                    };
-                    self.send_global(msg);
+                let record = self.index.dig(path.clone());
+                if record.get_link().is_none() {
+                    let entry = self.joints.vacant_entry();
+                    let idx = entry.key();
+                    let joint = Joint::new(idx, description, active);
+                    let joint_ref = entry.insert(joint);
+                    ctx.address().attach(rx);
+                    record.set_link(idx);
+                    if self.describe {
+                        let description = (&*joint_ref.description).clone();
+                        let msg = RillToServer::Description {
+                            list: vec![description],
+                        };
+                        self.send_global(msg);
+                    }
+                } else {
+                    log::error!("Provider for {} already registered.", path);
                 }
             }
         }
