@@ -72,6 +72,7 @@ impl Server {
     }
 
     async fn init_assets(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        // TODO: Don't allow to override assets for release builds
         if let Ok(path) = std::env::var("_ASSETS_") {
             self.assets = self.read_assets(&path).await?;
             log::warn!("Assets overriden to: {}", path);
@@ -317,10 +318,6 @@ impl Server {
         Ok(response)
     }
 
-    /// WARNING! This implementation serves any static files by any paths.
-    /// It's unsafe to use in prod, because you can load any file using `ui` endpoint.
-    /// It used for UI-debugging purposes only.
-    #[cfg(debug_assertions)]
     async fn load_content(&self, path: &Path) -> Result<Vec<u8>, Error> {
         use thiserror::Error;
         #[derive(Debug, Error)]
