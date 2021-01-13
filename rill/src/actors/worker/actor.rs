@@ -162,7 +162,7 @@ impl RillWorker {
             msg = RillToServer::Entries { entries };
         } else {
             log::trace!("No entry for {:?} to get a list", path);
-            let reason = format!("entry not found");
+            let reason = "entry not found".to_string();
             msg = RillToServer::Error { reason };
         }
         self.sender.response(direct_id.into(), msg);
@@ -305,27 +305,25 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                     }
                 } else {
                     log::warn!("Path not found: {:?}", path);
-                    let reason = format!("path not found");
+                    let reason = "path not found".to_string();
                     let msg = RillToServer::Error { reason };
                     self.sender.response(direct_id.into(), msg);
                 }
             }
             RillToProvider::ListOf { path } => {
-                self.send_list_for(direct_id.into(), &path);
+                self.send_list_for(direct_id, &path);
             }
             RillToProvider::Describe { active } => {
                 // TODO: Check or use `Direction` here?
-                if active {
-                    if !self.describe && !self.joints.is_empty() {
-                        // Send all exist paths
-                        let list = self
-                            .joints
-                            .iter()
-                            .map(|(_idx, joint)| (&*joint.description).clone())
-                            .collect();
-                        let msg = RillToServer::Description { list };
-                        self.send_global(msg);
-                    }
+                if active && !self.describe && !self.joints.is_empty() {
+                    // Send all exist paths
+                    let list = self
+                        .joints
+                        .iter()
+                        .map(|(_idx, joint)| (&*joint.description).clone())
+                        .collect();
+                    let msg = RillToServer::Description { list };
+                    self.send_global(msg);
                 }
                 self.describe = active;
             }
