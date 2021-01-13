@@ -8,7 +8,7 @@ use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, Interrupt
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
 use rill_protocol::provider::{Description, Path, RillData, StreamType, Timestamp};
-use std::collections::BTreeMap;
+use std::collections::btree_map::{BTreeMap, Entry};
 use std::convert::TryInto;
 
 #[derive(Debug)]
@@ -88,12 +88,12 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                 self.exporter
                     .subscribe_to_data(path.clone(), ctx.address().clone())
                     .await?;
-                if !self.metrics.contains_key(&path) {
+                if let Entry::Vacant(entry) = self.metrics.entry(path) {
                     let record = Record {
                         data: None,
                         description,
                     };
-                    self.metrics.insert(path, record);
+                    entry.insert(record);
                 }
             }
         }

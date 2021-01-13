@@ -27,7 +27,7 @@ impl Assets {
             let mut entry = entry?;
             let mut data = Vec::new();
             entry.read_to_end(&mut data)?;
-            if data.len() > 0 {
+            if !data.is_empty() {
                 let name = entry
                     .path()?
                     .to_str()

@@ -2,7 +2,7 @@ use super::ProviderSession;
 use anyhow::Error;
 use meio::prelude::{Action, Address, Interaction};
 use rill_protocol::provider::{Path, ProviderReqId, RillToProvider};
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -39,17 +39,15 @@ impl Interaction for NewRequest {
 
 impl ProviderSessionLink {
     pub async fn subscribe(&mut self, path: Path) -> Result<(), Error> {
-        if !self.subscriptions.contains_key(&path) {
-            let request = RillToProvider::ControlStream {
-                active: true,
-                path: path.clone(),
-            };
-            let msg = NewRequest { request };
-            let direct_id = self.address.interact(msg).await?;
-            self.subscriptions.insert(path, direct_id);
-            Ok(())
-        } else {
-            Err(Reason::AlreadySubscribed(path).into())
+        match self.subscriptions.entry(path.clone()) {
+            Entry::Vacant(entry) => {
+                let request = RillToProvider::ControlStream { active: true, path };
+                let msg = NewRequest { request };
+                let direct_id = self.address.interact(msg).await?;
+                entry.insert(direct_id);
+                Ok(())
+            }
+            Entry::Occupied(_entry) => Err(Reason::AlreadySubscribed(path).into()),
         }
     }
 }

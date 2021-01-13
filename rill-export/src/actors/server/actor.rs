@@ -295,8 +295,8 @@ impl FromRequest for Ui {
 
     fn from_request(request: &Request<Body>) -> Option<Self::Output> {
         let path = request.uri().path();
-        if path.starts_with("/ui/") {
-            let tail = Path::new(&path[4..]).to_path_buf();
+        if let Some(stripped) = path.strip_prefix("/ui/") {
+            let tail = Path::new(stripped).to_path_buf();
             Some(UiReq { tail })
         } else {
             None
