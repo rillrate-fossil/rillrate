@@ -67,14 +67,14 @@ impl Server {
                 Ok(AssetsMode::Packed(assets))
             }
         } else {
-            panic!("Can't load assets from {}", path);
+            Err(Error::msg(format!("Can't load assets from {}", path)))
         }
     }
 
     async fn init_assets(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         if let Ok(path) = std::env::var("_ASSETS_") {
+            self.assets = self.read_assets(&path).await?;
             log::warn!("Assets overriden to: {}", path);
-            self.read_assets(&path).await?;
         } else {
             ctx.spawn_task(FetchUiPack, ());
         }
