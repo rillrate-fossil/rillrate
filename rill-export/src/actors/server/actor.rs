@@ -57,13 +57,17 @@ impl Server {
 
     async fn read_assets(&mut self, path: &str) -> Result<AssetsMode, Error> {
         let ui_path = Path::new(path).to_path_buf();
-        let metadata = tokio::fs::metadata(&ui_path).await?;
-        if metadata.is_dir() {
-            Ok(AssetsMode::Local(ui_path))
+        if ui_path.exists() {
+            let metadata = tokio::fs::metadata(&ui_path).await?;
+            if metadata.is_dir() {
+                Ok(AssetsMode::Local(ui_path))
+            } else {
+                let data = read_file(&ui_path).await?;
+                let assets = Assets::parse(&data)?;
+                Ok(AssetsMode::Packed(assets))
+            }
         } else {
-            let data = read_file(&ui_path).await?;
-            let assets = Assets::parse(&data)?;
-            Ok(AssetsMode::Packed(assets))
+            panic!("Can't load assets from {}", path);
         }
     }
 
