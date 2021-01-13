@@ -78,12 +78,10 @@ impl<T> Record<T> {
         while let Some(element) = iter.next() {
             if iter.len() == 0 {
                 return record.subs.remove(element);
+            } else if let Some(next_record) = record.subs.get_mut(element) {
+                record = next_record;
             } else {
-                if let Some(next_record) = record.subs.get_mut(element) {
-                    record = next_record;
-                } else {
-                    break;
-                }
+                break;
             }
         }
         None

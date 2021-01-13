@@ -48,7 +48,7 @@ pub enum Direction<T: Origin> {
 }
 
 impl<T: Origin> Direction<T> {
-    pub fn to_vec(self) -> Vec<DirectId<T>> {
+    pub fn into_vec(self) -> Vec<DirectId<T>> {
         match self {
             Self::Direct(direct_id) => vec![direct_id],
             Self::Multicast(ids) => ids,
@@ -165,11 +165,7 @@ impl Path {
 
     #[deprecated(since = "0.4.0", note = "Use `split` method instead.")]
     pub fn subpath(&self, drop_left: usize) -> Path {
-        self.0[drop_left..]
-            .iter()
-            .cloned()
-            .collect::<Vec<_>>()
-            .into()
+        self.0[drop_left..].to_vec().into()
     }
 
     pub fn split(&self) -> (Option<EntryId>, Path) {
@@ -228,7 +224,7 @@ pub struct Timestamp(pub u128);
 
 impl From<Duration> for Timestamp {
     fn from(duration: Duration) -> Self {
-        Self(duration.as_millis().into())
+        Self(duration.as_millis())
     }
 }
 
