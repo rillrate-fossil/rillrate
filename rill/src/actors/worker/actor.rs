@@ -1,6 +1,6 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::providers::provider::DataEnvelope;
-use crate::state::{ProviderMode, RegisterProvider};
+use crate::state::RegisterProvider;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -29,13 +29,14 @@ use tokio::sync::watch;
 struct Joint {
     snapshot: Option<RillData>,
     description: Arc<Description>,
-    activator: watch::Sender<bool>,
+    /// If the provider hasn't activator channel that means it's active always.
+    activator: Option<watch::Sender<bool>>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
 }
 
 impl Joint {
-    fn new(description: Arc<Description>, activator: watch::Sender<bool>) -> Self {
+    fn new(description: Arc<Description>, activator: Option<watch::Sender<bool>>) -> Self {
         Self {
             snapshot: None,
             description,
@@ -49,13 +50,17 @@ impl Joint {
     fn force_switch(&mut self, active: bool) {
         // TODO: Implement Provider unregistering
         // TODO: Check the watch is not closed
-        if let Err(err) = self.activator.send(active) {
-            log::error!(
-                "Can't switch the stream {} to {}: {}",
-                self.description.path,
-                active,
-                err
-            );
+
+        // Use activator it it's reactive/lazy stream.
+        if let Some(activator) = self.activator.as_mut() {
+            if let Err(err) = activator.send(active) {
+                log::error!(
+                    "Can't switch the stream {} to {}: {}",
+                    self.description.path,
+                    active,
+                    err
+                );
+            }
         }
     }
 
@@ -241,23 +246,20 @@ impl Consumer<RegisterProvider> for RillWorker {
         log::info!("Add provider: {:?}", path);
         let record = self.index.dig(path.clone());
         if record.get_link().is_none() {
-            match mode {
-                ProviderMode::Reactive { activator } => {
-                    let entry = self.joints.vacant_entry();
-                    let idx = entry.key();
-                    let joint = Joint::new(description, activator);
-                    let joint_ref = entry.insert(joint);
-                    let stream = rx.map(move |data_envelope| (idx, data_envelope));
-                    ctx.address().attach(stream);
-                    record.set_link(idx);
-                    if self.describe {
-                        let description = (&*joint_ref.description).clone();
-                        let msg = RillToServer::Description {
-                            list: vec![description],
-                        };
-                        self.send_global(msg);
-                    }
-                }
+            let activator = mode.into();
+            let entry = self.joints.vacant_entry();
+            let idx = entry.key();
+            let joint = Joint::new(description, activator);
+            let joint_ref = entry.insert(joint);
+            let stream = rx.map(move |data_envelope| (idx, data_envelope));
+            ctx.address().attach(stream);
+            record.set_link(idx);
+            if self.describe {
+                let description = (&*joint_ref.description).clone();
+                let msg = RillToServer::Description {
+                    list: vec![description],
+                };
+                self.send_global(msg);
             }
         } else {
             log::error!("Provider for {} already registered.", path);

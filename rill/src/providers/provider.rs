@@ -35,18 +35,24 @@ pub struct Provider {
 }
 
 impl Provider {
-    pub(crate) fn new(description: Description) -> Self {
+    pub(crate) fn new(description: Description, active: bool) -> Self {
         log::trace!("Creating Provider with path: {:?}", description.path);
         let (tx, rx) = mpsc::unbounded();
-        let (active_tx, active_rx) = watch::channel(false);
+        let (active_tx, active_rx) = watch::channel(active);
         let description = Arc::new(description);
         let this = Provider {
             active: active_rx,
             description: description.clone(),
             sender: tx,
         };
-        let mode = ProviderMode::Reactive {
-            activator: active_tx,
+        let mode = {
+            if active {
+                ProviderMode::Active
+            } else {
+                ProviderMode::Reactive {
+                    activator: active_tx,
+                }
+            }
         };
         let event = RegisterProvider {
             description,

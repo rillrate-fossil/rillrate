@@ -14,7 +14,7 @@ pub struct ProtectedProvider<T> {
 
 impl<T> ProtectedProvider<T> {
     pub(super) fn new(description: Description, data: T) -> Self {
-        let provider = Provider::new(description);
+        let provider = Provider::new(description, false);
         Self {
             provider,
             value: Mutex::new(data),

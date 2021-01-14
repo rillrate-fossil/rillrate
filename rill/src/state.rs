@@ -9,25 +9,24 @@ use tokio::sync::watch;
 /// It used by providers to register them into the state.
 pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
-/*
 pub(crate) enum ProviderMode {
     /// Always active stream. Worker can create snapshots for that.
-    Active {
-        // TODO: Add id that acquired from a counter
-    },
-    Reactive {
-        activator: watch::Sender<Option<usize>>,
-    },
-}
-*/
-
-pub(crate) enum ProviderMode {
+    Active,
     /// Lazy stream that can be activates. No snapshots available for that. Deltas only.
     Reactive {
         /// Used to to activate a `Provider.` The value set represents the index of
         /// the stream inside `Worker` that has to be used for sending messages.
         activator: watch::Sender<bool>,
     },
+}
+
+impl Into<Option<watch::Sender<bool>>> for ProviderMode {
+    fn into(self) -> Option<watch::Sender<bool>> {
+        match self {
+            Self::Active => None,
+            Self::Reactive { activator } => Some(activator),
+        }
+    }
 }
 
 pub(crate) struct RegisterProvider {

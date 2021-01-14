@@ -18,7 +18,7 @@ impl LogProvider {
             info,
             stream_type: StreamType::LogStream,
         };
-        let provider = Provider::new(description);
+        let provider = Provider::new(description, false);
         Self { provider }
     }
 
