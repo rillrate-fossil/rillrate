@@ -1,5 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::providers::{provider::DataEnvelope, GaugeProvider};
+use crate::providers::{provider::DataEnvelope, GaugeProvider, LogProvider};
 use crate::state::{ProviderMode, RegisterProvider};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -134,21 +134,29 @@ impl RillSender {
 /// Meta Providers
 struct RillMeta {
     total_subscribers: GaugeProvider,
+    actions_log: LogProvider,
 }
 
 impl RillMeta {
     fn new() -> Self {
         Self {
             total_subscribers: GaugeProvider::new("_meta_.total".parse().unwrap()),
+            actions_log: LogProvider::new("_meta_.actions".parse().unwrap()),
         }
     }
 
-    fn subscriber_added(&self) {
+    fn subscriber_added(&self, id: usize) {
         self.total_subscribers.inc(1.0, None);
+        // TODO: Check the logger is active before generating a string
+        self.actions_log
+            .log(format!("add a subscriber with id: {}", id), None);
     }
 
-    fn subscriber_removed(&self) {
+    fn subscriber_removed(&self, id: usize) {
         self.total_subscribers.dec(1.0, None);
+        // TODO: Check the logger is active before generating a string
+        self.actions_log
+            .log(format!("remove a subscriber with id: {}", id), None);
     }
 }
 
@@ -366,7 +374,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                     if let Some(joint) = self.joints.get_mut(*idx) {
                         if active {
                             if joint.subscribers.insert(direct_id) {
-                                self.meta.subscriber_added();
+                                self.meta.subscriber_added(direct_id.into());
                             }
                             let snapshot = joint.get_latest_snapshot();
                             let msg = RillToServer::BeginStream { snapshot };
@@ -375,7 +383,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                             joint.try_switch_on();
                         } else {
                             if joint.subscribers.remove(&direct_id) {
-                                self.meta.subscriber_removed();
+                                self.meta.subscriber_removed(direct_id.into());
                             }
                             joint.try_switch_off();
                             // Send it after the flag switched off
