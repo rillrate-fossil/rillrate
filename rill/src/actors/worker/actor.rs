@@ -13,8 +13,8 @@ use meio_connect::{
 };
 use rill_protocol::pathfinder::{Pathfinder, Record};
 use rill_protocol::provider::{
-    Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillProtocol,
-    RillToProvider, RillToServer, WideEnvelope,
+    Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillData,
+    RillProtocol, RillToProvider, RillToServer, WideEnvelope,
 };
 use slab::Slab;
 use std::collections::HashSet;
@@ -28,6 +28,7 @@ use tokio::sync::watch;
 struct Joint {
     // TODO: How about remove it? Looks like it's enough to have `subscribers` field.
     idx: usize,
+    snapshot: Option<RillData>,
     description: Arc<Description>,
     activator: watch::Sender<Option<usize>>,
     /// Remote Subscribers on the server.
@@ -42,6 +43,7 @@ impl Joint {
     ) -> Self {
         Self {
             idx,
+            snapshot: None,
             description,
             activator,
             subscribers: HashSet::new(),
@@ -294,8 +296,9 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                     if let Some(joint) = self.joints.get_mut(*idx) {
                         if active {
                             joint.subscribers.insert(direct_id);
+                            let snapshot = joint.snapshot.clone();
+                            let msg = RillToServer::BeginStream { snapshot };
                             // Send it before the flag switched on
-                            let msg = RillToServer::BeginStream { snapshot: None };
                             self.sender.response(direct_id.into(), msg);
                             joint.try_switch_on();
                         } else {
