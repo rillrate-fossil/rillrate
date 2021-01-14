@@ -389,7 +389,9 @@ pub enum RillToServer {
     },
     // Snapshot { data: RillData },
     /// The response to `ControlStream { active: true }` request
-    BeginStream,
+    BeginStream {
+        snapshot: Option<RillData>,
+    },
     Data {
         timestamp: Timestamp,
         data: RillData,

@@ -290,7 +290,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                         if active {
                             joint.subscribers.insert(direct_id);
                             // Send it before the flag switched on
-                            let msg = RillToServer::BeginStream;
+                            let msg = RillToServer::BeginStream { snapshot: None };
                             self.sender.response(direct_id.into(), msg);
                             joint.try_switch_on();
                         } else {

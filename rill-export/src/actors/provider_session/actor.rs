@@ -116,7 +116,9 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
                     );
                 }
             }
-            RillToServer::BeginStream => {}
+            RillToServer::BeginStream { snapshot } => {
+                log::trace!("Snapshot received: {:?}", snapshot);
+            }
             RillToServer::EndStream => {}
             RillToServer::Declare { entry_id } => {
                 self.registered = Some(entry_id);
