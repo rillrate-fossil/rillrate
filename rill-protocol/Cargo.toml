@@ -1,6 +1,6 @@
 [package]
 name = "rill-protocol"
-version = "0.15.0"
+version = "0.16.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",

@@ -1,6 +1,6 @@
 [package]
 name = "rillrate"
-version = "0.15.0"
+version = "0.16.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",
@@ -18,9 +18,9 @@ description = "Dynamic logging and tracing system"
 [dependencies]
 anyhow = "1.0.38"
 log = "0.4.13"
-rill = { version = "0.15.0", path = "../rill" }
-rill-export = { version = "0.15.0", path = "../rill-export" }
-rill-protocol = { version = "0.15.0", path = "../rill-protocol" }
+rill = { version = "0.16.0", path = "../rill" }
+rill-export = { version = "0.16.0", path = "../rill-export" }
+rill-protocol = { version = "0.16.0", path = "../rill-protocol" }
 
 [dev-dependencies]
 # TODO: Use own interruptor (with a flag)
