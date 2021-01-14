@@ -28,7 +28,11 @@ use tokio::sync::watch;
 
 enum JointMode {
     /// Always active channel. It can contain an ACTUAL snapshot.
-    ActiveProvider { snapshot: Option<RillData> },
+    ActiveProvider {
+        /// The snapshot wrapped with `Option`, because no any garantee that
+        /// the `Provider` will send any data. Or it can do sending quite rare.
+        snapshot: Option<RillData>,
+    },
     /// Reactive channel that send updates only when they requested.
     ReactiveProvider { activator: watch::Sender<bool> },
 }
@@ -38,6 +42,14 @@ impl From<ProviderMode> for JointMode {
         match mode {
             ProviderMode::Active => Self::ActiveProvider { snapshot: None },
             ProviderMode::Reactive { activator } => Self::ReactiveProvider { activator },
+        }
+    }
+}
+
+impl JointMode {
+    fn update_snapshot(&mut self, data: &RillData) {
+        if let JointMode::ActiveProvider { snapshot } = self {
+            *snapshot = Some(data.to_owned());
         }
     }
 }
@@ -384,8 +396,9 @@ impl Consumer<(usize, DataEnvelope)> for RillWorker {
     ) -> Result<(), Error> {
         match envelope {
             DataEnvelope::DataEvent { timestamp, data } => {
-                if let Some(joint) = self.joints.get(idx) {
+                if let Some(joint) = self.joints.get_mut(idx) {
                     let timestamp = timestamp.duration_since(SystemTime::UNIX_EPOCH)?.into();
+                    joint.mode.update_snapshot(&data);
                     if !joint.subscribers.is_empty() {
                         let direction = Direction::from(&joint.subscribers);
                         let msg = RillToServer::Data { timestamp, data };
