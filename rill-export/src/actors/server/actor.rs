@@ -408,6 +408,7 @@ impl LiteTask for FetchUiPack {
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
         log::info!("Fetching UI assets...");
+        // TODO: Change to https
         let bytes = reqwest::get("http://ui.rillrate.com/rate-ui.tar.gz")
             .await?
             .bytes()
