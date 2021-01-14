@@ -1,6 +1,6 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::providers::provider::DataEnvelope;
-use crate::state::RegisterProvider;
+use crate::state::{ProviderMode, RegisterProvider};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -26,22 +26,43 @@ use tokio::sync::watch;
 // TODO: Add `DirectionSet` that can give `Direction` value that depends
 // of the 0,1,N items contained
 
+enum JointMode {
+    /// Always active channel. It can contain an ACTUAL snapshot.
+    ActiveProvider { snapshot: Option<RillData> },
+    /// Reactive channel that send updates only when they requested.
+    ReactiveProvider { activator: watch::Sender<bool> },
+}
+
+impl From<ProviderMode> for JointMode {
+    fn from(mode: ProviderMode) -> Self {
+        match mode {
+            ProviderMode::Active => Self::ActiveProvider { snapshot: None },
+            ProviderMode::Reactive { activator } => Self::ReactiveProvider { activator },
+        }
+    }
+}
+
 struct Joint {
-    snapshot: Option<RillData>,
     description: Arc<Description>,
-    /// If the provider hasn't activator channel that means it's active always.
-    activator: Option<watch::Sender<bool>>,
+    mode: JointMode,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
 }
 
 impl Joint {
-    fn new(description: Arc<Description>, activator: Option<watch::Sender<bool>>) -> Self {
+    fn new(description: Arc<Description>, mode: JointMode) -> Self {
         Self {
-            snapshot: None,
             description,
-            activator,
+            mode,
             subscribers: HashSet::new(),
+        }
+    }
+
+    fn get_latest_snapshot(&self) -> Option<RillData> {
+        if let JointMode::ActiveProvider { snapshot } = &self.mode {
+            snapshot.clone()
+        } else {
+            None
         }
     }
 
@@ -51,8 +72,8 @@ impl Joint {
         // TODO: Implement Provider unregistering
         // TODO: Check the watch is not closed
 
-        // Use activator it it's reactive/lazy stream.
-        if let Some(activator) = self.activator.as_mut() {
+        // Use activator if the underlying provider is a reactive/lazy stream.
+        if let JointMode::ReactiveProvider { activator } = &mut self.mode {
             if let Err(err) = activator.send(active) {
                 log::error!(
                     "Can't switch the stream {} to {}: {}",
@@ -310,7 +331,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                     if let Some(joint) = self.joints.get_mut(*idx) {
                         if active {
                             joint.subscribers.insert(direct_id);
-                            let snapshot = joint.snapshot.clone();
+                            let snapshot = joint.get_latest_snapshot();
                             let msg = RillToServer::BeginStream { snapshot };
                             // Send it before the flag switched on
                             self.sender.response(direct_id.into(), msg);

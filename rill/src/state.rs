@@ -20,15 +20,6 @@ pub(crate) enum ProviderMode {
     },
 }
 
-impl Into<Option<watch::Sender<bool>>> for ProviderMode {
-    fn into(self) -> Option<watch::Sender<bool>> {
-        match self {
-            Self::Active => None,
-            Self::Reactive { activator } => Some(activator),
-        }
-    }
-}
-
 pub(crate) struct RegisterProvider {
     pub description: Arc<Description>,
     pub mode: ProviderMode,
