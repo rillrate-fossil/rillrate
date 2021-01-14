@@ -11,7 +11,6 @@ use tokio::sync::watch;
 #[derive(Debug)]
 pub(crate) enum DataEnvelope {
     DataEvent {
-        idx: usize,
         timestamp: SystemTime,
         data: RillData,
     },
@@ -30,7 +29,7 @@ pub(crate) type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 #[derive(Debug)]
 pub struct Provider {
     /// The receiver that used to activate/deactivate streams.
-    active: watch::Receiver<Option<usize>>,
+    active: watch::Receiver<bool>,
     description: Arc<Description>,
     sender: DataSender,
 }
@@ -39,7 +38,7 @@ impl Provider {
     pub(crate) fn new(description: Description) -> Self {
         log::trace!("Creating Provider with path: {:?}", description.path);
         let (tx, rx) = mpsc::unbounded();
-        let (active_tx, active_rx) = watch::channel(None);
+        let (active_tx, active_rx) = watch::channel(false);
         let description = Arc::new(description);
         let this = Provider {
             active: active_rx,
@@ -65,13 +64,9 @@ impl Provider {
     }
 
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
-        if let Some(idx) = *self.active.borrow() {
+        if *self.active.borrow() {
             let timestamp = timestamp.unwrap_or_else(SystemTime::now);
-            let envelope = DataEnvelope::DataEvent {
-                idx,
-                timestamp,
-                data,
-            };
+            let envelope = DataEnvelope::DataEvent { timestamp, data };
             if let Err(err) = self.sender.unbounded_send(envelope) {
                 log::error!("Can't transfer data to sender: {}", err);
             }
@@ -82,7 +77,7 @@ impl Provider {
 impl Provider {
     /// Returns `true` is the `Provider` has to send data.
     pub fn is_active(&self) -> bool {
-        self.active.borrow().is_some()
+        *self.active.borrow()
     }
 
     /// Use this method to detect when stream had activated.

@@ -26,7 +26,7 @@ pub(crate) enum ProviderMode {
     Reactive {
         /// Used to to activate a `Provider.` The value set represents the index of
         /// the stream inside `Worker` that has to be used for sending messages.
-        activator: watch::Sender<Option<usize>>,
+        activator: watch::Sender<bool>,
     },
 }
 

@@ -3,6 +3,7 @@ use crate::providers::provider::DataEnvelope;
 use crate::state::{ProviderMode, RegisterProvider};
 use anyhow::Error;
 use async_trait::async_trait;
+use futures::StreamExt;
 use meio::prelude::{
     ActionHandler, Actor, Consumer, Context, IdOf, InstantActionHandler, InterruptedBy, StartedBy,
     TaskEliminated, TaskError,
@@ -26,23 +27,16 @@ use tokio::sync::watch;
 // of the 0,1,N items contained
 
 struct Joint {
-    // TODO: How about remove it? Looks like it's enough to have `subscribers` field.
-    idx: usize,
     snapshot: Option<RillData>,
     description: Arc<Description>,
-    activator: watch::Sender<Option<usize>>,
+    activator: watch::Sender<bool>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
 }
 
 impl Joint {
-    fn new(
-        idx: usize,
-        description: Arc<Description>,
-        activator: watch::Sender<Option<usize>>,
-    ) -> Self {
+    fn new(description: Arc<Description>, activator: watch::Sender<bool>) -> Self {
         Self {
-            idx,
             snapshot: None,
             description,
             activator,
@@ -53,10 +47,9 @@ impl Joint {
     /// It's force to show that's just changes the flag without any checks
     /// the data required or not.
     fn force_switch(&mut self, active: bool) {
-        let flag = if active { Some(self.idx) } else { None };
         // TODO: Implement Provider unregistering
         // TODO: Check the watch is not closed
-        if let Err(err) = self.activator.send(flag) {
+        if let Err(err) = self.activator.send(active) {
             log::error!(
                 "Can't switch the stream {} to {}: {}",
                 self.description.path,
@@ -234,9 +227,10 @@ impl Consumer<RegisterProvider> for RillWorker {
                 ProviderMode::Reactive { activator } => {
                     let entry = self.joints.vacant_entry();
                     let idx = entry.key();
-                    let joint = Joint::new(idx, description, activator);
+                    let joint = Joint::new(description, activator);
                     let joint_ref = entry.insert(joint);
-                    ctx.address().attach(rx);
+                    let stream = rx.map(move |data_envelope| (idx, data_envelope));
+                    ctx.address().attach(stream);
                     record.set_link(idx);
                     if self.describe {
                         let description = (&*joint_ref.description).clone();
@@ -341,18 +335,14 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
 }
 
 #[async_trait]
-impl Consumer<DataEnvelope> for RillWorker {
+impl Consumer<(usize, DataEnvelope)> for RillWorker {
     async fn handle(
         &mut self,
-        envelope: DataEnvelope,
+        (idx, envelope): (usize, DataEnvelope),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match envelope {
-            DataEnvelope::DataEvent {
-                idx,
-                timestamp,
-                data,
-            } => {
+            DataEnvelope::DataEvent { timestamp, data } => {
                 if let Some(joint) = self.joints.get(idx) {
                     let timestamp = timestamp.duration_since(SystemTime::UNIX_EPOCH)?.into();
                     if !joint.subscribers.is_empty() {
