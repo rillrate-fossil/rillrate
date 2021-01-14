@@ -9,6 +9,15 @@ use tokio::sync::watch;
 /// It used by providers to register them into the state.
 pub(crate) static RILL_STATE: OnceCell<RillState> = OnceCell::new();
 
+pub(crate) enum ControlMode {
+    Active {
+        // TODO: Add id that acquired from a counter
+    },
+    Reactive {
+        activator: watch::Sender<Option<usize>>,
+    },
+}
+
 pub(crate) enum ControlEvent {
     RegisterProvider {
         description: Arc<Description>,
