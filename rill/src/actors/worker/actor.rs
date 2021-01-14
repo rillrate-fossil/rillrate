@@ -169,6 +169,23 @@ impl RillWorker {
             joint.try_switch_off();
         }
     }
+
+    fn shutdown_if_no_joints(&self, ctx: &mut Context<Self>) {
+        ctx.shutdown();
+        /* Activate this checking later (+ timeout)
+        if self.joints.is_empty() {
+            ctx.shutdown();
+        } else {
+            log::error!(
+                "Can't terminate RillRate instantly. Waiting for providers' termination first."
+            );
+            log::warn!(
+                "There are {} providers remained. Waiting for them termination.",
+                self.joints.len()
+            );
+        }
+        */
+    }
 }
 
 #[async_trait]
@@ -189,7 +206,8 @@ impl StartedBy<RillSupervisor> for RillWorker {
 impl InterruptedBy<RillSupervisor> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         // TODO: Stop all streams and send errors to subscribers!
-        ctx.shutdown();
+        self.stop_all();
+        self.shutdown_if_no_joints(ctx);
         Ok(())
     }
 }
@@ -339,7 +357,7 @@ impl Consumer<(usize, DataEnvelope)> for RillWorker {
     async fn handle(
         &mut self,
         (idx, envelope): (usize, DataEnvelope),
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match envelope {
             DataEnvelope::DataEvent { timestamp, data } => {
@@ -379,6 +397,10 @@ impl Consumer<(usize, DataEnvelope)> for RillWorker {
                         log::error!("Attempt to remove not linked path record.");
                         // TODO: Return error here
                     }
+                }
+                // Waiting for remained streams.
+                if ctx.is_terminating() {
+                    self.shutdown_if_no_joints(ctx);
                 }
             }
         }
