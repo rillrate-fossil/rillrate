@@ -17,15 +17,15 @@ pub(crate) enum ProviderMode {
     },
     /// Lazy stream that can be activates. No snapshots available for that. Deltas only.
     Reactive {
-        /// Used to to activate a `Provider.` The value set represents the index of
-        /// the stream inside `Worker` that has to be used for sending messages.
         activator: watch::Sender<Option<usize>>,
     },
 }
 */
 
 pub(crate) struct ProviderMode {
-    pub active: watch::Sender<Option<usize>>,
+    /// Used to to activate a `Provider.` The value set represents the index of
+    /// the stream inside `Worker` that has to be used for sending messages.
+    pub activator: watch::Sender<Option<usize>>,
 }
 
 pub(crate) struct RegisterProvider {

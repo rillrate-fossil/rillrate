@@ -46,7 +46,9 @@ impl Provider {
             description: description.clone(),
             sender: tx,
         };
-        let mode = ProviderMode { active: active_tx };
+        let mode = ProviderMode {
+            activator: active_tx,
+        };
         let event = RegisterProvider {
             description,
             mode,

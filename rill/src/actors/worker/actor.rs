@@ -29,7 +29,7 @@ struct Joint {
     // TODO: How about remove it? Looks like it's enough to have `subscribers` field.
     idx: usize,
     description: Arc<Description>,
-    active: watch::Sender<Option<usize>>,
+    activator: watch::Sender<Option<usize>>,
     /// Remote Subscribers on the server.
     subscribers: HashSet<ProviderReqId>,
 }
@@ -38,12 +38,12 @@ impl Joint {
     fn new(
         idx: usize,
         description: Arc<Description>,
-        active: watch::Sender<Option<usize>>,
+        activator: watch::Sender<Option<usize>>,
     ) -> Self {
         Self {
             idx,
             description,
-            active,
+            activator,
             subscribers: HashSet::new(),
         }
     }
@@ -54,7 +54,7 @@ impl Joint {
         let flag = if active { Some(self.idx) } else { None };
         // TODO: Implement Provider unregistering
         // TODO: Check the watch is not closed
-        if let Err(err) = self.active.send(flag) {
+        if let Err(err) = self.activator.send(flag) {
             log::error!(
                 "Can't switch the stream {} to {}: {}",
                 self.description.path,
@@ -224,14 +224,14 @@ impl Consumer<RegisterProvider> for RillWorker {
             mode,
             rx,
         } = event;
-        let active = mode.active;
+        let activator = mode.activator;
         let path = description.path.clone();
         log::info!("Add provider: {:?}", path);
         let record = self.index.dig(path.clone());
         if record.get_link().is_none() {
             let entry = self.joints.vacant_entry();
             let idx = entry.key();
-            let joint = Joint::new(idx, description, active);
+            let joint = Joint::new(idx, description, activator);
             let joint_ref = entry.insert(joint);
             ctx.address().attach(rx);
             record.set_link(idx);
