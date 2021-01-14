@@ -1,6 +1,6 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::providers::provider::DataEnvelope;
-use crate::state::RegisterProvider;
+use crate::state::{ProviderMode, RegisterProvider};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -224,23 +224,26 @@ impl Consumer<RegisterProvider> for RillWorker {
             mode,
             rx,
         } = event;
-        let activator = mode.activator;
         let path = description.path.clone();
         log::info!("Add provider: {:?}", path);
         let record = self.index.dig(path.clone());
         if record.get_link().is_none() {
-            let entry = self.joints.vacant_entry();
-            let idx = entry.key();
-            let joint = Joint::new(idx, description, activator);
-            let joint_ref = entry.insert(joint);
-            ctx.address().attach(rx);
-            record.set_link(idx);
-            if self.describe {
-                let description = (&*joint_ref.description).clone();
-                let msg = RillToServer::Description {
-                    list: vec![description],
-                };
-                self.send_global(msg);
+            match mode {
+                ProviderMode::Reactive { activator } => {
+                    let entry = self.joints.vacant_entry();
+                    let idx = entry.key();
+                    let joint = Joint::new(idx, description, activator);
+                    let joint_ref = entry.insert(joint);
+                    ctx.address().attach(rx);
+                    record.set_link(idx);
+                    if self.describe {
+                        let description = (&*joint_ref.description).clone();
+                        let msg = RillToServer::Description {
+                            list: vec![description],
+                        };
+                        self.send_global(msg);
+                    }
+                }
             }
         } else {
             log::error!("Provider for {} already registered.", path);
