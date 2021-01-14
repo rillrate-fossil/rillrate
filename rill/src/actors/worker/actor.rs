@@ -221,9 +221,10 @@ impl Consumer<RegisterProvider> for RillWorker {
     ) -> Result<(), Error> {
         let RegisterProvider {
             description,
-            active,
+            mode,
             rx,
         } = event;
+        let active = mode.active;
         let path = description.path.clone();
         log::info!("Add provider: {:?}", path);
         let record = self.index.dig(path.clone());

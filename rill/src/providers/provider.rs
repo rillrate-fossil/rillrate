@@ -1,5 +1,5 @@
 //! This module contains a generic `Provider`'s methods.
-use crate::state::{RegisterProvider, RILL_STATE};
+use crate::state::{ProviderMode, RegisterProvider, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -46,9 +46,10 @@ impl Provider {
             description: description.clone(),
             sender: tx,
         };
+        let mode = ProviderMode { active: active_tx };
         let event = RegisterProvider {
             description,
-            active: active_tx,
+            mode,
             rx,
         };
         let state = RILL_STATE.get().expect("rill is not installed!");
