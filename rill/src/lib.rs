@@ -35,6 +35,8 @@ impl Rill {
     /// Initializes tracing system and all created `Provider`s will be attached to it.
     pub fn install(name: impl Into<EntryId>) -> Result<Self, Error> {
         let (rx, state) = RillState::create();
+        // IMPORTANT! Set the state before any worker/supervisor will be spawned,
+        // because `meta` providers also uses the same state for registering themselves.
         RILL_STATE
             .set(state)
             .map_err(|_| RillError::AlreadyInstalled)?;

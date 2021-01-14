@@ -1,5 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
-use crate::providers::provider::DataEnvelope;
+use crate::providers::{provider::DataEnvelope, GaugeProvider};
 use crate::state::{ProviderMode, RegisterProvider};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -131,7 +131,29 @@ impl RillSender {
     }
 }
 
+/// Meta Providers
+struct RillMeta {
+    total_subscribers: GaugeProvider,
+}
+
+impl RillMeta {
+    fn new() -> Self {
+        Self {
+            total_subscribers: GaugeProvider::new("_meta_.total".parse().unwrap()),
+        }
+    }
+
+    fn subscriber_added(&self) {
+        self.total_subscribers.inc(1.0, None);
+    }
+
+    fn subscriber_removed(&self) {
+        self.total_subscribers.dec(1.0, None);
+    }
+}
+
 pub struct RillWorker {
+    meta: RillMeta,
     url: String,
     entry_id: EntryId,
     /// Active WebScoket outgoing connection
@@ -162,6 +184,7 @@ impl RillWorker {
     pub fn new(entry_id: EntryId) -> Self {
         let link = format!("ws://127.0.0.1:{}/live/provider", rill_protocol::PORT.get());
         Self {
+            meta: RillMeta::new(),
             url: link,
             entry_id,
             sender: RillSender::default(),
@@ -342,14 +365,18 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                 if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
                     if let Some(joint) = self.joints.get_mut(*idx) {
                         if active {
-                            joint.subscribers.insert(direct_id);
+                            if joint.subscribers.insert(direct_id) {
+                                self.meta.subscriber_added();
+                            }
                             let snapshot = joint.get_latest_snapshot();
                             let msg = RillToServer::BeginStream { snapshot };
                             // Send it before the flag switched on
                             self.sender.response(direct_id.into(), msg);
                             joint.try_switch_on();
                         } else {
-                            joint.subscribers.remove(&direct_id);
+                            if joint.subscribers.remove(&direct_id) {
+                                self.meta.subscriber_removed();
+                            }
                             joint.try_switch_off();
                             // Send it after the flag switched off
                             let msg = RillToServer::EndStream;
