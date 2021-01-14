@@ -26,4 +26,4 @@ rill-protocol = { version = "0.15.0", path = "../rill-protocol" }
 # TODO: Use own interruptor (with a flag)
 ctrlc = "3.1.7"
 env_logger = "0.8.2"
-rand = "0.8.1"
+rand = "0.8.2"
