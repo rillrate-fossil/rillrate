@@ -1,5 +1,5 @@
 //! This module contains a generic `Provider`'s methods.
-use crate::state::{ControlEvent, RILL_STATE};
+use crate::state::{RegisterProvider, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -46,7 +46,7 @@ impl Provider {
             description: description.clone(),
             sender: tx,
         };
-        let event = ControlEvent::RegisterProvider {
+        let event = RegisterProvider {
             description,
             active: active_tx,
             rx,

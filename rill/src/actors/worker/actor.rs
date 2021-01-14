@@ -1,6 +1,6 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::providers::provider::DataEnvelope;
-use crate::state::ControlEvent;
+use crate::state::RegisterProvider;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -213,35 +213,36 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 }
 
 #[async_trait]
-impl Consumer<ControlEvent> for RillWorker {
-    async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
-        match event {
-            ControlEvent::RegisterProvider {
-                description,
-                active,
-                rx,
-            } => {
-                let path = description.path.clone();
-                log::info!("Add provider: {:?}", path);
-                let record = self.index.dig(path.clone());
-                if record.get_link().is_none() {
-                    let entry = self.joints.vacant_entry();
-                    let idx = entry.key();
-                    let joint = Joint::new(idx, description, active);
-                    let joint_ref = entry.insert(joint);
-                    ctx.address().attach(rx);
-                    record.set_link(idx);
-                    if self.describe {
-                        let description = (&*joint_ref.description).clone();
-                        let msg = RillToServer::Description {
-                            list: vec![description],
-                        };
-                        self.send_global(msg);
-                    }
-                } else {
-                    log::error!("Provider for {} already registered.", path);
-                }
+impl Consumer<RegisterProvider> for RillWorker {
+    async fn handle(
+        &mut self,
+        event: RegisterProvider,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let RegisterProvider {
+            description,
+            active,
+            rx,
+        } = event;
+        let path = description.path.clone();
+        log::info!("Add provider: {:?}", path);
+        let record = self.index.dig(path.clone());
+        if record.get_link().is_none() {
+            let entry = self.joints.vacant_entry();
+            let idx = entry.key();
+            let joint = Joint::new(idx, description, active);
+            let joint_ref = entry.insert(joint);
+            ctx.address().attach(rx);
+            record.set_link(idx);
+            if self.describe {
+                let description = (&*joint_ref.description).clone();
+                let msg = RillToServer::Description {
+                    list: vec![description],
+                };
+                self.send_global(msg);
             }
+        } else {
+            log::error!("Provider for {} already registered.", path);
         }
         Ok(())
     }
