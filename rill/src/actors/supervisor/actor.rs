@@ -1,12 +1,12 @@
 use crate::actors::worker::RillWorker;
+use crate::config::RillConfig;
 use crate::state::ControlReceiver;
-use crate::EntryId;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
 
 pub(crate) struct RillSupervisor {
-    entry_id: EntryId,
+    config: RillConfig,
     rx: Option<ControlReceiver>,
 }
 
@@ -20,14 +20,14 @@ impl Actor for RillSupervisor {
     type GroupBy = Group;
 
     fn name(&self) -> String {
-        format!("RillSupervisor({})", self.entry_id)
+        format!("RillSupervisor({})", self.config.entry_id())
     }
 }
 
 impl RillSupervisor {
-    pub fn new(entry_id: EntryId, rx: ControlReceiver) -> Self {
+    pub fn new(config: RillConfig, rx: ControlReceiver) -> Self {
         Self {
-            entry_id,
+            config,
             rx: Some(rx),
         }
     }
@@ -37,7 +37,7 @@ impl RillSupervisor {
 impl StartedBy<System> for RillSupervisor {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Exporters, Group::Worker]);
-        let worker = RillWorker::new(self.entry_id.clone());
+        let worker = RillWorker::new(self.config.clone());
         let rx = self
             .rx
             .take()

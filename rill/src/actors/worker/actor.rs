@@ -1,4 +1,5 @@
 use crate::actors::supervisor::RillSupervisor;
+use crate::config::RillConfig;
 use crate::providers::{provider::DataEnvelope, GaugeProvider, LogProvider};
 use crate::state::{ProviderMode, RegisterProvider};
 use anyhow::Error;
@@ -14,8 +15,8 @@ use meio_connect::{
 };
 use rill_protocol::pathfinder::{Pathfinder, Record};
 use rill_protocol::provider::{
-    Description, Direction, EntryId, EntryType, Envelope, Path, ProviderReqId, RillData,
-    RillProtocol, RillToProvider, RillToServer, WideEnvelope,
+    Description, Direction, EntryType, Envelope, Path, ProviderReqId, RillData, RillProtocol,
+    RillToProvider, RillToServer, WideEnvelope,
 };
 use slab::Slab;
 use std::collections::HashSet;
@@ -162,8 +163,7 @@ impl RillMeta {
 
 pub struct RillWorker {
     meta: RillMeta,
-    url: String,
-    entry_id: EntryId,
+    config: RillConfig,
     /// Active WebScoket outgoing connection
     sender: RillSender,
     index: Pathfinder<usize>,
@@ -184,17 +184,15 @@ impl Actor for RillWorker {
     type GroupBy = Group;
 
     fn name(&self) -> String {
-        format!("RillWorker({})", self.url)
+        format!("RillWorker({})", self.config.url())
     }
 }
 
 impl RillWorker {
-    pub fn new(entry_id: EntryId) -> Self {
-        let link = format!("ws://127.0.0.1:{}/live/provider", rill_protocol::PORT.get());
+    pub fn new(config: RillConfig) -> Self {
         Self {
             meta: RillMeta::new(),
-            url: link,
-            entry_id,
+            config,
             sender: RillSender::default(),
             index: Pathfinder::default(),
             joints: Slab::new(),
@@ -262,7 +260,7 @@ impl StartedBy<RillSupervisor> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Subscriptions, Group::WsConnection]);
         let client = WsClient::new(
-            self.url.clone(),
+            self.config.url().to_string(),
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
@@ -342,7 +340,7 @@ impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
         match status {
             WsClientStatus::Connected { sender } => {
                 self.sender.set(sender);
-                let entry_id = self.entry_id.clone();
+                let entry_id = self.config.entry_id().clone();
                 let msg = RillToServer::Declare { entry_id };
                 self.send_global(msg);
             }

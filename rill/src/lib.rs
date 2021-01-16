@@ -3,6 +3,7 @@
 #![warn(missing_docs)]
 
 mod actors;
+mod config;
 pub mod macros;
 pub mod prelude;
 mod protocol;
@@ -11,6 +12,7 @@ mod state;
 
 use crate::actors::supervisor::RillSupervisor;
 use anyhow::Error;
+use config::RillConfig;
 use rill_protocol::provider::EntryId;
 use state::{RillState, RILL_STATE};
 use thiserror::Error;
@@ -33,14 +35,15 @@ pub struct Rill {
 
 impl Rill {
     /// Initializes tracing system and all created `Provider`s will be attached to it.
-    pub fn install(name: impl Into<EntryId>) -> Result<Self, Error> {
+    pub fn install(host: String, name: impl Into<EntryId>) -> Result<Self, Error> {
         let (rx, state) = RillState::create();
         // IMPORTANT! Set the state before any worker/supervisor will be spawned,
         // because `meta` providers also uses the same state for registering themselves.
         RILL_STATE
             .set(state)
             .map_err(|_| RillError::AlreadyInstalled)?;
-        let actor = RillSupervisor::new(name.into(), rx);
+        let config = RillConfig::new(host, name.into());
+        let actor = RillSupervisor::new(config, rx);
         let scoped = meio::thread::spawn(actor)?;
         Ok(Self { _scoped: scoped })
     }

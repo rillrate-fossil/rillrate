@@ -1,15 +1,7 @@
-# This awesome CI config copied from: https://github.com/mre/hyperjson
-# but some trailing spaces removed 🙃
-
 name: CI
 
 on:
-  release:
-    types: [created]
   push:
-  schedule:
-    # Runs every Thursday at 20:23 GMT to avoid bit rot
-    - cron: "20 23 * * 4"
 
 jobs:
   lint:
@@ -18,10 +10,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
-      - name: Install latest nightly
+      - name: Install latest stable
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           override: true
           components: rustfmt, clippy
 
@@ -40,7 +32,12 @@ jobs:
         uses: actions-rs/cargo@v1.0.1
         with:
           command: test
-          toolchain: nightly
+          toolchain: stable
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
 
   build:
     runs-on: ${{ matrix.os }}
@@ -52,14 +49,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Install latest nightly
+      - name: Install latest stable
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
             override: true
             components: rustfmt, clippy
 
-      - name: Run cargo check
+      - name: Run cargo build [debug]
         uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: build
+
+      - name: Run cargo build [release]
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
