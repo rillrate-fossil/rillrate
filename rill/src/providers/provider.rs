@@ -35,8 +35,17 @@ pub struct Provider {
 }
 
 impl Provider {
-    pub(crate) fn new(description: Description, active: bool) -> Self {
+    pub(crate) fn new(description: Description, mut active: bool) -> Self {
         log::trace!("Creating Provider with path: {:?}", description.path);
+        let opt_state = RILL_STATE.get();
+        if opt_state.is_none() {
+            // If there is no tracer than the `active` flag will never be true.
+            active = false;
+            log::warn!(
+                "No rill tracer available: {} provider deactivated.",
+                description.path
+            );
+        }
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(active);
         let description = Arc::new(description);
@@ -59,8 +68,9 @@ impl Provider {
             mode,
             rx,
         };
-        let state = RILL_STATE.get().expect("rill is not installed!");
-        state.send(event);
+        if let Some(state) = opt_state {
+            state.send(event);
+        }
         this
     }
 
@@ -70,9 +80,11 @@ impl Provider {
     }
 
     pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
+        // If there is no rill tracer than it will never be active.
         if *self.active.borrow() {
             let timestamp = timestamp.unwrap_or_else(SystemTime::now);
             let envelope = DataEnvelope::DataEvent { timestamp, data };
+            // And will never send an event
             if let Err(err) = self.sender.unbounded_send(envelope) {
                 log::error!("Can't transfer data to sender: {}", err);
             }

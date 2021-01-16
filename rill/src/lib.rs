@@ -48,3 +48,26 @@ impl Rill {
         Ok(Self { _scoped: scoped })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_install() -> Result<(), Error> {
+        let _rill = Rill::install("127.0.0.1:1636".into(), "rill");
+        let counter = providers::CounterProvider::new("counter".parse()?);
+        counter.inc(1.0, None);
+        Ok(())
+    }
+
+    #[test]
+    fn test_provider_without_tracer() -> Result<(), Error> {
+        // It must not panic.
+        let counter = providers::CounterProvider::new("counter".parse()?);
+        for _ in 0..1_000_000 {
+            counter.inc(1.0, None);
+        }
+        Ok(())
+    }
+}
