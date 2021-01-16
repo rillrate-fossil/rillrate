@@ -9,7 +9,7 @@ use std::time::Duration;
 
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
-    let _rill = Rill::install("basic-example")?;
+    let _rill = Rill::install("127.0.0.1:1636".into(), "basic-example")?;
     let counter = CounterProvider::new("counter".parse()?);
 
     // TODO: DRY it

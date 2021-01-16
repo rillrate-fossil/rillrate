@@ -141,8 +141,8 @@ struct RillMeta {
 impl RillMeta {
     fn new() -> Self {
         Self {
-            total_subscribers: GaugeProvider::new("_meta_.total".parse().unwrap()),
-            actions_log: LogProvider::new("_meta_.actions".parse().unwrap()),
+            total_subscribers: GaugeProvider::new("meta:worker.total".parse().unwrap()),
+            actions_log: LogProvider::new("meta:worker.actions".parse().unwrap()),
         }
     }
 
