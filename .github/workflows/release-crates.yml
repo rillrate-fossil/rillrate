@@ -1,4 +1,4 @@
-name: Release
+name: Release to crates.io
 
 on:
   release:
