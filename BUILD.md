@@ -27,3 +27,7 @@ rustflags = [
   "-C", "link-arg=dynamic_lookup",
 ]
 ```
+
+# Windows
+
+It should work.
