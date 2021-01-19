@@ -7,3 +7,7 @@
 [crates-url]: https://crates.io/crates/rill-protocol
 [docs-badge]: https://docs.rs/rill-protocol/badge.svg
 [docs-url]: https://docs.rs/rill-protocol
+
+Dynamic tracing system that tends to be real-time.
+
+Interaction protocols. You need it for specific interaction cases only.

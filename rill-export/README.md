@@ -7,3 +7,7 @@
 [crates-url]: https://crates.io/crates/rill-export
 [docs-badge]: https://docs.rs/rill-export/badge.svg
 [docs-url]: https://docs.rs/rill-export
+
+Dynamic tracing system that tends to be real-time.
+
+Embedded configurable node with a dashboard and Prometheus metrics endpoint.
