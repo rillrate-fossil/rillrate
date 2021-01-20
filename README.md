@@ -2,17 +2,17 @@
 
 Dynamic tracing system that tends to be real-time.
 
-# How to use
+## How to use
 
 Any supported language has a special description how to use the library.
 
-# Why it's native module
+### Native extension
 
 This library implemented with Rust and available for other languages as native extension.
 The main reason why it's not implemented as pure modules to give you as much as possible
-speed of delivery of any metric and try not to affect to the performance of your app.
+speed to delivery any metric fast and try not to affect to the performance of the app.
 
-# Supported languages
+### Supported languages
 
 This crate is the implementation of `rillrate` tracing system that can be used
 in Rust directly or in other languages (Python, Node.js) throung special thin bindings.
@@ -36,7 +36,7 @@ Scheduled:
 
 - JavaScript
 
-# Dashboard
+## Dashboard
 
 It shipped with embedded node that can be used to check any metrics in-place.
 Just install the library and open `http://localhost:9090/` in your browser.
@@ -44,7 +44,15 @@ Just install the library and open `http://localhost:9090/` in your browser.
 You will get access to the fast UI: `RillRate View` dashboard that can activate
 any available stream of data in your app and visualize it.
 
-# Prometheus
+## Exporters
+
+`rillrate` can export metrics to third-party service. To use it you should activate
+necessary exporters in a config file. The list of supported systems:
+
+- Prometheus
+- Graphite
+
+### Prometheus
 
 Why we used `9090` port for standalone server? You guess correct: it contains
 `Prometheus` endpoint that can be activated with a configuration file. Just add
