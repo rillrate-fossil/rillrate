@@ -29,18 +29,21 @@ fn main() -> Result<(), Error> {
 
         let mt_gauge = Gauge::create("my.gauge.multithread")?;
 
-        let mt_gauge_cloned = mt_gauge.clone();
-        let running_cloned = running.clone();
-        thread::spawn(move || {
-            while running_cloned.load(Ordering::SeqCst) {
-                mt_gauge_cloned.set(2.0);
-                thread::sleep(Duration::from_secs(1));
-            }
-        });
+        for i in 1..=5 {
+            let mt_gauge_cloned = mt_gauge.clone();
+            let running_cloned = running.clone();
+            let tname = format!("thread-{}", i);
+            thread::Builder::new().name(tname).spawn(move || {
+                while running_cloned.load(Ordering::SeqCst) {
+                    mt_gauge_cloned.set(i as f64);
+                    thread::sleep(Duration::from_secs(1));
+                }
+            })?;
+        }
 
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
-            mt_gauge.set(1.0);
+            mt_gauge.set(0.0);
             counter += 1;
             for x in 0..3 {
                 counter_two.inc(1.0);
