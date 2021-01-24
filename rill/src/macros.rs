@@ -1,8 +1,8 @@
-//! Macros to create static providers.
+//! Macros to create static tracers.
 
 // TODO: Imports here instad of the root module?
 
-pub use crate::providers::LogProvider;
+pub use crate::tracers::LogTracer;
 pub use once_cell::sync::Lazy;
 pub use rill_protocol::provider::{EntryId, Path};
 
@@ -22,11 +22,11 @@ macro_rules! provider {
         $crate::provider!(@public true, $info);
     };
     (@public $public:expr, $info:expr) => {
-        pub static RILL: $crate::macros::Lazy<$crate::macros::LogProvider> =
+        pub static RILL: $crate::macros::Lazy<$crate::macros::LogTracer> =
             $crate::macros::Lazy::new(|| {
                 let name = std::module_path!();
                 let path = $crate::macros::split_module_path(name);
-                let provider = $crate::macros::LogProvider::new(path);
+                let provider = $crate::macros::LogTracer::new(path);
                 if $public {
                     provider.export($info);
                 }

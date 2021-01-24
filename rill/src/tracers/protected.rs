@@ -1,22 +1,22 @@
-use super::provider::Provider;
+use super::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::Description;
 use std::sync::{Mutex, MutexGuard};
 
-/// Special wrapper to give shared access to the `Provider`.
+/// Special wrapper to give shared access to the `Tracer`.
 #[derive(Debug, Deref, DerefMut)]
-pub struct ProtectedProvider<T> {
+pub struct ProtectedTracer<T> {
     #[deref]
     #[deref_mut]
-    provider: Provider,
+    tracer: Tracer,
     value: Mutex<T>,
 }
 
-impl<T> ProtectedProvider<T> {
+impl<T> ProtectedTracer<T> {
     pub(super) fn new(description: Description, data: T) -> Self {
-        let provider = Provider::new(description, false);
+        let tracer = Tracer::new(description, false);
         Self {
-            provider,
+            tracer,
             value: Mutex::new(data),
         }
     }
@@ -27,7 +27,7 @@ impl<T> ProtectedProvider<T> {
             Err(err) => {
                 log::error!(
                     "Can't lock protected data of {}: {}",
-                    self.provider.path(),
+                    self.tracer.path(),
                     err
                 );
                 None

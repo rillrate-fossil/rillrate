@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::{CounterProvider, GaugeProvider, LogProvider, RillRate};
+use rillrate::{CounterTracer, GaugeTracer, LogTracer, RillRate};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -19,13 +19,13 @@ fn main() -> Result<(), Error> {
     })?;
 
     {
-        let counter_one = CounterProvider::new("my.counter.one".parse()?);
-        let counter_two = CounterProvider::new("my.counter.two".parse()?);
-        let gauge = GaugeProvider::new("my.gauge".parse()?);
-        let fast_gauge = GaugeProvider::new("my.gauge.fast".parse()?);
-        let random_gauge = GaugeProvider::new("my.gauge.random".parse()?);
-        let logger = LogProvider::new("my.direct.logs.trace".parse()?);
-        let fast_logger = LogProvider::new("my.direct.logs.fast".parse()?);
+        let counter_one = CounterTracer::new("my.counter.one".parse()?);
+        let counter_two = CounterTracer::new("my.counter.two".parse()?);
+        let gauge = GaugeTracer::new("my.gauge".parse()?);
+        let fast_gauge = GaugeTracer::new("my.gauge.fast".parse()?);
+        let random_gauge = GaugeTracer::new("my.gauge.random".parse()?);
+        let logger = LogTracer::new("my.direct.logs.trace".parse()?);
+        let fast_logger = LogTracer::new("my.direct.logs.fast".parse()?);
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
             counter += 1;

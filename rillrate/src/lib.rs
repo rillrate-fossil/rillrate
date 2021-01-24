@@ -9,7 +9,7 @@ use anyhow::Error;
 use rill::Rill;
 use rill_export::RillExport;
 
-/// `RillRate` tracer.
+/// `RillRate` provider.
 #[derive(Debug)]
 pub struct RillRate {
     _rill_export: Option<RillExport>,
@@ -17,7 +17,7 @@ pub struct RillRate {
 }
 
 impl RillRate {
-    /// Create a new instance configured by env vars.
+    /// Create a new instance of `RillRate` provider that configured by env vars.
     pub fn from_env(default_name: &str) -> Result<Self, Error> {
         let config_path = Some(env::config());
         let mut _rill_export = None;

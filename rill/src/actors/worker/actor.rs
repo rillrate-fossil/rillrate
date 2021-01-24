@@ -1,7 +1,7 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::providers::{provider::DataEnvelope, GaugeProvider, LogProvider};
-use crate::state::{ProviderMode, RegisterProvider};
+use crate::state::{RegisterTracer, TracerMode};
+use crate::tracers::{tracer::DataEnvelope, GaugeTracer, LogTracer};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -38,11 +38,11 @@ enum JointMode {
     ReactiveProvider { activator: watch::Sender<bool> },
 }
 
-impl From<ProviderMode> for JointMode {
-    fn from(mode: ProviderMode) -> Self {
+impl From<TracerMode> for JointMode {
+    fn from(mode: TracerMode) -> Self {
         match mode {
-            ProviderMode::Active => Self::ActiveProvider { snapshot: None },
-            ProviderMode::Reactive { activator } => Self::ReactiveProvider { activator },
+            TracerMode::Active => Self::ActiveProvider { snapshot: None },
+            TracerMode::Reactive { activator } => Self::ReactiveProvider { activator },
         }
     }
 }
@@ -85,7 +85,7 @@ impl Joint {
         // TODO: Implement Provider unregistering
         // TODO: Check the watch is not closed
 
-        // Use activator if the underlying provider is a reactive/lazy stream.
+        // Use activator if the underlying tracer is a reactive/lazy stream.
         if let JointMode::ReactiveProvider { activator } = &mut self.mode {
             if let Err(err) = activator.send(active) {
                 log::error!(
@@ -134,15 +134,15 @@ impl RillSender {
 
 /// Meta Providers
 struct RillMeta {
-    total_subscribers: GaugeProvider,
-    actions_log: LogProvider,
+    total_subscribers: GaugeTracer,
+    actions_log: LogTracer,
 }
 
 impl RillMeta {
     fn new() -> Self {
         Self {
-            total_subscribers: GaugeProvider::new("meta:worker.total".parse().unwrap()),
-            actions_log: LogProvider::new("meta:worker.actions".parse().unwrap()),
+            total_subscribers: GaugeTracer::new("meta:worker.total".parse().unwrap()),
+            actions_log: LogTracer::new("meta:worker.actions".parse().unwrap()),
         }
     }
 
@@ -244,10 +244,10 @@ impl RillWorker {
             ctx.shutdown();
         } else {
             log::error!(
-                "Can't terminate RillRate instantly. Waiting for providers' termination first."
+                "Can't terminate RillRate instantly. Waiting for tracers' termination first."
             );
             log::warn!(
-                "There are {} providers remained. Waiting for them termination.",
+                "There are {} tracers remained. Waiting for them termination.",
                 self.joints.len()
             );
         }
@@ -293,19 +293,19 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 }
 
 #[async_trait]
-impl Consumer<RegisterProvider> for RillWorker {
+impl Consumer<RegisterTracer> for RillWorker {
     async fn handle(
         &mut self,
-        event: RegisterProvider,
+        event: RegisterTracer,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let RegisterProvider {
+        let RegisterTracer {
             description,
             mode,
             rx,
         } = event;
         let path = description.path.clone();
-        log::info!("Add provider: {:?}", path);
+        log::info!("Add tracer: {:?}", path);
         let record = self.index.dig(path.clone());
         if record.get_link().is_none() {
             let activator = mode.into();
@@ -448,14 +448,14 @@ impl Consumer<(usize, DataEnvelope)> for RillWorker {
                 }
             }
             DataEnvelope::EndStream { description } => {
-                log::info!("Remove provider: {:?}", description.path);
+                log::info!("Remove tracer: {:?}", description.path);
                 // It's the last message in the stream. Safe to remove it from joints.
                 if let Some(pf_record) = self.index.remove(&description.path) {
                     // TODO: Use `Record::try_into()?` instead of `get_link`
                     if let Some(idx) = pf_record.get_link() {
                         if self.joints.contains(*idx) {
                             self.joints.remove(*idx);
-                        // The thread that dropped the provider can not exists anymore.
+                        // The thread that dropped the tracer can not exists anymore.
                         // The switch message will never be delivered.
                         // Not needed to switch off: `joint.force_switch(false);`
                         } else {

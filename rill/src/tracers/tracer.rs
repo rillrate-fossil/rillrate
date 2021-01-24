@@ -1,5 +1,5 @@
-//! This module contains a generic `Provider`'s methods.
-use crate::state::{ProviderMode, RegisterProvider, RILL_STATE};
+//! This module contains a generic `Tracer`'s methods.
+use crate::state::{RegisterTracer, TracerMode, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -25,18 +25,18 @@ pub(crate) type DataSender = mpsc::UnboundedSender<DataEnvelope>;
 pub(crate) type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
 
 /// The generic provider that forwards metrics to worker and keeps a flag
-/// for checking the activitiy status of the `Provider`.
+/// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
-pub struct Provider {
+pub struct Tracer {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     description: Arc<Description>,
     sender: DataSender,
 }
 
-impl Provider {
+impl Tracer {
     pub(crate) fn new(description: Description, mut active: bool) -> Self {
-        log::trace!("Creating Provider with path: {:?}", description.path);
+        log::trace!("Creating Tracer with path: {:?}", description.path);
         let opt_state = RILL_STATE.get();
         if opt_state.is_none() {
             // If there is no tracer than the `active` flag will never be true.
@@ -49,21 +49,21 @@ impl Provider {
         let (tx, rx) = mpsc::unbounded();
         let (active_tx, active_rx) = watch::channel(active);
         let description = Arc::new(description);
-        let this = Provider {
+        let this = Tracer {
             active: active_rx,
             description: description.clone(),
             sender: tx,
         };
         let mode = {
             if active {
-                ProviderMode::Active
+                TracerMode::Active
             } else {
-                ProviderMode::Reactive {
+                TracerMode::Reactive {
                     activator: active_tx,
                 }
             }
         };
-        let event = RegisterProvider {
+        let event = RegisterTracer {
             description,
             mode,
             rx,
@@ -74,7 +74,7 @@ impl Provider {
         this
     }
 
-    /// Returns a reference to a `Path` of the `Provider`.
+    /// Returns a reference to a `Path` of the `Tracer`.
     pub fn path(&self) -> &Path {
         &self.description.path
     }
@@ -92,8 +92,8 @@ impl Provider {
     }
 }
 
-impl Provider {
-    /// Returns `true` is the `Provider` has to send data.
+impl Tracer {
+    /// Returns `true` is the `Tracer` has to send data.
     pub fn is_active(&self) -> bool {
         *self.active.borrow()
     }
@@ -117,7 +117,7 @@ impl Provider {
     }
 }
 
-impl Drop for Provider {
+impl Drop for Tracer {
     fn drop(&mut self) {
         let end_stream = DataEnvelope::EndStream {
             description: self.description.clone(),
