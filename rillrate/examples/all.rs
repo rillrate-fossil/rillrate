@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::{CounterTracer, GaugeTracer, LogTracer, RillRate};
+use rillrate::{Counter, Gauge, Logger, RillRate};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -19,35 +19,35 @@ fn main() -> Result<(), Error> {
     })?;
 
     {
-        let counter_one = CounterTracer::new("my.counter.one".parse()?);
-        let counter_two = CounterTracer::new("my.counter.two".parse()?);
-        let gauge = GaugeTracer::new("my.gauge".parse()?);
-        let fast_gauge = GaugeTracer::new("my.gauge.fast".parse()?);
-        let random_gauge = GaugeTracer::new("my.gauge.random".parse()?);
-        let logger = LogTracer::new("my.direct.logs.trace".parse()?);
-        let fast_logger = LogTracer::new("my.direct.logs.fast".parse()?);
+        let counter_one = Counter::create("my.counter.one")?;
+        let counter_two = Counter::create("my.counter.two")?;
+        let gauge = Gauge::create("my.gauge")?;
+        let fast_gauge = Gauge::create("my.gauge.fast")?;
+        let random_gauge = Gauge::create("my.gauge.random")?;
+        let logger = Logger::create("my.direct.logs.trace")?;
+        let fast_logger = Logger::create("my.direct.logs.fast")?;
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
             counter += 1;
             for x in 0..3 {
-                counter_two.inc(1.0, None);
-                fast_gauge.set(x as f64, None);
-                random_gauge.set(rand::random(), None);
+                counter_two.inc(1.0);
+                fast_gauge.set(x as f64);
+                random_gauge.set(rand::random());
                 thread::sleep(Duration::from_millis(100));
-                fast_logger.log(format!("first loop - {}/{}", counter, x), None);
+                fast_logger.log(format!("first loop - {}/{}", counter, x));
             }
-            gauge.set(1.0, None);
+            gauge.set(1.0);
             for x in 0..7 {
-                counter_two.inc(1.0, None);
-                fast_gauge.set(x as f64, None);
-                random_gauge.set(rand::random(), None);
+                counter_two.inc(1.0);
+                fast_gauge.set(x as f64);
+                random_gauge.set(rand::random());
                 thread::sleep(Duration::from_millis(100));
-                fast_logger.log(format!("second loop - {}/{}", counter, x), None);
+                fast_logger.log(format!("second loop - {}/{}", counter, x));
             }
-            gauge.set(10.0, None);
-            counter_two.inc(1.0, None);
-            counter_one.inc(1.0, None);
-            logger.log(format!("okay :) - {}", counter), None);
+            gauge.set(10.0);
+            counter_two.inc(1.0);
+            counter_one.inc(1.0);
+            logger.log(format!("okay :) - {}", counter));
         }
     }
 

@@ -1,14 +1,25 @@
+use anyhow::Error;
 use rill::tracers::{CounterTracer, GaugeTracer, LogTracer, Tracer};
 use std::ops::Deref;
 use std::sync::Arc;
 
-macro_rules! deref_tracer {
-    ($t:ty) => {
-        impl Deref for $t {
+macro_rules! impl_tracer {
+    ($wrapper:ident < $tracer:ident >) => {
+        impl Deref for $wrapper {
             type Target = Tracer;
 
             fn deref(&self) -> &Self::Target {
                 &self.tracer
+            }
+        }
+
+        impl $wrapper {
+            pub fn create(path: &str) -> Result<Self, Error> {
+                let path = path.parse()?;
+                let tracer = $tracer::new(path);
+                Ok(Self {
+                    tracer: Arc::new(tracer),
+                })
             }
         }
     };
@@ -19,7 +30,7 @@ pub struct Counter {
     tracer: Arc<CounterTracer>,
 }
 
-deref_tracer!(Counter);
+impl_tracer!(Counter<CounterTracer>);
 
 impl Counter {
     /// Increments value by the sepcific delta.
@@ -33,7 +44,7 @@ pub struct Gauge {
     tracer: Arc<GaugeTracer>,
 }
 
-deref_tracer!(Gauge);
+impl_tracer!(Gauge<GaugeTracer>);
 
 impl Gauge {
     /// Increments the value by the specific delta.
@@ -57,7 +68,7 @@ pub struct Logger {
     tracer: Arc<LogTracer>,
 }
 
-deref_tracer!(Logger);
+impl_tracer!(Logger<LogTracer>);
 
 impl Logger {
     /// Writes a message.
