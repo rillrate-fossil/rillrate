@@ -1,9 +1,14 @@
 mod env;
+mod tracers;
 
 pub use rill;
-pub use rill::prelude::*;
 pub use rill_export;
 pub use rill_protocol as protocol;
+pub use tracers::*;
+
+// Not necessary in `rillrate`, because it parses all
+// names automatically.
+// pub use protocol::provider::{EntryId, Path};
 
 use anyhow::Error;
 use rill::Rill;
