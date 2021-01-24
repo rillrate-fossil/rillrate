@@ -26,8 +26,21 @@ fn main() -> Result<(), Error> {
         let random_gauge = Gauge::create("my.gauge.random")?;
         let logger = Logger::create("my.direct.logs.trace")?;
         let fast_logger = Logger::create("my.direct.logs.fast")?;
+
+        let mt_gauge = Gauge::create("my.gauge.multithread")?;
+
+        let mt_gauge_cloned = mt_gauge.clone();
+        let running_cloned = running.clone();
+        thread::spawn(move || {
+            while running_cloned.load(Ordering::SeqCst) {
+                mt_gauge_cloned.set(2.0);
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
+            mt_gauge.set(1.0);
             counter += 1;
             for x in 0..3 {
                 counter_two.inc(1.0);
