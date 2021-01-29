@@ -28,14 +28,14 @@ impl<'de> Deserialize<'de> for PathPattern {
 
 #[derive(Deserialize)]
 pub struct Config {
-    pub server: ServerConfig,
+    pub server: Option<ServerConfig>,
     pub export: Option<ExportConfig>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            server: ServerConfig { address: None },
+            server: None,
             export: None,
         }
     }
@@ -44,8 +44,8 @@ impl Default for Config {
 impl Config {
     pub fn server_address(&self) -> IpAddr {
         self.server
-            .address
-            .clone()
+            .as_ref()
+            .and_then(|server| server.address.clone())
             .unwrap_or_else(|| "127.0.0.1".parse().unwrap())
     }
 }
