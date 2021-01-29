@@ -91,16 +91,18 @@ impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
 
         let mut exporter: ExporterLinkForClient = exporter.link();
 
-        // Spawn exporter if they are exist
-        if let Some(config) = config.export.prometheus.take() {
-            exporter
-                .start_publisher::<publishers::PrometheusPublisher>(config)
-                .await?;
-        }
-        if let Some(config) = config.export.graphite.take() {
-            exporter
-                .start_publisher::<publishers::GraphitePublisher>(config)
-                .await?;
+        // Spawn exporters if they are exist
+        if let Some(mut export) = config.export.take() {
+            if let Some(config) = export.prometheus.take() {
+                exporter
+                    .start_publisher::<publishers::PrometheusPublisher>(config)
+                    .await?;
+            }
+            if let Some(config) = export.graphite.take() {
+                exporter
+                    .start_publisher::<publishers::GraphitePublisher>(config)
+                    .await?;
+            }
         }
 
         Ok(())

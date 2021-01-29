@@ -29,17 +29,14 @@ impl<'de> Deserialize<'de> for PathPattern {
 #[derive(Deserialize)]
 pub struct Config {
     pub server: ServerConfig,
-    pub export: ExportConfig,
+    pub export: Option<ExportConfig>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
             server: ServerConfig { address: None },
-            export: ExportConfig {
-                prometheus: None,
-                graphite: None,
-            },
+            export: None,
         }
     }
 }
