@@ -42,17 +42,27 @@ impl Default for Config {
 }
 
 impl Config {
+    /// Returns address where bind a server
     pub fn server_address(&self) -> IpAddr {
         self.server
             .as_ref()
             .and_then(|server| server.address.clone())
             .unwrap_or_else(|| "127.0.0.1".parse().unwrap())
     }
+
+    /// Activate `metadata` providers
+    pub fn meta(&self) -> bool {
+        self.server
+            .as_ref()
+            .and_then(|server| server.meta.clone())
+            .unwrap_or(false)
+    }
 }
 
 #[derive(Deserialize)]
 pub struct ServerConfig {
     pub address: Option<IpAddr>,
+    pub meta: Option<bool>,
 }
 
 #[derive(Deserialize)]

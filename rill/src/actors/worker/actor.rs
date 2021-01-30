@@ -139,10 +139,13 @@ struct RillMeta {
 }
 
 impl RillMeta {
-    fn new() -> Self {
+    fn new(total: usize) -> Self {
+        let total_subscribers = GaugeTracer::new("meta:worker.total".parse().unwrap());
+        total_subscribers.set(total as f64, None);
+        let actions_log = LogTracer::new("meta:worker.actions".parse().unwrap());
         Self {
-            total_subscribers: GaugeTracer::new("meta:worker.total".parse().unwrap()),
-            actions_log: LogTracer::new("meta:worker.actions".parse().unwrap()),
+            total_subscribers,
+            actions_log,
         }
     }
 
@@ -162,7 +165,7 @@ impl RillMeta {
 }
 
 pub struct RillWorker {
-    meta: RillMeta,
+    meta: Option<RillMeta>,
     config: RillConfig,
     /// Active WebScoket outgoing connection
     sender: RillSender,
@@ -191,7 +194,7 @@ impl Actor for RillWorker {
 impl RillWorker {
     pub fn new(config: RillConfig) -> Self {
         Self {
-            meta: RillMeta::new(),
+            meta: None,
             config,
             sender: RillSender::default(),
             index: Pathfinder::default(),
@@ -372,7 +375,9 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                     if let Some(joint) = self.joints.get_mut(*idx) {
                         if active {
                             if joint.subscribers.insert(direct_id) {
-                                self.meta.subscriber_added(direct_id.into());
+                                if let Some(meta) = self.meta.as_ref() {
+                                    meta.subscriber_added(direct_id.into());
+                                }
                             }
                             let snapshot = joint.get_latest_snapshot();
                             let msg = RillToServer::BeginStream { snapshot };
@@ -381,7 +386,9 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                             joint.try_switch_on();
                         } else {
                             if joint.subscribers.remove(&direct_id) {
-                                self.meta.subscriber_removed(direct_id.into());
+                                if let Some(meta) = self.meta.as_ref() {
+                                    meta.subscriber_removed(direct_id.into());
+                                }
                             }
                             joint.try_switch_off();
                             // Send it after the flag switched off
