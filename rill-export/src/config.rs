@@ -50,19 +50,20 @@ impl Config {
             .unwrap_or_else(|| "127.0.0.1".parse().unwrap())
     }
 
+    /* IMPORTANT!!! Metas has to be activated for every module manually
     /// Activate `metadata` providers
     pub fn meta(&self) -> bool {
-        self.server
+        self.global
             .as_ref()
             .and_then(|server| server.meta.clone())
             .unwrap_or(false)
     }
+    */
 }
 
 #[derive(Deserialize)]
 pub struct ServerConfig {
     pub address: Option<IpAddr>,
-    pub meta: Option<bool>,
 }
 
 #[derive(Deserialize)]
