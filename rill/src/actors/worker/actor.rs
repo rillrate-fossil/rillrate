@@ -1,6 +1,6 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::state::{RegisterTracer, TracerMode};
+use crate::state::{TracerMode, UpgradeStateEvent};
 use crate::tracers::{tracer::DataEnvelope, GaugeTracer, LogTracer};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -296,38 +296,41 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 }
 
 #[async_trait]
-impl Consumer<RegisterTracer> for RillWorker {
+impl Consumer<UpgradeStateEvent> for RillWorker {
     async fn handle(
         &mut self,
-        event: RegisterTracer,
+        event: UpgradeStateEvent,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let RegisterTracer {
-            description,
-            mode,
-            rx,
-        } = event;
-        let path = description.path.clone();
-        log::info!("Add tracer: {:?}", path);
-        let record = self.index.dig(path.clone());
-        if record.get_link().is_none() {
-            let activator = mode.into();
-            let entry = self.joints.vacant_entry();
-            let idx = entry.key();
-            let joint = Joint::new(description, activator);
-            let joint_ref = entry.insert(joint);
-            let stream = rx.map(move |data_envelope| (idx, data_envelope));
-            ctx.address().attach(stream);
-            record.set_link(idx);
-            if self.describe {
-                let description = (&*joint_ref.description).clone();
-                let msg = RillToServer::Description {
-                    list: vec![description],
-                };
-                self.send_global(msg);
+        match event {
+            UpgradeStateEvent::RegisterTracer {
+                description,
+                mode,
+                rx,
+            } => {
+                let path = description.path.clone();
+                log::info!("Add tracer: {:?}", path);
+                let record = self.index.dig(path.clone());
+                if record.get_link().is_none() {
+                    let activator = mode.into();
+                    let entry = self.joints.vacant_entry();
+                    let idx = entry.key();
+                    let joint = Joint::new(description, activator);
+                    let joint_ref = entry.insert(joint);
+                    let stream = rx.map(move |data_envelope| (idx, data_envelope));
+                    ctx.address().attach(stream);
+                    record.set_link(idx);
+                    if self.describe {
+                        let description = (&*joint_ref.description).clone();
+                        let msg = RillToServer::Description {
+                            list: vec![description],
+                        };
+                        self.send_global(msg);
+                    }
+                } else {
+                    log::error!("Provider for {} already registered.", path);
+                }
             }
-        } else {
-            log::error!("Provider for {} already registered.", path);
         }
         Ok(())
     }

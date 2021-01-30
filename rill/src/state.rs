@@ -20,16 +20,18 @@ pub(crate) enum TracerMode {
     },
 }
 
-pub(crate) struct RegisterTracer {
-    pub description: Arc<Description>,
-    pub mode: TracerMode,
-    pub rx: DataReceiver,
+pub(crate) enum UpgradeStateEvent {
+    RegisterTracer {
+        description: Arc<Description>,
+        mode: TracerMode,
+        rx: DataReceiver,
+    },
 }
 
-impl Action for RegisterTracer {}
+impl Action for UpgradeStateEvent {}
 
-pub(crate) type ControlSender = mpsc::UnboundedSender<RegisterTracer>;
-pub(crate) type ControlReceiver = mpsc::UnboundedReceiver<RegisterTracer>;
+pub(crate) type ControlSender = mpsc::UnboundedSender<UpgradeStateEvent>;
+pub(crate) type ControlReceiver = mpsc::UnboundedReceiver<UpgradeStateEvent>;
 
 pub(crate) struct RillState {
     sender: ControlSender,
@@ -42,7 +44,7 @@ impl RillState {
         (rx, this)
     }
 
-    pub fn send(&self, event: RegisterTracer) {
+    pub fn upgrade(&self, event: UpgradeStateEvent) {
         self.sender
             .unbounded_send(event)
             .expect("rill actors not started");
