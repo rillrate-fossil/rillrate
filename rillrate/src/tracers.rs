@@ -14,9 +14,9 @@ macro_rules! impl_tracer {
         }
 
         impl $wrapper {
-            pub fn create(path: &str) -> Result<Self, Error> {
+            pub fn create(path: &str, active: bool) -> Result<Self, Error> {
                 let path = path.parse()?;
-                let tracer = $tracer::new(path);
+                let tracer = $tracer::new(path, active);
                 Ok(Self {
                     tracer: Arc::new(tracer),
                 })

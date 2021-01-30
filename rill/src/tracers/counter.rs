@@ -13,14 +13,14 @@ pub struct CounterTracer {
 
 impl CounterTracer {
     /// Creates a new tracer instance.
-    pub fn new(path: Path) -> Self {
+    pub fn new(path: Path, active: bool) -> Self {
         let info = format!("{} counter", path);
         let description = Description {
             path,
             info,
             stream_type: StreamType::CounterStream,
         };
-        let tracer = ProtectedTracer::new(description, 0.0);
+        let tracer = ProtectedTracer::new(description, 0.0, active);
         Self { tracer }
     }
 

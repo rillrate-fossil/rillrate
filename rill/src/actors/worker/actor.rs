@@ -140,8 +140,8 @@ struct RillMeta {
 
 impl RillMeta {
     fn new() -> Self {
-        let total_subscribers = GaugeTracer::new("meta:worker.total".parse().unwrap());
-        let actions_log = LogTracer::new("meta:worker.actions".parse().unwrap());
+        let total_subscribers = GaugeTracer::new("meta:worker.total".parse().unwrap(), true);
+        let actions_log = LogTracer::new("meta:worker.actions".parse().unwrap(), false);
         Self {
             total_subscribers,
             actions_log,

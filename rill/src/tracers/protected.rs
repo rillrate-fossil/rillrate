@@ -13,8 +13,8 @@ pub struct ProtectedTracer<T> {
 }
 
 impl<T> ProtectedTracer<T> {
-    pub(super) fn new(description: Description, data: T) -> Self {
-        let tracer = Tracer::new(description, false);
+    pub(super) fn new(description: Description, data: T, active: bool) -> Self {
+        let tracer = Tracer::new(description, active);
         Self {
             tracer,
             value: Mutex::new(data),
