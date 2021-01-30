@@ -26,7 +26,6 @@ pub(crate) enum UpgradeStateEvent {
         mode: TracerMode,
         rx: DataReceiver,
     },
-    ActivateMetaTracers,
 }
 
 impl Action for UpgradeStateEvent {}

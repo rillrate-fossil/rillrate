@@ -139,9 +139,8 @@ struct RillMeta {
 }
 
 impl RillMeta {
-    fn new(total: usize) -> Self {
+    fn new() -> Self {
         let total_subscribers = GaugeTracer::new("meta:worker.total".parse().unwrap());
-        total_subscribers.set(total as f64, None);
         let actions_log = LogTracer::new("meta:worker.actions".parse().unwrap());
         Self {
             total_subscribers,
@@ -193,8 +192,15 @@ impl Actor for RillWorker {
 
 impl RillWorker {
     pub fn new(config: RillConfig) -> Self {
+        let meta = {
+            if config.with_meta() {
+                Some(RillMeta::new())
+            } else {
+                None
+            }
+        };
         Self {
-            meta: None,
+            meta,
             config,
             sender: RillSender::default(),
             index: Pathfinder::default(),
@@ -330,15 +336,6 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
                 } else {
                     log::error!("Provider for {} already registered.", path);
                 }
-            }
-            UpgradeStateEvent::ActivateMetaTracers => {
-                let total = self
-                    .joints
-                    .iter()
-                    .map(|(_idx, joint)| joint.subscribers.len())
-                    .sum();
-                let meta = RillMeta::new(total);
-                self.meta = Some(meta);
             }
         }
         Ok(())

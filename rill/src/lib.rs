@@ -14,15 +14,17 @@ use crate::actors::supervisor::RillSupervisor;
 use anyhow::Error;
 use config::RillConfig;
 use rill_protocol::provider::EntryId;
-use state::{RillState, UpgradeStateEvent, RILL_STATE};
+use state::{RillState, RILL_STATE};
 use thiserror::Error;
 
 metacrate::meta!();
 
 #[derive(Debug, Error)]
 enum RillError {
+    /*
     #[error("not installed")]
     NotInstalled,
+    */
     #[error("alreary installed")]
     AlreadyInstalled,
     #[error("io error {0}")]
@@ -37,25 +39,17 @@ pub struct Rill {
 
 impl Rill {
     /// Initializes provider system and all created `Tracer`s will be attached to it.
-    pub fn install(host: String, name: impl Into<EntryId>) -> Result<Self, Error> {
+    pub fn install(host: String, name: impl Into<EntryId>, with_meta: bool) -> Result<Self, Error> {
         let (rx, state) = RillState::create();
         // IMPORTANT! Set the state before any worker/supervisor will be spawned,
         // because `meta` tracers also uses the same state for registering themselves.
         RILL_STATE
             .set(state)
             .map_err(|_| RillError::AlreadyInstalled)?;
-        let config = RillConfig::new(host, name.into());
+        let config = RillConfig::new(host, name.into(), with_meta);
         let actor = RillSupervisor::new(config, rx);
         let scoped = meio::thread::spawn(actor)?;
         Ok(Self { _scoped: scoped })
-    }
-
-    /// Activates meta providers of the `Worker`.
-    pub fn activate_meta() -> Result<(), Error> {
-        let state = RILL_STATE.get().ok_or(RillError::NotInstalled)?;
-        let event = UpgradeStateEvent::ActivateMetaTracers;
-        state.upgrade(event);
-        Ok(())
     }
 }
 
