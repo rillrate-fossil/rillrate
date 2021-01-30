@@ -36,7 +36,8 @@ impl RillRate {
             }
         };
         let name = env::name().unwrap_or_else(|| default_name.into());
-        let _rill = Rill::install(node, name, false)?;
+        let with_meta = env::meta();
+        let _rill = Rill::install(node, name, with_meta)?;
         Ok(Self {
             _rill_export,
             _rill,

@@ -19,6 +19,13 @@ pub fn name() -> Option<String> {
     })
 }
 
+pub fn meta() -> bool {
+    var("RILLRATE_META")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(false)
+}
+
 pub fn node() -> Option<String> {
     var("RILLRATE_NODE").ok()
 }
