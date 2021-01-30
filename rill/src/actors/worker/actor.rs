@@ -331,6 +331,15 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
                     log::error!("Provider for {} already registered.", path);
                 }
             }
+            UpgradeStateEvent::ActivateMetaTracers => {
+                let total = self
+                    .joints
+                    .iter()
+                    .map(|(_idx, joint)| joint.subscribers.len())
+                    .sum();
+                let meta = RillMeta::new(total);
+                self.meta = Some(meta);
+            }
         }
         Ok(())
     }
