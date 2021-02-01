@@ -72,13 +72,13 @@ impl Server {
     }
 
     async fn init_assets(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        // TODO: Don't allow to override assets for release builds
-        if let Ok(path) = std::env::var("_ASSETS_") {
+        #[cfg(debug_assertions)]
+        if let Ok(path) = std::env::var("RILLRATE_UI") {
             self.assets = self.read_assets(&path).await?;
             log::warn!("Assets overriden to: {}", path);
-        } else {
-            ctx.spawn_task(FetchUiPack, ());
+            return Ok(());
         }
+        ctx.spawn_task(FetchUiPack, ());
         Ok(())
     }
 }
