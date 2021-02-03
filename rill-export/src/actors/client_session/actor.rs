@@ -38,9 +38,6 @@ impl StartedBy<Server> for ClientSession {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
 
-        let response = ViewResponse::Declare("<todo>".into());
-        self.handler.send(response);
-
         self.exporter
             .subscribe_to_paths(ctx.address().clone())
             .await?;

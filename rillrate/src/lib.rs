@@ -35,7 +35,7 @@ impl RillRate {
                 "127.0.0.1:1636".into()
             }
         };
-        let name = env::name().unwrap_or_else(|| default_name.into());
+        let name = env::name(Some(default_name.into()));
         let with_meta = env::meta();
         let _rill = Rill::install(node, name, with_meta)?;
         Ok(Self {

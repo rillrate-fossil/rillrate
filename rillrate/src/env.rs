@@ -9,14 +9,19 @@ pub fn config() -> PathBuf {
         .into()
 }
 
-pub fn name() -> Option<String> {
-    var("RILLRATE_NAME").ok().or_else(|| {
-        current_exe().ok().and_then(|buf| {
-            buf.as_path()
-                .file_name()
-                .and_then(|path| path.to_str().map(String::from))
+pub fn name(default_name: Option<String>) -> String {
+    var("RILLRATE_NAME")
+        .ok()
+        .or(default_name)
+        .or_else(|| {
+            current_exe().ok().and_then(|buf| {
+                buf.as_path()
+                    .file_name()
+                    .and_then(|path| path.to_str().map(String::from))
+            })
         })
-    })
+        // Actually executable name will be used in most cases (see above)
+        .unwrap_or_else(|| "rillrate".into())
 }
 
 pub fn meta() -> bool {
