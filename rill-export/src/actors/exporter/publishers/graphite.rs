@@ -164,15 +164,20 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
         msg: PathNotification,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        for description in msg.descriptions {
-            let path = description.path;
-            // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
-            let pattern = crate::config::PathPattern { path: path.clone() };
-            if self.config.paths.contains(&pattern) {
-                self.exporter
-                    .subscribe_to_data(path, ctx.address().clone())
-                    .await?;
+        match msg {
+            PathNotification::Paths { descriptions } => {
+                for description in descriptions {
+                    let path = description.path;
+                    // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
+                    let pattern = crate::config::PathPattern { path: path.clone() };
+                    if self.config.paths.contains(&pattern) {
+                        self.exporter
+                            .subscribe_to_data(path, ctx.address().clone())
+                            .await?;
+                    }
+                }
             }
+            PathNotification::Name { .. } => {}
         }
         Ok(())
     }

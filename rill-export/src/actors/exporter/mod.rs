@@ -8,7 +8,7 @@ pub mod publishers;
 
 use meio::prelude::{Action, Actor, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Description, Path, RillData, Timestamp};
+use rill_protocol::provider::{Description, EntryId, Path, RillData, Timestamp};
 
 #[derive(Debug, Clone)]
 pub enum ExportEvent {
@@ -22,8 +22,9 @@ pub enum ExportEvent {
 impl Action for ExportEvent {}
 
 #[derive(Debug, Clone)]
-pub struct PathNotification {
-    pub descriptions: Vec<Description>,
+pub enum PathNotification {
+    Name { name: EntryId },
+    Paths { descriptions: Vec<Description> },
 }
 
 impl Action for PathNotification {}

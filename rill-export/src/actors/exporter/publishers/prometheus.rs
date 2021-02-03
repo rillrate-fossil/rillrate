@@ -80,22 +80,27 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
         msg: PathNotification,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        for description in msg.descriptions {
-            let path = description.path.clone();
-            // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
-            let pattern = crate::config::PathPattern { path: path.clone() };
-            if self.config.paths.contains(&pattern) {
-                self.exporter
-                    .subscribe_to_data(path.clone(), ctx.address().clone())
-                    .await?;
-                if let Entry::Vacant(entry) = self.metrics.entry(path) {
-                    let record = Record {
-                        data: None,
-                        description,
-                    };
-                    entry.insert(record);
+        match msg {
+            PathNotification::Paths { descriptions } => {
+                for description in descriptions {
+                    let path = description.path.clone();
+                    // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
+                    let pattern = crate::config::PathPattern { path: path.clone() };
+                    if self.config.paths.contains(&pattern) {
+                        self.exporter
+                            .subscribe_to_data(path.clone(), ctx.address().clone())
+                            .await?;
+                        if let Entry::Vacant(entry) = self.metrics.entry(path) {
+                            let record = Record {
+                                data: None,
+                                description,
+                            };
+                            entry.insert(record);
+                        }
+                    }
                 }
             }
+            PathNotification::Name { .. } => {}
         }
         Ok(())
     }

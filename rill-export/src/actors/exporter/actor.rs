@@ -101,8 +101,10 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
         use link::SessionLifetime::*;
         match msg {
             Attached { name, session } => {
+                let msg = PathNotification::Name { name: name.clone() };
                 // Don't subscribe here till the stream (path) will be declared.
                 self.provider = Some((name, session));
+                self.paths_trackers.act_all(msg).await?;
             }
             Detached => {
                 self.provider.take();
@@ -171,7 +173,7 @@ impl ActionHandler<link::PathDeclared> for Exporter {
                     declared: true,
                 };
                 entry.insert(record);
-                let msg = PathNotification {
+                let msg = PathNotification::Paths {
                     descriptions: vec![msg.description],
                 };
                 self.paths_trackers.act_all(msg).await?;
@@ -193,8 +195,15 @@ impl ActionHandler<link::SubscribeToPaths> for Exporter {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.not_terminating()?;
+
+        if let Some((ref name, _)) = self.provider {
+            let event = PathNotification::Name { name: name.clone() };
+            msg.recipient.act(event).await?;
+        }
+
+        // TODO: If there is no `Provider` do I have to ignore this broadcasting?
         let descriptions = self.declared_paths();
-        let event = PathNotification { descriptions };
+        let event = PathNotification::Paths { descriptions };
         msg.recipient.act(event).await?;
         self.paths_trackers.insert(msg.recipient);
         Ok(())

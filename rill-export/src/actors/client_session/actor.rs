@@ -103,9 +103,18 @@ impl ActionHandler<PathNotification> for ClientSession {
         msg: PathNotification,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let response = ViewResponse::Paths(msg.descriptions);
-        self.handler.send(response);
-        Ok(())
+        match msg {
+            PathNotification::Paths { descriptions } => {
+                let response = ViewResponse::Paths(descriptions);
+                self.handler.send(response);
+                Ok(())
+            }
+            PathNotification::Name { name } => {
+                let response = ViewResponse::Declare(name);
+                self.handler.send(response);
+                Ok(())
+            }
+        }
     }
 }
 
