@@ -1,5 +1,5 @@
 use crate::codec::JsonCodec;
-use crate::provider::{Description, Origin, Path, RillData, Timestamp};
+use crate::provider::{Description, EntryId, Origin, Path, RillData, Timestamp};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +21,7 @@ pub enum ViewRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ViewResponse {
+    Declare(EntryId),
     Paths(Vec<Description>),
     Data(Path, Timestamp, RillData),
 }

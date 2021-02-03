@@ -37,6 +37,10 @@ impl StartedBy<Server> for ClientSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
+
+        let response = ViewResponse::Declare("<todo>".into());
+        self.handler.send(response);
+
         self.exporter
             .subscribe_to_paths(ctx.address().clone())
             .await?;
