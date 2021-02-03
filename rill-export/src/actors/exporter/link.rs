@@ -3,7 +3,7 @@ use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Action, ActionHandler, ActionRecipient, Actor, Address, Id};
-use rill_protocol::provider::{Description, Path, RillData, Timestamp};
+use rill_protocol::provider::{Description, EntryId, Path, RillData, Timestamp};
 use std::collections::HashSet;
 use thiserror::Error;
 
@@ -134,15 +134,22 @@ pub struct ExporterLinkForProvider {
 }
 
 pub(super) enum SessionLifetime {
-    Attached { session: ProviderSessionLink },
+    Attached {
+        name: EntryId,
+        session: ProviderSessionLink,
+    },
     Detached,
 }
 
 impl Action for SessionLifetime {}
 
 impl ExporterLinkForProvider {
-    pub async fn session_attached(&mut self, session: ProviderSessionLink) -> Result<(), Error> {
-        let msg = SessionLifetime::Attached { session };
+    pub async fn session_attached(
+        &mut self,
+        name: EntryId,
+        session: ProviderSessionLink,
+    ) -> Result<(), Error> {
+        let msg = SessionLifetime::Attached { name, session };
         self.address.act(msg).await
     }
 

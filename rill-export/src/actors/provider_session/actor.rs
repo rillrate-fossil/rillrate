@@ -44,7 +44,9 @@ impl ProviderSession {
     }
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        self.exporter.session_detached().await.ok();
+        if self.registered.take().is_some() {
+            self.exporter.session_detached().await.ok();
+        }
         ctx.shutdown();
     }
 }
@@ -57,7 +59,6 @@ impl Actor for ProviderSession {
 #[async_trait]
 impl StartedBy<Server> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.exporter.session_attached(ctx.address().link()).await?;
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
         Ok(())
@@ -90,7 +91,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
     async fn handle(
         &mut self,
         msg: WsIncoming<WideEnvelope<RillProtocol, RillToServer>>,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
@@ -121,6 +122,10 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
             }
             RillToServer::EndStream => {}
             RillToServer::Declare { entry_id } => {
+                ctx.not_terminating()?;
+                self.exporter
+                    .session_attached(entry_id.clone(), ctx.address().link())
+                    .await?;
                 self.registered = Some(entry_id);
                 let msg = RillToProvider::Describe { active: true };
                 self.send_request(0.into(), msg);

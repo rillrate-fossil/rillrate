@@ -7,7 +7,7 @@ use meio::prelude::{
     ActionHandler, Actor, Context, Distributor, Eliminated, IdOf, InterruptedBy, StartedBy,
 };
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Description, Path};
+use rill_protocol::provider::{Description, EntryId, Path};
 use std::collections::{hash_map::Entry, HashMap};
 use thiserror::Error;
 
@@ -33,7 +33,7 @@ struct Record {
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Exporter {
     server: HttpServerLink,
-    provider: Option<ProviderSessionLink>,
+    provider: Option<(EntryId, ProviderSessionLink)>,
     paths_trackers: Distributor<PathNotification>,
     recipients: HashMap<Path, Record>,
 }
@@ -49,7 +49,11 @@ impl Exporter {
     }
 
     fn provider(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
-        self.provider.as_mut().ok_or(Reason::NoActiveSession)
+        if let Some((_, ref mut link)) = self.provider {
+            Ok(link)
+        } else {
+            Err(Reason::NoActiveSession)
+        }
     }
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
@@ -96,9 +100,9 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
     ) -> Result<(), Error> {
         use link::SessionLifetime::*;
         match msg {
-            Attached { session } => {
+            Attached { name, session } => {
                 // Don't subscribe here till the stream (path) will be declared.
-                self.provider = Some(session);
+                self.provider = Some((name, session));
             }
             Detached => {
                 self.provider.take();
