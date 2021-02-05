@@ -1,5 +1,7 @@
+use crate::meta;
 use anyhow::Error;
 use flate2::read::GzDecoder;
+use reqwest::Url;
 use std::collections::HashMap;
 use std::io::Read;
 use std::sync::Arc;
@@ -18,6 +20,15 @@ pub struct Assets {
 }
 
 impl Assets {
+    pub fn url() -> Url {
+        format!(
+            "https://ui.rillrate.com/view/{version}.tar.gz",
+            version = meta::VERSION,
+        )
+        .parse()
+        .unwrap()
+    }
+
     /// Expected gzipped tar file contents.
     pub fn parse(assets: &[u8]) -> Result<Assets, Error> {
         let tar = GzDecoder::new(assets);
