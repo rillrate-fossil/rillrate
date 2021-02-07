@@ -344,9 +344,7 @@ impl Server {
                 let content = read_file(&full_path).await?;
                 Ok(content)
             }
-            AssetsMode::Loading => {
-                todo!();
-            }
+            AssetsMode::Loading => Err(Error::msg("UI assets not loaded yet...")),
         }
     }
 }
@@ -368,9 +366,10 @@ impl InteractionHandler<Req<Ui>> for Server {
             Ok(response) => Ok(response),
             Err(err) => {
                 log::error!("Can't serve '{}' file: {}", path.display(), err);
+                let reason = err.to_string();
                 let response = Response::builder()
                     .status(StatusCode::NOT_FOUND)
-                    .body(Body::empty())?;
+                    .body(Body::from(reason))?;
                 Ok(response)
             }
         }
