@@ -23,9 +23,9 @@ impl Assets {
     pub fn url() -> Url {
         let version = {
             if cfg!(debug_assertions) {
-                "trunk"
+                "branch/trunk".into()
             } else {
-                meta::VERSION
+                format!("release/{}", meta::VERSION)
             }
         };
         format!(
