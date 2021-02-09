@@ -42,6 +42,17 @@ impl Default for Config {
 }
 
 impl Config {
+    // TODO: Move to own `config-utils` crate?
+    async fn read(path: PathBuf) -> Result<Self, Error> {
+        let mut file = File::open(path).await?;
+        let mut contents = Vec::new();
+        file.read_to_end(&mut contents).await?;
+        let config: Config = toml::from_slice(&contents)?;
+        Ok(config)
+    }
+}
+
+impl Config {
     /// Returns address where bind a server
     pub fn server_address(&self) -> IpAddr {
         self.server
@@ -92,10 +103,6 @@ impl LiteTask for ReadConfigFile {
     type Output = Config;
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
-        let mut file = File::open(self.0).await?;
-        let mut contents = Vec::new();
-        file.read_to_end(&mut contents).await?;
-        let config: Config = toml::from_slice(&contents)?;
-        Ok(config)
+        Config::read(self.0).await
     }
 }
