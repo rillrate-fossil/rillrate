@@ -305,36 +305,38 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 impl Consumer<UpgradeStateEvent> for RillWorker {
     async fn handle(
         &mut self,
-        event: UpgradeStateEvent,
+        chunk: Vec<UpgradeStateEvent>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        match event {
-            UpgradeStateEvent::RegisterTracer {
-                description,
-                mode,
-                rx,
-            } => {
-                let path = description.path.clone();
-                log::info!("Add tracer: {:?}", path);
-                let record = self.index.dig(path.clone());
-                if record.get_link().is_none() {
-                    let activator = mode.into();
-                    let entry = self.joints.vacant_entry();
-                    let idx = entry.key();
-                    let joint = Joint::new(description, activator);
-                    let joint_ref = entry.insert(joint);
-                    let stream = rx.map(move |data_envelope| (idx, data_envelope));
-                    ctx.address().attach(stream);
-                    record.set_link(idx);
-                    if self.describe {
-                        let description = (&*joint_ref.description).clone();
-                        let msg = RillToServer::Description {
-                            list: vec![description],
-                        };
-                        self.send_global(msg);
+        for event in chunk {
+            match event {
+                UpgradeStateEvent::RegisterTracer {
+                    description,
+                    mode,
+                    rx,
+                } => {
+                    let path = description.path.clone();
+                    log::info!("Add tracer: {:?}", path);
+                    let record = self.index.dig(path.clone());
+                    if record.get_link().is_none() {
+                        let activator = mode.into();
+                        let entry = self.joints.vacant_entry();
+                        let idx = entry.key();
+                        let joint = Joint::new(description, activator);
+                        let joint_ref = entry.insert(joint);
+                        let stream = rx.map(move |data_envelope| (idx, data_envelope));
+                        ctx.address().attach(stream);
+                        record.set_link(idx);
+                        if self.describe {
+                            let description = (&*joint_ref.description).clone();
+                            let msg = RillToServer::Description {
+                                list: vec![description],
+                            };
+                            self.send_global(msg);
+                        }
+                    } else {
+                        log::error!("Provider for {} already registered.", path);
                     }
-                } else {
-                    log::error!("Provider for {} already registered.", path);
                 }
             }
         }
@@ -440,52 +442,55 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
 impl Consumer<(usize, DataEnvelope)> for RillWorker {
     async fn handle(
         &mut self,
-        (idx, envelope): (usize, DataEnvelope),
+        chunk: Vec<(usize, DataEnvelope)>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        match envelope {
-            DataEnvelope::DataEvent { timestamp, data } => {
-                if let Some(joint) = self.joints.get_mut(idx) {
-                    let timestamp = timestamp.duration_since(SystemTime::UNIX_EPOCH)?.into();
-                    joint.mode.update_snapshot(&data);
-                    if !joint.subscribers.is_empty() {
-                        let direction = Direction::from(&joint.subscribers);
-                        let msg = RillToServer::Data { timestamp, data };
-                        self.sender.response(direction, msg);
-                    } else {
-                        // Passive filtering in action:
-                        // Never `Broasdcast` data events. If the `Data` message received
-                        // for the empty subscribers list that means it was the late unprocessed
-                        // data generated before the stream was deactivated.
-                        // This late data has to be dropped.
-                    }
-                } else {
-                    log::error!("No joint for index: {}", idx);
-                }
-            }
-            DataEnvelope::EndStream { description } => {
-                log::info!("Remove tracer: {:?}", description.path);
-                // It's the last message in the stream. Safe to remove it from joints.
-                if let Some(pf_record) = self.index.remove(&description.path) {
-                    // TODO: Use `Record::try_into()?` instead of `get_link`
-                    if let Some(idx) = pf_record.get_link() {
-                        if self.joints.contains(*idx) {
-                            self.joints.remove(*idx);
-                        // The thread that dropped the tracer can not exists anymore.
-                        // The switch message will never be delivered.
-                        // Not needed to switch off: `joint.force_switch(false);`
+        // TODO: Collect the result of chunk processing
+        for (idx, envelope) in chunk {
+            match envelope {
+                DataEnvelope::DataEvent { timestamp, data } => {
+                    if let Some(joint) = self.joints.get_mut(idx) {
+                        let timestamp = timestamp.duration_since(SystemTime::UNIX_EPOCH)?.into();
+                        joint.mode.update_snapshot(&data);
+                        if !joint.subscribers.is_empty() {
+                            let direction = Direction::from(&joint.subscribers);
+                            let msg = RillToServer::Data { timestamp, data };
+                            self.sender.response(direction, msg);
                         } else {
-                            log::error!("FATAL! Inconsistent state of the joints slab.");
-                            // TODO: Return error here
+                            // Passive filtering in action:
+                            // Never `Broasdcast` data events. If the `Data` message received
+                            // for the empty subscribers list that means it was the late unprocessed
+                            // data generated before the stream was deactivated.
+                            // This late data has to be dropped.
                         }
                     } else {
-                        log::error!("Attempt to remove not linked path record.");
-                        // TODO: Return error here
+                        log::error!("No joint for index: {}", idx);
                     }
                 }
-                // Waiting for remained streams.
-                if ctx.is_terminating() {
-                    self.shutdown_if_no_joints(ctx);
+                DataEnvelope::EndStream { description } => {
+                    log::info!("Remove tracer: {:?}", description.path);
+                    // It's the last message in the stream. Safe to remove it from joints.
+                    if let Some(pf_record) = self.index.remove(&description.path) {
+                        // TODO: Use `Record::try_into()?` instead of `get_link`
+                        if let Some(idx) = pf_record.get_link() {
+                            if self.joints.contains(*idx) {
+                                self.joints.remove(*idx);
+                            // The thread that dropped the tracer can not exists anymore.
+                            // The switch message will never be delivered.
+                            // Not needed to switch off: `joint.force_switch(false);`
+                            } else {
+                                log::error!("FATAL! Inconsistent state of the joints slab.");
+                                // TODO: Return error here
+                            }
+                        } else {
+                            log::error!("Attempt to remove not linked path record.");
+                            // TODO: Return error here
+                        }
+                    }
+                    // Waiting for remained streams.
+                    if ctx.is_terminating() {
+                        self.shutdown_if_no_joints(ctx);
+                    }
                 }
             }
         }
