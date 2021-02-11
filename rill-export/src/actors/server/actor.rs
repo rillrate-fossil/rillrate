@@ -411,13 +411,14 @@ pub struct FetchUiPack(Url);
 impl LiteTask for FetchUiPack {
     type Output = Assets;
 
-    async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
+    async fn repeatable_routine(&mut self) -> Result<Option<Self::Output>, Error> {
         log::info!("Fetching UI assets...");
-        let bytes = reqwest::get(self.0)
+        let bytes = reqwest::get(self.0.clone())
             .await?
             .error_for_status()?
             .bytes()
             .await?;
-        Assets::parse(&bytes)
+        let assets = Assets::parse(&bytes)?;
+        Ok(Some(assets))
     }
 }

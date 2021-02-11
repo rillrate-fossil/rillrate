@@ -214,8 +214,9 @@ impl Connection {
 impl LiteTask for Connection {
     type Output = ();
 
-    async fn repeatable_routine(&mut self) -> Result<Self::Output, Error> {
+    async fn repeatable_routine(&mut self) -> Result<Option<Self::Output>, Error> {
         let mut rx = self.sender.subscribe();
+        // TODO: Make url configurable
         loop {
             // To reuse connection put this line up (outside of the loop and above `subscribe` call)
             let mut socket = TcpStream::connect("127.0.0.1:2004").await?;
