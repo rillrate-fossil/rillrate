@@ -7,7 +7,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     ActionHandler, Actor, Address, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy,
-    LiteTask, StartedBy, TaskEliminated, TaskError,
+    LiteTask, Scheduled, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
 use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
@@ -16,6 +16,7 @@ use reqwest::Url;
 use rill_protocol::provider::RillProtocol;
 use rill_protocol::view::ViewProtocol;
 use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
@@ -31,6 +32,7 @@ enum AssetsMode {
     Local(PathBuf),
     Packed(Assets),
     //Proxy(Uri),
+    Failed(String),
 }
 
 pub struct Server {
@@ -351,6 +353,7 @@ impl Server {
                 Ok(content)
             }
             AssetsMode::Loading => Err(Error::msg("UI assets not loaded yet...")),
+            AssetsMode::Failed(reason) => Err(Error::msg(format!("Can't load UI: {}", reason))),
         }
     }
 }
@@ -388,7 +391,7 @@ impl TaskEliminated<FetchUiPack> for Server {
         &mut self,
         _id: IdOf<FetchUiPack>,
         result: Result<Assets, TaskError>,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match result {
             Ok(assets) => {
@@ -397,11 +400,30 @@ impl TaskEliminated<FetchUiPack> for Server {
                 Ok(())
             }
             Err(err) => {
+                self.assets = AssetsMode::Failed(err.to_string());
+                // TODO: Use `meio::after!(5 seconds)`.
+                ctx.address()
+                    .schedule(InitAssets, Instant::now() + Duration::from_secs(5))?;
                 // TODO: Schedule refetching...
                 log::error!("Can't load UI pack: {}", err);
                 Err(err.into())
             }
         }
+    }
+}
+
+struct InitAssets;
+
+#[async_trait]
+impl Scheduled<InitAssets> for Server {
+    async fn handle(
+        &mut self,
+        _: Instant,
+        _: InitAssets,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        self.init_assets(ctx).await?;
+        Ok(())
     }
 }
 
@@ -411,14 +433,14 @@ pub struct FetchUiPack(Url);
 impl LiteTask for FetchUiPack {
     type Output = Assets;
 
-    async fn repeatable_routine(&mut self) -> Result<Option<Self::Output>, Error> {
+    async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
         log::info!("Fetching UI assets...");
-        let bytes = reqwest::get(self.0.clone())
+        let bytes = reqwest::get(self.0)
             .await?
             .error_for_status()?
             .bytes()
             .await?;
         let assets = Assets::parse(&bytes)?;
-        Ok(Some(assets))
+        Ok(assets)
     }
 }
