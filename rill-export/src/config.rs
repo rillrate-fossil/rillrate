@@ -96,6 +96,7 @@ pub struct GraphiteConfig {
     pub interval: Option<u64>,
 }
 
+// TODO: Dry it (move to `config-utils`)
 pub struct ReadConfigFile(pub PathBuf);
 
 #[async_trait]

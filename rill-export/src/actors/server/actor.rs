@@ -12,6 +12,7 @@ use meio::prelude::{
 use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
 use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
 use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
+use reqwest::Url;
 use rill_protocol::provider::RillProtocol;
 use rill_protocol::view::ViewProtocol;
 use std::path::{Path, PathBuf};
@@ -74,11 +75,16 @@ impl Server {
     async fn init_assets(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         #[cfg(debug_assertions)]
         if let Ok(path) = std::env::var("RILLRATE_UI") {
-            self.assets = self.read_assets(&path).await?;
-            log::warn!("Assets overriden to: {}", path);
+            if path.starts_with("http") {
+                let url: Url = path.parse()?;
+                ctx.spawn_task(FetchUiPack(url), ());
+            } else {
+                self.assets = self.read_assets(&path).await?;
+                log::warn!("Assets overriden to: {}", path);
+            }
             return Ok(());
         }
-        ctx.spawn_task(FetchUiPack, ());
+        ctx.spawn_task(FetchUiPack(Assets::url()), ());
         Ok(())
     }
 }
@@ -399,7 +405,7 @@ impl TaskEliminated<FetchUiPack> for Server {
     }
 }
 
-pub struct FetchUiPack;
+pub struct FetchUiPack(Url);
 
 #[async_trait]
 impl LiteTask for FetchUiPack {
@@ -407,7 +413,7 @@ impl LiteTask for FetchUiPack {
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
         log::info!("Fetching UI assets...");
-        let bytes = reqwest::get(Assets::url())
+        let bytes = reqwest::get(self.0)
             .await?
             .error_for_status()?
             .bytes()

@@ -21,16 +21,9 @@ pub struct Assets {
 
 impl Assets {
     pub fn url() -> Url {
-        let version = {
-            if cfg!(debug_assertions) {
-                "branch/trunk".into()
-            } else {
-                format!("release/{}", meta::VERSION)
-            }
-        };
         format!(
-            "https://ui.rillrate.com/view/{version}.tar.gz",
-            version = version,
+            "https://ui.rillrate.com/view/release/{version}.tar.gz",
+            version = meta::VERSION,
         )
         .parse()
         .unwrap()
