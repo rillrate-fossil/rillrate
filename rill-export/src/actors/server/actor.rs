@@ -29,6 +29,7 @@ async fn read_file(path: &Path) -> Result<Vec<u8>, Error> {
 
 enum AssetsMode {
     Loading,
+    #[cfg(debug_assertions)]
     Local(PathBuf),
     Packed(Assets),
     //Proxy(Uri),
@@ -58,6 +59,7 @@ impl Server {
         }
     }
 
+    #[cfg(debug_assertions)]
     async fn read_assets(&mut self, path: &str) -> Result<AssetsMode, Error> {
         let ui_path = Path::new(path).to_path_buf();
         if ui_path.exists() {
