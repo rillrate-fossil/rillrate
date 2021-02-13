@@ -154,6 +154,13 @@ impl Path {
             .into()
     }
 
+    pub fn concat(&self, sub: impl Into<EntryId>) -> Path {
+        let mut cloned = self.clone();
+        cloned.0.push(sub.into());
+        cloned
+    }
+
+    /*
     pub fn concat(&self, other: &[EntryId]) -> Path {
         self.0
             .iter()
@@ -167,6 +174,7 @@ impl Path {
     pub fn subpath(&self, drop_left: usize) -> Path {
         self.0[drop_left..].to_vec().into()
     }
+    */
 
     pub fn split(&self) -> (Option<EntryId>, Path) {
         let mut iter = self.0.iter().cloned();
