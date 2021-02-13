@@ -20,11 +20,15 @@ pub(crate) enum TracerMode {
     },
 }
 
+pub(crate) enum DataSource {
+    Receiver { receiver: DataReceiver },
+}
+
 pub(crate) enum UpgradeStateEvent {
     RegisterTracer {
         description: Arc<Description>,
         mode: TracerMode,
-        rx: DataReceiver,
+        source: DataSource,
     },
 }
 

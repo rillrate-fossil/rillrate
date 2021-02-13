@@ -1,6 +1,6 @@
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::state::{TracerMode, UpgradeStateEvent};
+use crate::state::{DataSource, TracerMode, UpgradeStateEvent};
 use crate::tracers::{tracer::DataEnvelope, GaugeTracer, LogTracer};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -313,8 +313,9 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
                 UpgradeStateEvent::RegisterTracer {
                     description,
                     mode,
-                    rx,
+                    source,
                 } => {
+                    let DataSource::Receiver { receiver } = source;
                     let path = description.path.clone();
                     log::info!("Add tracer: {:?}", path);
                     let record = self.index.dig(path.clone());
@@ -324,7 +325,7 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
                         let idx = entry.key();
                         let joint = Joint::new(description, activator);
                         let joint_ref = entry.insert(joint);
-                        let stream = rx.map(move |data_envelope| (idx, data_envelope));
+                        let stream = receiver.map(move |data_envelope| (idx, data_envelope));
                         ctx.address().attach(stream);
                         record.set_link(idx);
                         if self.describe {

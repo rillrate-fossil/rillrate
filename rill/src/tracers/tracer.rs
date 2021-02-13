@@ -1,5 +1,5 @@
 //! This module contains a generic `Tracer`'s methods.
-use crate::state::{TracerMode, UpgradeStateEvent, RILL_STATE};
+use crate::state::{DataSource, TracerMode, UpgradeStateEvent, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -63,10 +63,11 @@ impl Tracer {
                 }
             }
         };
+        let source = DataSource::Receiver { receiver: rx };
         let event = UpgradeStateEvent::RegisterTracer {
             description,
             mode,
-            rx,
+            source,
         };
         if let Some(state) = opt_state {
             state.upgrade(event);
