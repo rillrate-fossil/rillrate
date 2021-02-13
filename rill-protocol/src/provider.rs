@@ -139,8 +139,8 @@ impl fmt::Display for EntryId {
 pub struct Path(Vec<EntryId>);
 
 impl Path {
-    pub fn single(entry_id: EntryId) -> Self {
-        Self(vec![entry_id])
+    pub fn single(entry_id: impl Into<EntryId>) -> Self {
+        Self(vec![entry_id.into()])
     }
 
     pub fn root() -> Self {
@@ -154,9 +154,9 @@ impl Path {
             .into()
     }
 
-    pub fn concat(&self, sub: impl Into<EntryId>) -> Path {
+    pub fn concat(&self, entry_id: impl Into<EntryId>) -> Path {
         let mut cloned = self.clone();
-        cloned.0.push(sub.into());
+        cloned.0.push(entry_id.into());
         cloned
     }
 
