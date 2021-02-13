@@ -12,8 +12,8 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_protocol::provider::{
-    DirectId, Direction, EntryId, Envelope, Path, ProviderReqId, RillProtocol, RillToProvider,
-    RillToServer, WideEnvelope,
+    DirectId, Direction, EntryId, Envelope, Path, ProviderReqId, RillEvent, RillProtocol,
+    RillToProvider, RillToServer, WideEnvelope,
 };
 use std::collections::HashMap;
 
@@ -86,6 +86,36 @@ impl TaskEliminated<WsProcessor<RillProtocol, Self>> for ProviderSession {
     }
 }
 
+impl ProviderSession {
+    async fn distribute_data(
+        &mut self,
+        direction: Direction<RillProtocol>,
+        event: RillEvent,
+    ) -> Result<(), Error> {
+        if let Direction::Direct(direct_id) = direction {
+            let path = self.paths.get(&direct_id);
+            if let Some(path) = path.cloned() {
+                if let Err(err) = self.exporter.data_received(path, event).await {
+                    log::error!("Can't send data item to the exporter: {}", err);
+                }
+            } else {
+                log::error!(
+                    "Unknown direction {:?} of the incoing data {:?}",
+                    direct_id,
+                    event
+                );
+            }
+        } else {
+            log::error!(
+                "Not supported direction {:?} of the incoing data {:?}",
+                direction,
+                event
+            );
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for ProviderSession {
     async fn handle(
@@ -96,29 +126,18 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
             RillToServer::Data { event } => {
-                if let Direction::Direct(direct_id) = msg.0.direction {
-                    let path = self.paths.get(&direct_id);
-                    if let Some(path) = path.cloned() {
-                        if let Err(err) = self.exporter.data_received(path, event).await {
-                            log::error!("Can't send data item to the exporter: {}", err);
-                        }
-                    } else {
-                        log::error!(
-                            "Unknown direction {:?} of the incoing data {:?}",
-                            direct_id,
-                            event.data
-                        );
-                    }
-                } else {
-                    log::error!(
-                        "Not supported direction {:?} of the incoing data {:?}",
-                        msg.0.direction,
-                        event.data
-                    );
-                }
+                self.distribute_data(msg.0.direction, event).await?;
             }
             RillToServer::BeginStream { snapshot } => {
-                log::trace!("Snapshot received: {:?}", snapshot);
+                // It's important to forward the snapshot, because it
+                // a stream doesn't generate data too often, but the provider
+                // can keep it than we can have the current value in exporters.
+                if let Some(event) = snapshot {
+                    log::trace!("Snapshot received: {:?}", event);
+                    self.distribute_data(msg.0.direction, event).await?;
+                } else {
+                    log::trace!("Stream started without a snapshot.");
+                }
             }
             RillToServer::EndStream => {}
             RillToServer::Declare { entry_id } => {
