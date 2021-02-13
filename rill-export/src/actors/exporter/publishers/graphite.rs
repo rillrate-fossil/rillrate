@@ -10,7 +10,7 @@ use meio::prelude::{
     TaskError,
 };
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Path, RillData, Timestamp};
+use rill_protocol::provider::{Path, RillEvent};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
@@ -19,16 +19,11 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 
-struct Record {
-    timestamp: Timestamp,
-    data: RillData,
-}
-
 pub struct GraphitePublisher {
     config: GraphiteConfig,
     exporter: ExporterLinkForClient,
     pickled: bool,
-    metrics: HashMap<Path, Record>,
+    metrics: HashMap<Path, RillEvent>,
     sender: broadcast::Sender<Vec<u8>>,
 }
 
@@ -187,13 +182,8 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 impl ActionHandler<ExportEvent> for GraphitePublisher {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
-            ExportEvent::BroadcastData {
-                path,
-                data,
-                timestamp,
-            } => {
-                let record = Record { timestamp, data };
-                self.metrics.insert(path, record);
+            ExportEvent::BroadcastData { path, event } => {
+                self.metrics.insert(path, event);
             }
         }
         Ok(())

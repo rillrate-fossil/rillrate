@@ -119,12 +119,8 @@ impl ActionHandler<PathNotification> for ClientSession {
 impl ActionHandler<ExportEvent> for ClientSession {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
-            ExportEvent::BroadcastData {
-                path,
-                data,
-                timestamp,
-            } => {
-                let response = ViewResponse::Data(path, timestamp, data);
+            ExportEvent::BroadcastData { path, event } => {
+                let response = ViewResponse::Data(path, event.timestamp, event.data);
                 self.handler.send(response);
             }
         }

@@ -127,8 +127,7 @@ impl ActionHandler<link::DataReceived> for Exporter {
         let path = msg.path.clone();
         let event = ExportEvent::BroadcastData {
             path: msg.path,
-            timestamp: msg.timestamp,
-            data: msg.data,
+            event: msg.event,
         };
         if let Some(record) = self.recipients.get_mut(&path) {
             record.distributor.act_all(event).await?;

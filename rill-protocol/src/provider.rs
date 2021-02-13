@@ -307,6 +307,8 @@ pub enum RillData {
     },
 }
 
+/// This convertion used by exporters, because most of them support
+/// gauge/counter types only.
 impl TryInto<f64> for RillData {
     type Error = std::num::ParseFloatError;
 
@@ -317,6 +319,12 @@ impl TryInto<f64> for RillData {
             Self::GaugeValue { value } => Ok(value),
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RillEvent {
+    pub timestamp: Timestamp,
+    pub data: RillData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -395,14 +403,12 @@ pub enum RillToServer {
     Entries {
         entries: HashMap<EntryId, EntryType>,
     },
-    // Snapshot { data: RillData },
     /// The response to `ControlStream { active: true }` request
     BeginStream {
-        snapshot: Option<RillData>,
+        snapshot: Option<RillEvent>,
     },
     Data {
-        timestamp: Timestamp,
-        data: RillData,
+        event: RillEvent,
     },
     /// The response to `ControlStream { active: false }` request
     EndStream,

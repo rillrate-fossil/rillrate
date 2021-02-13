@@ -15,7 +15,7 @@ use meio_connect::{
 };
 use rill_protocol::pathfinder::{Pathfinder, Record};
 use rill_protocol::provider::{
-    Description, Direction, EntryType, Envelope, Path, ProviderReqId, RillData, RillProtocol,
+    Description, Direction, EntryType, Envelope, Path, ProviderReqId, RillEvent, RillProtocol,
     RillToProvider, RillToServer, WideEnvelope,
 };
 use slab::Slab;
@@ -32,7 +32,7 @@ enum JointMode {
     ActiveProvider {
         /// The snapshot wrapped with `Option`, because no any garantee that
         /// the `Provider` will send any data. Or it can do sending quite rare.
-        snapshot: Option<RillData>,
+        snapshot: Option<RillEvent>,
     },
     /// Reactive channel that send updates only when they requested.
     ReactiveProvider { activator: watch::Sender<bool> },
@@ -48,7 +48,7 @@ impl From<TracerMode> for JointMode {
 }
 
 impl JointMode {
-    fn update_snapshot(&mut self, data: &RillData) {
+    fn update_snapshot(&mut self, data: &RillEvent) {
         if let JointMode::ActiveProvider { snapshot } = self {
             *snapshot = Some(data.to_owned());
         }
@@ -71,7 +71,7 @@ impl Joint {
         }
     }
 
-    fn get_latest_snapshot(&self) -> Option<RillData> {
+    fn get_latest_snapshot(&self) -> Option<RillEvent> {
         if let JointMode::ActiveProvider { snapshot } = &self.mode {
             snapshot.clone()
         } else {
@@ -448,13 +448,14 @@ impl Consumer<(usize, DataEnvelope)> for RillWorker {
         // TODO: Collect the result of chunk processing
         for (idx, envelope) in chunk {
             match envelope {
-                DataEnvelope::DataEvent { timestamp, data } => {
+                DataEnvelope::DataEvent { system_time, data } => {
                     if let Some(joint) = self.joints.get_mut(idx) {
-                        let timestamp = timestamp.duration_since(SystemTime::UNIX_EPOCH)?.into();
-                        joint.mode.update_snapshot(&data);
+                        let timestamp = system_time.duration_since(SystemTime::UNIX_EPOCH)?.into();
+                        let event = RillEvent { timestamp, data };
+                        joint.mode.update_snapshot(&event);
                         if !joint.subscribers.is_empty() {
                             let direction = Direction::from(&joint.subscribers);
-                            let msg = RillToServer::Data { timestamp, data };
+                            let msg = RillToServer::Data { event };
                             self.sender.response(direction, msg);
                         } else {
                             // Passive filtering in action:

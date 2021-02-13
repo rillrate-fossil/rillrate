@@ -95,25 +95,25 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
     ) -> Result<(), Error> {
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
-            RillToServer::Data { timestamp, data } => {
+            RillToServer::Data { event } => {
                 if let Direction::Direct(direct_id) = msg.0.direction {
                     let path = self.paths.get(&direct_id);
                     if let Some(path) = path.cloned() {
-                        if let Err(err) = self.exporter.data_received(path, timestamp, data).await {
+                        if let Err(err) = self.exporter.data_received(path, event).await {
                             log::error!("Can't send data item to the exporter: {}", err);
                         }
                     } else {
                         log::error!(
                             "Unknown direction {:?} of the incoing data {:?}",
                             direct_id,
-                            data
+                            event.data
                         );
                     }
                 } else {
                     log::error!(
                         "Not supported direction {:?} of the incoing data {:?}",
                         msg.0.direction,
-                        data
+                        event.data
                     );
                 }
             }

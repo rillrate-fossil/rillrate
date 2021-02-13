@@ -7,13 +7,12 @@ use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
-use rill_protocol::provider::{Description, Path, RillData, StreamType, Timestamp};
+use rill_protocol::provider::{Description, Path, RillEvent, StreamType};
 use std::collections::btree_map::{BTreeMap, Entry};
 use std::convert::TryInto;
 
-#[derive(Debug)]
 struct Record {
-    data: Option<(RillData, Timestamp)>,
+    event: Option<RillEvent>,
     description: Description,
 }
 
@@ -92,7 +91,7 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                             .await?;
                         if let Entry::Vacant(entry) = self.metrics.entry(path) {
                             let record = Record {
-                                data: None,
+                                event: None,
                                 description,
                             };
                             entry.insert(record);
@@ -110,13 +109,9 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 impl ActionHandler<ExportEvent> for PrometheusPublisher {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
-            ExportEvent::BroadcastData {
-                path,
-                data,
-                timestamp,
-            } => {
+            ExportEvent::BroadcastData { path, event } => {
                 if let Some(record) = self.metrics.get_mut(&path) {
-                    record.data = Some((data, timestamp));
+                    record.event = Some(event);
                 }
             }
         }
@@ -144,7 +139,7 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
         let mut buffer = String::new();
         for (path, record) in &self.metrics {
             let info = &record.description.info;
-            if let Some(data) = record.data.clone() {
+            if let Some(event) = record.event.clone() {
                 let name = path.as_ref().join("_");
                 let typ = match record.description.stream_type {
                     StreamType::CounterStream => "counter",
@@ -157,18 +152,14 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
                         continue;
                     }
                 };
-                let value: f64 = match data.0.try_into() {
+                let value: f64 = match event.data.clone().try_into() {
                     Ok(n) => n, // TODO: Round?
                     Err(err) => {
-                        log::error!(
-                            "Can't convert data {:?} into a number: {}",
-                            record.data,
-                            err
-                        );
+                        log::error!("Can't convert data {:?} into a number: {}", event.data, err);
                         continue;
                     }
                 };
-                let ts = data.1;
+                let ts = event.timestamp;
                 let line = format!("# HELP {}\n", info);
                 buffer.push_str(&line);
                 let line = format!("# TYPE {} {}\n", name, typ);

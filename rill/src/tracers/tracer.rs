@@ -11,7 +11,7 @@ use tokio::sync::watch;
 #[derive(Debug)]
 pub(crate) enum DataEnvelope {
     DataEvent {
-        timestamp: SystemTime,
+        system_time: SystemTime,
         data: RillData,
     },
     EndStream {
@@ -79,11 +79,11 @@ impl Tracer {
         &self.description.path
     }
 
-    pub(crate) fn send(&self, data: RillData, timestamp: Option<SystemTime>) {
+    pub(crate) fn send(&self, data: RillData, opt_system_time: Option<SystemTime>) {
         // If there is no rill tracer than it will never be active.
         if *self.active.borrow() {
-            let timestamp = timestamp.unwrap_or_else(SystemTime::now);
-            let envelope = DataEnvelope::DataEvent { timestamp, data };
+            let system_time = opt_system_time.unwrap_or_else(SystemTime::now);
+            let envelope = DataEnvelope::DataEvent { system_time, data };
             // And will never send an event
             if let Err(err) = self.sender.unbounded_send(envelope) {
                 log::error!("Can't transfer data to sender: {}", err);
