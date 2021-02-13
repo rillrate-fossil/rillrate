@@ -120,7 +120,7 @@ impl ActionHandler<ExportEvent> for ClientSession {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
             ExportEvent::BroadcastData { path, event } => {
-                let response = ViewResponse::Data(path, event.timestamp, event.data);
+                let response = ViewResponse::Data(path, event);
                 self.handler.send(response);
             }
         }
