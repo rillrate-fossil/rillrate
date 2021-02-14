@@ -43,7 +43,7 @@ impl ProviderSessionLink {
             Entry::Vacant(entry) => {
                 let request = RillToProvider::ControlStream { active: true, path };
                 let msg = NewRequest { request };
-                let direct_id = self.address.interact(msg).await?;
+                let direct_id = self.address.interact_and_wait(msg).await?;
                 entry.insert(direct_id);
                 Ok(())
             }

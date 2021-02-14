@@ -179,6 +179,7 @@ pub enum Group {
     // TODO: Use it for coroutine-based streams (maybe)
     Subscriptions,
     WsConnection,
+    Streams,
 }
 
 #[async_trait]
@@ -267,7 +268,11 @@ impl RillWorker {
 #[async_trait]
 impl StartedBy<RillSupervisor> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Subscriptions, Group::WsConnection]);
+        ctx.termination_sequence(vec![
+            Group::Subscriptions,
+            Group::WsConnection,
+            Group::Streams,
+        ]);
         let client = WsClient::new(
             self.config.url().to_string(),
             Some(Duration::from_secs(1)),
@@ -303,6 +308,10 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 
 #[async_trait]
 impl Consumer<UpgradeStateEvent> for RillWorker {
+    fn stream_group(&self) -> Group {
+        Group::Streams
+    }
+
     async fn handle(
         &mut self,
         chunk: Vec<UpgradeStateEvent>,
@@ -326,7 +335,7 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
                         let joint = Joint::new(description, activator);
                         let joint_ref = entry.insert(joint);
                         let stream = receiver.map(move |data_envelope| (idx, data_envelope));
-                        ctx.address().attach(stream);
+                        ctx.attach(stream, Group::Streams);
                         record.set_link(idx);
                         if self.describe {
                             let description = (&*joint_ref.description).clone();
@@ -441,6 +450,10 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
 
 #[async_trait]
 impl Consumer<(usize, DataEnvelope)> for RillWorker {
+    fn stream_group(&self) -> Group {
+        Group::Streams
+    }
+
     async fn handle(
         &mut self,
         chunk: Vec<(usize, DataEnvelope)>,
