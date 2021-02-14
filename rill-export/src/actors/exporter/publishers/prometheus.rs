@@ -6,7 +6,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
-use meio_connect::server::{DirectPath, HttpServerLink, Req};
+use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_protocol::provider::{Description, Path, RillEvent, StreamType};
 use serde::Deserialize;
 use std::collections::btree_map::{BTreeMap, Entry};
@@ -55,9 +55,8 @@ impl Actor for PrometheusPublisher {
 #[async_trait]
 impl StartedBy<Exporter> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.server
-            .add_route(RenderMetrics, ctx.address().clone())
-            .await?;
+        let metrics_route = WebRoute::<RenderMetrics, _>::new(ctx.address().clone());
+        self.server.add_route(metrics_route).await?;
         self.exporter
             .subscribe_to_paths(ctx.address().clone())
             .await?;
@@ -121,7 +120,7 @@ impl ActionHandler<ExportEvent> for PrometheusPublisher {
 }
 
 #[derive(Default, Deserialize)]
-struct RenderMetrics;
+struct RenderMetrics {}
 
 impl DirectPath for RenderMetrics {
     type Parameter = ();

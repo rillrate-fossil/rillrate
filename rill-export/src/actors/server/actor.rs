@@ -11,7 +11,9 @@ use meio::prelude::{
 };
 use meio_connect::headers::{ContentType, HeaderMapExt, HeaderValue};
 use meio_connect::hyper::{header, Body, Request, Response, StatusCode};
-use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
+use meio_connect::server::{
+    DirectPath, FromRequest, HttpServerLink, Req, WebRoute, WsReq, WsRoute,
+};
 use reqwest::Url;
 use rill_protocol::provider::RillProtocol;
 use rill_protocol::view::ViewProtocol;
@@ -99,25 +101,25 @@ impl Actor for Server {
 impl StartedBy<EmbeddedNode> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.init_assets(ctx).await?;
-        self.inner_server
-            .add_route(Index, ctx.address().clone())
-            .await?;
-        self.inner_server
-            .add_ws_route(ProviderLive, ctx.address().clone())
-            .await?;
 
-        self.extern_server
-            .add_route(ForwardToUi, ctx.address().clone())
-            .await?;
-        self.extern_server
-            .add_ws_route(ClientLive, ctx.address().clone())
-            .await?;
-        self.extern_server
-            .add_route(Ui, ctx.address().clone())
-            .await?;
-        self.extern_server
-            .add_route(Info, ctx.address().clone())
-            .await?;
+        let route = WebRoute::<Index, _>::new(ctx.address().clone());
+        self.inner_server.add_route(route).await?;
+
+        let route = WsRoute::<ProviderLive, _>::new(ctx.address().clone());
+        self.inner_server.add_route(route).await?;
+
+        let route = WebRoute::<ForwardToUi, _>::new(ctx.address().clone());
+        self.extern_server.add_route(route).await?;
+
+        let route = WsRoute::<ClientLive, _>::new(ctx.address().clone());
+        self.extern_server.add_route(route).await?;
+
+        let route = WebRoute::<Ui, _>::new(ctx.address().clone());
+        self.extern_server.add_route(route).await?;
+
+        let route = WebRoute::<Info, _>::new(ctx.address().clone());
+        self.extern_server.add_route(route).await?;
+
         Ok(())
     }
 }
@@ -131,7 +133,7 @@ impl InterruptedBy<EmbeddedNode> for Server {
 }
 
 #[derive(Default, Deserialize)]
-struct Index;
+struct Index {}
 
 impl DirectPath for Index {
     type Parameter = ();
@@ -153,7 +155,7 @@ impl InteractionHandler<Req<Index>> for Server {
 }
 
 #[derive(Default, Deserialize)]
-struct ForwardToUi;
+struct ForwardToUi {}
 
 impl DirectPath for ForwardToUi {
     type Parameter = ();
@@ -181,7 +183,7 @@ impl InteractionHandler<Req<ForwardToUi>> for Server {
 }
 
 #[derive(Default, Deserialize)]
-struct Info;
+struct Info {}
 
 impl DirectPath for Info {
     type Parameter = ();
@@ -207,7 +209,7 @@ impl InteractionHandler<Req<Info>> for Server {
 }
 
 #[derive(Default, Deserialize)]
-struct ProviderLive;
+struct ProviderLive {}
 
 impl DirectPath for ProviderLive {
     type Parameter = RillProtocol;
@@ -254,7 +256,7 @@ impl Eliminated<ProviderSession> for Server {
 }
 
 #[derive(Default, Deserialize)]
-struct ClientLive;
+struct ClientLive {}
 
 impl DirectPath for ClientLive {
     type Parameter = ViewProtocol;
