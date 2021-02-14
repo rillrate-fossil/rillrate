@@ -15,6 +15,7 @@ use meio_connect::server::{DirectPath, FromRequest, HttpServerLink, Req, WsReq};
 use reqwest::Url;
 use rill_protocol::provider::RillProtocol;
 use rill_protocol::view::ViewProtocol;
+use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use tokio::fs::File;
@@ -129,7 +130,7 @@ impl InterruptedBy<EmbeddedNode> for Server {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize)]
 struct Index;
 
 impl DirectPath for Index {
@@ -151,7 +152,7 @@ impl InteractionHandler<Req<Index>> for Server {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize)]
 struct ForwardToUi;
 
 impl DirectPath for ForwardToUi {
@@ -179,7 +180,7 @@ impl InteractionHandler<Req<ForwardToUi>> for Server {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize)]
 struct Info;
 
 impl DirectPath for Info {
@@ -205,7 +206,7 @@ impl InteractionHandler<Req<Info>> for Server {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize)]
 struct ProviderLive;
 
 impl DirectPath for ProviderLive {
@@ -252,7 +253,7 @@ impl Eliminated<ProviderSession> for Server {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize)]
 struct ClientLive;
 
 impl DirectPath for ClientLive {

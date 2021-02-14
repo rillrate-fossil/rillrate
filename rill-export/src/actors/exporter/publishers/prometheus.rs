@@ -8,6 +8,7 @@ use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, Interrupt
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req};
 use rill_protocol::provider::{Description, Path, RillEvent, StreamType};
+use serde::Deserialize;
 use std::collections::btree_map::{BTreeMap, Entry};
 use std::convert::TryInto;
 
@@ -119,7 +120,7 @@ impl ActionHandler<ExportEvent> for PrometheusPublisher {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize)]
 struct RenderMetrics;
 
 impl DirectPath for RenderMetrics {
