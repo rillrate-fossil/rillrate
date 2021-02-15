@@ -392,6 +392,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
         match envelope.data {
             RillToProvider::ControlStream { path, active } => {
                 log::debug!("Switching the stream {:?} to {:?}", path, active);
+                let msg;
                 if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
                     if let Some(joint) = self.joints.get_mut(*idx) {
                         if active {
@@ -401,9 +402,8 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                                 }
                             }
                             let snapshot = joint.get_latest_snapshot();
-                            let msg = RillToServer::BeginStream { snapshot };
+                            msg = RillToServer::BeginStream { snapshot };
                             // Send it before the flag switched on
-                            self.sender.response(direct_id.into(), msg);
                             joint.try_switch_on();
                         } else {
                             if joint.subscribers.remove(&direct_id) {
@@ -413,18 +413,41 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                             }
                             joint.try_switch_off();
                             // Send it after the flag switched off
-                            let msg = RillToServer::EndStream;
-                            self.sender.response(direct_id.into(), msg);
+                            msg = RillToServer::EndStream;
                         }
                     } else {
                         log::error!("Inconsistent state of the storage: no Joint with the index {} of path {:?}", idx, path);
+                        msg = RillToServer::Error {
+                            reason: format!("no provider for {}", path),
+                        };
                     }
                 } else {
                     log::warn!("Path not found: {:?}", path);
-                    let reason = "path not found".to_string();
-                    let msg = RillToServer::Error { reason };
-                    self.sender.response(direct_id.into(), msg);
+                    let reason = format!("path {} not found", path);
+                    msg = RillToServer::Error { reason };
                 }
+                self.sender.response(direct_id.into(), msg);
+            }
+            RillToProvider::GetSnapshot { path } => {
+                // TODO: DRY, because the code above duplicated this below in many aspects
+                let msg;
+                if let Some(idx) = self.index.find(&path).and_then(Record::get_link) {
+                    if let Some(joint) = self.joints.get_mut(*idx) {
+                        let snapshot = joint.get_latest_snapshot();
+                        msg = RillToServer::SnapshotReady { snapshot };
+                    } else {
+                        log::error!("Inconsistent state of the storage: no Joint with the index {} of path {:?}", idx, path);
+                        msg = RillToServer::Error {
+                            reason: format!("no provider for {}", path),
+                        };
+                    }
+                } else {
+                    log::warn!("Path not found: {:?}", path);
+                    msg = RillToServer::Error {
+                        reason: format!("path {} not found", path),
+                    };
+                }
+                self.sender.response(direct_id.into(), msg);
             }
             RillToProvider::ListOf { path } => {
                 self.send_list_for(direct_id, &path);

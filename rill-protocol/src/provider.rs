@@ -364,6 +364,9 @@ pub enum RillToProvider {
         path: Path,
         active: bool,
     },
+    GetSnapshot {
+        path: Path,
+    },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -424,6 +427,10 @@ pub enum RillToServer {
     // TODO: Consider renaming to ListReady
     Entries {
         entries: HashMap<EntryId, EntryType>,
+    },
+    // TODO: Join it with `BeginStream`?
+    SnapshotReady {
+        snapshot: Option<RillEvent>,
     },
     /// The response to `ControlStream { active: true }` request
     BeginStream {
