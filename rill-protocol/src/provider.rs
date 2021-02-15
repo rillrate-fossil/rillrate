@@ -1,7 +1,7 @@
 use crate::codec::JsonCodec;
 use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
@@ -117,6 +117,25 @@ impl From<String> for EntryId {
 impl fmt::Display for EntryId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(&self.0, f)
+    }
+}
+
+pub struct StrPath(Path);
+
+impl<'de> Deserialize<'de> for StrPath {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let path = Path::from_str(&s).map_err(de::Error::custom)?;
+        Ok(Self(path))
+    }
+}
+
+impl Into<Path> for StrPath {
+    fn into(self) -> Path {
+        self.0
     }
 }
 

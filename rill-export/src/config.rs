@@ -10,6 +10,7 @@ use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 
+// TODO: Consider to join with `StrPath` from the `protocol`
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PathPattern {
     pub path: Path,
