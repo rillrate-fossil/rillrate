@@ -10,7 +10,7 @@ use meio::prelude::{
     TaskError,
 };
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Path, RillEvent};
+use rill_protocol::provider::{Path, PathPattern, RillEvent};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
@@ -164,7 +164,7 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                 for description in descriptions {
                     let path = description.path;
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
-                    let pattern = crate::config::PathPattern { path: path.clone() };
+                    let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
                         self.exporter
                             .subscribe_to_data(path, ctx.address().clone())

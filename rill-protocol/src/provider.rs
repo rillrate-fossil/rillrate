@@ -120,22 +120,25 @@ impl fmt::Display for EntryId {
     }
 }
 
-pub struct StrPath(Path);
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PathPattern {
+    pub path: Path,
+}
 
-impl<'de> Deserialize<'de> for StrPath {
+impl<'de> Deserialize<'de> for PathPattern {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let path = Path::from_str(&s).map_err(de::Error::custom)?;
-        Ok(Self(path))
+        let path: Path = FromStr::from_str(&s).map_err(de::Error::custom)?;
+        Ok(PathPattern { path })
     }
 }
 
-impl Into<Path> for StrPath {
+impl Into<Path> for PathPattern {
     fn into(self) -> Path {
-        self.0
+        self.path
     }
 }
 

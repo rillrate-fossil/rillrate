@@ -304,13 +304,13 @@ struct UiReq {
 impl FromRequest for Ui {
     type Output = UiReq;
 
-    fn from_request(request: &Request<Body>) -> Option<Self::Output> {
+    fn from_request(request: &Request<Body>) -> Result<Option<Self::Output>, Error> {
         let path = request.uri().path();
         if let Some(stripped) = path.strip_prefix("/ui/") {
             let tail = Path::new(stripped).to_path_buf();
-            Some(UiReq { tail })
+            Ok(Some(UiReq { tail }))
         } else {
-            None
+            Ok(None)
         }
     }
 }

@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
-use rill_protocol::provider::{Description, Path, RillEvent, StreamType};
+use rill_protocol::provider::{Description, Path, PathPattern, RillEvent, StreamType};
 use serde::Deserialize;
 use std::collections::btree_map::{BTreeMap, Entry};
 use std::convert::TryInto;
@@ -84,7 +84,7 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                 for description in descriptions {
                     let path = description.path.clone();
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
-                    let pattern = crate::config::PathPattern { path: path.clone() };
+                    let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
                         self.exporter
                             .subscribe_to_data(path.clone(), ctx.address().clone())

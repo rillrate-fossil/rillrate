@@ -1,31 +1,13 @@
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::LiteTask;
-use rill_protocol::provider::Path;
-use serde::{de, Deserialize, Deserializer};
+use rill_protocol::provider::PathPattern;
+use serde::Deserialize;
 use std::collections::HashSet;
 use std::net::IpAddr;
 use std::path::PathBuf;
-use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
-
-// TODO: Consider to join with `StrPath` from the `protocol`
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PathPattern {
-    pub path: Path,
-}
-
-impl<'de> Deserialize<'de> for PathPattern {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        let path: Path = FromStr::from_str(&s).map_err(de::Error::custom)?;
-        Ok(PathPattern { path })
-    }
-}
 
 #[derive(Deserialize)]
 pub struct Config {
