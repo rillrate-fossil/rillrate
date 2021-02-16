@@ -1,3 +1,4 @@
+use crate::actors::storage::RillStorage;
 use crate::actors::worker::RillWorker;
 use crate::config::RillConfig;
 use crate::state::ControlReceiver;
@@ -12,8 +13,9 @@ pub(crate) struct RillSupervisor {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
-    Worker,
     Exporters,
+    Worker,
+    Storage,
 }
 
 impl Actor for RillSupervisor {
@@ -36,14 +38,17 @@ impl RillSupervisor {
 #[async_trait]
 impl StartedBy<System> for RillSupervisor {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Exporters, Group::Worker]);
+        ctx.termination_sequence(vec![Group::Exporters, Group::Worker, Group::Storage]);
+        let storage = RillStorage::new();
+        ctx.spawn_actor(storage, Group::Storage);
+
         let worker = RillWorker::new(self.config.clone());
+        let mut worker_addr = ctx.spawn_actor(worker, Group::Worker);
         let rx = self
             .rx
             .take()
             .ok_or_else(|| Error::msg("attempt to start supervisor twice"))?;
-        let mut worker = ctx.spawn_actor(worker, Group::Worker);
-        worker.attach(rx)?;
+        worker_addr.attach(rx)?;
 
         Ok(())
     }
@@ -64,6 +69,20 @@ impl Eliminated<RillWorker> for RillSupervisor {
         _id: IdOf<RillWorker>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        // TODO: Do we really need it here?
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<RillStorage> for RillSupervisor {
+    async fn handle(
+        &mut self,
+        _id: IdOf<RillStorage>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        // TODO: Do we really need it here?
         ctx.shutdown();
         Ok(())
     }
