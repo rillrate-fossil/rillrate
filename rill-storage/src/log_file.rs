@@ -132,22 +132,39 @@ impl LogFile {
     }
 
     async fn read_records(&mut self, pointer: Pointer) -> Result<Vec<Record>, Error> {
-        // TODO: Fix it
-        match pointer {
-            Pointer::Declaration => {}
-            Pointer::Event { path } => {}
-        }
         let mut pos = 0;
         let mut records = Vec::new();
+        let mut rake = false;
         loop {
             let (record, next) = self.read_record(pos).await?;
-            records.push(record);
+            if rake {
+                records.push(record);
+            } else {
+                match &pointer {
+                    Pointer::Declaration => {
+                        records.push(record);
+                        rake = true;
+                    }
+                    Pointer::Event { path: event_path } => {
+                        if let Record::Declaration { path: record_path } = &record {
+                            if event_path == record_path {
+                                rake = true;
+                                pos = self.get_position().await?;
+                                // Don't follow the next field of declarations
+                                // Read the next record
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
             if let Some(new_pos) = next {
                 pos = new_pos;
             } else {
                 break;
             }
         }
+        log::trace!("Records found: {:?}", records);
         Ok(records)
     }
 
@@ -231,24 +248,6 @@ mod tests {
             .await?;
         assert_eq!(records.len(), 1);
         assert_eq!(records, vec![Record::Event { event: event_2 },]);
-
-        /*
-        let path_1: Path = "my.path.one".parse()?;
-        log_file.write_declaration(path_1.clone()).await?;
-
-        let path_2: Path = "my.path.two".parse()?;
-        log_file.write_declaration(path_2.clone()).await?;
-
-        let records = log_file.read_records(Pointer::Declaration).await?;
-        assert_eq!(records.len(), 2);
-        assert_eq!(
-            records,
-            vec![
-                Record::Declaration { path: path_1 },
-                Record::Declaration { path: path_2 },
-            ]
-        );
-        */
 
         tmp_path.close()?;
         Ok(())
