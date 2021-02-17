@@ -4,4 +4,5 @@ members = [
     "rill",
     "rill-export",
     "rill-protocol",
+    "rill-storage",
 ]
