@@ -312,7 +312,7 @@ pub type ServerRequest = Envelope<RillProtocol, RillToProvider>;
 pub type ProviderResponse = Envelope<RillProtocol, RillToServer>;
 */
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RillData {
     /// Use empty strings if value is not provided.
     ///
@@ -343,7 +343,7 @@ impl TryInto<f64> for RillData {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RillEvent {
     pub timestamp: Timestamp,
     pub data: RillData,

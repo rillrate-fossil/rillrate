@@ -18,5 +18,12 @@ description = "Storage format of the rillrate tracer"
 [dependencies]
 anyhow = "1.0.38"
 async-trait = "0.1.42"
+bson = "1.2.0"
+log = "0.4.14"
 rill-protocol = { version = "0.19.2", path = "../rill-protocol" }
+serde = "1.0.123"
 tokio = { version = "1.2.0", features = ["full"] }
+
+[dev-dependencies]
+env_logger = "0.8.3"
+tempfile = "3.2.0"
