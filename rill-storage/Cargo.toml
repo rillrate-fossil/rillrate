@@ -16,3 +16,7 @@ categories = ["development-tools::debugging"]
 description = "Storage format of the rillrate tracer"
 
 [dependencies]
+anyhow = "1.0.38"
+async-trait = "0.1.42"
+rill-protocol = { version = "0.19.2", path = "../rill-protocol" }
+tokio = { version = "1.2.0", features = ["full"] }
