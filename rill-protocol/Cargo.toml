@@ -6,8 +6,8 @@ authors = [
     "overfloat <rillrate@gmail.com>",
 ]
 edition = "2018"
-repository = "https://github.com/rate-technology/rill"
-homepage = "https://github.com/rate-technology/rill"
+repository = "https://github.com/rillrate/rillrate"
+homepage = "https://github.com/rillrate/rillrate"
 documentation = "https://docs.rs/rill-protocol/"
 license = "MIT/Apache-2.0"
 readme = "README.md"
