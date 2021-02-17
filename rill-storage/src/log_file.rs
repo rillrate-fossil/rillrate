@@ -78,6 +78,8 @@ impl LogFile {
     }
 
     async fn write_record(&mut self, pointer: Pointer, record: &Record) -> Result<(), Error> {
+        // Always writes to the end
+        self.go_to_end().await?;
         let new_record_position = self.get_position().await?;
         let doc = bson::to_document(record)?;
         self.buffer.clear();
@@ -102,26 +104,22 @@ impl LogFile {
         Ok(())
     }
 
-    /// Writes a declaration and and a begin stream marker.
-    pub async fn write_declaration(&mut self, path: Path) -> Result<(), Error> {
-        self.go_to_end().await?;
-        let pointer = Pointer::Declaration;
-        let record = Record::Declaration { path };
-        self.write_record(pointer, &record).await?;
-        Ok(())
-    }
-
+    /// Reads record at the specific position
     async fn read_record(&mut self, pos: u64) -> Result<(Record, Option<u64>), Error> {
         log::trace!("Reading record at: {}", pos);
         self.go_to(pos).await?;
+        // Reads size of serialized data
         let size = self.file.read_u64().await? as usize;
+        // Prepare a buffer to absorb that data
         log::debug!("Reading record with size: {}", size);
         let mut buf = Vec::with_capacity(size);
         buf.resize(size, 0);
         self.file.read_exact(&mut buf).await?;
+        // Deserializing
         let mut cursor = Cursor::new(buf);
         let document = bson::Document::from_reader(&mut cursor)?;
         let record: Record = bson::from_document(document)?;
+        // Reading position of the next record
         let next_pos = self.file.read_u64().await?;
         let next = {
             if next_pos != 0 {
@@ -134,6 +132,11 @@ impl LogFile {
     }
 
     async fn read_records(&mut self, pointer: Pointer) -> Result<Vec<Record>, Error> {
+        // TODO: Fix it
+        match pointer {
+            Pointer::Declaration => {}
+            Pointer::Event { path } => {}
+        }
         let mut pos = 0;
         let mut records = Vec::new();
         loop {
@@ -148,6 +151,19 @@ impl LogFile {
         Ok(records)
     }
 
+    pub async fn write_event(&mut self, path: &Path, event: RillEvent) -> Result<(), Error> {
+        let key = Pointer::Event { path: path.clone() };
+        if !self.last_pointer.contains_key(&key) {
+            // Writes a declaration
+            let pointer = Pointer::Declaration;
+            let record = Record::Declaration { path: path.clone() };
+            self.write_record(pointer, &record).await?;
+        }
+        let record = Record::Event { event };
+        self.write_record(key, &record).await?;
+        Ok(())
+    }
+
     async fn flush(&mut self) -> Result<(), Error> {
         self.file.flush().await?;
         Ok(())
@@ -157,7 +173,16 @@ impl LogFile {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rill_protocol::provider::{RillData, Timestamp};
     use tempfile::NamedTempFile;
+
+    fn now() -> Timestamp {
+        use std::time::SystemTime;
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .into()
+    }
 
     #[tokio::test]
     async fn test_storage_declarations() -> Result<(), Error> {
@@ -167,6 +192,47 @@ mod tests {
 
         let mut log_file = LogFile::open(&tmp_path).await?;
 
+        let path_1: Path = "my.path.one".parse()?;
+        let event_1 = RillEvent {
+            timestamp: now(),
+            data: RillData::CounterRecord { value: 10.0 },
+        };
+        log_file.write_event(&path_1, event_1.clone()).await?;
+
+        let path_2: Path = "my.path.two".parse()?;
+        let event_2 = RillEvent {
+            timestamp: now(),
+            data: RillData::CounterRecord { value: 20.0 },
+        };
+        log_file.write_event(&path_2, event_2.clone()).await?;
+
+        let records = log_file.read_records(Pointer::Declaration).await?;
+        assert_eq!(records.len(), 2);
+        assert_eq!(
+            records,
+            vec![
+                Record::Declaration {
+                    path: path_1.clone()
+                },
+                Record::Declaration {
+                    path: path_2.clone()
+                },
+            ]
+        );
+
+        let records = log_file
+            .read_records(Pointer::Event { path: path_1 })
+            .await?;
+        assert_eq!(records.len(), 1);
+        assert_eq!(records, vec![Record::Event { event: event_1 },]);
+
+        let records = log_file
+            .read_records(Pointer::Event { path: path_2 })
+            .await?;
+        assert_eq!(records.len(), 1);
+        assert_eq!(records, vec![Record::Event { event: event_2 },]);
+
+        /*
         let path_1: Path = "my.path.one".parse()?;
         log_file.write_declaration(path_1.clone()).await?;
 
@@ -182,6 +248,7 @@ mod tests {
                 Record::Declaration { path: path_2 },
             ]
         );
+        */
 
         tmp_path.close()?;
         Ok(())

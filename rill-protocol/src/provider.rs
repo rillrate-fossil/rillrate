@@ -247,19 +247,22 @@ impl FromStr for Path {
     }
 }
 
+// `i64` used, becuase it's widely supported as UTC timestamp
+// and for example it's used as timestamp value in BSON format.
 #[derive(
     Serialize, Deserialize, From, Into, Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
-pub struct Timestamp(pub u128);
+pub struct Timestamp(pub i64);
 
 impl From<Duration> for Timestamp {
     fn from(duration: Duration) -> Self {
-        Self(duration.as_millis())
+        // TODO: Use `try_into` here?
+        Self(duration.as_millis() as i64)
     }
 }
 
 // TODO: Change to `Into` when possible.
-// When `from_millis(u128)` will be supported.
+// When `from_millis(i64)` will be supported.
 impl TryInto<Duration> for Timestamp {
     type Error = std::num::TryFromIntError;
 
@@ -274,11 +277,11 @@ impl Timestamp {
         self.0 as f64
     }
 
-    pub fn as_secs(&self) -> u128 {
+    pub fn as_secs(&self) -> i64 {
         self.0 / 1_000
     }
 
-    pub fn as_millis(&self) -> u128 {
+    pub fn as_millis(&self) -> i64 {
         self.0
     }
 }
