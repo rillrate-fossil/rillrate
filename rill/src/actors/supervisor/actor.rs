@@ -1,6 +1,6 @@
 use crate::actors::router::RillRouter;
 use crate::actors::storage::RillStorage;
-use crate::actors::worker::RillWorker;
+//use crate::actors::worker::RillWorker;
 use crate::config::RillConfig;
 use crate::state::ControlReceiver;
 use anyhow::Error;
@@ -16,7 +16,7 @@ pub(crate) struct RillSupervisor {
 pub enum Group {
     Exporters,
     Router,
-    Worker,
+    //Worker,
     Storage,
 }
 
@@ -43,14 +43,16 @@ impl StartedBy<System> for RillSupervisor {
         ctx.termination_sequence(vec![
             Group::Exporters,
             Group::Router,
-            Group::Worker,
+            //Group::Worker,
             Group::Storage,
         ]);
         let storage = RillStorage::new();
         ctx.spawn_actor(storage, Group::Storage);
 
+        /*
         let worker = RillWorker::new(self.config.clone());
         ctx.spawn_actor(worker, Group::Worker);
+        */
 
         let router = RillRouter::new(self.config.clone());
         let mut router_addr = ctx.spawn_actor(router, Group::Router);
@@ -72,6 +74,7 @@ impl InterruptedBy<System> for RillSupervisor {
     }
 }
 
+/*
 #[async_trait]
 impl Eliminated<RillWorker> for RillSupervisor {
     async fn handle(
@@ -84,6 +87,7 @@ impl Eliminated<RillWorker> for RillSupervisor {
         Ok(())
     }
 }
+*/
 
 #[async_trait]
 impl Eliminated<RillRouter> for RillSupervisor {
