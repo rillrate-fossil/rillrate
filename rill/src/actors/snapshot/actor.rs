@@ -38,6 +38,7 @@ impl ActionHandler<link::AttachTracer> for SnapshotWorker {
         msg: link::AttachTracer,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        log::error!("NOT IMPLEMENTED");
         Ok(())
     }
 }

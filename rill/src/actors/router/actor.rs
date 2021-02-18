@@ -168,13 +168,15 @@ impl Consumer<UpgradeStateEvent> for RillRouter {
                     storage,
                 } => {
                     if let Some(flow) = realtime {
-                        // TODO: Attach to RealtimeTracker
+                        // TODO: Attach to RealtimeWorker
                     }
                     if let Some(flow) = snapshot {
-                        // TODO: Attach to SnapshotTracker
+                        self.snapshot
+                            .attach_tracer(description, flow.receiver)
+                            .await?;
                     }
                     if let Some(flow) = storage {
-                        // TODO: Attach to SnapshotTracker
+                        // TODO: Attach to SnapshotWorker
                     }
                 }
             }
