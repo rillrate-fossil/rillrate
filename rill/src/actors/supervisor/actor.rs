@@ -1,5 +1,5 @@
 use crate::actors::router::RillRouter;
-use crate::actors::snapshot::SnapshotTracker;
+use crate::actors::snapshot::SnapshotWorker;
 use crate::actors::storage::RillStorage;
 //use crate::actors::worker::RillWorker;
 use crate::config::RillConfig;
@@ -58,7 +58,7 @@ impl StartedBy<System> for RillSupervisor {
         ctx.spawn_actor(worker, Group::Worker);
         */
 
-        let actor = SnapshotTracker::new();
+        let actor = SnapshotWorker::new();
         let snapshot_tracker = ctx.spawn_actor(actor, Group::Trackers);
 
         let router = RillRouter::new(self.config.clone(), snapshot_tracker.link());
@@ -110,10 +110,10 @@ impl Eliminated<RillRouter> for RillSupervisor {
 }
 
 #[async_trait]
-impl Eliminated<SnapshotTracker> for RillSupervisor {
+impl Eliminated<SnapshotWorker> for RillSupervisor {
     async fn handle(
         &mut self,
-        _id: IdOf<SnapshotTracker>,
+        _id: IdOf<SnapshotWorker>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         // TODO: Do we really need it here?

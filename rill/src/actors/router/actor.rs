@@ -1,4 +1,4 @@
-use crate::actors::snapshot::SnapshotTrackerLink;
+use crate::actors::snapshot::SnapshotLink;
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
 use crate::state::{TracerMode, UpgradeStateEvent};
@@ -43,15 +43,15 @@ impl RillSender {
 pub struct RillRouter {
     config: RillConfig,
     sender: RillSender,
-    snapshot_tracker: SnapshotTrackerLink,
+    snapshot: SnapshotLink,
 }
 
 impl RillRouter {
-    pub fn new(config: RillConfig, snapshot_tracker: SnapshotTrackerLink) -> Self {
+    pub fn new(config: RillConfig, snapshot: SnapshotLink) -> Self {
         Self {
             config,
             sender: RillSender::default(),
-            snapshot_tracker,
+            snapshot,
         }
     }
 }

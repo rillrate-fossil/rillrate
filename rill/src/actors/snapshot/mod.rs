@@ -1,5 +1,5 @@
 mod actor;
-pub use actor::SnapshotTracker;
+pub use actor::SnapshotWorker;
 
 mod link;
-pub use link::SnapshotTrackerLink;
+pub use link::SnapshotLink;

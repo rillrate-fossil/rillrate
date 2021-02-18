@@ -11,7 +11,7 @@ use std::time::SystemTime;
 use tokio::sync::broadcast;
 
 #[derive(Debug, Clone)]
-pub(crate) enum DataEnvelope {
+pub enum DataEnvelope {
     DataEvent {
         system_time: SystemTime,
         data: RillData,
