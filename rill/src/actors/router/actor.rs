@@ -1,6 +1,7 @@
+use crate::actors::snapshot::SnapshotTrackerLink;
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::state::{DataSource, TracerMode, UpgradeStateEvent};
+use crate::state::{TracerMode, UpgradeStateEvent};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
@@ -42,13 +43,15 @@ impl RillSender {
 pub struct RillRouter {
     config: RillConfig,
     sender: RillSender,
+    snapshot_tracker: SnapshotTrackerLink,
 }
 
 impl RillRouter {
-    pub fn new(config: RillConfig) -> Self {
+    pub fn new(config: RillConfig, snapshot_tracker: SnapshotTrackerLink) -> Self {
         Self {
             config,
             sender: RillSender::default(),
+            snapshot_tracker,
         }
     }
 }
@@ -156,7 +159,26 @@ impl Consumer<UpgradeStateEvent> for RillRouter {
         chunk: Vec<UpgradeStateEvent>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        for event in chunk {}
+        for event in chunk {
+            match event {
+                UpgradeStateEvent::RegisterTracer {
+                    description,
+                    realtime,
+                    snapshot,
+                    storage,
+                } => {
+                    if let Some(flow) = realtime {
+                        // TODO: Attach to RealtimeTracker
+                    }
+                    if let Some(flow) = snapshot {
+                        // TODO: Attach to SnapshotTracker
+                    }
+                    if let Some(flow) = storage {
+                        // TODO: Attach to SnapshotTracker
+                    }
+                }
+            }
+        }
         Ok(())
     }
 }

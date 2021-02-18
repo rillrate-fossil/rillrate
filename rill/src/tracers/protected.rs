@@ -1,4 +1,4 @@
-use super::tracer::Tracer;
+use super::tracer::{Tracer, TracerType};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::Description;
 use std::sync::{Mutex, MutexGuard};
@@ -14,7 +14,11 @@ pub struct ProtectedTracer<T> {
 
 impl<T> ProtectedTracer<T> {
     pub(super) fn new(description: Description, data: T, active: bool) -> Self {
-        let tracer = Tracer::new(description, active);
+        let mut types = vec![TracerType::Realtime];
+        if active {
+            types.push(TracerType::Snapshot);
+        }
+        let tracer = Tracer::new(description, &types);
         Self {
             tracer,
             value: Mutex::new(data),

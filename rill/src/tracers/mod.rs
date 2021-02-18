@@ -1,7 +1,7 @@
 //! Tracers to send specific types of tracing data.
 
 pub mod tracer;
-pub use tracer::Tracer;
+pub use tracer::{Tracer, TracerType};
 
 mod counter;
 pub use counter::CounterTracer;

@@ -1,4 +1,4 @@
-use crate::tracers::tracer::DataReceiver;
+use crate::tracers::tracer::{FlowReceiver, FlowSender};
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use once_cell::sync::OnceCell;
@@ -20,15 +20,33 @@ pub(crate) enum TracerMode {
     },
 }
 
+/*
 pub(crate) enum DataSource {
     Receiver { receiver: DataReceiver },
+}
+*/
+
+pub(crate) struct RealtimeFlow {
+    // TODO: Use broadcast::Sender here and subscribe
+    // when data is necessary.
+    // Active flag is not needed anymore )
+    pub sender: FlowSender,
+}
+
+pub(crate) struct SnapshotFlow {
+    pub receiver: FlowReceiver,
+}
+
+pub(crate) struct StorageFlow {
+    pub receiver: FlowReceiver,
 }
 
 pub(crate) enum UpgradeStateEvent {
     RegisterTracer {
         description: Arc<Description>,
-        mode: TracerMode,
-        source: DataSource,
+        realtime: Option<RealtimeFlow>,
+        snapshot: Option<SnapshotFlow>,
+        storage: Option<StorageFlow>,
     },
 }
 

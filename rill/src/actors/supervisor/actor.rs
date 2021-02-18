@@ -1,4 +1,5 @@
 use crate::actors::router::RillRouter;
+use crate::actors::snapshot::SnapshotTracker;
 use crate::actors::storage::RillStorage;
 //use crate::actors::worker::RillWorker;
 use crate::config::RillConfig;
@@ -16,8 +17,8 @@ pub(crate) struct RillSupervisor {
 pub enum Group {
     Exporters,
     Router,
-    //Worker,
-    Storage,
+    Trackers,
+    //Storage,
 }
 
 impl Actor for RillSupervisor {
@@ -43,18 +44,24 @@ impl StartedBy<System> for RillSupervisor {
         ctx.termination_sequence(vec![
             Group::Exporters,
             Group::Router,
-            //Group::Worker,
-            Group::Storage,
+            Group::Trackers,
+            //Group::Storage,
         ]);
+
+        /*
         let storage = RillStorage::new();
         ctx.spawn_actor(storage, Group::Storage);
+        */
 
         /*
         let worker = RillWorker::new(self.config.clone());
         ctx.spawn_actor(worker, Group::Worker);
         */
 
-        let router = RillRouter::new(self.config.clone());
+        let actor = SnapshotTracker::new();
+        let snapshot_tracker = ctx.spawn_actor(actor, Group::Trackers);
+
+        let router = RillRouter::new(self.config.clone(), snapshot_tracker.link());
         let mut router_addr = ctx.spawn_actor(router, Group::Router);
         let rx = self
             .rx
@@ -94,6 +101,19 @@ impl Eliminated<RillRouter> for RillSupervisor {
     async fn handle(
         &mut self,
         _id: IdOf<RillRouter>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        // TODO: Do we really need it here?
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<SnapshotTracker> for RillSupervisor {
+    async fn handle(
+        &mut self,
+        _id: IdOf<SnapshotTracker>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         // TODO: Do we really need it here?

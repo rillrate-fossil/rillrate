@@ -1,4 +1,4 @@
-use super::Tracer;
+use super::{Tracer, TracerType};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::time::SystemTime;
@@ -18,7 +18,11 @@ impl LogTracer {
             info,
             stream_type: StreamType::LogStream,
         };
-        let tracer = Tracer::new(description, active);
+        let mut types = vec![TracerType::Realtime];
+        if active {
+            types.push(TracerType::Snapshot);
+        }
+        let tracer = Tracer::new(description, &types);
         Self { tracer }
     }
 
