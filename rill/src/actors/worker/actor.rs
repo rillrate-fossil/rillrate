@@ -111,6 +111,7 @@ impl Joint {
     }
 }
 
+// TODO: Remove. It diplicated in `RillRouter`
 /// Wrapper for WebSocket connection for sending responses (notifications) to a server.
 #[derive(Default)]
 struct RillSender {
@@ -273,12 +274,14 @@ impl StartedBy<RillSupervisor> for RillWorker {
             Group::WsConnection,
             Group::Streams,
         ]);
+        /*
         let client = WsClient::new(
             self.config.url().to_string(),
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
         ctx.spawn_task(client, Group::WsConnection);
+        */
         Ok(())
     }
 }

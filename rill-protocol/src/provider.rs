@@ -357,9 +357,15 @@ pub enum RillToProvider {
     ListOf {
         path: Path,
     },
+
     /// Turns on notifications about every added path
+    // TODO: Replace it with Container-Stream
     Describe {
         active: bool,
+    },
+
+    GetSnapshot {
+        path: Path,
     },
     // TODO: Add `StartStream { path }` and `StopStream`,
     // because the `Path` is not needed to stop the stream.
@@ -367,9 +373,17 @@ pub enum RillToProvider {
         path: Path,
         active: bool,
     },
-    GetSnapshot {
-        path: Path,
-    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RillRangeToProvider {
+    ExploreRange { path: Path, active: bool },
+    GetRange { range_action: RangeAction },
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum RangeAction {
+    Seek(u64),
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
