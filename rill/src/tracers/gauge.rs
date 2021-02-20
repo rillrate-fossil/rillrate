@@ -1,14 +1,23 @@
-use super::ProtectedTracer;
+use super::tracer::{Tracer, TracerEvent};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::time::SystemTime;
+
+#[derive(Debug)]
+pub enum GaugeUpdate {
+    Increment(f64),
+    Decrement(f64),
+    Set(f64),
+}
+
+impl TracerEvent for GaugeUpdate {}
 
 /// Sends metrics as `gauge` that can change value to any.
 #[derive(Debug, Deref, DerefMut)]
 pub struct GaugeTracer {
     #[deref]
     #[deref_mut]
-    tracer: ProtectedTracer<f64>,
+    tracer: Tracer<GaugeUpdate>,
 }
 
 impl GaugeTracer {
@@ -20,40 +29,25 @@ impl GaugeTracer {
             info,
             stream_type: StreamType::GaugeStream,
         };
-        let tracer = ProtectedTracer::new(description, 0.0, active);
+        let tracer = Tracer::new(description, active);
         Self { tracer }
     }
 
     /// Increments the value by the specific delta.
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
-        if let Some(mut value) = self.tracer.lock() {
-            *value += delta;
-            if self.tracer.is_active() {
-                let data = RillData::GaugeValue { value: *value };
-                self.tracer.send(data, timestamp);
-            }
-        }
+        let data = GaugeUpdate::Increment(delta);
+        self.tracer.send(data, timestamp);
     }
 
     /// Decrements the value by the specific delta.
     pub fn dec(&self, delta: f64, timestamp: Option<SystemTime>) {
-        if let Some(mut value) = self.tracer.lock() {
-            *value -= delta;
-            if self.tracer.is_active() {
-                let data = RillData::GaugeValue { value: *value };
-                self.tracer.send(data, timestamp);
-            }
-        }
+        let data = GaugeUpdate::Decrement(delta);
+        self.tracer.send(data, timestamp);
     }
 
     /// Set the value.
     pub fn set(&self, new_value: f64, timestamp: Option<SystemTime>) {
-        if let Some(mut value) = self.tracer.lock() {
-            *value = new_value;
-            if self.tracer.is_active() {
-                let data = RillData::GaugeValue { value: *value };
-                self.tracer.send(data, timestamp);
-            }
-        }
+        let data = GaugeUpdate::Set(new_value);
+        self.tracer.send(data, timestamp);
     }
 }

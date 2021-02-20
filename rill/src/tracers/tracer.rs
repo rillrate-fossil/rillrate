@@ -1,5 +1,5 @@
 //! This module contains a generic `Tracer`'s methods.
-use crate::state::{DataSource, TracerMode, UpgradeStateEvent, RILL_STATE};
+use crate::state::{DataSource, ForFlow, TracerFlow, TracerMode, UpgradeStateEvent, RILL_STATE};
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -8,8 +8,9 @@ use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::watch;
 
+/*
 #[derive(Debug)]
-pub(crate) enum DataEnvelope {
+pub enum DataEnvelope {
     DataEvent {
         system_time: SystemTime,
         data: RillData,
@@ -18,23 +19,35 @@ pub(crate) enum DataEnvelope {
         description: Arc<Description>,
     },
 }
+*/
 
-impl Action for DataEnvelope {}
+pub trait TracerEvent: Send + 'static {}
 
-pub(crate) type DataSender = mpsc::UnboundedSender<DataEnvelope>;
-pub(crate) type DataReceiver = mpsc::UnboundedReceiver<DataEnvelope>;
+#[derive(Debug)]
+pub enum DataEnvelope<T> {
+    Event { system_time: SystemTime, data: T },
+}
+
+impl<T: TracerEvent> Action for DataEnvelope<T> {}
+
+// TODO: Remove that aliases and use raw types receivers in recorders.
+pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
+pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
-pub struct Tracer {
+pub struct Tracer<T> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     description: Arc<Description>,
-    sender: DataSender,
+    sender: DataSender<T>,
 }
 
-impl Tracer {
+impl<T> Tracer<T>
+where
+    TracerFlow: ForFlow<T>,
+{
     pub(crate) fn new(description: Description, mut active: bool) -> Self {
         log::trace!("Creating Tracer with path: {:?}", description.path);
         let opt_state = RILL_STATE.get();
@@ -63,12 +76,8 @@ impl Tracer {
                 }
             }
         };
-        let source = DataSource::Receiver { receiver: rx };
-        let event = UpgradeStateEvent::RegisterTracer {
-            description,
-            mode,
-            source,
-        };
+        let flow = TracerFlow::for_flow(rx);
+        let event = UpgradeStateEvent::RegisterTracer { description, flow };
         if let Some(state) = opt_state {
             state.upgrade(event);
         }
@@ -80,11 +89,11 @@ impl Tracer {
         &self.description.path
     }
 
-    pub(crate) fn send(&self, data: RillData, opt_system_time: Option<SystemTime>) {
+    pub(crate) fn send(&self, data: T, opt_system_time: Option<SystemTime>) {
         // If there is no rill tracer than it will never be active.
         if *self.active.borrow() {
             let system_time = opt_system_time.unwrap_or_else(SystemTime::now);
-            let envelope = DataEnvelope::DataEvent { system_time, data };
+            let envelope = DataEnvelope::Event { system_time, data };
             // And will never send an event
             if let Err(err) = self.sender.unbounded_send(envelope) {
                 log::error!("Can't transfer data to sender: {}", err);
@@ -93,7 +102,7 @@ impl Tracer {
     }
 }
 
-impl Tracer {
+impl<T> Tracer<T> {
     /// Returns `true` is the `Tracer` has to send data.
     pub fn is_active(&self) -> bool {
         *self.active.borrow()
@@ -118,8 +127,10 @@ impl Tracer {
     }
 }
 
-impl Drop for Tracer {
+impl<T> Drop for Tracer<T> {
     fn drop(&mut self) {
+        // TODO: Implement or remove
+        /*
         let end_stream = DataEnvelope::EndStream {
             description: self.description.clone(),
         };
@@ -129,5 +140,6 @@ impl Drop for Tracer {
                 self.description.path
             );
         }
+        */
     }
 }

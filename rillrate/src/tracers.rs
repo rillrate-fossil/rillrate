@@ -6,10 +6,10 @@ use std::sync::Arc;
 macro_rules! impl_tracer {
     ($wrapper:ident < $tracer:ident >) => {
         impl Deref for $wrapper {
-            type Target = Tracer;
+            type Target = $tracer;
 
             fn deref(&self) -> &Self::Target {
-                &self.tracer
+                self.tracer.deref()
             }
         }
 

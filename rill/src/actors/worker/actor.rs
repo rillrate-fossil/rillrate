@@ -1,13 +1,14 @@
+use crate::actors::recorders::CounterRecorder;
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::state::{DataSource, TracerMode, UpgradeStateEvent};
+use crate::state::{DataSource, TracerFlow, TracerMode, UpgradeStateEvent};
 use crate::tracers::{tracer::DataEnvelope, GaugeTracer, LogTracer};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::prelude::{
-    ActionHandler, Actor, Consumer, Context, IdOf, InstantActionHandler, InterruptedBy, StartedBy,
-    TaskEliminated, TaskError,
+    ActionHandler, Actor, Consumer, Context, Eliminated, IdOf, InstantActionHandler, InterruptedBy,
+    StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -180,6 +181,7 @@ pub enum Group {
     Subscriptions,
     WsConnection,
     Streams,
+    Recorders,
 }
 
 #[async_trait]
@@ -272,6 +274,7 @@ impl StartedBy<RillSupervisor> for RillWorker {
             Group::Subscriptions,
             Group::WsConnection,
             Group::Streams,
+            Group::Recorders,
         ]);
         let client = WsClient::new(
             self.config.url().to_string(),
@@ -319,6 +322,47 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
     ) -> Result<(), Error> {
         for event in chunk {
             match event {
+                UpgradeStateEvent::RegisterTracer { description, flow } => match flow {
+                    TracerFlow::Counter { receiver } => {
+                        let actor = CounterRecorder::new(ctx.address().link(), receiver);
+                        let recorder = ctx.spawn_actor(actor, Group::Recorders);
+                    }
+                    _ => {
+                        todo!()
+                    }
+                },
+            }
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<CounterRecorder> for RillWorker {
+    async fn handle(
+        &mut self,
+        _id: IdOf<CounterRecorder>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        // TODO: Drop unfinished tasks
+        Ok(())
+    }
+}
+
+/*
+#[async_trait]
+impl Consumer<UpgradeStateEvent> for RillWorker {
+    fn stream_group(&self) -> Group {
+        Group::Streams
+    }
+
+    async fn handle(
+        &mut self,
+        chunk: Vec<UpgradeStateEvent>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        for event in chunk {
+            match event {
                 UpgradeStateEvent::RegisterTracer {
                     description,
                     mode,
@@ -353,6 +397,7 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
         Ok(())
     }
 }
+*/
 
 #[async_trait]
 impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
@@ -471,9 +516,10 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
     }
 }
 
+/*
 #[async_trait]
 impl Consumer<(usize, DataEnvelope)> for RillWorker {
-    fn stream_group(&self) -> Group {
+    fn stream_group(&self) -> Self::GroupBy {
         Group::Streams
     }
 
@@ -535,3 +581,4 @@ impl Consumer<(usize, DataEnvelope)> for RillWorker {
         Ok(())
     }
 }
+*/

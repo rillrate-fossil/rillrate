@@ -1,12 +1,20 @@
-use super::Tracer;
+use super::tracer::{Tracer, TracerEvent};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, StreamType};
 use std::time::SystemTime;
 
+#[derive(Debug)]
+pub enum LogRecord {
+    // TODO: Track hash templates here
+    Message(String),
+}
+
+impl TracerEvent for LogRecord {}
+
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut)]
 pub struct LogTracer {
-    tracer: Tracer,
+    tracer: Tracer<LogRecord>,
 }
 
 impl LogTracer {
@@ -24,7 +32,7 @@ impl LogTracer {
 
     /// Writes a message.
     pub fn log(&self, message: String, timestamp: Option<SystemTime>) {
-        let data = RillData::LogRecord { message };
+        let data = LogRecord::Message(message);
         self.tracer.send(data, timestamp);
     }
 }

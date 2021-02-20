@@ -8,7 +8,7 @@ use std::sync::{Mutex, MutexGuard};
 pub struct ProtectedTracer<T> {
     #[deref]
     #[deref_mut]
-    tracer: Tracer,
+    tracer: Tracer<T>,
     value: Mutex<T>,
 }
 

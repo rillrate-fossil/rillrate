@@ -1,3 +1,6 @@
+use crate::tracers::counter::CounterDelta;
+use crate::tracers::gauge::GaugeUpdate;
+use crate::tracers::logger::LogRecord;
 use crate::tracers::tracer::DataReceiver;
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -20,15 +23,50 @@ pub(crate) enum TracerMode {
     },
 }
 
+// TODO: Consider combining with StreamType
+// TODO: Refactor that
+pub enum TracerFlow {
+    Counter {
+        receiver: DataReceiver<CounterDelta>,
+    },
+    Gauge {
+        receiver: DataReceiver<GaugeUpdate>,
+    },
+    Log {
+        receiver: DataReceiver<LogRecord>,
+    },
+}
+
+pub trait ForFlow<T> {
+    fn for_flow(rx: DataReceiver<T>) -> Self;
+}
+
+impl ForFlow<CounterDelta> for TracerFlow {
+    fn for_flow(rx: DataReceiver<CounterDelta>) -> Self {
+        Self::Counter { receiver: rx }
+    }
+}
+
+impl ForFlow<LogRecord> for TracerFlow {
+    fn for_flow(rx: DataReceiver<LogRecord>) -> Self {
+        Self::Log { receiver: rx }
+    }
+}
+
+impl ForFlow<GaugeUpdate> for TracerFlow {
+    fn for_flow(rx: DataReceiver<GaugeUpdate>) -> Self {
+        Self::Gauge { receiver: rx }
+    }
+}
+
 pub(crate) enum DataSource {
-    Receiver { receiver: DataReceiver },
+    Receiver { receiver: DataReceiver<()> },
 }
 
 pub(crate) enum UpgradeStateEvent {
     RegisterTracer {
         description: Arc<Description>,
-        mode: TracerMode,
-        source: DataSource,
+        flow: TracerFlow,
     },
 }
 

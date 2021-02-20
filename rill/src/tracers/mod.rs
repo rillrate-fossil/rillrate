@@ -3,14 +3,15 @@
 pub mod tracer;
 pub use tracer::Tracer;
 
-mod counter;
+pub(crate) mod counter;
 pub use counter::CounterTracer;
 
-mod gauge;
+pub(crate) mod gauge;
 pub use gauge::GaugeTracer;
 
-mod logger;
+pub(crate) mod logger;
 pub use logger::LogTracer;
 
-mod protected;
-pub use protected::ProtectedTracer;
+// TODO: Remove completely
+//mod protected;
+//use protected::ProtectedTracer;
