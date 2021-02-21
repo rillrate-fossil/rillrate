@@ -21,7 +21,7 @@ fn main() -> Result<(), Error> {
     {
         // This gauge used to check that the Prometheus exporter can read
         // data from a snapshot event if the data will never updated again.
-        let instances = Gauge::create_active("my.gauge.instances")?;
+        let instances = Gauge::create("my.gauge.instances")?;
         instances.inc(1.0);
 
         let counter_one = Counter::create("my.counter.one")?;
