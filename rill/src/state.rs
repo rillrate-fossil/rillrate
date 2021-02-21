@@ -25,6 +25,7 @@ pub(crate) enum TracerMode {
 
 // TODO: Consider combining with StreamType
 // TODO: Refactor that
+#[derive(Debug)]
 pub enum TracerFlow {
     Counter {
         receiver: DataReceiver<CounterDelta>,
@@ -63,6 +64,7 @@ pub(crate) enum DataSource {
     Receiver { receiver: DataReceiver<()> },
 }
 
+#[derive(Debug)]
 pub(crate) enum UpgradeStateEvent {
     RegisterTracer {
         description: Arc<Description>,

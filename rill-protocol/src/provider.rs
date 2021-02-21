@@ -311,9 +311,10 @@ impl Origin for RillProtocol {}
 
 /* ?
 pub type ServerRequest = Envelope<RillProtocol, RillToProvider>;
-
-pub type ProviderResponse = Envelope<RillProtocol, RillToServer>;
 */
+
+/// Used by recorders.
+pub type ProviderResponse = WideEnvelope<RillProtocol, RillToServer>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RillData {

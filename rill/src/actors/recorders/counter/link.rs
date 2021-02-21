@@ -17,7 +17,11 @@ pub(super) struct ControlStream {
 impl Action for ControlStream {}
 
 impl CounterLink {
-    pub async fn subscribe(&mut self, direct_id: ProviderReqId, active: bool) -> Result<(), Error> {
+    pub async fn control_stream(
+        &mut self,
+        direct_id: ProviderReqId,
+        active: bool,
+    ) -> Result<(), Error> {
         let msg = ControlStream { direct_id, active };
         self.address.act(msg).await
     }

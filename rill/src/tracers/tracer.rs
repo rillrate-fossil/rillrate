@@ -90,6 +90,13 @@ where
     }
 
     pub(crate) fn send(&self, data: T, opt_system_time: Option<SystemTime>) {
+        let system_time = opt_system_time.unwrap_or_else(SystemTime::now);
+        let envelope = DataEnvelope::Event { system_time, data };
+        // And will never send an event
+        if let Err(err) = self.sender.unbounded_send(envelope) {
+            log::error!("Can't transfer data to sender: {}", err);
+        }
+        /*
         // If there is no rill tracer than it will never be active.
         if *self.active.borrow() {
             let system_time = opt_system_time.unwrap_or_else(SystemTime::now);
@@ -99,6 +106,7 @@ where
                 log::error!("Can't transfer data to sender: {}", err);
             }
         }
+        */
     }
 }
 

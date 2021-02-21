@@ -1,2 +1,1 @@
-mod counter;
-pub use counter::CounterRecorder;
+pub mod counter;

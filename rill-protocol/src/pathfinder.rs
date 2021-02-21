@@ -3,7 +3,7 @@ use derive_more::{Deref, DerefMut};
 use std::collections::HashMap;
 
 /// Universal storage with `EntryId` hierarchy.
-#[derive(Debug, Default, Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut)]
 pub struct Pathfinder<T> {
     root: Record<T>,
 }
@@ -13,6 +13,12 @@ impl<T> Pathfinder<T> {
         Self {
             root: Record::default(),
         }
+    }
+}
+
+impl<T> Default for Pathfinder<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -126,11 +132,15 @@ impl<T> Record<T> {
         cell
     }
 
-    pub fn reset_link(&mut self) {
-        self.link = None;
+    pub fn take_link(&mut self) -> Option<T> {
+        self.link.take()
     }
 
     pub fn get_link(&self) -> Option<&T> {
         self.link.as_ref()
+    }
+
+    pub fn get_link_mut(&mut self) -> Option<&mut T> {
+        self.link.as_mut()
     }
 }
