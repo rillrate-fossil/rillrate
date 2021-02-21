@@ -236,8 +236,8 @@ impl<T: TracerEvent> InstantActionHandler<link::RegisterTracer<T>> for RillWorke
         let record = self.recorders.dig(path.clone());
         if record.get_link().is_none() {
             let sender = self.sender.clone();
-            let link = ctx.address().link();
-            let actor = Recorder::new(description.clone(), link, sender, receiver);
+            //let link = ctx.address().link();
+            let actor = Recorder::new(description.clone(), sender, receiver);
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             self.registered.insert(recorder.id().into(), description);

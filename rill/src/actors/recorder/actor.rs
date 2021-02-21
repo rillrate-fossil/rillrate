@@ -1,5 +1,5 @@
 use super::link;
-use crate::actors::worker::{RillSender, RillWorker, RillWorkerLink};
+use crate::actors::worker::{RillSender, RillWorker};
 use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -20,7 +20,6 @@ enum RecorderError {
 
 pub(crate) struct Recorder<T: TracerEvent> {
     description: Arc<Description>,
-    worker: RillWorkerLink,
     sender: RillSender,
     // TODO: Change to the specific type receiver
     receiver: Option<DataReceiver<T>>,
@@ -30,15 +29,9 @@ pub(crate) struct Recorder<T: TracerEvent> {
 }
 
 impl<T: TracerEvent> Recorder<T> {
-    pub fn new(
-        description: Arc<Description>,
-        worker: RillWorkerLink,
-        sender: RillSender,
-        rx: DataReceiver<T>,
-    ) -> Self {
+    pub fn new(description: Arc<Description>, sender: RillSender, rx: DataReceiver<T>) -> Self {
         Self {
             description,
-            worker,
             sender,
             receiver: Some(rx),
             subscribers: HashSet::new(),
@@ -165,7 +158,7 @@ impl<T: TracerEvent> ActionHandler<link::ConnectionChanged> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ConnectionChanged,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         use link::ConnectionChanged::*;
         match msg {

@@ -4,7 +4,6 @@
 
 mod actors;
 mod config;
-pub mod macros;
 pub mod prelude;
 mod protocol;
 pub mod tracers;

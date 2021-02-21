@@ -6,10 +6,12 @@ use meio::prelude::{Address, InstantAction};
 use rill_protocol::provider::Description;
 use std::sync::Arc;
 
+/*
 #[derive(Debug, From)]
 pub struct RillWorkerLink {
     address: Address<RillWorker>,
 }
+*/
 
 /*
 // TODO: Remove it and use a upstream link directly in recorders

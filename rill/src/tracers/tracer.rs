@@ -22,8 +22,8 @@ pub enum DataEnvelope<T> {
 impl<T: TracerEvent> Action for DataEnvelope<T> {}
 
 // TODO: Remove that aliases and use raw types receivers in recorders.
-pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
-pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
+pub type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
+pub type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.

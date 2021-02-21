@@ -25,9 +25,11 @@ impl RillConfig {
         &self.inner.url
     }
 
+    /*
     pub fn with_meta(&self) -> bool {
         self.inner.with_meta
     }
+    */
 }
 
 #[derive(Debug)]
