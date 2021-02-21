@@ -1,15 +1,17 @@
 use super::link;
-use crate::actors::recorder::{RecorderLink, Recorder};
+use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::state::{DataSource, TracerFlow, TracerMode, UpgradeStateEvent};
-use crate::tracers::{tracer::{DataEnvelope, TracerEvent}, GaugeTracer, LogTracer};
+use crate::tracers::{
+    tracer::{DataEnvelope, TracerEvent},
+    GaugeTracer, LogTracer,
+};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::prelude::{
-    ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler, InterruptedBy,
-    StartedBy, TaskEliminated, TaskError,
+    ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler,
+    InterruptedBy, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -201,44 +203,24 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 }
 
 #[async_trait]
-impl Consumer<UpgradeStateEvent> for RillWorker {
-    fn stream_group(&self) -> Group {
-        Group::UpgradeStream
-    }
-
+impl<T: TracerEvent> InstantActionHandler<link::RegisterTracer<T>> for RillWorker {
     async fn handle(
         &mut self,
-        chunk: Vec<UpgradeStateEvent>,
+        msg: link::RegisterTracer<T>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        ctx.not_terminating()?;
-        for event in chunk {
-            match event {
-                UpgradeStateEvent::RegisterTracer { description, flow } => {
-                    let path = description.path.clone();
-                    log::info!("Add tracer: {:?}", path);
-                    let record = self.recorders.dig(path.clone());
-                    if record.get_link().is_none() {
-                        match flow {
-                            TracerFlow::Counter { receiver } => {
-                                let actor = Recorder::new(
-                                    description.clone(),
-                                    ctx.address().link(),
-                                    receiver,
-                                );
-                                let recorder = ctx.spawn_actor(actor, Group::Recorders);
-                                record.set_link(recorder.link());
-                                self.registered.insert(recorder.id().into(), description);
-                            }
-                            e => {
-                                log::error!("Not implemented for {:?}", e);
-                            }
-                        }
-                    } else {
-                        log::error!("Provider for {} already registered.", path);
-                    }
-                }
-            }
+        let description = msg.description;
+        let receiver = msg.receiver;
+        let path = description.path.clone();
+        log::info!("Add tracer: {:?}", path);
+        let record = self.recorders.dig(path.clone());
+        if record.get_link().is_none() {
+            let actor = Recorder::new(description.clone(), ctx.address().link(), receiver);
+            let recorder = ctx.spawn_actor(actor, Group::Recorders);
+            record.set_link(recorder.link());
+            self.registered.insert(recorder.id().into(), description);
+        } else {
+            log::error!("Provider for {} already registered.", path);
         }
         Ok(())
     }

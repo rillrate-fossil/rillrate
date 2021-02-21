@@ -1,19 +1,17 @@
 use crate::actors::storage::RillStorage;
 use crate::actors::worker::RillWorker;
 use crate::config::RillConfig;
-use crate::state::ControlReceiver;
+use crate::RILL_LINK;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
 
 pub(crate) struct RillSupervisor {
     config: RillConfig,
-    rx: Option<ControlReceiver>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
-    Exporters,
     Worker,
     Storage,
 }
@@ -27,28 +25,24 @@ impl Actor for RillSupervisor {
 }
 
 impl RillSupervisor {
-    pub fn new(config: RillConfig, rx: ControlReceiver) -> Self {
-        Self {
-            config,
-            rx: Some(rx),
-        }
+    pub fn new(config: RillConfig) -> Self {
+        Self { config }
     }
 }
 
 #[async_trait]
 impl StartedBy<System> for RillSupervisor {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Exporters, Group::Worker, Group::Storage]);
+        ctx.termination_sequence(vec![Group::Worker, Group::Storage]);
         let storage = RillStorage::new();
         ctx.spawn_actor(storage, Group::Storage);
 
         let worker = RillWorker::new(self.config.clone());
-        let mut worker_addr = ctx.spawn_actor(worker, Group::Worker);
-        let rx = self
-            .rx
-            .take()
-            .ok_or_else(|| Error::msg("attempt to start supervisor twice"))?;
-        worker_addr.attach(rx)?;
+        let worker_addr = ctx.spawn_actor(worker, Group::Worker);
+        if let Err(err) = RILL_LINK.set(worker_addr.link()) {
+            log::error!("Attempt to install rillrate twice. Terminating the duplicated instance.");
+            ctx.shutdown();
+        }
 
         Ok(())
     }

@@ -1,8 +1,12 @@
 use super::RillWorker;
+use crate::tracers::tracer::{DataReceiver, TracerEvent};
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{Action, Address};
-use rill_protocol::provider::{Direction, ProviderResponse, RillProtocol, RillToServer};
+use meio::prelude::{Action, Address, InstantAction};
+use rill_protocol::provider::{
+    Description, Direction, ProviderResponse, RillProtocol, RillToServer,
+};
+use std::sync::Arc;
 
 #[derive(Debug, From)]
 pub struct RillWorkerLink {
@@ -27,5 +31,31 @@ impl RillWorkerLink {
             response,
         };
         self.address.act(msg).await
+    }
+}
+
+#[derive(Debug, From)]
+pub struct RillLink {
+    address: Address<RillWorker>,
+}
+
+pub(crate) struct RegisterTracer<T> {
+    pub description: Arc<Description>,
+    pub receiver: DataReceiver<T>,
+}
+
+impl<T: TracerEvent> InstantAction for RegisterTracer<T> {}
+
+impl RillLink {
+    pub fn register_tracer<T: TracerEvent>(
+        &self,
+        description: Arc<Description>,
+        receiver: DataReceiver<T>,
+    ) -> Result<(), Error> {
+        let msg = RegisterTracer {
+            description,
+            receiver,
+        };
+        self.address.instant(msg)
     }
 }

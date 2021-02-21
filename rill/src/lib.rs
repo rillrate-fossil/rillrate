@@ -7,17 +7,21 @@ mod config;
 pub mod macros;
 pub mod prelude;
 mod protocol;
-mod state;
 pub mod tracers;
 
 use crate::actors::supervisor::RillSupervisor;
+use crate::actors::worker::RillLink;
 use anyhow::Error;
 use config::RillConfig;
+use once_cell::sync::OnceCell;
 use rill_protocol::provider::EntryId;
-use state::{RillState, RILL_STATE};
+use std::time::{Duration, Instant};
 use thiserror::Error;
 
 metacrate::meta!();
+
+/// It used by tracers to register them into the state.
+static RILL_LINK: OnceCell<RillLink> = OnceCell::new();
 
 #[derive(Debug, Error)]
 enum RillError {
@@ -40,15 +44,23 @@ pub struct Rill {
 impl Rill {
     /// Initializes provider system and all created `Tracer`s will be attached to it.
     pub fn install(host: String, name: impl Into<EntryId>, with_meta: bool) -> Result<Self, Error> {
-        let (rx, state) = RillState::create();
-        // IMPORTANT! Set the state before any worker/supervisor will be spawned,
-        // because `meta` tracers also uses the same state for registering themselves.
-        RILL_STATE
-            .set(state)
-            .map_err(|_| RillError::AlreadyInstalled)?;
+        // TODO: Prevent it be called twice
         let config = RillConfig::new(host, name.into(), with_meta);
-        let actor = RillSupervisor::new(config, rx);
+        let actor = RillSupervisor::new(config);
         let scoped = meio::thread::spawn(actor)?;
+
+        // TODO: Refactor that below
+        let when = Instant::now();
+        let how_long = Duration::from_secs(10);
+        loop {
+            if RILL_LINK.get().is_some() {
+                break;
+            }
+            if when.elapsed() > how_long {
+                return Err(Error::msg("rillrate still not started..."));
+            }
+        }
+
         Ok(Self { _scoped: scoped })
     }
 }

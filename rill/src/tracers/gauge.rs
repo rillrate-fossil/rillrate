@@ -28,12 +28,9 @@ impl TracerEvent for GaugeUpdate {
     }
 
     fn to_data(snapshot: &Self::Snapshot) -> RillData {
-        RillData::GaugeValue {
-            value: *snapshot,
-        }
+        RillData::GaugeValue { value: *snapshot }
     }
 }
-
 
 /// Sends metrics as `gauge` that can change value to any.
 #[derive(Debug, Deref, DerefMut)]

@@ -1,4 +1,4 @@
 mod recorder;
 mod storage;
 pub mod supervisor;
-mod worker;
+pub(crate) mod worker;

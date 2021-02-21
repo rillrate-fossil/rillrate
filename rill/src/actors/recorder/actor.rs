@@ -32,11 +32,7 @@ pub struct Recorder<T: TracerEvent> {
 }
 
 impl<T: TracerEvent> Recorder<T> {
-    pub fn new(
-        description: Arc<Description>,
-        worker: RillWorkerLink,
-        rx: DataReceiver<T>,
-    ) -> Self {
+    pub fn new(description: Arc<Description>, worker: RillWorkerLink, rx: DataReceiver<T>) -> Self {
         Self {
             description,
             worker,
@@ -49,11 +45,6 @@ impl<T: TracerEvent> Recorder<T> {
 
     fn get_event(&self) -> Option<RillEvent> {
         self.last_update.clone().map(|timestamp| {
-            /*
-            let data = RillData::CounterRecord {
-                value: self.counter,
-            };
-            */
             let data = T::to_data(&self.snapshot);
             RillEvent { timestamp, data }
         })

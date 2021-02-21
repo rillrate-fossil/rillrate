@@ -20,9 +20,7 @@ impl TracerEvent for CounterDelta {
     }
 
     fn to_data(snapshot: &Self::Snapshot) -> RillData {
-        RillData::CounterRecord {
-            value: *snapshot,
-        }
+        RillData::CounterRecord { value: *snapshot }
     }
 }
 

@@ -1,5 +1,5 @@
 //! This module contains a generic `Tracer`'s methods.
-use crate::state::{DataSource, ForFlow, TracerFlow, TracerMode, UpgradeStateEvent, RILL_STATE};
+use crate::RILL_LINK;
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
@@ -49,13 +49,10 @@ pub struct Tracer<T> {
     sender: DataSender<T>,
 }
 
-impl<T> Tracer<T>
-where
-    TracerFlow: ForFlow<T>,
-{
+impl<T: TracerEvent> Tracer<T> {
     pub(crate) fn new(description: Description, mut active: bool) -> Self {
         log::trace!("Creating Tracer with path: {:?}", description.path);
-        let opt_state = RILL_STATE.get();
+        let opt_state = RILL_LINK.get();
         if opt_state.is_none() {
             // If there is no tracer than the `active` flag will never be true.
             active = false;
@@ -72,19 +69,8 @@ where
             description: description.clone(),
             sender: tx,
         };
-        let mode = {
-            if active {
-                TracerMode::Active
-            } else {
-                TracerMode::Reactive {
-                    activator: active_tx,
-                }
-            }
-        };
-        let flow = TracerFlow::for_flow(rx);
-        let event = UpgradeStateEvent::RegisterTracer { description, flow };
         if let Some(state) = opt_state {
-            state.upgrade(event);
+            state.register_tracer(description, rx);
         }
         this
     }

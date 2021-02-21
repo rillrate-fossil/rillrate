@@ -1,8 +1,8 @@
 use super::Recorder;
-use anyhow::Error;
-use meio::prelude::{Address, Action, ActionRecipient};
-use rill_protocol::provider::ProviderReqId;
 use crate::tracers::tracer::TracerEvent;
+use anyhow::Error;
+use meio::prelude::{Action, ActionRecipient, Address};
+use rill_protocol::provider::ProviderReqId;
 
 #[derive(Debug)]
 pub struct RecorderLink {
