@@ -1,4 +1,4 @@
-use crate::actors::worker::RillWorker;
+use super::RillWorker;
 use derive_more::From;
 use meio::prelude::Address;
 

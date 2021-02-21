@@ -344,7 +344,7 @@ impl Eliminated<CounterRecorder> for RillWorker {
         _id: IdOf<CounterRecorder>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        // TODO: Drop unfinished tasks
+        // TODO: Remove from the path
         Ok(())
     }
 }
