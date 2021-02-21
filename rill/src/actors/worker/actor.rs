@@ -22,8 +22,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 /// Wrapper for WebSocket connection for sending responses (notifications) to a server.
-#[derive(Default)]
-struct RillSender {
+#[derive(Default, Clone)]
+pub(crate) struct RillSender {
     sender: Option<WsSender<WideEnvelope<RillProtocol, RillToServer>>>,
 }
 
@@ -32,7 +32,11 @@ impl RillSender {
         self.sender = Some(sender);
     }
 
-    fn response(&mut self, direction: Direction<RillProtocol>, data: RillToServer) {
+    pub fn reset(&mut self) {
+        self.sender.take();
+    }
+
+    pub fn response(&mut self, direction: Direction<RillProtocol>, data: RillToServer) {
         if let Some(sender) = self.sender.as_ref() {
             let envelope = WideEnvelope { direction, data };
             sender.send(envelope);
@@ -117,7 +121,19 @@ impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
     ) -> Result<(), Error> {
         match status {
             WsClientStatus::Connected { sender } => {
+                // TODO: Resend new sender to all `Recorders`
                 self.sender.set(sender);
+
+                for desc in self.registered.values_mut() {
+                    // TODO: Use `Pathfinder::walk` to perform that
+                    let path = &desc.path;
+                    let link = self.recorders.find_mut(path).and_then(Record::get_link_mut);
+                    if let Some(link) = link {
+                        // TODO: Run in parallel for all links
+                        link.connected(self.sender.clone()).await.ok();
+                    }
+                }
+
                 let entry_id = self.config.entry_id().clone();
                 let msg = RillToServer::Declare { entry_id };
                 self.send_global(msg);
@@ -125,6 +141,17 @@ impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
             WsClientStatus::Failed { reason } => {
                 log::error!("Connection failed: {}", reason);
                 // TODO: Try to reconnect...
+
+                // TODO: DRY!!! See above! It's the same (
+                for desc in self.registered.values_mut() {
+                    // TODO: Use `Pathfinder::walk` to perform that
+                    let path = &desc.path;
+                    let link = self.recorders.find_mut(path).and_then(Record::get_link_mut);
+                    if let Some(link) = link {
+                        // TODO: Run in parallel for all links
+                        link.disconnected().await.ok();
+                    }
+                }
             }
         }
         Ok(())
@@ -208,7 +235,9 @@ impl<T: TracerEvent> InstantActionHandler<link::RegisterTracer<T>> for RillWorke
         log::info!("Add tracer: {:?}", path);
         let record = self.recorders.dig(path.clone());
         if record.get_link().is_none() {
-            let actor = Recorder::new(description.clone(), ctx.address().link(), receiver);
+            let sender = self.sender.clone();
+            let link = ctx.address().link();
+            let actor = Recorder::new(description.clone(), link, sender, receiver);
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             self.registered.insert(recorder.id().into(), description);
@@ -240,6 +269,7 @@ impl<T: TracerEvent> Eliminated<Recorder<T>> for RillWorker {
     }
 }
 
+/* TODO: Delete. Recorders uses connection directly
 #[async_trait]
 impl ActionHandler<link::SendResponse> for RillWorker {
     async fn handle(
@@ -251,3 +281,4 @@ impl ActionHandler<link::SendResponse> for RillWorker {
         Ok(())
     }
 }
+*/

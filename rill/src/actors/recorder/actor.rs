@@ -1,5 +1,5 @@
 use super::link;
-use crate::actors::worker::{RillWorker, RillWorkerLink};
+use crate::actors::worker::{RillSender, RillWorker, RillWorkerLink};
 use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -18,9 +18,10 @@ enum RecorderError {
     NoReceiver,
 }
 
-pub struct Recorder<T: TracerEvent> {
+pub(crate) struct Recorder<T: TracerEvent> {
     description: Arc<Description>,
     worker: RillWorkerLink,
+    sender: RillSender,
     // TODO: Change to the specific type receiver
     receiver: Option<DataReceiver<T>>,
     subscribers: HashSet<ProviderReqId>,
@@ -29,10 +30,16 @@ pub struct Recorder<T: TracerEvent> {
 }
 
 impl<T: TracerEvent> Recorder<T> {
-    pub fn new(description: Arc<Description>, worker: RillWorkerLink, rx: DataReceiver<T>) -> Self {
+    pub fn new(
+        description: Arc<Description>,
+        worker: RillWorkerLink,
+        sender: RillSender,
+        rx: DataReceiver<T>,
+    ) -> Self {
         Self {
             description,
             worker,
+            sender,
             receiver: Some(rx),
             subscribers: HashSet::new(),
             last_update: None,
@@ -96,7 +103,7 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
             if let Some(event) = event {
                 let response = RillToServer::Data { event };
                 let direction = self.get_direction();
-                self.worker.send_response(direction, response).await?;
+                self.sender.response(direction, response);
             }
         }
         Ok(())
@@ -132,7 +139,7 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
                     let snapshot = self.get_event();
                     let response = RillToServer::BeginStream { snapshot };
                     let direction = Direction::from(msg.direct_id);
-                    self.worker.send_response(direction, response).await?;
+                    self.sender.response(direction, response);
                 } else {
                     log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
                 }
@@ -140,7 +147,7 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
                 if self.subscribers.remove(&id) {
                     let response = RillToServer::EndStream;
                     let direction = Direction::from(msg.direct_id);
-                    self.worker.send_response(direction, response).await?;
+                    self.sender.response(direction, response);
                     // TODO: Send `EndStream`
                 } else {
                     log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
@@ -148,6 +155,27 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
             }
         } else {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: TracerEvent> ActionHandler<link::ConnectionChanged> for Recorder<T> {
+    async fn handle(
+        &mut self,
+        msg: link::ConnectionChanged,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        use link::ConnectionChanged::*;
+        match msg {
+            Connected { sender } => {
+                self.sender = sender;
+            }
+            Disconnected => {
+                self.sender.reset();
+                self.subscribers.clear();
+            }
         }
         Ok(())
     }

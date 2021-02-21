@@ -1,5 +1,5 @@
 mod actor;
-pub use actor::Recorder;
+pub(crate) use actor::Recorder;
 
 mod link;
-pub use link::RecorderLink;
+pub(crate) use link::RecorderLink;

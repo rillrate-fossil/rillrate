@@ -2,8 +2,8 @@ use super::RillWorker;
 use crate::tracers::tracer::{DataReceiver, TracerEvent};
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{Action, Address, InstantAction};
-use rill_protocol::provider::{Description, Direction, RillProtocol, RillToServer};
+use meio::prelude::{Address, InstantAction};
+use rill_protocol::provider::Description;
 use std::sync::Arc;
 
 #[derive(Debug, From)]
@@ -11,6 +11,7 @@ pub struct RillWorkerLink {
     address: Address<RillWorker>,
 }
 
+/*
 // TODO: Remove it and use a upstream link directly in recorders
 pub(crate) struct SendResponse {
     pub direction: Direction<RillProtocol>,
@@ -32,6 +33,7 @@ impl RillWorkerLink {
         self.address.act(msg).await
     }
 }
+*/
 
 #[derive(Debug, From)]
 pub struct RillLink {
