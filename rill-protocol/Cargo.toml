@@ -18,8 +18,8 @@ description = "Dynamic logging and tracing system"
 [dependencies]
 anyhow = "1.0.38"
 derive_more = "0.99.11"
-meio-protocol = "0.80.0"
+meio-protocol = "0.81.0"
 metacrate = "0.1.2"
 serde = { version = "1.0.123", features = ["derive"] }
 serde_json = "1.0.62"
-thiserror = "1.0.23"
+thiserror = "1.0.24"
