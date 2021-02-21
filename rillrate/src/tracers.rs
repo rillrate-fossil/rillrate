@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rill::tracers::{CounterTracer, GaugeTracer, LogTracer, Tracer};
+use rill::tracers::{CounterTracer, GaugeTracer, LogTracer};
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -16,15 +16,7 @@ macro_rules! impl_tracer {
         impl $wrapper {
             pub fn create(path: &str) -> Result<Self, Error> {
                 let path = path.parse()?;
-                let tracer = $tracer::new(path, false);
-                Ok(Self {
-                    tracer: Arc::new(tracer),
-                })
-            }
-
-            pub fn create_active(path: &str) -> Result<Self, Error> {
-                let path = path.parse()?;
-                let tracer = $tracer::new(path, true);
+                let tracer = $tracer::new(path);
                 Ok(Self {
                     tracer: Arc::new(tracer),
                 })

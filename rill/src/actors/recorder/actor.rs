@@ -1,18 +1,15 @@
 use super::link;
 use crate::actors::worker::{RillWorker, RillWorkerLink};
-use crate::tracers::counter::CounterDelta;
 use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent};
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::channel::mpsc;
 use meio::prelude::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::provider::{
-    Description, Direction, ProviderReqId, RillData, RillEvent, RillProtocol, RillToServer,
-    Timestamp,
+    Description, Direction, ProviderReqId, RillEvent, RillProtocol, RillToServer, Timestamp,
 };
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -85,7 +82,7 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         for envelope in chunk {
             let DataEnvelope::Event { data, system_time } = envelope;

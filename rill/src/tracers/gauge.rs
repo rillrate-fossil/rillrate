@@ -42,14 +42,14 @@ pub struct GaugeTracer {
 
 impl GaugeTracer {
     /// Creates a new `Gauge` tracer.
-    pub fn new(path: Path, active: bool) -> Self {
+    pub fn new(path: Path) -> Self {
         let info = format!("{} gauge", path);
         let description = Description {
             path,
             info,
             stream_type: StreamType::GaugeStream,
         };
-        let tracer = Tracer::new(description, active);
+        let tracer = Tracer::new(description);
         Self { tracer }
     }
 

@@ -35,14 +35,14 @@ pub struct LogTracer {
 
 impl LogTracer {
     /// Create a new instance of the `Tracer`.
-    pub fn new(path: Path, active: bool) -> Self {
+    pub fn new(path: Path) -> Self {
         let info = format!("{} logger", path);
         let description = Description {
             path,
             info,
             stream_type: StreamType::LogStream,
         };
-        let tracer = Tracer::new(description, active);
+        let tracer = Tracer::new(description);
         Self { tracer }
     }
 

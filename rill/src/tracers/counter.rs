@@ -34,14 +34,14 @@ pub struct CounterTracer {
 
 impl CounterTracer {
     /// Creates a new tracer instance.
-    pub fn new(path: Path, active: bool) -> Self {
+    pub fn new(path: Path) -> Self {
         let info = format!("{} counter", path);
         let description = Description {
             path,
             info,
             stream_type: StreamType::CounterStream,
         };
-        let tracer = Tracer::new(description, active);
+        let tracer = Tracer::new(description);
         Self { tracer }
     }
 
@@ -49,14 +49,5 @@ impl CounterTracer {
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
         let data = CounterDelta::Increment(delta);
         self.tracer.send(data, timestamp);
-        /* TODO: Remove
-        if let Some(mut value) = self.tracer.lock() {
-            *value += delta;
-            if self.tracer.is_active() {
-                let data = CounterDelta::Increment(delta);
-                self.tracer.send(data, timestamp);
-            }
-        }
-        */
     }
 }

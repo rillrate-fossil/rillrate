@@ -39,7 +39,7 @@ impl StartedBy<System> for RillSupervisor {
 
         let worker = RillWorker::new(self.config.clone());
         let worker_addr = ctx.spawn_actor(worker, Group::Worker);
-        if let Err(err) = RILL_LINK.set(worker_addr.link()) {
+        if let Err(_) = RILL_LINK.set(worker_addr.link()) {
             log::error!("Attempt to install rillrate twice. Terminating the duplicated instance.");
             ctx.shutdown();
         }

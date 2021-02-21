@@ -1,25 +1,11 @@
 //! This module contains a generic `Tracer`'s methods.
 use crate::RILL_LINK;
-use anyhow::Error;
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use rill_protocol::provider::{Description, Path, RillData};
 use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::watch;
-
-/*
-#[derive(Debug)]
-pub enum DataEnvelope {
-    DataEvent {
-        system_time: SystemTime,
-        data: RillData,
-    },
-    EndStream {
-        description: Arc<Description>,
-    },
-}
-*/
 
 pub trait TracerEvent: Sized + Send + 'static {
     type Snapshot: Default + Send + 'static;
@@ -50,19 +36,20 @@ pub struct Tracer<T> {
 }
 
 impl<T: TracerEvent> Tracer<T> {
-    pub(crate) fn new(description: Description, mut active: bool) -> Self {
+    pub(crate) fn new(description: Description) -> Self {
+        // TODO: Remove this active watch channel?
+        let (active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {:?}", description.path);
         let opt_state = RILL_LINK.get();
         if opt_state.is_none() {
             // If there is no tracer than the `active` flag will never be true.
-            active = false;
+            active_tx.send(false).ok();
             log::warn!(
                 "No rill tracer available: {} provider deactivated.",
                 description.path
             );
         }
         let (tx, rx) = mpsc::unbounded();
-        let (active_tx, active_rx) = watch::channel(active);
         let description = Arc::new(description);
         let this = Tracer {
             active: active_rx,
@@ -70,7 +57,9 @@ impl<T: TracerEvent> Tracer<T> {
             sender: tx,
         };
         if let Some(state) = opt_state {
-            state.register_tracer(description, rx);
+            if let Err(_) = state.register_tracer(description, rx) {
+                log::error!("Can't register a Tracer. The worker can be terminated already.");
+            }
         }
         this
     }
@@ -81,15 +70,7 @@ impl<T: TracerEvent> Tracer<T> {
     }
 
     pub(crate) fn send(&self, data: T, opt_system_time: Option<SystemTime>) {
-        let system_time = opt_system_time.unwrap_or_else(SystemTime::now);
-        let envelope = DataEnvelope::Event { system_time, data };
-        // And will never send an event
-        if let Err(err) = self.sender.unbounded_send(envelope) {
-            log::error!("Can't transfer data to sender: {}", err);
-        }
-        /*
-        // If there is no rill tracer than it will never be active.
-        if *self.active.borrow() {
+        if self.is_active() {
             let system_time = opt_system_time.unwrap_or_else(SystemTime::now);
             let envelope = DataEnvelope::Event { system_time, data };
             // And will never send an event
@@ -97,7 +78,6 @@ impl<T: TracerEvent> Tracer<T> {
                 log::error!("Can't transfer data to sender: {}", err);
             }
         }
-        */
     }
 }
 
@@ -107,6 +87,7 @@ impl<T> Tracer<T> {
         *self.active.borrow()
     }
 
+    /* TODO: Remove or replace with an alternative
     /// Use this method to detect when stream had activated.
     ///
     /// It's useful if you want to spawn async coroutine that
@@ -124,21 +105,5 @@ impl<T> Tracer<T> {
         }
         Ok(())
     }
-}
-
-impl<T> Drop for Tracer<T> {
-    fn drop(&mut self) {
-        // TODO: Implement or remove
-        /*
-        let end_stream = DataEnvelope::EndStream {
-            description: self.description.clone(),
-        };
-        if let Err(_err) = self.sender.unbounded_send(end_stream) {
-            log::error!(
-                "Can't send `EndStream` to the worker actor from: {}",
-                self.description.path
-            );
-        }
-        */
-    }
+    */
 }

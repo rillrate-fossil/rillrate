@@ -309,12 +309,11 @@ impl Protocol for RillProtocol {
 
 impl Origin for RillProtocol {}
 
-/* ?
+/* ? TODO: Remove
 pub type ServerRequest = Envelope<RillProtocol, RillToProvider>;
-*/
 
-/// Used by recorders.
 pub type ProviderResponse = WideEnvelope<RillProtocol, RillToServer>;
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RillData {

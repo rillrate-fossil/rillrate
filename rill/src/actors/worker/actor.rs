@@ -2,16 +2,12 @@ use super::link;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::tracers::{
-    tracer::{DataEnvelope, TracerEvent},
-    GaugeTracer, LogTracer,
-};
+use crate::tracers::tracer::TracerEvent;
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::StreamExt;
 use meio::prelude::{
-    ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler,
-    InterruptedBy, StartedBy, TaskEliminated, TaskError,
+    ActionHandler, Actor, Context, Eliminated, Id, IdOf, InstantActionHandler, InterruptedBy,
+    StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -19,14 +15,11 @@ use meio_connect::{
 };
 use rill_protocol::pathfinder::{Pathfinder, Record};
 use rill_protocol::provider::{
-    Description, Direction, EntryType, Envelope, Path, ProviderReqId, RillEvent, RillProtocol,
-    RillToProvider, RillToServer, WideEnvelope,
+    Description, Direction, Envelope, RillProtocol, RillToProvider, RillToServer, WideEnvelope,
 };
-use slab::Slab;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
-use tokio::sync::watch;
+use std::time::Duration;
 
 /// Wrapper for WebSocket connection for sending responses (notifications) to a server.
 #[derive(Default)]
@@ -252,7 +245,7 @@ impl ActionHandler<link::SendResponse> for RillWorker {
     async fn handle(
         &mut self,
         msg: link::SendResponse,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         self.sender.response(msg.direction, msg.response);
         Ok(())

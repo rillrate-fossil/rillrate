@@ -25,12 +25,12 @@ static RILL_LINK: OnceCell<RillLink> = OnceCell::new();
 
 #[derive(Debug, Error)]
 enum RillError {
-    /*
+    /* TODO: Use
     #[error("not installed")]
     NotInstalled,
-    */
     #[error("alreary installed")]
     AlreadyInstalled,
+    */
     #[error("io error {0}")]
     IoError(#[from] std::io::Error),
 }
