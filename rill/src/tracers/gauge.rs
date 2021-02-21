@@ -10,7 +10,30 @@ pub enum GaugeUpdate {
     Set(f64),
 }
 
-impl TracerEvent for GaugeUpdate {}
+impl TracerEvent for GaugeUpdate {
+    type Snapshot = f64;
+
+    fn aggregate(self, snapshot: &mut Self::Snapshot) {
+        match self {
+            Self::Increment(delta) => {
+                *snapshot = *snapshot + delta;
+            }
+            Self::Decrement(delta) => {
+                *snapshot = *snapshot - delta;
+            }
+            Self::Set(value) => {
+                *snapshot = value;
+            }
+        }
+    }
+
+    fn to_data(snapshot: &Self::Snapshot) -> RillData {
+        RillData::GaugeValue {
+            value: *snapshot,
+        }
+    }
+}
+
 
 /// Sends metrics as `gauge` that can change value to any.
 #[derive(Debug, Deref, DerefMut)]

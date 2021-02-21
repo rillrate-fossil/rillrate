@@ -8,7 +8,23 @@ pub enum CounterDelta {
     Increment(f64),
 }
 
-impl TracerEvent for CounterDelta {}
+impl TracerEvent for CounterDelta {
+    type Snapshot = f64;
+
+    fn aggregate(self, snapshot: &mut Self::Snapshot) {
+        match self {
+            Self::Increment(delta) => {
+                *snapshot = *snapshot + delta;
+            }
+        }
+    }
+
+    fn to_data(snapshot: &Self::Snapshot) -> RillData {
+        RillData::CounterRecord {
+            value: *snapshot,
+        }
+    }
+}
 
 /// Tracers `Counter` metrics that can increments only.
 #[derive(Debug, Deref, DerefMut)]

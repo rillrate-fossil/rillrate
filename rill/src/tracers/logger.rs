@@ -9,7 +9,23 @@ pub enum LogRecord {
     Message(String),
 }
 
-impl TracerEvent for LogRecord {}
+impl TracerEvent for LogRecord {
+    type Snapshot = Option<String>;
+
+    fn aggregate(self, snapshot: &mut Self::Snapshot) {
+        match self {
+            Self::Message(msg) => {
+                *snapshot = Some(msg);
+            }
+        }
+    }
+
+    fn to_data(snapshot: &Self::Snapshot) -> RillData {
+        RillData::LogRecord {
+            message: snapshot.clone().unwrap_or_default(),
+        }
+    }
+}
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut)]

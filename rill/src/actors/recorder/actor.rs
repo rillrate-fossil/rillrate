@@ -1,7 +1,7 @@
 use super::link;
 use crate::actors::worker::{RillWorker, RillWorkerLink};
 use crate::tracers::counter::CounterDelta;
-use crate::tracers::tracer::{DataEnvelope, DataReceiver};
+use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::channel::mpsc;
@@ -21,22 +21,21 @@ enum RecorderError {
     NoReceiver,
 }
 
-pub struct CounterRecorder {
+pub struct Recorder<T: TracerEvent> {
     description: Arc<Description>,
-    // TODO: Keep path here
     worker: RillWorkerLink,
     // TODO: Change to the specific type receiver
-    receiver: Option<DataReceiver<CounterDelta>>,
+    receiver: Option<DataReceiver<T>>,
     subscribers: HashSet<ProviderReqId>,
     last_update: Option<Timestamp>,
-    counter: f64,
+    snapshot: T::Snapshot,
 }
 
-impl CounterRecorder {
+impl<T: TracerEvent> Recorder<T> {
     pub fn new(
         description: Arc<Description>,
         worker: RillWorkerLink,
-        rx: DataReceiver<CounterDelta>,
+        rx: DataReceiver<T>,
     ) -> Self {
         Self {
             description,
@@ -44,15 +43,18 @@ impl CounterRecorder {
             receiver: Some(rx),
             subscribers: HashSet::new(),
             last_update: None,
-            counter: 0.0,
+            snapshot: T::Snapshot::default(),
         }
     }
 
     fn get_event(&self) -> Option<RillEvent> {
         self.last_update.clone().map(|timestamp| {
+            /*
             let data = RillData::CounterRecord {
                 value: self.counter,
             };
+            */
+            let data = T::to_data(&self.snapshot);
             RillEvent { timestamp, data }
         })
     }
@@ -62,12 +64,12 @@ impl CounterRecorder {
     }
 }
 
-impl Actor for CounterRecorder {
+impl<T: TracerEvent> Actor for Recorder<T> {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl StartedBy<RillWorker> for CounterRecorder {
+impl<T: TracerEvent> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let rx = self.receiver.take().ok_or(RecorderError::NoReceiver)?;
         ctx.attach(rx, ());
@@ -76,7 +78,7 @@ impl StartedBy<RillWorker> for CounterRecorder {
 }
 
 #[async_trait]
-impl InterruptedBy<RillWorker> for CounterRecorder {
+impl<T: TracerEvent> InterruptedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -84,26 +86,26 @@ impl InterruptedBy<RillWorker> for CounterRecorder {
 }
 
 #[async_trait]
-impl Consumer<DataEnvelope<CounterDelta>> for CounterRecorder {
+impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
     fn stream_group(&self) -> Self::GroupBy {
         ()
     }
 
     async fn handle(
         &mut self,
-        chunk: Vec<DataEnvelope<CounterDelta>>,
+        chunk: Vec<DataEnvelope<T>>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         for envelope in chunk {
             let DataEnvelope::Event { data, system_time } = envelope;
-            let CounterDelta::Increment(delta) = data;
-            self.counter += delta;
+            data.aggregate(&mut self.snapshot);
             // TODO: Error allowed here?
             let timestamp = system_time.duration_since(SystemTime::UNIX_EPOCH)?.into();
             self.last_update = Some(timestamp);
         }
         if !self.subscribers.is_empty() {
-            if let Some(event) = self.get_event() {
+            let event = self.get_event();
+            if let Some(event) = event {
                 let response = RillToServer::Data { event };
                 let direction = self.get_direction();
                 self.worker.send_response(direction, response).await?;
@@ -122,7 +124,7 @@ impl Consumer<DataEnvelope<CounterDelta>> for CounterRecorder {
 }
 
 #[async_trait]
-impl ActionHandler<link::ControlStream> for CounterRecorder {
+impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ControlStream,

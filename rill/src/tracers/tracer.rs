@@ -21,7 +21,12 @@ pub enum DataEnvelope {
 }
 */
 
-pub trait TracerEvent: Send + 'static {}
+pub trait TracerEvent: Sized + Send + 'static {
+    type Snapshot: Default + Send + 'static;
+    fn aggregate(self, snapshot: &mut Self::Snapshot);
+    // TODO: Replace to `Into<RillData> for Self::Snapshot`?
+    fn to_data(snapshot: &Self::Snapshot) -> RillData;
+}
 
 #[derive(Debug)]
 pub enum DataEnvelope<T> {

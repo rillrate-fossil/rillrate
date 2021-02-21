@@ -1,4 +1,4 @@
-mod recorders;
+mod recorder;
 mod storage;
 pub mod supervisor;
 mod worker;

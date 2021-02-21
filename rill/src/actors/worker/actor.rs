@@ -1,14 +1,14 @@
 use super::link;
-use crate::actors::recorders::counter::{CounterLink, CounterRecorder};
+use crate::actors::recorder::{RecorderLink, Recorder};
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
 use crate::state::{DataSource, TracerFlow, TracerMode, UpgradeStateEvent};
-use crate::tracers::{tracer::DataEnvelope, GaugeTracer, LogTracer};
+use crate::tracers::{tracer::{DataEnvelope, TracerEvent}, GaugeTracer, LogTracer};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::prelude::{
-    ActionHandler, Actor, Consumer, Context, Eliminated, IdOf, InstantActionHandler, InterruptedBy,
+    ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler, InterruptedBy,
     StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
@@ -57,9 +57,9 @@ pub enum Group {
 pub struct RillWorker {
     config: RillConfig,
     sender: RillSender,
-    recorders: Pathfinder<CounterLink>,
+    recorders: Pathfinder<RecorderLink>,
     describe: bool,
-    registered: HashMap<IdOf<CounterRecorder>, Arc<Description>>,
+    registered: HashMap<Id, Arc<Description>>,
 }
 
 impl RillWorker {
@@ -221,14 +221,14 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
                     if record.get_link().is_none() {
                         match flow {
                             TracerFlow::Counter { receiver } => {
-                                let actor = CounterRecorder::new(
+                                let actor = Recorder::new(
                                     description.clone(),
                                     ctx.address().link(),
                                     receiver,
                                 );
                                 let recorder = ctx.spawn_actor(actor, Group::Recorders);
                                 record.set_link(recorder.link());
-                                self.registered.insert(recorder.id(), description);
+                                self.registered.insert(recorder.id().into(), description);
                             }
                             e => {
                                 log::error!("Not implemented for {:?}", e);
@@ -245,12 +245,13 @@ impl Consumer<UpgradeStateEvent> for RillWorker {
 }
 
 #[async_trait]
-impl Eliminated<CounterRecorder> for RillWorker {
+impl<T: TracerEvent> Eliminated<Recorder<T>> for RillWorker {
     async fn handle(
         &mut self,
-        id: IdOf<CounterRecorder>,
+        id: IdOf<Recorder<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let id: Id = id.into();
         if let Some(desc) = self.registered.remove(&id) {
             let path = &desc.path;
             let link = self.recorders.find_mut(&path).and_then(Record::take_link);
