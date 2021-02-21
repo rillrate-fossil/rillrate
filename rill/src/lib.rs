@@ -71,10 +71,10 @@ mod tests {
     /// Ordinary usage.
     #[test]
     fn test_install() -> Result<(), Error> {
-        let _rill = Rill::install("127.0.0.1:1636".into(), "rill", false);
-        let counter = tracers::CounterTracer::new("counter".parse()?, false);
+        let _rill = Rill::install("127.0.0.1:1636".into(), "rill", true);
+        let counter = tracers::CounterTracer::new("counter".parse()?);
         counter.inc(1.0, None);
-        let active_counter = tracers::CounterTracer::new("active_counter".parse()?, true);
+        let active_counter = tracers::CounterTracer::new("active_counter".parse()?);
         active_counter.inc(1.0, None);
         Ok(())
     }
@@ -82,8 +82,8 @@ mod tests {
     /// `Rill` provider is not exists here, but tracers must not panic.
     #[test]
     fn test_provider_without_tracer() -> Result<(), Error> {
-        let counter = tracers::CounterTracer::new("counter".parse()?, false);
-        let active_counter = tracers::CounterTracer::new("active_counter".parse()?, true);
+        let counter = tracers::CounterTracer::new("counter".parse()?);
+        let active_counter = tracers::CounterTracer::new("active_counter".parse()?);
         for _ in 0..1_000_000 {
             counter.inc(1.0, None);
             active_counter.inc(1.0, None);
