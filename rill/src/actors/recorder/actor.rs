@@ -79,12 +79,13 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let state = &mut self.state;
         let mut event = None;
         for envelope in chunk {
             let DataEnvelope::Event { data, system_time } = envelope;
             // TODO: Error allowed here?
             let timestamp = system_time.duration_since(SystemTime::UNIX_EPOCH)?.into();
-            event = data.aggregate(&mut self.state, timestamp);
+            event = data.aggregate(state, timestamp);
         }
         if !self.subscribers.is_empty() {
             if let Some(event) = event {

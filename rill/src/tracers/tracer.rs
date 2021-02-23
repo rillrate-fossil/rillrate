@@ -9,7 +9,7 @@ use tokio::sync::watch;
 
 pub trait TracerEvent: Sized + Send + 'static {
     type State: Default + Send + 'static;
-    fn aggregate(self, snapshot: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent>;
+    fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent>;
     // TODO: Replace to `IntoIterator<RillEvent> for Self::State`?
     fn to_snapshot(state: &Self::State) -> Vec<RillEvent>;
 }

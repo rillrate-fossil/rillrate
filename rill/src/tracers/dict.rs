@@ -10,26 +10,40 @@ pub enum DictRecord {
     Association { key: String, value: String },
 }
 
+#[derive(Debug)]
 pub struct Record {
     timestamp: Timestamp,
     value: String,
 }
 
+#[derive(Debug, Default)]
+pub struct DictState {
+    map: HashMap<String, Record>,
+    last_event: Option<RillEvent>,
+}
+
 impl TracerEvent for DictRecord {
-    type State = HashMap<String, Record>;
+    type State = DictState;
 
     fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent> {
         match self {
             Self::Association { key, value } => {
-                let record = Record { timestamp, value };
-                state.insert(key, record);
-                None
+                let record = Record {
+                    timestamp: timestamp.clone(),
+                    value: value.clone(),
+                };
+                state.map.insert(key.clone(), record);
+                let data = RillData::DictRecord { key, value };
+                let last_event = RillEvent { timestamp, data };
+                state.last_event = Some(last_event);
+                state.last_event.as_ref()
             }
         }
     }
 
     fn to_snapshot(state: &Self::State) -> Vec<RillEvent> {
         state
+            .map
             .iter()
             .map(|(key, record)| {
                 let data = RillData::DictRecord {
