@@ -52,6 +52,7 @@ fn main() -> Result<(), Error> {
         while running.load(Ordering::SeqCst) {
             mt_gauge.set(0.0);
             counter += 1;
+            my_dict.set("state", "step 1");
             for x in 0..3 {
                 counter_two.inc(1.0);
                 fast_gauge.set(x as f64);
@@ -60,6 +61,7 @@ fn main() -> Result<(), Error> {
                 fast_logger.log(format!("first loop - {}/{}", counter, x));
             }
             gauge.set(1.0);
+            my_dict.set("state", "step 2");
             for x in 0..7 {
                 counter_two.inc(1.0);
                 fast_gauge.set(x as f64);
@@ -67,6 +69,7 @@ fn main() -> Result<(), Error> {
                 thread::sleep(Duration::from_millis(100));
                 fast_logger.log(format!("second loop - {}/{}", counter, x));
             }
+            my_dict.set("state", "last");
             gauge.set(10.0);
             counter_two.inc(1.0);
             counter_one.inc(1.0);
