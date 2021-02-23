@@ -1,3 +1,4 @@
+use super::frame::Frame;
 use super::tracer::{Tracer, TracerEvent};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
@@ -13,7 +14,7 @@ pub enum GaugeUpdate {
 #[derive(Debug, Default)]
 pub struct GaugeState {
     gauge: f64,
-    last_event: Option<RillEvent>,
+    frame: Frame<RillEvent>,
 }
 
 impl TracerEvent for GaugeUpdate {
@@ -33,12 +34,11 @@ impl TracerEvent for GaugeUpdate {
         }
         let data = RillData::GaugeValue { value: state.gauge };
         let last_event = RillEvent { timestamp, data };
-        state.last_event = Some(last_event);
-        state.last_event.as_ref()
+        state.frame.insert(last_event)
     }
 
     fn to_snapshot(state: &Self::State) -> Vec<RillEvent> {
-        state.last_event.clone().into_iter().collect()
+        state.frame.iter().cloned().collect()
     }
 }
 
