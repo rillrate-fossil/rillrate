@@ -1,38 +1,48 @@
 use super::tracer::{Tracer, TracerEvent};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Description, Path, RillEvent, StreamType};
-use std::time::SystemTime;
+use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
 use std::collections::HashMap;
+use std::time::SystemTime;
 
 #[derive(Debug)]
 pub enum DictRecord {
     // TODO: Track hash templates here
-    Association {
-        key: String,
-        value: String,
-    },
+    Association { key: String, value: String },
+}
+
+pub struct Record {
+    timestamp: Timestamp,
+    value: String,
 }
 
 impl TracerEvent for DictRecord {
-    type State = HashMap<String, String>;
+    type State = HashMap<String, Record>;
 
     fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent> {
         match self {
             Self::Association { key, value } => {
-                state.insert(key, value);
+                let record = Record { timestamp, value };
+                state.insert(key, record);
+                None
             }
-            None
         }
     }
 
-    fn to_deltas(state: &Self::State) -> Vec<RillEvent> {
-        state.iter().map(|(key, value)| {
-            RillEvent::DictRecord {
-                key: key.clone(),
-                value: value.clone(),
-            }
-        })
-        .collect()
+    fn to_snapshot(state: &Self::State) -> Vec<RillEvent> {
+        state
+            .iter()
+            .map(|(key, record)| {
+                let data = RillData::DictRecord {
+                    key: key.clone(),
+                    value: record.value.clone(),
+                };
+                let event = RillEvent {
+                    timestamp: record.timestamp.clone(),
+                    data,
+                };
+                event
+            })
+            .collect()
     }
 }
 
@@ -64,4 +74,3 @@ impl DictTracer {
         self.tracer.send(data, timestamp);
     }
 }
-

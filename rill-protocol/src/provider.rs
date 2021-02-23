@@ -330,23 +330,34 @@ pub enum RillData {
     GaugeValue {
         value: f64,
     },
-    Association {
+    DictRecord {
         key: String,
         value: String,
     },
 }
 
+#[derive(Debug, Error)]
+pub enum RillDataError {
+    #[error("can't prase float: {0}")]
+    ParseFloatError(#[from] std::num::ParseFloatError),
+    #[error("unapplicable: {0}")]
+    Unapplicable(&'static str),
+}
+
 /// This convertion used by exporters, because most of them support
 /// gauge/counter types only.
 impl TryInto<f64> for RillData {
-    type Error = std::num::ParseFloatError;
+    type Error = RillDataError;
 
     fn try_into(self) -> Result<f64, Self::Error> {
         match self {
-            Self::LogRecord { message } => message.parse(),
+            Self::LogRecord { message } => message.parse().map_err(RillDataError::from),
             Self::CounterRecord { value } => Ok(value),
             Self::GaugeValue { value } => Ok(value),
-            Self::Association { value, .. } => value.parse(),
+            // TODO: Add extracting rules to pattern/exporter/config
+            Self::DictRecord { .. } => Err(RillDataError::Unapplicable(
+                "can't convert dict into a single value",
+            )),
         }
     }
 }
@@ -404,7 +415,7 @@ pub enum StreamType {
     LogStream,
     CounterStream,
     GaugeStream,
-    DictionaryStream,
+    DictStream,
 }
 
 impl fmt::Display for StreamType {
@@ -413,7 +424,7 @@ impl fmt::Display for StreamType {
             Self::LogStream => "log",
             Self::CounterStream => "counter",
             Self::GaugeStream => "gauge",
-            Self::DictionaryStream => "dictionaary",
+            Self::DictStream => "dict",
         };
         value.fmt(f)
     }
