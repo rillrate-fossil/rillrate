@@ -330,6 +330,10 @@ pub enum RillData {
     GaugeValue {
         value: f64,
     },
+    Association {
+        key: String,
+        value: String,
+    },
 }
 
 /// This convertion used by exporters, because most of them support
@@ -342,6 +346,7 @@ impl TryInto<f64> for RillData {
             Self::LogRecord { message } => message.parse(),
             Self::CounterRecord { value } => Ok(value),
             Self::GaugeValue { value } => Ok(value),
+            Self::Association { value, .. } => value.parse(),
         }
     }
 }
@@ -399,6 +404,7 @@ pub enum StreamType {
     LogStream,
     CounterStream,
     GaugeStream,
+    DictionaryStream,
 }
 
 impl fmt::Display for StreamType {
@@ -407,6 +413,7 @@ impl fmt::Display for StreamType {
             Self::LogStream => "log",
             Self::CounterStream => "counter",
             Self::GaugeStream => "gauge",
+            Self::DictionaryStream => "dictionaary",
         };
         value.fmt(f)
     }
