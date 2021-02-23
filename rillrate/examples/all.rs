@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::{Counter, Gauge, Logger, RillRate};
+use rillrate::{Counter, Dict, Gauge, Logger, RillRate};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -33,6 +33,8 @@ fn main() -> Result<(), Error> {
         let fast_logger = Logger::create("my.direct.logs.fast")?;
 
         let mt_gauge = Gauge::create("my.gauge.multithread")?;
+
+        let my_dict = Dict::create("my.dict.key-value")?;
 
         for i in 1..=5 {
             let mt_gauge_cloned = mt_gauge.clone();
@@ -69,6 +71,7 @@ fn main() -> Result<(), Error> {
             counter_two.inc(1.0);
             counter_one.inc(1.0);
             logger.log(format!("okay :) - {}", counter));
+            my_dict.set("iteration", counter);
         }
     }
 

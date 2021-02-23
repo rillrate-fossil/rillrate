@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rill::tracers::{CounterTracer, GaugeTracer, LogTracer};
+use rill::tracers::{CounterTracer, DictTracer, GaugeTracer, LogTracer};
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -24,7 +24,6 @@ macro_rules! impl_tracer {
         }
     };
 }
-
 #[derive(Debug, Clone)]
 pub struct Counter {
     tracer: Arc<CounterTracer>,
@@ -74,5 +73,19 @@ impl Logger {
     /// Writes a message.
     pub fn log(&self, msg: impl ToString) {
         self.tracer.log(msg.to_string(), None);
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Dict {
+    tracer: Arc<DictTracer>,
+}
+
+impl_tracer!(Dict<DictTracer>);
+
+impl Dict {
+    /// Writes a message.
+    pub fn set(&self, key: impl ToString, value: impl ToString) {
+        self.tracer.set(key, value, None);
     }
 }

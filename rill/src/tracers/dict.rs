@@ -65,8 +65,8 @@ impl DictTracer {
         Self { tracer }
     }
 
-    /// Writes a message.
-    pub fn log(&self, key: impl ToString, value: impl ToString, timestamp: Option<SystemTime>) {
+    /// Set a value to key.
+    pub fn set(&self, key: impl ToString, value: impl ToString, timestamp: Option<SystemTime>) {
         let data = DictRecord::Association {
             key: key.to_string(),
             value: value.to_string(),
