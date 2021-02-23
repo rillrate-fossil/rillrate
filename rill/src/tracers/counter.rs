@@ -1,6 +1,6 @@
 use super::tracer::{Tracer, TracerEvent};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Description, Path, RillData, StreamType};
+use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
 use std::time::SystemTime;
 
 #[derive(Debug)]
@@ -8,19 +8,31 @@ pub enum CounterDelta {
     Increment(f64),
 }
 
-impl TracerEvent for CounterDelta {
-    type Snapshot = f64;
+#[derive(Debug, Default)]
+pub struct CounterState {
+    counter: f64,
+    last_event: Option<RillEvent>,
+}
 
-    fn aggregate(self, snapshot: &mut Self::Snapshot) {
+impl TracerEvent for CounterDelta {
+    type State = CounterState;
+
+    fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent> {
         match self {
             Self::Increment(delta) => {
-                *snapshot = *snapshot + delta;
+                state.counter += delta;
+                let data = RillData::CounterRecord {
+                    value: state.counter,
+                };
+                let last_event = RillEvent { timestamp, data };
+                state.last_event = Some(last_event);
+                state.last_event.as_ref()
             }
         }
     }
 
-    fn to_data(snapshot: &Self::Snapshot) -> RillData {
-        RillData::CounterRecord { value: *snapshot }
+    fn to_snapshot(state: &Self::State) -> Vec<RillEvent> {
+        state.last_event.clone().into_iter().collect()
     }
 }
 

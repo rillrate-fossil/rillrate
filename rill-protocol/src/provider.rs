@@ -444,7 +444,7 @@ pub enum RillToServer {
     },
     /// The response to `ControlStream { active: true }` request
     BeginStream {
-        snapshot: Option<RillEvent>,
+        snapshot: Vec<RillEvent>,
     },
     Data {
         event: RillEvent,

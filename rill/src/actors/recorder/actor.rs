@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::provider::{
-    Description, Direction, ProviderReqId, RillEvent, RillProtocol, RillToServer, Timestamp,
+    Description, Direction, ProviderReqId, RillEvent, RillProtocol, RillToServer,
 };
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -24,8 +24,7 @@ pub(crate) struct Recorder<T: TracerEvent> {
     // TODO: Change to the specific type receiver
     receiver: Option<DataReceiver<T>>,
     subscribers: HashSet<ProviderReqId>,
-    last_update: Option<Timestamp>,
-    snapshot: T::Snapshot,
+    state: T::State,
 }
 
 impl<T: TracerEvent> Recorder<T> {
@@ -35,16 +34,12 @@ impl<T: TracerEvent> Recorder<T> {
             sender,
             receiver: Some(rx),
             subscribers: HashSet::new(),
-            last_update: None,
-            snapshot: T::Snapshot::default(),
+            state: T::State::default(),
         }
     }
 
-    fn get_event(&self) -> Option<RillEvent> {
-        self.last_update.clone().map(|timestamp| {
-            let data = T::to_data(&self.snapshot);
-            RillEvent { timestamp, data }
-        })
+    fn get_snapshot(&self) -> Vec<RillEvent> {
+        T::to_snapshot(&self.state)
     }
 
     fn get_direction(&self) -> Direction<RillProtocol> {
@@ -84,17 +79,18 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let mut event = None;
         for envelope in chunk {
             let DataEnvelope::Event { data, system_time } = envelope;
-            data.aggregate(&mut self.snapshot);
             // TODO: Error allowed here?
             let timestamp = system_time.duration_since(SystemTime::UNIX_EPOCH)?.into();
-            self.last_update = Some(timestamp);
+            event = data.aggregate(&mut self.state, timestamp);
         }
         if !self.subscribers.is_empty() {
-            let event = self.get_event();
             if let Some(event) = event {
-                let response = RillToServer::Data { event };
+                let response = RillToServer::Data {
+                    event: event.to_owned(),
+                };
                 let direction = self.get_direction();
                 self.sender.response(direction, response);
             }
@@ -129,7 +125,7 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
             // TODO: Fix logs
             if msg.active {
                 if self.subscribers.insert(id) {
-                    let snapshot = self.get_event();
+                    let snapshot = self.get_snapshot();
                     let response = RillToServer::BeginStream { snapshot };
                     let direction = Direction::from(msg.direct_id);
                     self.sender.response(direction, response);

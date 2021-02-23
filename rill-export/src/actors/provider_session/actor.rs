@@ -132,11 +132,9 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
                 // It's important to forward the snapshot, because it
                 // a stream doesn't generate data too often, but the provider
                 // can keep it than we can have the current value in exporters.
-                if let Some(event) = snapshot {
-                    log::trace!("Snapshot received: {:?}", event);
-                    self.distribute_data(msg.0.direction, event).await?;
-                } else {
-                    log::trace!("Stream started without a snapshot.");
+                for event in snapshot {
+                    log::trace!("Processing snapshot event: {:?}", event);
+                    self.distribute_data(msg.0.direction.clone(), event).await?;
                 }
             }
             RillToServer::EndStream => {}

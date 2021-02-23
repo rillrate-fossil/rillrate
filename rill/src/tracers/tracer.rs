@@ -2,16 +2,16 @@
 use crate::RILL_LINK;
 use futures::channel::mpsc;
 use meio::prelude::Action;
-use rill_protocol::provider::{Description, Path, RillData};
+use rill_protocol::provider::{Description, Path, RillEvent, Timestamp};
 use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::watch;
 
 pub trait TracerEvent: Sized + Send + 'static {
-    type Snapshot: Default + Send + 'static;
-    fn aggregate(self, snapshot: &mut Self::Snapshot);
-    // TODO: Replace to `Into<RillData> for Self::Snapshot`?
-    fn to_data(snapshot: &Self::Snapshot) -> RillData;
+    type State: Default + Send + 'static;
+    fn aggregate(self, snapshot: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent>;
+    // TODO: Replace to `IntoIterator<RillEvent> for Self::State`?
+    fn to_snapshot(state: &Self::State) -> Vec<RillEvent>;
 }
 
 #[derive(Debug)]
