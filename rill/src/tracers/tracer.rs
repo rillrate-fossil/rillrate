@@ -38,17 +38,8 @@ pub struct Tracer<T> {
 impl<T: TracerEvent> Tracer<T> {
     pub(crate) fn new(description: Description) -> Self {
         // TODO: Remove this active watch channel?
-        let (active_tx, active_rx) = watch::channel(true);
+        let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {:?}", description.path);
-        let opt_state = RILL_LINK.get();
-        if opt_state.is_none() {
-            // If there is no tracer than the `active` flag will never be true.
-            active_tx.send(false).ok();
-            log::warn!(
-                "No rill tracer available: {} provider deactivated.",
-                description.path
-            );
-        }
         let (tx, rx) = mpsc::unbounded();
         let description = Arc::new(description);
         let this = Tracer {
@@ -56,10 +47,11 @@ impl<T: TracerEvent> Tracer<T> {
             description: description.clone(),
             sender: tx,
         };
-        if let Some(state) = opt_state {
-            if let Err(_) = state.register_tracer(description, rx) {
-                log::error!("Can't register a Tracer. The worker can be terminated already.");
-            }
+        if let Err(err) = RILL_LINK.register_tracer(description, rx) {
+            log::error!(
+                "Can't register a Tracer. The worker can be terminated already: {}",
+                err
+            );
         }
         this
     }

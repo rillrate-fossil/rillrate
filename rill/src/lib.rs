@@ -13,7 +13,6 @@ use crate::actors::supervisor::RillSupervisor;
 use anyhow::Error;
 use config::RillConfig;
 use rill_protocol::provider::EntryId;
-use std::time::{Duration, Instant};
 use thiserror::Error;
 
 metacrate::meta!();
@@ -43,19 +42,6 @@ impl Rill {
         let config = RillConfig::new(host, name.into(), with_meta);
         let actor = RillSupervisor::new(config);
         let scoped = meio::thread::spawn(actor)?;
-
-        // TODO: Refactor that below
-        let when = Instant::now();
-        let how_long = Duration::from_secs(10);
-        loop {
-            if state::RILL_LINK.get().is_some() {
-                break;
-            }
-            if when.elapsed() > how_long {
-                return Err(Error::msg("rillrate still not started..."));
-            }
-        }
-
         Ok(Self { _scoped: scoped })
     }
 }

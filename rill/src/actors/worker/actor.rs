@@ -1,8 +1,7 @@
-use super::link;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
-use crate::state::RILL_LINK;
+use crate::state;
 use crate::tracers::tracer::TracerEvent;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -96,10 +95,7 @@ impl StartedBy<RillSupervisor> for RillWorker {
             Group::Recorders,
         ]);
 
-        let state = RILL_LINK
-            .get()
-            .ok_or_else(|| Error::msg("Not initialized"))?;
-        let rx = state
+        let rx = state::RILL_LINK
             .take_receiver()
             .await
             .ok_or_else(|| Error::msg("Receiver already taken"))?;
@@ -235,10 +231,10 @@ impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
 }
 
 #[async_trait]
-impl<T: TracerEvent> InstantActionHandler<link::RegisterTracer<T>> for RillWorker {
+impl<T: TracerEvent> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
     async fn handle(
         &mut self,
-        msg: link::RegisterTracer<T>,
+        msg: state::RegisterTracer<T>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let description = msg.description;
@@ -300,17 +296,3 @@ impl Consumer<Parcel<Self>> for RillWorker {
         Ok(())
     }
 }
-
-/* TODO: Delete. Recorders uses connection directly
-#[async_trait]
-impl ActionHandler<link::SendResponse> for RillWorker {
-    async fn handle(
-        &mut self,
-        msg: link::SendResponse,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        self.sender.response(msg.direction, msg.response);
-        Ok(())
-    }
-}
-*/

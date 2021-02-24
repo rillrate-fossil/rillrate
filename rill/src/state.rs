@@ -1,31 +1,29 @@
-use crate::actors::worker::{RegisterTracer, RillLink, RillWorker};
+use crate::actors::worker::RillWorker;
 use crate::tracers::tracer::{DataReceiver, TracerEvent};
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
-use meio::prelude::{InstantActionHandler, Parcel};
-use once_cell::sync::OnceCell;
+use meio::prelude::{InstantAction, InstantActionHandler, Parcel};
+use once_cell::sync::Lazy;
 use rill_protocol::provider::Description;
 use std::sync::Arc;
 
 /// It used by tracers to register them into the state.
-pub(crate) static RILL_LINK: OnceCell<RillState> = OnceCell::new();
+pub(crate) static RILL_LINK: Lazy<RillState> = Lazy::new(RillState::new);
 
 type Sender = mpsc::UnboundedSender<Parcel<RillWorker>>;
 type Receiver = mpsc::UnboundedReceiver<Parcel<RillWorker>>;
 
 pub(crate) struct RillState {
-    pub link: RillLink,
     pub sender: Sender,
     pub receiver: Mutex<Option<Receiver>>,
 }
 
 impl RillState {
-    pub fn new(link: RillLink) -> Self {
+    pub fn new() -> Self {
         let (tx, rx) = mpsc::unbounded();
         let receiver = Mutex::new(Some(rx));
         Self {
-            link,
             sender: tx,
             receiver,
         }
@@ -54,3 +52,10 @@ impl RillState {
         self.receiver.lock().await.take()
     }
 }
+
+pub(crate) struct RegisterTracer<T> {
+    pub description: Arc<Description>,
+    pub receiver: DataReceiver<T>,
+}
+
+impl<T: TracerEvent> InstantAction for RegisterTracer<T> {}
