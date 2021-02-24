@@ -1,6 +1,5 @@
 use super::RillWorker;
 use crate::tracers::tracer::{DataReceiver, TracerEvent};
-use anyhow::Error;
 use derive_more::From;
 use meio::prelude::{Address, InstantAction};
 use rill_protocol::provider::Description;
@@ -49,6 +48,7 @@ pub(crate) struct RegisterTracer<T> {
 
 impl<T: TracerEvent> InstantAction for RegisterTracer<T> {}
 
+/*
 impl RillLink {
     pub fn register_tracer<T: TracerEvent>(
         &self,
@@ -62,3 +62,4 @@ impl RillLink {
         self.address.instant(msg)
     }
 }
+*/

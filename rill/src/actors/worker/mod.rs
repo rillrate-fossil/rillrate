@@ -3,4 +3,4 @@ pub(crate) use actor::RillSender;
 pub use actor::RillWorker;
 
 mod link;
-pub use link::RillLink;
+pub(crate) use link::{RegisterTracer, RillLink};
