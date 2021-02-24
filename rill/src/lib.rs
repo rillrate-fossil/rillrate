@@ -9,13 +9,15 @@ mod protocol;
 mod state;
 pub mod tracers;
 
-use crate::actors::supervisor::RillSupervisor;
+metacrate::meta!();
+
+pub use crate::actors::engine::RillEngine;
+
+/*
 use anyhow::Error;
 use config::RillConfig;
 use rill_protocol::provider::EntryId;
 use thiserror::Error;
-
-metacrate::meta!();
 
 #[derive(Debug, Error)]
 enum RillError {
@@ -73,3 +75,4 @@ mod tests {
         Ok(())
     }
 }
+*/

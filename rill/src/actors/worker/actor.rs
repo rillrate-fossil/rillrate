@@ -1,5 +1,5 @@
+use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};
-use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
 use crate::state;
 use crate::tracers::tracer::TracerEvent;
@@ -87,7 +87,7 @@ impl Actor for RillWorker {
 }
 
 #[async_trait]
-impl StartedBy<RillSupervisor> for RillWorker {
+impl StartedBy<RillEngine> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![
             Group::WsConnection,
@@ -113,9 +113,10 @@ impl StartedBy<RillSupervisor> for RillWorker {
 }
 
 #[async_trait]
-impl InterruptedBy<RillSupervisor> for RillWorker {
+impl InterruptedBy<RillEngine> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+        // Closes the control channel and with then it will be finished
+        state::RILL_LINK.sender.close_channel();
         Ok(())
     }
 }
@@ -293,6 +294,11 @@ impl Consumer<Parcel<Self>> for RillWorker {
                 log::error!("Can't unpack a parcel for the worker: {}", err);
             }
         }
+        Ok(())
+    }
+
+    async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }

@@ -10,6 +10,7 @@ use meio::prelude::{
 use meio_connect::server::HttpServer;
 use std::path::PathBuf;
 
+/// Embedded node.
 pub struct EmbeddedNode {
     config_path: Option<PathBuf>,
 }
@@ -27,13 +28,14 @@ impl Actor for EmbeddedNode {
 }
 
 impl EmbeddedNode {
+    /// Create a new instance of an embedded node.
     pub fn new(config_path: Option<PathBuf>) -> Self {
         Self { config_path }
     }
 }
 
 #[async_trait]
-impl StartedBy<System> for EmbeddedNode {
+impl<T: Actor> StartedBy<T> for EmbeddedNode {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![
             Group::Tuning,
@@ -41,6 +43,7 @@ impl StartedBy<System> for EmbeddedNode {
             Group::HttpServer,
             Group::Endpoints,
         ]);
+        // TODO: Move this part into `RillRate` supervisor
         if let Some(config_path) = self.config_path.clone() {
             let config_task = ReadConfigFile(config_path);
             ctx.spawn_task(config_task, Group::Tuning);
@@ -52,7 +55,7 @@ impl StartedBy<System> for EmbeddedNode {
 }
 
 #[async_trait]
-impl InterruptedBy<System> for EmbeddedNode {
+impl<T: Actor> InterruptedBy<T> for EmbeddedNode {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

@@ -1,4 +1,5 @@
 mod env;
+mod supervisor;
 mod tracers;
 
 pub use rill;
@@ -6,10 +7,27 @@ pub use rill_export;
 pub use rill_protocol as protocol;
 pub use tracers::*;
 
+use anyhow::Error;
+use meio::thread::ScopedRuntime;
+
+pub struct RillRate {
+    _scoped: ScopedRuntime,
+}
+
+impl RillRate {
+    pub fn from_env(_default_name: &str) -> Result<Self, Error> {
+        use supervisor::RillRate;
+        let actor = RillRate::new();
+        let _scoped = meio::thread::spawn(actor)?;
+        Ok(Self { _scoped })
+    }
+}
+
 // Not necessary in `rillrate`, because it parses all
 // names automatically.
 // pub use protocol::provider::{EntryId, Path};
 
+/*
 use anyhow::Error;
 use rill::Rill;
 use rill_export::RillExport;
@@ -46,3 +64,4 @@ impl RillRate {
 
     // TODO: Add `from_config` method
 }
+*/

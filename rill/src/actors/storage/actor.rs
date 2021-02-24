@@ -1,4 +1,4 @@
-use crate::actors::supervisor::RillSupervisor;
+use crate::actors::engine::RillEngine;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, InterruptedBy, StartedBy};
@@ -16,7 +16,7 @@ impl Actor for RillStorage {
 }
 
 #[async_trait]
-impl StartedBy<RillSupervisor> for RillStorage {
+impl StartedBy<RillEngine> for RillStorage {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         // TODO: Opens a log file
         Ok(())
@@ -24,7 +24,7 @@ impl StartedBy<RillSupervisor> for RillStorage {
 }
 
 #[async_trait]
-impl InterruptedBy<RillSupervisor> for RillStorage {
+impl InterruptedBy<RillEngine> for RillStorage {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

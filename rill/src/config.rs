@@ -7,13 +7,9 @@ pub struct RillConfig {
 }
 
 impl RillConfig {
-    pub fn new(host: String, entry_id: EntryId, with_meta: bool) -> Self {
+    pub fn new(host: String, entry_id: EntryId) -> Self {
         let url = format!("ws://{}/live/provider", host);
-        let inner = Arc::new(RillConfigInner {
-            entry_id,
-            url,
-            with_meta,
-        });
+        let inner = Arc::new(RillConfigInner { entry_id, url });
         Self { inner }
     }
 
@@ -24,17 +20,10 @@ impl RillConfig {
     pub fn url(&self) -> &str {
         &self.inner.url
     }
-
-    /*
-    pub fn with_meta(&self) -> bool {
-        self.inner.with_meta
-    }
-    */
 }
 
 #[derive(Debug)]
 struct RillConfigInner {
     entry_id: EntryId,
     url: String,
-    with_meta: bool,
 }

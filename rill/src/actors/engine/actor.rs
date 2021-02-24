@@ -4,8 +4,10 @@ use crate::config::RillConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
+use rill_protocol::provider::EntryId;
 
-pub(crate) struct RillSupervisor {
+/// The supervisor that spawns a worker.
+pub struct RillEngine {
     config: RillConfig,
 }
 
@@ -15,22 +17,24 @@ pub enum Group {
     Storage,
 }
 
-impl Actor for RillSupervisor {
+impl Actor for RillEngine {
     type GroupBy = Group;
 
     fn name(&self) -> String {
-        format!("RillSupervisor({})", self.config.entry_id())
+        format!("RillEngine({})", self.config.entry_id())
     }
 }
 
-impl RillSupervisor {
-    pub fn new(config: RillConfig) -> Self {
+impl RillEngine {
+    /// Creates a new supervisor instance.
+    pub fn new(host: String, name: impl Into<EntryId>) -> Self {
+        let config = RillConfig::new(host, name.into());
         Self { config }
     }
 }
 
 #[async_trait]
-impl StartedBy<System> for RillSupervisor {
+impl<T: Actor> StartedBy<T> for RillEngine {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Worker, Group::Storage]);
         let storage = RillStorage::new();
@@ -44,7 +48,7 @@ impl StartedBy<System> for RillSupervisor {
 }
 
 #[async_trait]
-impl InterruptedBy<System> for RillSupervisor {
+impl<T: Actor> InterruptedBy<T> for RillEngine {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -52,7 +56,7 @@ impl InterruptedBy<System> for RillSupervisor {
 }
 
 #[async_trait]
-impl Eliminated<RillWorker> for RillSupervisor {
+impl Eliminated<RillWorker> for RillEngine {
     async fn handle(
         &mut self,
         _id: IdOf<RillWorker>,
@@ -65,7 +69,7 @@ impl Eliminated<RillWorker> for RillSupervisor {
 }
 
 #[async_trait]
-impl Eliminated<RillStorage> for RillSupervisor {
+impl Eliminated<RillStorage> for RillEngine {
     async fn handle(
         &mut self,
         _id: IdOf<RillStorage>,

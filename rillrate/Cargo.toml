@@ -17,7 +17,9 @@ description = "Dynamic logging and tracing system"
 
 [dependencies]
 anyhow = "1.0.38"
+async-trait = "0.1.42"
 log = "0.4.14"
+meio = "0.81.0"
 rill = { version = "0.20.0", path = "../rill" }
 rill-export = { version = "0.20.0", path = "../rill-export" }
 rill-protocol = { version = "0.20.0", path = "../rill-protocol" }
