@@ -1,5 +1,5 @@
 //! This module contains a generic `Tracer`'s methods.
-use crate::RILL_LINK;
+use crate::state::RILL_LINK;
 use futures::channel::mpsc;
 use meio::prelude::Action;
 use rill_protocol::provider::{Description, Path, RillEvent, Timestamp};

@@ -6,21 +6,17 @@ mod actors;
 mod config;
 pub mod prelude;
 mod protocol;
+mod state;
 pub mod tracers;
 
 use crate::actors::supervisor::RillSupervisor;
-use crate::actors::worker::RillLink;
 use anyhow::Error;
 use config::RillConfig;
-use once_cell::sync::OnceCell;
 use rill_protocol::provider::EntryId;
 use std::time::{Duration, Instant};
 use thiserror::Error;
 
 metacrate::meta!();
-
-/// It used by tracers to register them into the state.
-static RILL_LINK: OnceCell<RillLink> = OnceCell::new();
 
 #[derive(Debug, Error)]
 enum RillError {
@@ -52,7 +48,7 @@ impl Rill {
         let when = Instant::now();
         let how_long = Duration::from_secs(10);
         loop {
-            if RILL_LINK.get().is_some() {
+            if state::RILL_LINK.get().is_some() {
                 break;
             }
             if when.elapsed() > how_long {

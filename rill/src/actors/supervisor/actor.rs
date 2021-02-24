@@ -1,7 +1,7 @@
 use crate::actors::storage::RillStorage;
 use crate::actors::worker::RillWorker;
 use crate::config::RillConfig;
-use crate::RILL_LINK;
+use crate::state::RILL_LINK;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
