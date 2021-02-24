@@ -42,7 +42,7 @@ impl RillState {
             description,
             receiver,
         };
-        let parcel = Parcel::new(msg);
+        let parcel = Parcel::pack(msg);
         self.sender
             .unbounded_send(parcel)
             .map_err(|_| Error::msg("Can't register a tracer."))
