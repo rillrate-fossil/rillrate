@@ -57,7 +57,7 @@ impl<T: TracerEvent> Tracer<T> {
             sender: tx,
         };
         if let Some(state) = opt_state {
-            if let Err(_) = state.register_tracer(description, rx) {
+            if let Err(_) = state.link.register_tracer(description, rx) {
                 log::error!("Can't register a Tracer. The worker can be terminated already.");
             }
         }

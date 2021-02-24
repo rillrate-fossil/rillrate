@@ -1,7 +1,7 @@
 use crate::actors::storage::RillStorage;
 use crate::actors::worker::RillWorker;
 use crate::config::RillConfig;
-use crate::state::RILL_LINK;
+use crate::state::{RillState, RILL_LINK};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
@@ -39,7 +39,10 @@ impl StartedBy<System> for RillSupervisor {
 
         let worker = RillWorker::new(self.config.clone());
         let worker_addr = ctx.spawn_actor(worker, Group::Worker);
-        if let Err(_) = RILL_LINK.set(worker_addr.link()) {
+        let state = RillState {
+            link: worker_addr.link(),
+        };
+        if let Err(_) = RILL_LINK.set(state) {
             log::error!("Attempt to install rillrate twice. Terminating the duplicated instance.");
             ctx.shutdown();
         }
