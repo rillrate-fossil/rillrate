@@ -4,7 +4,11 @@ use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, 
 use rill::RillEngine;
 use rill_export::EmbeddedNode;
 
-pub struct RillRate {}
+pub struct RillRate {
+    // TODO: Keep node addr here as `Option`
+// and if it's not configured than spawn a standalone server
+// and with for it install the port here and spawn a tracer.
+}
 
 impl RillRate {
     pub fn new() -> Self {
@@ -28,11 +32,19 @@ impl StartedBy<System> for RillRate {
         ctx.termination_sequence(vec![Group::Engine, Group::EmbeddedNode]);
 
         let config_path = Some(crate::env::config());
-        let actor = EmbeddedNode::new(config_path);
-        ctx.spawn_actor(actor, Group::EmbeddedNode);
+
+        let node = {
+            if let Some(node) = crate::env::node() {
+                node
+            } else {
+                let actor = EmbeddedNode::new(config_path);
+                ctx.spawn_actor(actor, Group::EmbeddedNode);
+                "127.0.0.1:1636".into()
+            }
+        };
 
         // TODO: Use the same config
-        let actor = RillEngine::new("127.0.0.1:1636".into(), "rillrate");
+        let actor = RillEngine::new(node, "rillrate");
         ctx.spawn_actor(actor, Group::Engine);
 
         Ok(())
