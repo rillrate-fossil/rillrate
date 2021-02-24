@@ -2,12 +2,13 @@ use super::link;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::actors::supervisor::RillSupervisor;
 use crate::config::RillConfig;
+use crate::state::RILL_LINK;
 use crate::tracers::tracer::TracerEvent;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    ActionHandler, Actor, Context, Eliminated, Id, IdOf, InstantActionHandler, InterruptedBy,
-    StartedBy, TaskEliminated, TaskError,
+    ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler,
+    InterruptedBy, Parcel, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -94,12 +95,23 @@ impl StartedBy<RillSupervisor> for RillWorker {
             Group::UpgradeStream,
             Group::Recorders,
         ]);
+
+        let state = RILL_LINK
+            .get()
+            .ok_or_else(|| Error::msg("Not initialized"))?;
+        let rx = state
+            .take_receiver()
+            .await
+            .ok_or_else(|| Error::msg("Receiver already taken"))?;
+        ctx.attach(rx, Group::UpgradeStream);
+
         let client = WsClient::new(
             self.config.url().to_string(),
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
         ctx.spawn_task(client, Group::WsConnection);
+
         Ok(())
     }
 }
@@ -264,6 +276,26 @@ impl<T: TracerEvent> Eliminated<Recorder<T>> for RillWorker {
             }
         } else {
             log::error!("Recorder {:?} wasn't registered.", id);
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Consumer<Parcel<Self>> for RillWorker {
+    fn stream_group(&self) -> Self::GroupBy {
+        Group::UpgradeStream
+    }
+
+    async fn handle(
+        &mut self,
+        chunk: Vec<Parcel<Self>>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        for parcel in chunk {
+            if let Err(err) = ctx.address().unpack_parcel(parcel) {
+                log::error!("Can't unpack a parcel for the worker: {}", err);
+            }
         }
         Ok(())
     }

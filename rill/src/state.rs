@@ -11,10 +11,13 @@ use std::sync::Arc;
 /// It used by tracers to register them into the state.
 pub(crate) static RILL_LINK: OnceCell<RillState> = OnceCell::new();
 
+type Sender = mpsc::UnboundedSender<Parcel<RillWorker>>;
+type Receiver = mpsc::UnboundedReceiver<Parcel<RillWorker>>;
+
 pub(crate) struct RillState {
     pub link: RillLink,
-    pub sender: mpsc::UnboundedSender<Parcel<RillWorker>>,
-    pub receiver: Mutex<Option<mpsc::UnboundedReceiver<Parcel<RillWorker>>>>,
+    pub sender: Sender,
+    pub receiver: Mutex<Option<Receiver>>,
 }
 
 impl RillState {
@@ -45,5 +48,9 @@ impl RillState {
         self.sender
             .unbounded_send(parcel)
             .map_err(|_| Error::msg("Can't register a tracer."))
+    }
+
+    pub async fn take_receiver(&self) -> Option<Receiver> {
+        self.receiver.lock().await.take()
     }
 }
