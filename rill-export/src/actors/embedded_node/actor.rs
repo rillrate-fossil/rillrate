@@ -52,6 +52,14 @@ impl StartedBy<System> for EmbeddedNode {
 }
 
 #[async_trait]
+impl InterruptedBy<System> for EmbeddedNode {
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
 impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
     async fn handle(
         &mut self,
@@ -105,14 +113,6 @@ impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
             }
         }
 
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl InterruptedBy<System> for EmbeddedNode {
-    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
         Ok(())
     }
 }
