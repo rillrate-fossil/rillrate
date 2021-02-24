@@ -24,12 +24,14 @@ pub fn name(default_name: Option<String>) -> String {
         .unwrap_or_else(|| "rillrate".into())
 }
 
+/*
 pub fn meta() -> bool {
     var("RILLRATE_META")
         .ok()
         .and_then(|s| s.parse().ok())
         .unwrap_or(false)
 }
+*/
 
 pub fn node() -> Option<String> {
     var("RILLRATE_NODE").ok()

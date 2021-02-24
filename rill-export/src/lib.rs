@@ -14,10 +14,13 @@ metacrate::meta!();
 
 // TODO: Refactor that below
 
+/// SocketAddr sender
 pub type AddrSender = watch::Sender<Option<SocketAddr>>;
 
+/// SocketAddr receiver
 pub type AddrReceiver = watch::Receiver<Option<SocketAddr>>;
 
+/// SocketAddr watch channel pair
 pub type AddrChannel = (Mutex<Option<AddrSender>>, AddrReceiver);
 
 fn add_channel() -> AddrChannel {
@@ -25,6 +28,8 @@ fn add_channel() -> AddrChannel {
     (Mutex::new(Some(tx)), rx)
 }
 
-pub(crate) static EXTERN_ADDR: Lazy<AddrChannel> = Lazy::new(add_channel);
+/// External address
+pub static EXTERN_ADDR: Lazy<AddrChannel> = Lazy::new(add_channel);
 
-pub(crate) static INTERN_ADDR: Lazy<AddrChannel> = Lazy::new(add_channel);
+/// Internal address
+pub static INTERN_ADDR: Lazy<AddrChannel> = Lazy::new(add_channel);

@@ -114,7 +114,7 @@ impl StartedBy<RillEngine> for RillWorker {
 
 #[async_trait]
 impl InterruptedBy<RillEngine> for RillWorker {
-    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         // Closes the control channel and with then it will be finished
         state::RILL_LINK.sender.close_channel();
         Ok(())

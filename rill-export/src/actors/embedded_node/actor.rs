@@ -5,7 +5,7 @@ use crate::config::{Config, ReadConfigFile};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
-    Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System, TaskEliminated, TaskError,
+    Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::server::HttpServer;
 use std::path::PathBuf;

@@ -18,6 +18,7 @@ impl RillRate {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
+    BindWatchers,
     Engine,
     EmbeddedNode,
 }
@@ -29,7 +30,11 @@ impl Actor for RillRate {
 #[async_trait]
 impl StartedBy<System> for RillRate {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Engine, Group::EmbeddedNode]);
+        ctx.termination_sequence(vec![
+            Group::BindWatchers,
+            Group::Engine,
+            Group::EmbeddedNode,
+        ]);
 
         let config_path = Some(crate::env::config());
 
@@ -42,6 +47,11 @@ impl StartedBy<System> for RillRate {
                 "127.0.0.1:1636".into()
             }
         };
+
+        /* TODO: Create a LiteTask to detect it was binded
+        let extern_rx = rill_export::EXTERN_ADDR.1.clone();
+        let intern_rx = rill_export::INTERN_ADDR.1.clone();
+        */
 
         // TODO: Use the same config
         let actor = RillEngine::new(node, "rillrate");
