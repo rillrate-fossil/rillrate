@@ -1,3 +1,7 @@
+//! Dynamic tracing system that tends to be real-time.
+
+#![warn(missing_docs)]
+
 mod config;
 mod env;
 mod supervisor;
@@ -11,11 +15,13 @@ pub use tracers::*;
 use anyhow::Error;
 use meio::thread::ScopedRuntime;
 
+/// The tracer.
 pub struct RillRate {
     _scoped: ScopedRuntime,
 }
 
 impl RillRate {
+    /// Creates an instance of `RillRate` tracer using environment vars.
     pub fn from_env(app_name: impl ToString) -> Result<Self, Error> {
         use supervisor::RillRate;
         let actor = RillRate::new(app_name.to_string());
@@ -23,46 +29,3 @@ impl RillRate {
         Ok(Self { _scoped })
     }
 }
-
-// Not necessary in `rillrate`, because it parses all
-// names automatically.
-// pub use protocol::provider::{EntryId, Path};
-
-/*
-use anyhow::Error;
-use rill::Rill;
-use rill_export::RillExport;
-
-/// `RillRate` provider.
-#[derive(Debug)]
-pub struct RillRate {
-    _rill_export: Option<RillExport>,
-    _rill: Rill,
-}
-
-impl RillRate {
-    /// Create a new instance of `RillRate` provider that configured by env vars.
-    pub fn from_env(default_name: &str) -> Result<Self, Error> {
-        let config_path = Some(env::config());
-        let mut _rill_export = None;
-        let node = {
-            if let Some(node) = env::node() {
-                node
-            } else {
-                // TODO: When started it gives an address where it has binded to
-                _rill_export = Some(RillExport::start(config_path)?);
-                "127.0.0.1:1636".into()
-            }
-        };
-        let name = env::name(Some(default_name.into()));
-        let with_meta = env::meta();
-        let _rill = Rill::install(node, name, with_meta)?;
-        Ok(Self {
-            _rill_export,
-            _rill,
-        })
-    }
-
-    // TODO: Add `from_config` method
-}
-*/

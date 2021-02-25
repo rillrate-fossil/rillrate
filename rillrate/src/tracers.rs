@@ -1,3 +1,5 @@
+//! The module with all adapted tracers.
+
 use anyhow::Error;
 use rill::tracers::{CounterTracer, DictTracer, GaugeTracer, LogTracer};
 use std::ops::Deref;
@@ -14,6 +16,7 @@ macro_rules! impl_tracer {
         }
 
         impl $wrapper {
+            /// Creates an instance of the tracer.
             pub fn create(path: &str) -> Result<Self, Error> {
                 let path = path.parse()?;
                 let tracer = $tracer::new(path);
@@ -24,6 +27,8 @@ macro_rules! impl_tracer {
         }
     };
 }
+
+/// `Counter` tracer.
 #[derive(Debug, Clone)]
 pub struct Counter {
     tracer: Arc<CounterTracer>,
@@ -38,6 +43,7 @@ impl Counter {
     }
 }
 
+/// `Gauge` tracer.
 #[derive(Debug, Clone)]
 pub struct Gauge {
     tracer: Arc<GaugeTracer>,
@@ -62,6 +68,7 @@ impl Gauge {
     }
 }
 
+/// `Logger` tracer.
 #[derive(Debug, Clone)]
 pub struct Logger {
     tracer: Arc<LogTracer>,
@@ -76,6 +83,7 @@ impl Logger {
     }
 }
 
+/// `Dict` tracer.
 #[derive(Debug, Clone)]
 pub struct Dict {
     tracer: Arc<DictTracer>,
