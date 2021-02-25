@@ -9,10 +9,12 @@ pub fn config() -> PathBuf {
         .into()
 }
 
-pub fn name(default_name: Option<String>) -> String {
+/// It expects `app_name` because it will use executable name
+/// if `app_name` is not provided.
+pub fn name(app_name: Option<String>) -> String {
     var("RILLRATE_NAME")
         .ok()
-        .or(default_name)
+        .or(app_name)
         .or_else(|| {
             current_exe().ok().and_then(|buf| {
                 buf.as_path()

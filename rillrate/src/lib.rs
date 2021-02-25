@@ -15,9 +15,9 @@ pub struct RillRate {
 }
 
 impl RillRate {
-    pub fn from_env(_default_name: &str) -> Result<Self, Error> {
+    pub fn from_env(app_name: String) -> Result<Self, Error> {
         use supervisor::RillRate;
-        let actor = RillRate::new();
+        let actor = RillRate::new(app_name);
         let _scoped = meio::thread::spawn(actor)?;
         Ok(Self { _scoped })
     }

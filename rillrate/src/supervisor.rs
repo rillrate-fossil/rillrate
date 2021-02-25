@@ -1,3 +1,4 @@
+use crate::env;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System};
@@ -5,14 +6,15 @@ use rill::RillEngine;
 use rill_export::EmbeddedNode;
 
 pub struct RillRate {
+    app_name: String,
     // TODO: Keep node addr here as `Option`
-// and if it's not configured than spawn a standalone server
-// and with for it install the port here and spawn a tracer.
+    // and if it's not configured than spawn a standalone server
+    // and with for it install the port here and spawn a tracer.
 }
 
 impl RillRate {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(app_name: String) -> Self {
+        Self { app_name }
     }
 }
 
@@ -36,10 +38,10 @@ impl StartedBy<System> for RillRate {
             Group::EmbeddedNode,
         ]);
 
-        let config_path = Some(crate::env::config());
+        let config_path = Some(env::config());
 
         let node = {
-            if let Some(node) = crate::env::node() {
+            if let Some(node) = env::node() {
                 node
             } else {
                 let actor = EmbeddedNode::new(config_path);
@@ -54,7 +56,8 @@ impl StartedBy<System> for RillRate {
         */
 
         // TODO: Use the same config
-        let actor = RillEngine::new(node, "rillrate");
+        let name = env::name(Some(self.app_name.clone()));
+        let actor = RillEngine::new(node, name);
         ctx.spawn_actor(actor, Group::Engine);
 
         Ok(())
