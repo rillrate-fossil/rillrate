@@ -82,13 +82,15 @@ impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
         // Starting all basic actors
         // TODO: Don't parse it
         let watcher = crate::EXTERN_ADDR.lock().await.0.take();
+        // TODO: Use port from a config here
         let extern_addr = format!("{}:{}", config.server_address(), 9090).parse()?;
         let extern_http_server_actor = HttpServer::new(extern_addr, watcher);
         let extern_http_server = ctx.spawn_actor(extern_http_server_actor, Group::HttpServer);
 
         // TODO: Don't parse it
         let watcher = crate::INTERN_ADDR.lock().await.0.take();
-        let inner_addr = format!("127.0.0.1:{}", rill_protocol::PORT.get()).parse()?;
+        // TODO: Use port from config or `any` (0)
+        let inner_addr = format!("127.0.0.1:{}", 0).parse()?;
         let inner_http_server_actor = HttpServer::new(inner_addr, watcher);
         let inner_http_server = ctx.spawn_actor(inner_http_server_actor, Group::HttpServer);
 

@@ -6,7 +6,7 @@ use meio::prelude::{
     TaskError,
 };
 use rill::RillEngine;
-use rill_export::{AddrReceiver, EmbeddedNode};
+use rill_export::EmbeddedNode;
 use std::net::SocketAddr;
 
 pub struct RillRate {
@@ -56,22 +56,7 @@ impl StartedBy<System> for RillRate {
         } else {
             let actor = EmbeddedNode::new(config_path);
             ctx.spawn_actor(actor, Group::EmbeddedNode);
-
-            // TODO: Dry. Add special class for that to `meio`
-            let _extern_rx = rill_export::EXTERN_ADDR
-                .lock()
-                .await
-                .1
-                .take()
-                .ok_or_else(|| Error::msg("extern address notifier not found"))?;
-            let intern_rx = rill_export::INTERN_ADDR
-                .lock()
-                .await
-                .1
-                .take()
-                .ok_or_else(|| Error::msg("intern address notifier not found"))?;
-
-            let task = WaitForAddr::new(intern_rx);
+            let task = WaitForAddr::new();
             ctx.spawn_task(task, Group::AddrWatchers);
         }
 
@@ -130,13 +115,11 @@ impl TaskEliminated<WaitForAddr> for RillRate {
     }
 }
 
-struct WaitForAddr {
-    receiver: AddrReceiver,
-}
+struct WaitForAddr {}
 
 impl WaitForAddr {
-    fn new(receiver: AddrReceiver) -> Self {
-        Self { receiver }
+    fn new() -> Self {
+        Self {}
     }
 }
 
@@ -145,6 +128,12 @@ impl LiteTask for WaitForAddr {
     type Output = SocketAddr;
 
     async fn interruptable_routine(self) -> Result<Self::Output, Error> {
-        self.receiver.await.map_err(Error::from)
+        let intern_rx = rill_export::INTERN_ADDR
+            .lock()
+            .await
+            .1
+            .take()
+            .ok_or_else(|| Error::msg("intern address notifier not found"))?;
+        intern_rx.await.map_err(Error::from)
     }
 }
