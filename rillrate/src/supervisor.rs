@@ -1,3 +1,4 @@
+use crate::config::{Config, ReadConfigFile};
 use crate::env;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -31,7 +32,7 @@ impl RillRate {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
-    AddrWatchers,
+    Tuning,
     Engine,
     EmbeddedNode,
 }
@@ -43,22 +44,11 @@ impl Actor for RillRate {
 #[async_trait]
 impl StartedBy<System> for RillRate {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![
-            Group::AddrWatchers,
-            Group::Engine,
-            Group::EmbeddedNode,
-        ]);
+        ctx.termination_sequence(vec![Group::Tuning, Group::Engine, Group::EmbeddedNode]);
 
-        let config_path = Some(env::config());
-
-        if let Some(node) = env::node() {
-            self.spawn_tracer(node, ctx);
-        } else {
-            let actor = EmbeddedNode::new(config_path);
-            ctx.spawn_actor(actor, Group::EmbeddedNode);
-            let task = WaitForAddr::new();
-            ctx.spawn_task(task, Group::AddrWatchers);
-        }
+        let config_path = env::config();
+        let config_task = ReadConfigFile(config_path);
+        ctx.spawn_task(config_task, Group::Tuning);
 
         Ok(())
     }
@@ -92,6 +82,39 @@ impl Eliminated<EmbeddedNode> for RillRate {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl TaskEliminated<ReadConfigFile> for RillRate {
+    async fn handle(
+        &mut self,
+        _id: IdOf<ReadConfigFile>,
+        result: Result<Option<Config>, TaskError>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let config = result
+            .map_err(|err| {
+                log::warn!(
+                    "Can't read config file. No special configuration parameters applied: {}",
+                    err
+                );
+            })
+            .ok()
+            .and_then(std::convert::identity)
+            .unwrap_or_default();
+
+        // TODO: Check config for node as well
+        if let Some(node) = env::node() {
+            self.spawn_tracer(node, ctx);
+        } else {
+            let actor = EmbeddedNode::new(config.server, config.export);
+            ctx.spawn_actor(actor, Group::EmbeddedNode);
+            let task = WaitForAddr::new();
+            ctx.spawn_task(task, Group::Tuning);
+        }
+
         Ok(())
     }
 }

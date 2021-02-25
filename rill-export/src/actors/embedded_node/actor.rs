@@ -1,18 +1,18 @@
 use crate::actors::exporter::Exporter;
 use crate::actors::exporter::{publishers, ExporterLinkForClient};
 use crate::actors::server::Server;
-use crate::config::{Config, ReadConfigFile};
+use crate::config::{ExportConfig, ServerConfig};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::server::HttpServer;
-use std::path::PathBuf;
 
 /// Embedded node.
 pub struct EmbeddedNode {
-    config_path: Option<PathBuf>,
+    server_config: ServerConfig,
+    export_config: ExportConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -29,8 +29,11 @@ impl Actor for EmbeddedNode {
 
 impl EmbeddedNode {
     /// Create a new instance of an embedded node.
-    pub fn new(config_path: Option<PathBuf>) -> Self {
-        Self { config_path }
+    pub fn new(server_config: Option<ServerConfig>, export_config: Option<ExportConfig>) -> Self {
+        Self {
+            server_config: server_config.unwrap_or_default(),
+            export_config: export_config.unwrap_or_default(),
+        }
     }
 }
 
@@ -43,47 +46,12 @@ impl<T: Actor> StartedBy<T> for EmbeddedNode {
             Group::HttpServer,
             Group::Endpoints,
         ]);
-        // TODO: Move this part into `RillRate` supervisor
-        if let Some(config_path) = self.config_path.clone() {
-            let config_task = ReadConfigFile(config_path);
-            ctx.spawn_task(config_task, Group::Tuning);
-        } else {
-            log::info!("No config file provided. Default settings will be used.");
-        }
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl<T: Actor> InterruptedBy<T> for EmbeddedNode {
-    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
-    async fn handle(
-        &mut self,
-        _id: IdOf<ReadConfigFile>,
-        result: Result<Config, TaskError>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let mut config = result
-            .map_err(|err| {
-                log::warn!(
-                    "Can't read config file. No special configuration parameters applied: {}",
-                    err
-                );
-            })
-            .unwrap_or_default();
 
         // Starting all basic actors
         // TODO: Don't parse it
         let watcher = crate::EXTERN_ADDR.lock().await.0.take();
         // TODO: Use port from a config here
-        let extern_addr = format!("{}:{}", config.server_address(), 9090).parse()?;
+        let extern_addr = format!("{}:{}", self.server_config.server_address(), 9090).parse()?;
         let extern_http_server_actor = HttpServer::new(extern_addr, watcher);
         let extern_http_server = ctx.spawn_actor(extern_http_server_actor, Group::HttpServer);
 
@@ -107,19 +75,25 @@ impl TaskEliminated<ReadConfigFile> for EmbeddedNode {
         let mut exporter: ExporterLinkForClient = exporter.link();
 
         // Spawn exporters if they are exist
-        if let Some(mut export) = config.export.take() {
-            if let Some(config) = export.prometheus.take() {
-                exporter
-                    .start_publisher::<publishers::PrometheusPublisher>(config)
-                    .await?;
-            }
-            if let Some(config) = export.graphite.take() {
-                exporter
-                    .start_publisher::<publishers::GraphitePublisher>(config)
-                    .await?;
-            }
+        if let Some(config) = self.export_config.prometheus.take() {
+            exporter
+                .start_publisher::<publishers::PrometheusPublisher>(config)
+                .await?;
+        }
+        if let Some(config) = self.export_config.graphite.take() {
+            exporter
+                .start_publisher::<publishers::GraphitePublisher>(config)
+                .await?;
         }
 
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: Actor> InterruptedBy<T> for EmbeddedNode {
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }

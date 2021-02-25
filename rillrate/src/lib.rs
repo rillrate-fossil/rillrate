@@ -1,3 +1,4 @@
+mod config;
 mod env;
 mod supervisor;
 mod tracers;

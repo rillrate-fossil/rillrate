@@ -3,10 +3,8 @@ use std::path::PathBuf;
 
 // TODO: Refactor this module... Use proper error types with logging.
 
-pub fn config() -> PathBuf {
-    var("RILLRATE_CONFIG")
-        .unwrap_or_else(|_| "rillrate.toml".into())
-        .into()
+pub fn config() -> Option<PathBuf> {
+    var("RILLRATE_CONFIG").map(PathBuf::from).ok()
 }
 
 /// It expects `app_name` because it will use executable name
