@@ -8,24 +8,24 @@ mod config;
 pub use actors::embedded_node::EmbeddedNode;
 use once_cell::sync::Lazy;
 use std::net::SocketAddr;
-use tokio::sync::{watch, Mutex};
+use tokio::sync::{oneshot, Mutex};
 
 metacrate::meta!();
 
 // TODO: Refactor that below
 
 /// SocketAddr sender
-pub type AddrSender = watch::Sender<Option<SocketAddr>>;
+pub type AddrSender = oneshot::Sender<SocketAddr>;
 
 /// SocketAddr receiver
-pub type AddrReceiver = watch::Receiver<Option<SocketAddr>>;
+pub type AddrReceiver = oneshot::Receiver<SocketAddr>;
 
-/// SocketAddr watch channel pair
-pub type AddrChannel = (Mutex<Option<AddrSender>>, AddrReceiver);
+/// SocketAddr oneshot channel pair
+pub type AddrChannel = Mutex<(Option<AddrSender>, Option<AddrReceiver>)>;
 
 fn add_channel() -> AddrChannel {
-    let (tx, rx) = watch::channel(None);
-    (Mutex::new(Some(tx)), rx)
+    let (tx, rx) = oneshot::channel();
+    Mutex::new((Some(tx), Some(rx)))
 }
 
 /// External address
