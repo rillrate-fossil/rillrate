@@ -103,7 +103,10 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             })
             .ok()
             .and_then(std::convert::identity)
-            .unwrap_or_default();
+            .unwrap_or_else(|| {
+                log::warn!("Default config will be used.");
+                Config::default()
+            });
 
         // TODO: Check config for node as well
         if let Some(node) = env::node() {
