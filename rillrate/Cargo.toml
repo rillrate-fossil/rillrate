@@ -28,6 +28,6 @@ rill-protocol = { version = "0.20.0", path = "../rill-protocol" }
 
 [dev-dependencies]
 # TODO: Use own interruptor (with a flag)
-ctrlc = "3.1.7"
+ctrlc = "3.1.8"
 env_logger = "0.8.3"
 rand = "0.8.3"
