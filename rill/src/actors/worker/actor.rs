@@ -1,6 +1,6 @@
 use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};
-use crate::config::RillConfig;
+use crate::config::ProviderConfig;
 use crate::state;
 use crate::tracers::tracer::TracerEvent;
 use anyhow::Error;
@@ -54,7 +54,7 @@ pub enum Group {
 }
 
 pub struct RillWorker {
-    config: RillConfig,
+    config: ProviderConfig,
     sender: RillSender,
     recorders: Pathfinder<RecorderLink>,
     describe: bool,
@@ -62,9 +62,9 @@ pub struct RillWorker {
 }
 
 impl RillWorker {
-    pub fn new(config: RillConfig) -> Self {
+    pub fn new(config: Option<ProviderConfig>) -> Self {
         Self {
-            config,
+            config: config.unwrap_or_default(),
             sender: RillSender::default(),
             recorders: Pathfinder::default(),
             describe: false,
@@ -81,9 +81,11 @@ impl RillWorker {
 impl Actor for RillWorker {
     type GroupBy = Group;
 
+    /*
     fn name(&self) -> String {
         format!("RillWorker({})", self.config.url())
     }
+    */
 }
 
 #[async_trait]
@@ -102,7 +104,7 @@ impl StartedBy<RillEngine> for RillWorker {
         ctx.attach(rx, Group::UpgradeStream);
 
         let client = WsClient::new(
-            self.config.url().to_string(),
+            self.config.node_url(),
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
@@ -143,7 +145,7 @@ impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
                     }
                 }
 
-                let entry_id = self.config.entry_id().clone();
+                let entry_id = self.config.provider_name();
                 let msg = RillToServer::Declare { entry_id };
                 self.send_global(msg);
             }

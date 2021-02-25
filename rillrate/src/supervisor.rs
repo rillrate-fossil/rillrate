@@ -6,7 +6,7 @@ use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, System, TaskEliminated,
     TaskError,
 };
-use rill::RillEngine;
+use rill::{config::ProviderConfig, RillEngine};
 use rill_export::EmbeddedNode;
 use std::net::SocketAddr;
 
@@ -22,10 +22,8 @@ impl RillRate {
         Self { app_name }
     }
 
-    fn spawn_tracer(&mut self, node: String, ctx: &mut Context<Self>) {
-        // TODO: Use the same config
-        let name = env::name(Some(self.app_name.clone()));
-        let actor = RillEngine::new(node, name);
+    fn spawn_provider(&mut self, config: Option<ProviderConfig>, ctx: &mut Context<Self>) {
+        let actor = RillEngine::new(config);
         ctx.spawn_actor(actor, Group::Engine);
     }
 }
@@ -109,8 +107,8 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             });
 
         // TODO: Check config for node as well
-        if let Some(node) = env::node() {
-            self.spawn_tracer(node, ctx);
+        if let Some(_node) = env::node() {
+            self.spawn_provider(config.rillrate, ctx);
         } else {
             let actor = EmbeddedNode::new(config.server, config.export);
             ctx.spawn_actor(actor, Group::EmbeddedNode);
@@ -133,7 +131,8 @@ impl TaskEliminated<WaitForAddr> for RillRate {
         match res {
             Ok(addr) => {
                 log::info!("Connecting tracer to {}", addr);
-                self.spawn_tracer(addr.to_string(), ctx);
+                todo!("Upgrade config and spawn");
+                //self.spawn_provider(addr.to_string(), ctx);
                 Ok(())
             }
             Err(err) => Err(err.into()),

@@ -3,7 +3,7 @@
 #![warn(missing_docs)]
 
 mod actors;
-mod config;
+pub mod config;
 pub mod prelude;
 mod protocol;
 mod state;

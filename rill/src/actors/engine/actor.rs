@@ -1,14 +1,13 @@
 use crate::actors::storage::RillStorage;
 use crate::actors::worker::RillWorker;
-use crate::config::RillConfig;
+use crate::config::ProviderConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
-use rill_protocol::provider::EntryId;
 
 /// The supervisor that spawns a worker.
 pub struct RillEngine {
-    config: RillConfig,
+    config: Option<ProviderConfig>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -20,15 +19,16 @@ pub enum Group {
 impl Actor for RillEngine {
     type GroupBy = Group;
 
+    /*
     fn name(&self) -> String {
         format!("RillEngine({})", self.config.entry_id())
     }
+    */
 }
 
 impl RillEngine {
     /// Creates a new supervisor instance.
-    pub fn new(host: String, name: impl Into<EntryId>) -> Self {
-        let config = RillConfig::new(host, name.into());
+    pub fn new(config: Option<ProviderConfig>) -> Self {
         Self { config }
     }
 }
@@ -40,7 +40,7 @@ impl<T: Actor> StartedBy<T> for RillEngine {
         let storage = RillStorage::new();
         ctx.spawn_actor(storage, Group::Storage);
 
-        let worker = RillWorker::new(self.config.clone());
+        let worker = RillWorker::new(self.config.take());
         ctx.spawn_actor(worker, Group::Worker);
 
         Ok(())

@@ -1,6 +1,7 @@
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::LiteTask;
+use rill::config::ProviderConfig;
 use rill_export::config::{ExportConfig, ServerConfig};
 use serde::Deserialize;
 use std::path::PathBuf;
@@ -11,6 +12,7 @@ const DEF_CONFIG: &str = "rillrate.toml";
 
 #[derive(Deserialize)]
 pub struct Config {
+    pub rillrate: Option<ProviderConfig>,
     pub server: Option<ServerConfig>,
     pub export: Option<ExportConfig>,
 }
@@ -18,6 +20,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            rillrate: None,
             server: None,
             export: None,
         }
