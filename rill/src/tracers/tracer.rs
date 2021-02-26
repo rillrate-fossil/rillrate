@@ -7,11 +7,15 @@ use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::watch;
 
+pub trait TracerState: Default + Send + 'static {
+    type Item;
+    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent>;
+
+    fn make_snapshot(&self) -> Vec<RillEvent>;
+}
+
 pub trait TracerEvent: Sized + Send + 'static {
-    type State: Default + Send + 'static;
-    fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent>;
-    // TODO: Replace to `IntoIterator<RillEvent> for Self::State`?
-    fn make_snapshot(state: &Self::State) -> Vec<RillEvent>;
+    type State: TracerState<Item = Self>;
 }
 
 #[derive(Debug)]

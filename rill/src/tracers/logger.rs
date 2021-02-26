@@ -1,5 +1,5 @@
 use super::frame::Frame;
-use super::tracer::{Tracer, TracerEvent};
+use super::tracer::{Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
 use std::time::SystemTime;
@@ -15,22 +15,26 @@ pub struct LogState {
     frame: Frame<RillEvent>,
 }
 
-impl TracerEvent for LogRecord {
-    type State = LogState;
+impl TracerState for LogState {
+    type Item = LogRecord;
 
-    fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent> {
-        match self {
-            Self::Message(msg) => {
+    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
+        match item {
+            LogRecord::Message(msg) => {
                 let data = RillData::LogRecord { message: msg };
                 let last_event = RillEvent { timestamp, data };
-                state.frame.insert(last_event)
+                self.frame.insert(last_event)
             }
         }
     }
 
-    fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
-        state.frame.iter().cloned().collect()
+    fn make_snapshot(&self) -> Vec<RillEvent> {
+        self.frame.iter().cloned().collect()
     }
+}
+
+impl TracerEvent for LogRecord {
+    type State = LogState;
 }
 
 /// This tracer sends text messages.

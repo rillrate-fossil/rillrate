@@ -1,4 +1,4 @@
-use super::tracer::{Tracer, TracerEvent};
+use super::tracer::{Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{
     Description, DictUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
@@ -24,32 +24,30 @@ pub struct DictState {
     last_event: Option<RillEvent>,
 }
 
-impl TracerEvent for DictRecord {
-    type State = DictState;
+impl TracerState for DictState {
+    type Item = DictRecord;
 
-    fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent> {
-        match self {
-            Self::Association { key, value } => {
+    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
+        match item {
+            DictRecord::Association { key, value } => {
                 let record = Record {
                     timestamp: timestamp.clone(),
                     value: value.clone(),
                 };
-                state.map.insert(key.clone(), record);
+                self.map.insert(key.clone(), record);
                 // TODO: Aggregate values from the same chunk
                 let update = DictUpdate::Single { key, value };
                 let data = RillData::DictUpdate(update);
                 let last_event = RillEvent { timestamp, data };
-                state.last_event = Some(last_event);
-                state.last_event.as_ref()
+                self.last_event = Some(last_event);
+                self.last_event.as_ref()
             }
         }
     }
 
-    // TODO: Consider never use `Vec` on the top level.
-    fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
+    fn make_snapshot(&self) -> Vec<RillEvent> {
         let (ts, map) =
-            state
-                .map
+            self.map
                 .iter()
                 .fold((None, HashMap::new()), |(_, mut map), (key, record)| {
                     map.insert(key.clone(), record.value.clone());
@@ -64,6 +62,10 @@ impl TracerEvent for DictRecord {
             Vec::new()
         }
     }
+}
+
+impl TracerEvent for DictRecord {
+    type State = DictState;
 }
 
 /// This tracer sends text messages.

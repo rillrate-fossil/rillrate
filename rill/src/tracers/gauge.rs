@@ -1,5 +1,5 @@
 use super::frame::Frame;
-use super::tracer::{Tracer, TracerEvent};
+use super::tracer::{Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
 use std::time::SystemTime;
@@ -17,29 +17,33 @@ pub struct GaugeState {
     frame: Frame<RillEvent>,
 }
 
-impl TracerEvent for GaugeUpdate {
-    type State = GaugeState;
+impl TracerState for GaugeState {
+    type Item = GaugeUpdate;
 
-    fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent> {
-        match self {
-            Self::Increment(delta) => {
-                state.gauge += delta;
+    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
+        match item {
+            GaugeUpdate::Increment(delta) => {
+                self.gauge += delta;
             }
-            Self::Decrement(delta) => {
-                state.gauge -= delta;
+            GaugeUpdate::Decrement(delta) => {
+                self.gauge -= delta;
             }
-            Self::Set(value) => {
-                state.gauge = value;
+            GaugeUpdate::Set(value) => {
+                self.gauge = value;
             }
         }
-        let data = RillData::GaugeValue { value: state.gauge };
+        let data = RillData::GaugeValue { value: self.gauge };
         let last_event = RillEvent { timestamp, data };
-        state.frame.insert(last_event)
+        self.frame.insert(last_event)
     }
 
-    fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
-        state.frame.iter().cloned().collect()
+    fn make_snapshot(&self) -> Vec<RillEvent> {
+        self.frame.iter().cloned().collect()
     }
+}
+
+impl TracerEvent for GaugeUpdate {
+    type State = GaugeState;
 }
 
 /// Sends metrics as `gauge` that can change value to any.

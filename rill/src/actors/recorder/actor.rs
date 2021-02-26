@@ -1,6 +1,6 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
-use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent};
+use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent, TracerState};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
@@ -39,7 +39,7 @@ impl<T: TracerEvent> Recorder<T> {
     }
 
     fn get_snapshot(&self) -> Vec<RillEvent> {
-        T::make_snapshot(&self.state)
+        self.state.make_snapshot()
     }
 
     fn get_direction(&self) -> Direction<RillProtocol> {
@@ -79,24 +79,21 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let mut event = None;
         for envelope in chunk {
-            let state = &mut self.state;
-
             let DataEnvelope::Event { data, system_time } = envelope;
             // TODO: Error not allowed here
             let timestamp = system_time.duration_since(SystemTime::UNIX_EPOCH)?.into();
-            let event = data.aggregate(state, timestamp);
-
-            // TODO: ^ Realy aggregate data and send once per loop
-
-            if !self.subscribers.is_empty() {
-                if let Some(event) = event {
-                    let response = RillToServer::Data {
-                        event: event.to_owned(),
-                    };
-                    let direction = self.get_direction();
-                    self.sender.response(direction, response);
-                }
+            event = self.state.aggregate(data, timestamp);
+        }
+        // TODO: ^ Realy aggregate data and send once per loop
+        if !self.subscribers.is_empty() {
+            if let Some(event) = event {
+                let response = RillToServer::Data {
+                    event: event.to_owned(),
+                };
+                let direction = self.get_direction();
+                self.sender.response(direction, response);
             }
         }
         Ok(())

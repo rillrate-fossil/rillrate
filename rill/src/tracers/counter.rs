@@ -1,4 +1,4 @@
-use super::tracer::{Tracer, TracerEvent};
+use super::tracer::{Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
 use std::time::SystemTime;
@@ -14,26 +14,30 @@ pub struct CounterState {
     last_event: Option<RillEvent>,
 }
 
-impl TracerEvent for CounterDelta {
-    type State = CounterState;
+impl TracerState for CounterState {
+    type Item = CounterDelta;
 
-    fn aggregate(self, state: &mut Self::State, timestamp: Timestamp) -> Option<&RillEvent> {
-        match self {
-            Self::Increment(delta) => {
-                state.counter += delta;
+    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
+        match item {
+            CounterDelta::Increment(delta) => {
+                self.counter += delta;
                 let data = RillData::CounterRecord {
-                    value: state.counter,
+                    value: self.counter,
                 };
                 let last_event = RillEvent { timestamp, data };
-                state.last_event = Some(last_event);
-                state.last_event.as_ref()
+                self.last_event = Some(last_event);
+                self.last_event.as_ref()
             }
         }
     }
 
-    fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
-        state.last_event.clone().into_iter().collect()
+    fn make_snapshot(&self) -> Vec<RillEvent> {
+        self.last_event.clone().into_iter().collect()
     }
+}
+
+impl TracerEvent for CounterDelta {
+    type State = CounterState<Item = Self>;
 }
 
 /// Tracers `Counter` metrics that can increments only.
