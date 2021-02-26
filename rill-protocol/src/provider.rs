@@ -330,10 +330,13 @@ pub enum RillData {
     GaugeValue {
         value: f64,
     },
-    DictRecord {
-        key: String,
-        value: String,
-    },
+    DictUpdate(DictUpdate),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum DictUpdate {
+    Single { key: String, value: String },
+    Aggregated { map: HashMap<String, String> },
 }
 
 #[derive(Debug, Error)]
@@ -355,7 +358,7 @@ impl TryInto<f64> for RillData {
             Self::CounterRecord { value } => Ok(value),
             Self::GaugeValue { value } => Ok(value),
             // TODO: Add extracting rules to pattern/exporter/config
-            Self::DictRecord { .. } => Err(RillDataError::Unapplicable(
+            Self::DictUpdate(_) => Err(RillDataError::Unapplicable(
                 "can't convert dict into a single value",
             )),
         }

@@ -1,6 +1,8 @@
 use super::tracer::{Tracer, TracerEvent};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
+use rill_protocol::provider::{
+    Description, DictUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
+};
 use std::collections::HashMap;
 use std::time::SystemTime;
 
@@ -33,7 +35,9 @@ impl TracerEvent for DictRecord {
                     value: value.clone(),
                 };
                 state.map.insert(key.clone(), record);
-                let data = RillData::DictRecord { key, value };
+                // TODO: Aggregate values from the same chunk
+                let update = DictUpdate::Single { key, value };
+                let data = RillData::DictUpdate(update);
                 let last_event = RillEvent { timestamp, data };
                 state.last_event = Some(last_event);
                 state.last_event.as_ref()
@@ -41,21 +45,24 @@ impl TracerEvent for DictRecord {
         }
     }
 
+    // TODO: Consider never use `Vec` on the top level.
     fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
-        state
-            .map
-            .iter()
-            .map(|(key, record)| {
-                let data = RillData::DictRecord {
-                    key: key.clone(),
-                    value: record.value.clone(),
-                };
-                RillEvent {
-                    timestamp: record.timestamp.clone(),
-                    data,
-                }
-            })
-            .collect()
+        let (ts, map) =
+            state
+                .map
+                .iter()
+                .fold((None, HashMap::new()), |(_, mut map), (key, record)| {
+                    map.insert(key.clone(), record.value.clone());
+                    (Some(&record.timestamp), map)
+                });
+        if let Some(timestamp) = ts.cloned() {
+            let update = DictUpdate::Aggregated { map };
+            let data = RillData::DictUpdate(update);
+            let event = RillEvent { timestamp, data };
+            vec![event]
+        } else {
+            Vec::new()
+        }
     }
 }
 
