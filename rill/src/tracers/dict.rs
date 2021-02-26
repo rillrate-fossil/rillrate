@@ -1,4 +1,4 @@
-use super::tracer::{Tracer, TracerEvent, TracerState};
+use super::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{
     Description, DictUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
@@ -27,22 +27,29 @@ pub struct DictState {
 impl TracerState for DictState {
     type Item = DictRecord;
 
-    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
-        match item {
-            DictRecord::Association { key, value } => {
-                let record = Record {
-                    timestamp: timestamp.clone(),
-                    value: value.clone(),
-                };
-                self.map.insert(key.clone(), record);
-                // TODO: Aggregate values from the same chunk
-                let update = DictUpdate::Single { key, value };
-                let data = RillData::DictUpdate(update);
-                let last_event = RillEvent { timestamp, data };
-                self.last_event = Some(last_event);
-                self.last_event.as_ref()
+    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Option<&RillEvent> {
+        let mut timestamp = None;
+        let mut changes = HashMap::new();
+        for item in items {
+            let (data, ts) = item.unpack();
+            match data {
+                DictRecord::Association { key, value } => {
+                    let record = Record {
+                        timestamp: ts.clone(),
+                        value: value.clone(),
+                    };
+                    self.map.insert(key.clone(), record);
+                    changes.insert(key, value);
+                }
             }
+            timestamp = Some(ts);
         }
+        let timestamp = timestamp?;
+        let update = DictUpdate::Aggregated { map: changes };
+        let data = RillData::DictUpdate(update);
+        let last_event = RillEvent { timestamp, data };
+        self.last_event = Some(last_event);
+        self.last_event.as_ref()
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {

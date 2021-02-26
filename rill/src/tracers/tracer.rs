@@ -9,7 +9,7 @@ use tokio::sync::watch;
 
 pub trait TracerState: Default + Send + 'static {
     type Item;
-    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent>;
+    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Option<&RillEvent>;
 
     fn make_snapshot(&self) -> Vec<RillEvent>;
 }
@@ -21,6 +21,18 @@ pub trait TracerEvent: Sized + Send + 'static {
 #[derive(Debug)]
 pub enum DataEnvelope<T> {
     Event { system_time: SystemTime, data: T },
+}
+
+impl<T> DataEnvelope<T> {
+    pub fn unpack(self) -> (T, Timestamp) {
+        // TODO: Fix this unwrap
+        let DataEnvelope::Event { system_time, data } = self;
+        let timestamp = system_time
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .into();
+        (data, timestamp)
+    }
 }
 
 impl<T: TracerEvent> Action for DataEnvelope<T> {}

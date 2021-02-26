@@ -1,7 +1,7 @@
 use super::frame::Frame;
-use super::tracer::{Tracer, TracerEvent, TracerState};
+use super::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
+use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
 
 #[derive(Debug)]
@@ -20,18 +20,24 @@ pub struct GaugeState {
 impl TracerState for GaugeState {
     type Item = GaugeUpdate;
 
-    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
-        match item {
-            GaugeUpdate::Increment(delta) => {
-                self.gauge += delta;
+    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Option<&RillEvent> {
+        let mut timestamp = None;
+        for item in items {
+            let (data, ts) = item.unpack();
+            match data {
+                GaugeUpdate::Increment(delta) => {
+                    self.gauge += delta;
+                }
+                GaugeUpdate::Decrement(delta) => {
+                    self.gauge -= delta;
+                }
+                GaugeUpdate::Set(value) => {
+                    self.gauge = value;
+                }
             }
-            GaugeUpdate::Decrement(delta) => {
-                self.gauge -= delta;
-            }
-            GaugeUpdate::Set(value) => {
-                self.gauge = value;
-            }
+            timestamp = Some(ts);
         }
+        let timestamp = timestamp?;
         let data = RillData::GaugeValue { value: self.gauge };
         let last_event = RillEvent { timestamp, data };
         self.frame.insert(last_event)

@@ -9,7 +9,6 @@ use rill_protocol::provider::{
 };
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::SystemTime;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -79,6 +78,7 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        /*
         let mut event = None;
         for envelope in chunk {
             let DataEnvelope::Event { data, system_time } = envelope;
@@ -86,6 +86,8 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
             let timestamp = system_time.duration_since(SystemTime::UNIX_EPOCH)?.into();
             event = self.state.aggregate(data, timestamp);
         }
+        */
+        let event = self.state.aggregate(chunk);
         // TODO: ^ Realy aggregate data and send once per loop
         if !self.subscribers.is_empty() {
             if let Some(event) = event {

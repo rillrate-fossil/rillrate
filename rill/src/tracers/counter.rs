@@ -1,6 +1,6 @@
-use super::tracer::{Tracer, TracerEvent, TracerState};
+use super::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
+use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
 
 #[derive(Debug)]
@@ -17,18 +17,24 @@ pub struct CounterState {
 impl TracerState for CounterState {
     type Item = CounterDelta;
 
-    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
-        match item {
-            CounterDelta::Increment(delta) => {
-                self.counter += delta;
-                let data = RillData::CounterRecord {
-                    value: self.counter,
-                };
-                let last_event = RillEvent { timestamp, data };
-                self.last_event = Some(last_event);
-                self.last_event.as_ref()
+    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Option<&RillEvent> {
+        let mut timestamp = None;
+        for item in items {
+            let (data, ts) = item.unpack();
+            match data {
+                CounterDelta::Increment(delta) => {
+                    self.counter += delta;
+                }
             }
+            timestamp = Some(ts);
         }
+        let timestamp = timestamp?;
+        let data = RillData::CounterRecord {
+            value: self.counter,
+        };
+        let last_event = RillEvent { timestamp, data };
+        self.last_event = Some(last_event);
+        self.last_event.as_ref()
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {

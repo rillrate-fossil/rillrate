@@ -330,11 +330,13 @@ pub enum RillData {
     GaugeValue {
         value: f64,
     },
+    // TODO: Join with aggregated
     DictUpdate(DictUpdate),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum DictUpdate {
+    // TODO: Remove `Single`
     Single { key: String, value: String },
     Aggregated { map: HashMap<String, String> },
 }

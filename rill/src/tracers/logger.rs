@@ -1,7 +1,7 @@
 use super::frame::Frame;
-use super::tracer::{Tracer, TracerEvent, TracerState};
+use super::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType, Timestamp};
+use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
 
 #[derive(Debug)]
@@ -18,14 +18,21 @@ pub struct LogState {
 impl TracerState for LogState {
     type Item = LogRecord;
 
-    fn aggregate(&mut self, item: Self::Item, timestamp: Timestamp) -> Option<&RillEvent> {
-        match item {
-            LogRecord::Message(msg) => {
-                let data = RillData::LogRecord { message: msg };
-                let last_event = RillEvent { timestamp, data };
-                self.frame.insert(last_event)
+    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Option<&RillEvent> {
+        for item in items {
+            let (data, ts) = item.unpack();
+            match data {
+                LogRecord::Message(msg) => {
+                    let data = RillData::LogRecord { message: msg };
+                    let last_event = RillEvent {
+                        timestamp: ts,
+                        data,
+                    };
+                    self.frame.insert(last_event);
+                }
             }
         }
+        todo!();
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {
