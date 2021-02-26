@@ -20,8 +20,8 @@ pub struct GaugeState {
 impl TracerState for GaugeState {
     type Item = GaugeUpdate;
 
-    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Option<&RillEvent> {
-        let mut timestamp = None;
+    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Vec<RillEvent> {
+        let mut records = Vec::new();
         for item in items {
             let (data, ts) = item.unpack();
             match data {
@@ -35,12 +35,15 @@ impl TracerState for GaugeState {
                     self.gauge = value;
                 }
             }
-            timestamp = Some(ts);
+            let data = RillData::GaugeValue { value: self.gauge };
+            let last_event = RillEvent {
+                timestamp: ts,
+                data,
+            };
+            self.frame.insert(last_event.clone());
+            records.push(last_event);
         }
-        let timestamp = timestamp?;
-        let data = RillData::GaugeValue { value: self.gauge };
-        let last_event = RillEvent { timestamp, data };
-        self.frame.insert(last_event)
+        records
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {

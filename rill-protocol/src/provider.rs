@@ -460,10 +460,12 @@ pub enum RillToServer {
     },
     /// The response to `ControlStream { active: true }` request
     BeginStream {
+        /// Reproduced events.
         snapshot: Vec<RillEvent>,
     },
     Data {
-        event: RillEvent,
+        /// Aggregated events.
+        batch: Vec<RillEvent>,
     },
     /// The response to `ControlStream { active: false }` request
     EndStream,

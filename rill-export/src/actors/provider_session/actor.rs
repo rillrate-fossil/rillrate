@@ -125,13 +125,17 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
     ) -> Result<(), Error> {
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
-            RillToServer::Data { event } => {
-                self.distribute_data(msg.0.direction, event).await?;
+            RillToServer::Data { batch } => {
+                // TODO: Improve this!
+                for event in batch {
+                    self.distribute_data(msg.0.direction.clone(), event).await?;
+                }
             }
             RillToServer::BeginStream { snapshot } => {
                 // It's important to forward the snapshot, because it
                 // a stream doesn't generate data too often, but the provider
                 // can keep it than we can have the current value in exporters.
+                // TODO: Improve this!
                 for event in snapshot {
                     log::trace!("Processing snapshot event: {:?}", event);
                     self.distribute_data(msg.0.direction.clone(), event).await?;
