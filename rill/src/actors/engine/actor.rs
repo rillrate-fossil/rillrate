@@ -29,7 +29,9 @@ impl Actor for RillEngine {
 impl RillEngine {
     /// Creates a new supervisor instance.
     pub fn new(config: ProviderConfig) -> Self {
-        Self { config: Some(config) }
+        Self {
+            config: Some(config),
+        }
     }
 }
 

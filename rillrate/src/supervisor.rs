@@ -20,7 +20,7 @@ pub struct RillRate {
 impl RillRate {
     pub fn new(app_name: String) -> Self {
         // TODO: Use MyOnceCell here that will inform that it was set
-        rill::config::DEFAULT_NAME.set(app_name.into());
+        rill::config::NAME.offer(app_name.into());
         Self {
             provider_config: None,
         }
@@ -112,10 +112,16 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             });
 
         self.provider_config = config.rillrate;
-        // TODO: Check config for node as well
-        if let Some(_node) = env::node() {
+        let node_specified = self
+            .provider_config
+            .as_ref()
+            .map(ProviderConfig::is_node_specified)
+            .unwrap_or(false);
+        if node_specified {
             self.spawn_provider(ctx);
         } else {
+            // If node wasn't specified than spawn an embedded node and
+            // wait for the address to spawn a provider connected to that.
             let actor = EmbeddedNode::new(config.server, config.export);
             ctx.spawn_actor(actor, Group::EmbeddedNode);
             let task = WaitForAddr::new();
@@ -137,7 +143,7 @@ impl TaskEliminated<WaitForAddr> for RillRate {
         match res {
             Ok(addr) => {
                 log::info!("Connecting tracer to {}", addr);
-                rill::config::DEFAULT_NODE.set(addr.to_string());
+                rill::config::NODE.offer(addr.to_string());
                 self.spawn_provider(ctx);
                 Ok(())
             }

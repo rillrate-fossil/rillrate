@@ -31,7 +31,8 @@ impl<T> ConfigPatch<T> {
         Ok(value)
     }
 
-    pub fn set(&self, value: T) {
+    /// Offers an alternative default if no other value provided.
+    pub fn offer(&self, value: T) {
         if let Err(_err) = self.post.set(value) {
             log::error!("Config value {} already overriden.", self.pre);
         }
@@ -43,8 +44,7 @@ impl<T> ConfigPatch<T> {
         F: Fn() -> Option<T>,
         D: Fn() -> T,
     {
-        self
-            .env_var()
+        self.env_var()
             .map_err(|err| {
                 log::error!("Default value for {} will be used: {}", self.pre, err);
             })

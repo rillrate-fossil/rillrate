@@ -1,5 +1,5 @@
-pub mod config;
 pub mod codec;
+pub mod config;
 pub mod pathfinder;
 pub mod provider;
 pub mod view;
