@@ -45,6 +45,14 @@ impl ProviderConfig {
 
     /// Name of the provider
     pub fn provider_name(&self) -> EntryId {
-        NAME.get(|| self.name.clone(), || "rillrate".into())
+        NAME.get(
+            || self.name.clone(),
+            || {
+                std::env::current_exe()
+                    .ok()
+                    .and_then(|path| path.to_str().map(EntryId::from))
+                    .unwrap_or_else(|| "rillrate".into())
+            },
+        )
     }
 }
