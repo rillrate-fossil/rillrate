@@ -11,18 +11,23 @@ use rill_export::EmbeddedNode;
 use std::net::SocketAddr;
 
 pub struct RillRate {
-    app_name: String,
     // TODO: Keep node addr here as `Option`
     // and if it's not configured than spawn a standalone server
     // and with for it install the port here and spawn a tracer.
+    provider_config: Option<ProviderConfig>,
 }
 
 impl RillRate {
     pub fn new(app_name: String) -> Self {
-        Self { app_name }
+        // TODO: Use MyOnceCell here that will inform that it was set
+        rill::config::DEFAULT_NAME.set(app_name.into());
+        Self {
+            provider_config: None,
+        }
     }
 
-    fn spawn_provider(&mut self, config: Option<ProviderConfig>, ctx: &mut Context<Self>) {
+    fn spawn_provider(&mut self, ctx: &mut Context<Self>) {
+        let config = self.provider_config.take().unwrap_or_default();
         let actor = RillEngine::new(config);
         ctx.spawn_actor(actor, Group::Engine);
     }
@@ -106,9 +111,10 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
                 Config::default()
             });
 
+        self.provider_config = config.rillrate;
         // TODO: Check config for node as well
         if let Some(_node) = env::node() {
-            self.spawn_provider(config.rillrate, ctx);
+            self.spawn_provider(ctx);
         } else {
             let actor = EmbeddedNode::new(config.server, config.export);
             ctx.spawn_actor(actor, Group::EmbeddedNode);
@@ -131,8 +137,8 @@ impl TaskEliminated<WaitForAddr> for RillRate {
         match res {
             Ok(addr) => {
                 log::info!("Connecting tracer to {}", addr);
-                todo!("Upgrade config and spawn");
-                //self.spawn_provider(addr.to_string(), ctx);
+                rill::config::DEFAULT_NODE.set(addr.to_string());
+                self.spawn_provider(ctx);
                 Ok(())
             }
             Err(err) => Err(err.into()),

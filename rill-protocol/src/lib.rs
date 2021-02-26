@@ -1,11 +1,13 @@
+pub mod config;
 pub mod codec;
 pub mod pathfinder;
 pub mod provider;
 pub mod view;
 
-use std::sync::atomic::{AtomicU16, Ordering};
-
 metacrate::meta!();
+
+/*
+use std::sync::atomic::{AtomicU16, Ordering};
 
 pub static PORT: Port = Port::new(1636);
 
@@ -28,3 +30,4 @@ impl Port {
         self.value.load(Ordering::Relaxed)
     }
 }
+*/
