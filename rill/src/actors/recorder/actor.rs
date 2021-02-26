@@ -79,21 +79,24 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let state = &mut self.state;
-        let mut event = None;
         for envelope in chunk {
+            let state = &mut self.state;
+
             let DataEnvelope::Event { data, system_time } = envelope;
-            // TODO: Error allowed here?
+            // TODO: Error not allowed here
             let timestamp = system_time.duration_since(SystemTime::UNIX_EPOCH)?.into();
-            event = data.aggregate(state, timestamp);
-        }
-        if !self.subscribers.is_empty() {
-            if let Some(event) = event {
-                let response = RillToServer::Data {
-                    event: event.to_owned(),
-                };
-                let direction = self.get_direction();
-                self.sender.response(direction, response);
+            let event = data.aggregate(state, timestamp);
+
+            // TODO: ^ Realy aggregate data and send once per loop
+
+            if !self.subscribers.is_empty() {
+                if let Some(event) = event {
+                    let response = RillToServer::Data {
+                        event: event.to_owned(),
+                    };
+                    let direction = self.get_direction();
+                    self.sender.response(direction, response);
+                }
             }
         }
         Ok(())
