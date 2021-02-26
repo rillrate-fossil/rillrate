@@ -28,7 +28,7 @@ impl TracerEvent for LogRecord {
         }
     }
 
-    fn to_snapshot(state: &Self::State) -> Vec<RillEvent> {
+    fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
         state.frame.iter().cloned().collect()
     }
 }

@@ -31,7 +31,7 @@ impl TracerEvent for CounterDelta {
         }
     }
 
-    fn to_snapshot(state: &Self::State) -> Vec<RillEvent> {
+    fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
         state.last_event.clone().into_iter().collect()
     }
 }

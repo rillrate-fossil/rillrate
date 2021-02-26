@@ -41,7 +41,7 @@ impl TracerEvent for DictRecord {
         }
     }
 
-    fn to_snapshot(state: &Self::State) -> Vec<RillEvent> {
+    fn make_snapshot(state: &Self::State) -> Vec<RillEvent> {
         state
             .map
             .iter()
@@ -50,11 +50,10 @@ impl TracerEvent for DictRecord {
                     key: key.clone(),
                     value: record.value.clone(),
                 };
-                let event = RillEvent {
+                RillEvent {
                     timestamp: record.timestamp.clone(),
                     data,
-                };
-                event
+                }
             })
             .collect()
     }

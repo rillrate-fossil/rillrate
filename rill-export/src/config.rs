@@ -25,7 +25,7 @@ impl Default for ServerConfig {
 impl ServerConfig {
     /// Returns address where bind a server
     pub fn server_address(&self) -> IpAddr {
-        SERVER_ADDRESS.get(|| self.address.clone(), || "127.0.0.1".parse().unwrap())
+        SERVER_ADDRESS.get(|| self.address, || "127.0.0.1".parse().unwrap())
     }
 }
 

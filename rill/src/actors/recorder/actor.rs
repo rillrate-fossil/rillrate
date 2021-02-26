@@ -39,7 +39,7 @@ impl<T: TracerEvent> Recorder<T> {
     }
 
     fn get_snapshot(&self) -> Vec<RillEvent> {
-        T::to_snapshot(&self.state)
+        T::make_snapshot(&self.state)
     }
 
     fn get_direction(&self) -> Direction<RillProtocol> {
@@ -71,7 +71,7 @@ impl<T: TracerEvent> InterruptedBy<RillWorker> for Recorder<T> {
 #[async_trait]
 impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
     fn stream_group(&self) -> Self::GroupBy {
-        ()
+        // TODO: Use something here?
     }
 
     async fn handle(
@@ -124,6 +124,7 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
                 msg.active
             );
             // TODO: Fix logs
+            #[allow(clippy::collapsible_if)]
             if msg.active {
                 if self.subscribers.insert(id) {
                     let snapshot = self.get_snapshot();

@@ -1,3 +1,6 @@
+// TODO: Remove this clippy fix
+#![allow(clippy::new_without_default)]
+
 use crate::actors::engine::RillEngine;
 use anyhow::Error;
 use async_trait::async_trait;
