@@ -1,15 +1,13 @@
 //! The module contains all configuration structs for the embedded node.
 
-use once_cell::sync::OnceCell;
+use rill_protocol::config::ConfigPatch;
 use rill_protocol::provider::PathPattern;
 use serde::Deserialize;
 use std::collections::HashSet;
-use std::env;
 use std::net::IpAddr;
 
 /// Overrides default embedded server address.
-pub static DEFAULT_SERVER_ADDRESS: OnceCell<IpAddr> = OnceCell::new();
-const ENV_SERVER_ADDRESS: &str = "RILLRATE_SERVER_ADDRESS";
+pub static SERVER_ADDRESS: ConfigPatch<IpAddr> = ConfigPatch::new("RILLRATE_SERVER_ADDRESS");
 
 /// Embedded server configuration.
 #[derive(Deserialize)]
@@ -27,23 +25,7 @@ impl Default for ServerConfig {
 impl ServerConfig {
     /// Returns address where bind a server
     pub fn server_address(&self) -> IpAddr {
-        env::var(ENV_SERVER_ADDRESS)
-            // 1. Check the env var
-            .ok()
-            .and_then(|addr| {
-                addr.parse()
-                    .map_err(|err| {
-                        log::error!("Can't parse embedded server address from env var: {}", err);
-                    })
-                    .ok()
-            })
-            // 2. Check the config file
-            .or_else(|| self.address.clone())
-            // 3. Check the overriden default (if set)
-            .or_else(|| DEFAULT_SERVER_ADDRESS.get().cloned())
-            // 4. Use the default value
-            // TODO: Don't use parse here
-            .unwrap_or_else(|| "127.0.0.1".parse().unwrap())
+        SERVER_ADDRESS.get(|| self.address.clone(), || "127.0.0.1".parse().unwrap())
     }
 }
 
