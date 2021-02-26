@@ -27,7 +27,7 @@ pub struct DictState {
 impl TracerState for DictState {
     type Item = DictRecord;
 
-    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Vec<RillEvent> {
+    fn aggregate(&mut self, items: &[DataEnvelope<Self::Item>]) {
         let mut timestamp = None;
         let mut changes = HashMap::new();
         for item in items {
@@ -39,7 +39,7 @@ impl TracerState for DictState {
                         value: value.clone(),
                     };
                     self.map.insert(key.clone(), record);
-                    changes.insert(key, value);
+                    changes.insert(key.clone(), value.clone());
                 }
             }
             timestamp = Some(ts);
@@ -50,7 +50,7 @@ impl TracerState for DictState {
             let last_event = RillEvent { timestamp, data };
             self.last_event = Some(last_event);
         }
-        self.last_event.clone().into_iter().collect()
+        //self.last_event.clone().into_iter().collect()
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {

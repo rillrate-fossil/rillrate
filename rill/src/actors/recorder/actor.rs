@@ -78,8 +78,9 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let batch = self.state.aggregate(chunk);
-        if !self.subscribers.is_empty() && !batch.is_empty() {
+        self.state.aggregate(&chunk);
+        if !self.subscribers.is_empty() {
+            let batch = self.state.make_deltas(&chunk);
             let response = RillToServer::Data { batch };
             let direction = self.get_direction();
             self.sender.response(direction, response);

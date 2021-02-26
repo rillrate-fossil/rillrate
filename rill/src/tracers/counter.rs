@@ -17,7 +17,7 @@ pub struct CounterState {
 impl TracerState for CounterState {
     type Item = CounterDelta;
 
-    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Vec<RillEvent> {
+    fn aggregate(&mut self, items: &[DataEnvelope<Self::Item>]) {
         let mut timestamp = None;
         for item in items {
             let (data, ts) = item.unpack();
@@ -35,7 +35,7 @@ impl TracerState for CounterState {
             let last_event = RillEvent { timestamp, data };
             self.last_event = Some(last_event);
         }
-        self.last_event.clone().into_iter().collect()
+        //self.last_event.clone().into_iter().collect()
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {

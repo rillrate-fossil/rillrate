@@ -18,13 +18,15 @@ pub struct LogState {
 impl TracerState for LogState {
     type Item = LogRecord;
 
-    fn aggregate(&mut self, items: Vec<DataEnvelope<Self::Item>>) -> Vec<RillEvent> {
+    fn aggregate(&mut self, items: &[DataEnvelope<Self::Item>]) {
         let mut records = Vec::new();
         for item in items {
             let (data, ts) = item.unpack();
             match data {
                 LogRecord::Message(msg) => {
-                    let data = RillData::LogRecord { message: msg };
+                    let data = RillData::LogRecord {
+                        message: msg.to_owned(),
+                    };
                     let last_event = RillEvent {
                         timestamp: ts,
                         data,
@@ -34,7 +36,6 @@ impl TracerState for LogState {
                 }
             }
         }
-        records
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {
