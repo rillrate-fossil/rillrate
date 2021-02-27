@@ -12,9 +12,9 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_protocol::provider::{
-    DirectId, Direction, EntryId, Envelope, Path, ProviderProtocol, ProviderReqId,
-    ProviderToServer, RillEvent, ServerToProvider, WideEnvelope,
+    EntryId, Path, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent, ServerToProvider,
 };
+use rill_protocol::transport::{DirectId, Direction, Envelope, WideEnvelope};
 use std::collections::HashMap;
 
 pub struct ProviderSession {

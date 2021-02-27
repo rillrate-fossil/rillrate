@@ -10,6 +10,7 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
+use rill_protocol::transport::Envelope;
 
 pub struct ClientSession {
     handler: WsHandler<ClientProtocol>,
@@ -68,14 +69,14 @@ impl TaskEliminated<WsProcessor<ClientProtocol, Self>> for ClientSession {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<ClientRequest>> for ClientSession {
+impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for ClientSession {
     async fn handle(
         &mut self,
-        msg: WsIncoming<ClientRequest>,
+        msg: WsIncoming<Envelope<ClientProtocol, ClientRequest>>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);
-        match msg.0 {
+        match msg.0.data {
             ClientRequest::ControlStream { path, active } => {
                 if active {
                     // TODO: Generate a new link that tracks a subscription.
@@ -104,12 +105,12 @@ impl ActionHandler<PathNotification> for ClientSession {
         match msg {
             PathNotification::Paths { descriptions } => {
                 let response = ClientResponse::Paths(descriptions);
-                self.handler.send(response);
+                //self.handler.send(response);
                 Ok(())
             }
             PathNotification::Name { name } => {
                 let response = ClientResponse::Declare(name);
-                self.handler.send(response);
+                //self.handler.send(response);
                 Ok(())
             }
         }
@@ -122,7 +123,7 @@ impl ActionHandler<ExportEvent> for ClientSession {
         match msg {
             ExportEvent::BroadcastData { path, event } => {
                 let response = ClientResponse::Data(path, event);
-                self.handler.send(response);
+                //self.handler.send(response);
             }
         }
         Ok(())

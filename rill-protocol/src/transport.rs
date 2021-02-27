@@ -2,6 +2,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::marker::PhantomData;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Envelope<T: Origin, D> {
+    pub direct_id: DirectId<T>,
+    pub data: D,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WideEnvelope<T: Origin, D> {
+    pub direction: Direction<T>,
+    pub data: D,
+}
+
 /// The origin of `DirectId`.
 pub trait Origin: Default + Clone {}
 
@@ -72,16 +84,4 @@ impl<T: Origin> From<DirectId<T>> for Direction<T> {
     fn from(direct_id: DirectId<T>) -> Self {
         Self::Direct(direct_id)
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Envelope<T: Origin, D> {
-    pub direct_id: DirectId<T>,
-    pub data: D,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WideEnvelope<T: Origin, D> {
-    pub direction: Direction<T>,
-    pub data: D,
 }

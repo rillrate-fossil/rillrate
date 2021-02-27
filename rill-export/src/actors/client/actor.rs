@@ -14,7 +14,7 @@ use std::time::Duration;
 
 pub struct RillClient {
     url: String,
-    sender: Option<WsSender<ClientRequest>>,
+    sender: Option<WsSender<Envelope<ClientProtocol, ClientRequest>>>,
 }
 
 impl RillClient {
@@ -76,10 +76,10 @@ impl InstantActionHandler<WsClientStatus<ClientProtocol>> for RillClient {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<ClientResponse>> for RillClient {
+impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientResponse>>> for RillClient {
     async fn handle(
         &mut self,
-        msg: WsIncoming<ClientResponse>,
+        msg: WsIncoming<Envelope<ClientProtocol, ClientResponse>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);

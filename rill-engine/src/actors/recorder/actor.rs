@@ -5,8 +5,9 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::provider::{
-    Description, Direction, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent,
+    Description, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent,
 };
+use rill_protocol::transport::Direction;
 use std::collections::HashSet;
 use std::sync::Arc;
 use thiserror::Error;
