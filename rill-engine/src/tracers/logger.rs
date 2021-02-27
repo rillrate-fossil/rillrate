@@ -1,5 +1,5 @@
-use super::frame::Frame;
 use super::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
+use super::utils::Frame;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
