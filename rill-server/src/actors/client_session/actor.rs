@@ -13,16 +13,16 @@ use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
 
 pub struct ClientSession {
     handler: WsHandler<ClientProtocol>,
-    //exporter: ExporterLinkForClient,
+    exporter: ExporterLinkForClient,
 }
 
 impl ClientSession {
     pub fn new(handler: WsHandler<ClientProtocol>, exporter: ExporterLinkForClient) -> Self {
-        Self { handler }
+        Self { handler, exporter }
     }
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        //self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        self.exporter.unsubscribe_all(ctx.address()).await.ok();
         ctx.shutdown();
     }
 }
@@ -38,11 +38,9 @@ impl StartedBy<Router> for ClientSession {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
 
-        /*
         self.exporter
             .subscribe_to_paths(ctx.address().clone())
             .await?;
-        */
 
         Ok(())
     }
@@ -82,17 +80,13 @@ impl ActionHandler<WsIncoming<ClientRequest>> for ClientSession {
                 if active {
                     // TODO: Generate a new link that tracks a subscription.
                     // TODO: And store it in the `Self`.
-                    /*
                     self.exporter
                         .subscribe_to_data(path, ctx.address().clone())
                         .await?;
-                    */
                 } else {
-                    /*
                     self.exporter
                         .unsubscribe_from_data(path, ctx.address())
                         .await?;
-                    */
                 }
             }
         }
