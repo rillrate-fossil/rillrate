@@ -1,9 +1,42 @@
 use super::ProviderSession;
 use anyhow::Error;
+use derive_more::From;
 use meio::{Action, Address, Interaction};
 use rill_protocol::provider::{Path, ProviderReqId, ServerToProvider};
 use std::collections::hash_map::{Entry, HashMap};
 use thiserror::Error;
+
+#[derive(Debug, From)]
+pub struct ProviderLink {
+    address: Address<ProviderSession>,
+}
+
+impl ProviderLink {
+    pub fn bind(&self) -> BindedProviderLink {
+        BindedProviderLink {
+            address: self.address.clone(),
+            subscriptions: HashMap::new(),
+        }
+    }
+}
+
+#[derive(Debug, From)]
+pub struct BindedProviderLink {
+    address: Address<ProviderSession>,
+    subscriptions: HashMap<Path, ProviderReqId>,
+}
+
+impl BindedProviderLink {
+    pub async fn subscribe(&mut self, path: Path) -> Result<(), Error> {
+        match self.subscriptions.entry(path.clone()) {
+            Entry::Vacant(entry) => {
+                // TODO: Interact with a provider
+                todo!()
+            }
+            Entry::Occupied(_entry) => Err(Reason::AlreadySubscribed(path).into()),
+        }
+    }
+}
 
 #[derive(Debug, Error)]
 enum Reason {

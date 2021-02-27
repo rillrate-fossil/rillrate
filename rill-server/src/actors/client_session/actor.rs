@@ -1,4 +1,5 @@
 use crate::actors::exporter::{ExportEvent, ExporterLinkForClient, PathNotification};
+use crate::actors::provider_session::ProviderLink;
 use crate::actors::router::Router;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -9,8 +10,12 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
+use once_cell::sync::Lazy;
 use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
 use rill_protocol::transport::{Direction, Envelope, WideEnvelope};
+use tokio::sync::Mutex;
+
+pub static PROVIDER: Lazy<Mutex<Option<ProviderLink>>> = Lazy::new(|| Mutex::new(None));
 
 pub struct ClientSession {
     handler: WsHandler<ClientProtocol>,

@@ -1,4 +1,5 @@
 use super::link;
+use crate::actors::client_session::PROVIDER;
 use crate::actors::exporter::ExporterLinkForProvider;
 use crate::actors::router::Router;
 use anyhow::Error;
@@ -154,6 +155,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
                     .session_attached(entry_id.clone(), ctx.address().link())
                     .await?;
                 self.registered = Some(entry_id);
+                *PROVIDER.lock().await = Some(ctx.address().link());
                 let msg = ServerToProvider::Describe { active: true };
                 self.send_request(0.into(), msg);
             }

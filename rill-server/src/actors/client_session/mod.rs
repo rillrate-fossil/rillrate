@@ -1,2 +1,2 @@
 mod actor;
-pub use actor::ClientSession;
+pub use actor::{ClientSession, PROVIDER};
