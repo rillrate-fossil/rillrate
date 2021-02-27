@@ -3,7 +3,7 @@ use crate::actors::worker::{RillSender, RillWorker};
 use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent, TracerState};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
+use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::provider::{
     Description, Direction, ProviderReqId, RillEvent, RillProtocol, RillToServer,
 };

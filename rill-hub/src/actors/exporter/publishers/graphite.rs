@@ -4,7 +4,7 @@ use crate::actors::exporter::{
 use crate::config::GraphiteConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{
+use meio::{
     task::{HeartBeat, Tick},
     ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
     TaskError,

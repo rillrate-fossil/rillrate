@@ -4,7 +4,7 @@ use crate::actors::exporter::{
 use crate::config::PrometheusConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
+use meio::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_protocol::provider::{Description, Path, PathPattern, RillEvent, StreamType};

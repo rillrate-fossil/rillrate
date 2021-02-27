@@ -2,7 +2,7 @@ use super::{ExportEvent, Exporter, PathNotification, Publisher};
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
-use meio::prelude::{Action, ActionHandler, ActionRecipient, Actor, Address, Id};
+use meio::{Action, ActionHandler, ActionRecipient, Actor, Address, Id};
 use rill_protocol::provider::{Description, EntryId, Path, RillEvent};
 use std::collections::HashSet;
 use thiserror::Error;

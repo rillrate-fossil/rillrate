@@ -5,7 +5,7 @@ use crate::actors::hub::RillHub;
 use crate::actors::provider_session::ProviderSession;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{
+use meio::{
     ActionHandler, Actor, Address, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy,
     LiteTask, Scheduled, StartedBy, TaskEliminated, TaskError,
 };

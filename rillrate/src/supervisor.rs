@@ -2,7 +2,7 @@ use crate::config::{Config, ReadConfigFile};
 use crate::env;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{
+use meio::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, System, TaskEliminated,
     TaskError,
 };

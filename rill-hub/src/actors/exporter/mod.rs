@@ -6,7 +6,7 @@ pub use link::{ExporterLinkForClient, ExporterLinkForProvider};
 
 pub mod publishers;
 
-use meio::prelude::{Action, Actor, InterruptedBy, StartedBy};
+use meio::{Action, Actor, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::{Description, EntryId, Path, RillEvent};
 

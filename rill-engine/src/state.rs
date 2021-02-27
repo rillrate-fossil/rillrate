@@ -3,7 +3,7 @@ use crate::tracers::tracer::{DataReceiver, TracerEvent};
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
-use meio::prelude::{InstantAction, InstantActionHandler, Parcel};
+use meio::{InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
 use rill_protocol::provider::Description;
 use std::sync::Arc;

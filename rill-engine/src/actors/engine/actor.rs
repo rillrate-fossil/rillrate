@@ -3,7 +3,7 @@ use crate::actors::worker::RillWorker;
 use crate::config::ProviderConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 
 /// The supervisor that spawns a worker.
 pub struct RillEngine {

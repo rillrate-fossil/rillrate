@@ -1,6 +1,6 @@
 use super::ProviderSession;
 use anyhow::Error;
-use meio::prelude::{Action, Address, Interaction};
+use meio::{Action, Address, Interaction};
 use rill_protocol::provider::{Path, ProviderReqId, RillToProvider};
 use std::collections::hash_map::{Entry, HashMap};
 use thiserror::Error;

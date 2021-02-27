@@ -1,6 +1,6 @@
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::prelude::LiteTask;
+use meio::LiteTask;
 use rill_engine::config::ProviderConfig;
 use rill_hub::config::{ExportConfig, ServerConfig};
 use serde::Deserialize;
