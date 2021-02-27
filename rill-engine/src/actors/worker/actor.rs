@@ -15,7 +15,8 @@ use meio_connect::{
 };
 use rill_protocol::pathfinder::{Pathfinder, Record};
 use rill_protocol::provider::{
-    Description, Direction, Envelope, RillProtocol, RillToProvider, RillToServer, WideEnvelope,
+    Description, Direction, Envelope, ProviderProtocol, ProviderToServer, ServerToProvider,
+    WideEnvelope,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -24,11 +25,11 @@ use std::time::Duration;
 /// Wrapper for WebSocket connection for sending responses (notifications) to a server.
 #[derive(Default, Clone)]
 pub(crate) struct RillSender {
-    sender: Option<WsSender<WideEnvelope<RillProtocol, RillToServer>>>,
+    sender: Option<WsSender<WideEnvelope<ProviderProtocol, ProviderToServer>>>,
 }
 
 impl RillSender {
-    fn set(&mut self, sender: WsSender<WideEnvelope<RillProtocol, RillToServer>>) {
+    fn set(&mut self, sender: WsSender<WideEnvelope<ProviderProtocol, ProviderToServer>>) {
         self.sender = Some(sender);
     }
 
@@ -36,7 +37,7 @@ impl RillSender {
         self.sender.take();
     }
 
-    pub fn response(&mut self, direction: Direction<RillProtocol>, data: RillToServer) {
+    pub fn response(&mut self, direction: Direction<ProviderProtocol>, data: ProviderToServer) {
         if let Some(sender) = self.sender.as_ref() {
             let envelope = WideEnvelope { direction, data };
             sender.send(envelope);
@@ -72,7 +73,7 @@ impl RillWorker {
         }
     }
 
-    fn send_global(&mut self, msg: RillToServer) {
+    fn send_global(&mut self, msg: ProviderToServer) {
         self.sender.response(Direction::broadcast(), msg);
     }
 }
@@ -124,10 +125,10 @@ impl InterruptedBy<RillEngine> for RillWorker {
 }
 
 #[async_trait]
-impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
+impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillWorker {
     async fn handle(
         &mut self,
-        status: WsClientStatus<RillProtocol>,
+        status: WsClientStatus<ProviderProtocol>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match status {
@@ -146,7 +147,7 @@ impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
                 }
 
                 let entry_id = self.config.provider_name();
-                let msg = RillToServer::Declare { entry_id };
+                let msg = ProviderToServer::Declare { entry_id };
                 self.send_global(msg);
             }
             WsClientStatus::Failed { reason } => {
@@ -170,17 +171,17 @@ impl InstantActionHandler<WsClientStatus<RillProtocol>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillWorker {
+impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for RillWorker {
     async fn handle(
         &mut self,
-        msg: WsIncoming<Envelope<RillProtocol, RillToProvider>>,
+        msg: WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let envelope = msg.0;
         log::trace!("Incoming request: {:?}", envelope);
         let direct_id = envelope.direct_id;
         match envelope.data {
-            RillToProvider::ControlStream { path, active } => {
+            ServerToProvider::ControlStream { path, active } => {
                 log::debug!("Switching the stream {:?} to {:?}", path, active);
                 let recorder_link = self
                     .recorders
@@ -190,13 +191,13 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                     recorder.control_stream(direct_id, active).await?;
                 } else {
                     log::warn!("Path not found: {:?}", path);
-                    let msg = RillToServer::Error {
+                    let msg = ProviderToServer::Error {
                         reason: format!("path {} not found", path),
                     };
                     self.sender.response(direct_id.into(), msg);
                 }
             }
-            RillToProvider::Describe { active } => {
+            ServerToProvider::Describe { active } => {
                 // TODO: Check or use `Direction` here?
                 let dont_send_empty = !self.registered.is_empty();
                 let not_described_yet = !self.describe;
@@ -207,7 +208,7 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
                         .values()
                         .map(|desc| Description::clone(desc))
                         .collect();
-                    let msg = RillToServer::Description { list };
+                    let msg = ProviderToServer::Description { list };
                     self.send_global(msg);
                 }
                 self.describe = active;
@@ -221,10 +222,10 @@ impl ActionHandler<WsIncoming<Envelope<RillProtocol, RillToProvider>>> for RillW
 }
 
 #[async_trait]
-impl TaskEliminated<WsClient<RillProtocol, Self>> for RillWorker {
+impl TaskEliminated<WsClient<ProviderProtocol, Self>> for RillWorker {
     async fn handle(
         &mut self,
-        _id: IdOf<WsClient<RillProtocol, Self>>,
+        _id: IdOf<WsClient<ProviderProtocol, Self>>,
         _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

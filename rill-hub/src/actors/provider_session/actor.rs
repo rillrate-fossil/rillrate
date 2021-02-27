@@ -12,22 +12,22 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_protocol::provider::{
-    DirectId, Direction, EntryId, Envelope, Path, ProviderReqId, RillEvent, RillProtocol,
-    RillToProvider, RillToServer, WideEnvelope,
+    DirectId, Direction, EntryId, Envelope, Path, ProviderProtocol, ProviderReqId,
+    ProviderToServer, RillEvent, ServerToProvider, WideEnvelope,
 };
 use std::collections::HashMap;
 
 pub struct ProviderSession {
-    handler: WsHandler<RillProtocol>,
+    handler: WsHandler<ProviderProtocol>,
     registered: Option<EntryId>,
     exporter: ExporterLinkForProvider,
     counter: usize,
     // TODO: Replace to `TypedSlab`
-    paths: HashMap<DirectId<RillProtocol>, Path>,
+    paths: HashMap<DirectId<ProviderProtocol>, Path>,
 }
 
 impl ProviderSession {
-    pub fn new(handler: WsHandler<RillProtocol>, exporter: ExporterLinkForProvider) -> Self {
+    pub fn new(handler: WsHandler<ProviderProtocol>, exporter: ExporterLinkForProvider) -> Self {
         Self {
             handler,
             registered: None,
@@ -37,7 +37,7 @@ impl ProviderSession {
         }
     }
 
-    fn send_request(&mut self, direct_id: ProviderReqId, data: RillToProvider) {
+    fn send_request(&mut self, direct_id: ProviderReqId, data: ServerToProvider) {
         let envelope = Envelope { direct_id, data };
         log::trace!("Sending request to the server: {:?}", envelope);
         self.handler.send(envelope);
@@ -74,10 +74,10 @@ impl InterruptedBy<Server> for ProviderSession {
 }
 
 #[async_trait]
-impl TaskEliminated<WsProcessor<RillProtocol, Self>> for ProviderSession {
+impl TaskEliminated<WsProcessor<ProviderProtocol, Self>> for ProviderSession {
     async fn handle(
         &mut self,
-        _id: IdOf<WsProcessor<RillProtocol, Self>>,
+        _id: IdOf<WsProcessor<ProviderProtocol, Self>>,
         _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
@@ -89,7 +89,7 @@ impl TaskEliminated<WsProcessor<RillProtocol, Self>> for ProviderSession {
 impl ProviderSession {
     async fn distribute_data(
         &mut self,
-        direction: Direction<RillProtocol>,
+        direction: Direction<ProviderProtocol>,
         event: RillEvent,
     ) -> Result<(), Error> {
         if let Direction::Direct(direct_id) = direction {
@@ -117,21 +117,23 @@ impl ProviderSession {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for ProviderSession {
+impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
+    for ProviderSession
+{
     async fn handle(
         &mut self,
-        msg: WsIncoming<WideEnvelope<RillProtocol, RillToServer>>,
+        msg: WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
-            RillToServer::Data { batch } => {
+            ProviderToServer::Data { batch } => {
                 // TODO: Improve this!
                 for event in batch {
                     self.distribute_data(msg.0.direction.clone(), event).await?;
                 }
             }
-            RillToServer::BeginStream { snapshot } => {
+            ProviderToServer::BeginStream { snapshot } => {
                 // It's important to forward the snapshot, because it
                 // a stream doesn't generate data too often, but the provider
                 // can keep it than we can have the current value in exporters.
@@ -141,17 +143,17 @@ impl ActionHandler<WsIncoming<WideEnvelope<RillProtocol, RillToServer>>> for Pro
                     self.distribute_data(msg.0.direction.clone(), event).await?;
                 }
             }
-            RillToServer::EndStream => {}
-            RillToServer::Declare { entry_id } => {
+            ProviderToServer::EndStream => {}
+            ProviderToServer::Declare { entry_id } => {
                 ctx.not_terminating()?;
                 self.exporter
                     .session_attached(entry_id.clone(), ctx.address().link())
                     .await?;
                 self.registered = Some(entry_id);
-                let msg = RillToProvider::Describe { active: true };
+                let msg = ServerToProvider::Describe { active: true };
                 self.send_request(0.into(), msg);
             }
-            RillToServer::Description { list } => {
+            ProviderToServer::Description { list } => {
                 log::trace!("Paths available: {:?}", list);
                 for description in list {
                     if let Err(err) = self.exporter.path_declared(description).await {
@@ -177,7 +179,7 @@ impl InteractionHandler<link::NewRequest> for ProviderSession {
         self.counter += 1;
         let direct_id = DirectId::from(self.counter);
 
-        if let RillToProvider::ControlStream {
+        if let ServerToProvider::ControlStream {
             ref path,
             active: true,
         } = msg.request

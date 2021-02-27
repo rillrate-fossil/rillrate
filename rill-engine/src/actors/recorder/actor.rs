@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::provider::{
-    Description, Direction, ProviderReqId, RillEvent, RillProtocol, RillToServer,
+    Description, Direction, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent,
 };
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -41,7 +41,7 @@ impl<T: TracerEvent> Recorder<T> {
         self.state.make_snapshot()
     }
 
-    fn get_direction(&self) -> Direction<RillProtocol> {
+    fn get_direction(&self) -> Direction<ProviderProtocol> {
         Direction::from(&self.subscribers)
     }
 }
@@ -81,7 +81,7 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         let mut batch = (!self.subscribers.is_empty()).then(Vec::new);
         self.state.aggregate(chunk, batch.as_mut());
         if let Some(batch) = batch {
-            let response = RillToServer::Data { batch };
+            let response = ProviderToServer::Data { batch };
             let direction = self.get_direction();
             self.sender.response(direction, response);
         }
@@ -117,7 +117,7 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
             if msg.active {
                 if self.subscribers.insert(id) {
                     let snapshot = self.get_snapshot();
-                    let response = RillToServer::BeginStream { snapshot };
+                    let response = ProviderToServer::BeginStream { snapshot };
                     let direction = Direction::from(msg.direct_id);
                     self.sender.response(direction, response);
                 } else {
@@ -125,7 +125,7 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
                 }
             } else {
                 if self.subscribers.remove(&id) {
-                    let response = RillToServer::EndStream;
+                    let response = ProviderToServer::EndStream;
                     let direction = Direction::from(msg.direct_id);
                     self.sender.response(direction, response);
                     // TODO: Send `EndStream`

@@ -16,7 +16,7 @@ use meio_connect::server::{
 };
 use reqwest::Url;
 use rill_protocol::client::ClientProtocol;
-use rill_protocol::provider::RillProtocol;
+use rill_protocol::provider::ProviderProtocol;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
@@ -212,7 +212,7 @@ impl InteractionHandler<Req<Info>> for Server {
 struct ProviderLive {}
 
 impl DirectPath for ProviderLive {
-    type Parameter = RillProtocol;
+    type Parameter = ProviderProtocol;
 
     fn paths() -> &'static [&'static str] {
         &["/live/provider"]

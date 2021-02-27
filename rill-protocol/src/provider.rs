@@ -12,7 +12,7 @@ use std::str::FromStr;
 use std::time::Duration;
 use thiserror::Error;
 
-pub type ProviderReqId = DirectId<RillProtocol>;
+pub type ProviderReqId = DirectId<ProviderProtocol>;
 
 /// The origin of `DirectId`.
 pub trait Origin: Default + Clone {}
@@ -300,20 +300,20 @@ pub struct WideEnvelope<T: Origin, D> {
 
 // TODO: Rename to `ProviderProtocol`
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct RillProtocol;
+pub struct ProviderProtocol;
 
-impl Protocol for RillProtocol {
-    type ToServer = WideEnvelope<Self, RillToServer>;
-    type ToClient = Envelope<Self, RillToProvider>;
+impl Protocol for ProviderProtocol {
+    type ToServer = WideEnvelope<Self, ProviderToServer>;
+    type ToClient = Envelope<Self, ServerToProvider>;
     type Codec = JsonCodec;
 }
 
-impl Origin for RillProtocol {}
+impl Origin for ProviderProtocol {}
 
 /* ? TODO: Remove
-pub type ServerRequest = Envelope<RillProtocol, RillToProvider>;
+pub type ServerRequest = Envelope<ProviderProtocol, ServerToProvider>;
 
-pub type ProviderResponse = WideEnvelope<RillProtocol, RillToServer>;
+pub type ProviderResponse = WideEnvelope<ProviderProtocol, ProviderToServer>;
 */
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -375,7 +375,7 @@ pub struct RillEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum RillToProvider {
+pub enum ServerToProvider {
     ListOf {
         path: Path,
     },
@@ -444,7 +444,7 @@ pub struct Description {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum RillToServer {
+pub enum ProviderToServer {
     Declare {
         entry_id: EntryId,
     },

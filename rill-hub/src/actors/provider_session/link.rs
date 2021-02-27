@@ -1,7 +1,7 @@
 use super::ProviderSession;
 use anyhow::Error;
 use meio::{Action, Address, Interaction};
-use rill_protocol::provider::{Path, ProviderReqId, RillToProvider};
+use rill_protocol::provider::{Path, ProviderReqId, ServerToProvider};
 use std::collections::hash_map::{Entry, HashMap};
 use thiserror::Error;
 
@@ -30,7 +30,7 @@ impl From<Address<ProviderSession>> for ProviderSessionLink {
 }
 
 pub(super) struct NewRequest {
-    pub request: RillToProvider,
+    pub request: ServerToProvider,
 }
 
 impl Interaction for NewRequest {
@@ -41,7 +41,7 @@ impl ProviderSessionLink {
     pub async fn subscribe(&mut self, path: Path) -> Result<(), Error> {
         match self.subscriptions.entry(path.clone()) {
             Entry::Vacant(entry) => {
-                let request = RillToProvider::ControlStream { active: true, path };
+                let request = ServerToProvider::ControlStream { active: true, path };
                 let msg = NewRequest { request };
                 let direct_id = self.address.interact_and_wait(msg).await?;
                 entry.insert(direct_id);
@@ -54,7 +54,7 @@ impl ProviderSessionLink {
 
 pub(super) struct SubRequest {
     pub direct_id: ProviderReqId,
-    pub request: RillToProvider,
+    pub request: ServerToProvider,
 }
 
 impl Action for SubRequest {}
@@ -64,7 +64,7 @@ impl ProviderSessionLink {
     // TODO: Add id of the stream (returned before by subscribe call)
     pub async fn unsubscribe(&mut self, path: Path) -> Result<(), Error> {
         if let Some(direct_id) = self.subscriptions.remove(&path) {
-            let request = RillToProvider::ControlStream {
+            let request = ServerToProvider::ControlStream {
                 active: false,
                 path,
             };
