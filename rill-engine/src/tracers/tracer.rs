@@ -61,6 +61,16 @@ pub struct Tracer<T> {
     sender: DataSender<T>,
 }
 
+impl<T> Clone for Tracer<T> {
+    fn clone(&self) -> Self {
+        Self {
+            active: self.active.clone(),
+            description: self.description.clone(),
+            sender: self.sender.clone(),
+        }
+    }
+}
+
 impl<T: TracerEvent> Tracer<T> {
     pub(crate) fn new(description: Description) -> Self {
         // TODO: Remove this active watch channel?

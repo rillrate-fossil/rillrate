@@ -422,6 +422,7 @@ pub enum StreamType {
     CounterStream,
     GaugeStream,
     DictStream,
+    EntryStream,
 }
 
 impl fmt::Display for StreamType {
@@ -431,6 +432,7 @@ impl fmt::Display for StreamType {
             Self::CounterStream => "counter",
             Self::GaugeStream => "gauge",
             Self::DictStream => "dict",
+            Self::EntryStream => "entry",
         };
         value.fmt(f)
     }
