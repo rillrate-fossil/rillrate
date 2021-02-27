@@ -38,7 +38,7 @@ enum AssetsMode {
     Failed(String),
 }
 
-pub struct Server {
+pub struct Router {
     inner_server: HttpServerLink,
     extern_server: HttpServerLink,
     exporter: Address<Exporter>,
@@ -46,7 +46,7 @@ pub struct Server {
     assets: AssetsMode,
 }
 
-impl Server {
+impl Router {
     pub fn new(
         inner_server: HttpServerLink,
         extern_server: HttpServerLink,
@@ -93,12 +93,12 @@ impl Server {
     }
 }
 
-impl Actor for Server {
+impl Actor for Router {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl StartedBy<RillHub> for Server {
+impl StartedBy<RillHub> for Router {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.init_assets(ctx).await?;
 
@@ -125,7 +125,7 @@ impl StartedBy<RillHub> for Server {
 }
 
 #[async_trait]
-impl InterruptedBy<RillHub> for Server {
+impl InterruptedBy<RillHub> for Router {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -143,13 +143,13 @@ impl DirectPath for Index {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<Index>> for Server {
+impl InteractionHandler<Req<Index>> for Router {
     async fn handle(
         &mut self,
         _: Req<Index>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
-        let response = Response::builder().body(Body::from("Rill Export Inner Server"))?;
+        let response = Response::builder().body(Body::from("Rill Export Inner Router"))?;
         Ok(response)
     }
 }
@@ -165,7 +165,7 @@ impl DirectPath for ForwardToUi {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<ForwardToUi>> for Server {
+impl InteractionHandler<Req<ForwardToUi>> for Router {
     async fn handle(
         &mut self,
         _: Req<ForwardToUi>,
@@ -193,7 +193,7 @@ impl DirectPath for Info {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<Info>> for Server {
+impl InteractionHandler<Req<Info>> for Router {
     async fn handle(
         &mut self,
         _: Req<Info>,
@@ -220,7 +220,7 @@ impl DirectPath for ProviderLive {
 }
 
 #[async_trait]
-impl ActionHandler<WsReq<ProviderLive>> for Server {
+impl ActionHandler<WsReq<ProviderLive>> for Router {
     async fn handle(
         &mut self,
         req: WsReq<ProviderLive>,
@@ -243,7 +243,7 @@ impl ActionHandler<WsReq<ProviderLive>> for Server {
 }
 
 #[async_trait]
-impl Eliminated<ProviderSession> for Server {
+impl Eliminated<ProviderSession> for Router {
     async fn handle(
         &mut self,
         _id: IdOf<ProviderSession>,
@@ -267,7 +267,7 @@ impl DirectPath for ClientLive {
 }
 
 #[async_trait]
-impl ActionHandler<WsReq<ClientLive>> for Server {
+impl ActionHandler<WsReq<ClientLive>> for Router {
     async fn handle(
         &mut self,
         req: WsReq<ClientLive>,
@@ -284,7 +284,7 @@ impl ActionHandler<WsReq<ClientLive>> for Server {
 }
 
 #[async_trait]
-impl Eliminated<ClientSession> for Server {
+impl Eliminated<ClientSession> for Router {
     async fn handle(
         &mut self,
         _id: IdOf<ClientSession>,
@@ -315,7 +315,7 @@ impl FromRequest for Ui {
     }
 }
 
-impl Server {
+impl Router {
     async fn serve_file(&self, path: &Path) -> Result<Response<Body>, Error> {
         let content = self.load_content(path).await?;
         let mime = mime_guess::from_path(path).first_or_octet_stream();
@@ -361,7 +361,7 @@ impl Server {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<Ui>> for Server {
+impl InteractionHandler<Req<Ui>> for Router {
     async fn handle(
         &mut self,
         msg: Req<Ui>,
@@ -388,7 +388,7 @@ impl InteractionHandler<Req<Ui>> for Server {
 }
 
 #[async_trait]
-impl TaskEliminated<FetchUiPack> for Server {
+impl TaskEliminated<FetchUiPack> for Router {
     async fn handle(
         &mut self,
         _id: IdOf<FetchUiPack>,
@@ -417,7 +417,7 @@ impl TaskEliminated<FetchUiPack> for Server {
 struct InitAssets;
 
 #[async_trait]
-impl Scheduled<InitAssets> for Server {
+impl Scheduled<InitAssets> for Router {
     async fn handle(
         &mut self,
         _: Instant,

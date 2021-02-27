@@ -1,6 +1,6 @@
 use crate::actors::exporter::Exporter;
 use crate::actors::exporter::{publishers, ExporterLinkForClient};
-use crate::actors::server::Server;
+use crate::actors::router::Router;
 use crate::config::{ExportConfig, ServerConfig};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -63,7 +63,7 @@ impl<T: Actor> StartedBy<T> for RillHub {
         let exporter_actor = Exporter::new(extern_http_server.link());
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
-        let server_actor = Server::new(
+        let server_actor = Router::new(
             inner_http_server.link(),
             extern_http_server.link(),
             exporter.link(),
@@ -117,9 +117,9 @@ impl Eliminated<HttpServer> for RillHub {
 }
 
 #[async_trait]
-impl Eliminated<Server> for RillHub {
-    async fn handle(&mut self, _id: IdOf<Server>, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::info!("Server finished");
+impl Eliminated<Router> for RillHub {
+    async fn handle(&mut self, _id: IdOf<Router>, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        log::info!("Router finished");
         Ok(())
     }
 }

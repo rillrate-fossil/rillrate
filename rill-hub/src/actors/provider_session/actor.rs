@@ -1,6 +1,6 @@
 use super::link;
 use crate::actors::exporter::ExporterLinkForProvider;
-use crate::actors::server::Server;
+use crate::actors::router::Router;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -57,7 +57,7 @@ impl Actor for ProviderSession {
 }
 
 #[async_trait]
-impl StartedBy<Server> for ProviderSession {
+impl StartedBy<Router> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
         ctx.spawn_task(worker, ());
@@ -66,7 +66,7 @@ impl StartedBy<Server> for ProviderSession {
 }
 
 #[async_trait]
-impl InterruptedBy<Server> for ProviderSession {
+impl InterruptedBy<Router> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
         Ok(())

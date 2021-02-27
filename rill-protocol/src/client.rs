@@ -16,6 +16,8 @@ impl Origin for ClientProtocol {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientRequest {
+    //SubscribeProviders { active: bool },
+    //SubscribePaths { provider: EntryId, active: bool },
     ControlStream { path: Path, active: bool },
 }
 
