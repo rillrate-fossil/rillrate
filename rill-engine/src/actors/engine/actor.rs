@@ -1,4 +1,4 @@
-use crate::actors::storage::RillStorage;
+//use crate::actors::storage::RillStorage;
 use crate::actors::worker::RillWorker;
 use crate::config::ProviderConfig;
 use anyhow::Error;
@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 
 /// The supervisor that spawns a worker.
-pub struct RillProvider {
+pub struct RillEngine {
     config: Option<ProviderConfig>,
 }
 
@@ -16,17 +16,17 @@ pub enum Group {
     Storage,
 }
 
-impl Actor for RillProvider {
+impl Actor for RillEngine {
     type GroupBy = Group;
 
     /*
     fn name(&self) -> String {
-        format!("RillProvider({})", self.config.entry_id())
+        format!("RillEngine({})", self.config.entry_id())
     }
     */
 }
 
-impl RillProvider {
+impl RillEngine {
     /// Creates a new supervisor instance.
     pub fn new(config: ProviderConfig) -> Self {
         Self {
@@ -36,11 +36,14 @@ impl RillProvider {
 }
 
 #[async_trait]
-impl<T: Actor> StartedBy<T> for RillProvider {
+impl<T: Actor> StartedBy<T> for RillEngine {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Worker, Group::Storage]);
+
+        /*
         let storage = RillStorage::new();
         ctx.spawn_actor(storage, Group::Storage);
+        */
 
         let worker = RillWorker::new(self.config.take());
         ctx.spawn_actor(worker, Group::Worker);
@@ -50,7 +53,7 @@ impl<T: Actor> StartedBy<T> for RillProvider {
 }
 
 #[async_trait]
-impl<T: Actor> InterruptedBy<T> for RillProvider {
+impl<T: Actor> InterruptedBy<T> for RillEngine {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -58,7 +61,7 @@ impl<T: Actor> InterruptedBy<T> for RillProvider {
 }
 
 #[async_trait]
-impl Eliminated<RillWorker> for RillProvider {
+impl Eliminated<RillWorker> for RillEngine {
     async fn handle(
         &mut self,
         _id: IdOf<RillWorker>,
@@ -70,8 +73,9 @@ impl Eliminated<RillWorker> for RillProvider {
     }
 }
 
+/*
 #[async_trait]
-impl Eliminated<RillStorage> for RillProvider {
+impl Eliminated<RillStorage> for RillEngine {
     async fn handle(
         &mut self,
         _id: IdOf<RillStorage>,
@@ -82,3 +86,4 @@ impl Eliminated<RillStorage> for RillProvider {
         Ok(())
     }
 }
+*/
