@@ -23,7 +23,8 @@ impl<T: Actor> StartedBy<T> for RillExport {
 
 #[async_trait]
 impl<T: Actor> InterruptedBy<T> for RillExport {
-    async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }
