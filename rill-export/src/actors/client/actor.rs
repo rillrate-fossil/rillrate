@@ -1,7 +1,6 @@
 use meio::Actor;
 
-pub struct RillClient {
-}
+pub struct RillClient {}
 
 impl Actor for RillClient {
     type GroupBy = ();

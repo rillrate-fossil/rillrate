@@ -9,6 +9,7 @@ use meio::prelude::{
 use rill_engine::{config::ProviderConfig, RillEngine};
 use rill_export::RillExport;
 use rill_hub::{AddrCell, RillHub};
+use std::marker::PhantomData;
 use std::net::SocketAddr;
 
 pub struct RillRate {
@@ -27,7 +28,7 @@ impl RillRate {
         }
     }
 
-    fn spawn_provider(&mut self, ctx: &mut Context<Self>) {
+    fn spawn_engine(&mut self, ctx: &mut Context<Self>) {
         let config = self.provider_config.take().unwrap_or_default();
         let actor = RillEngine::new(config);
         ctx.spawn_actor(actor, Group::Provider);
@@ -54,7 +55,12 @@ impl Actor for RillRate {
 #[async_trait]
 impl StartedBy<System> for RillRate {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Tuning, Group::Exporter, Group::Provider, Group::Hub]);
+        ctx.termination_sequence(vec![
+            Group::Tuning,
+            Group::Exporter,
+            Group::Provider,
+            Group::Hub,
+        ]);
 
         let config_path = env::config();
         let config_task = ReadConfigFile(config_path);
@@ -132,13 +138,17 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             .map(ProviderConfig::is_node_specified)
             .unwrap_or(false);
         if node_specified {
-            self.spawn_provider(ctx);
+            self.spawn_engine(ctx);
         } else {
             // If node wasn't specified than spawn an embedded node and
             // wait for the address to spawn a provider connected to that.
             let actor = RillHub::new(config.server, config.export);
             ctx.spawn_actor(actor, Group::Hub);
-            let task = WaitForAddr::new(&rill_hub::INTERN_ADDR);
+
+            let task = WaitForAddr::<RillEngine>::new(&rill_hub::INTERN_ADDR);
+            ctx.spawn_task(task, Group::Tuning);
+
+            let task = WaitForAddr::<RillExport>::new(&rill_hub::EXTERN_ADDR);
             ctx.spawn_task(task, Group::Tuning);
         }
 
@@ -147,18 +157,18 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
 }
 
 #[async_trait]
-impl TaskEliminated<WaitForAddr> for RillRate {
+impl TaskEliminated<WaitForAddr<RillEngine>> for RillRate {
     async fn handle(
         &mut self,
-        _id: IdOf<WaitForAddr>,
+        _id: IdOf<WaitForAddr<RillEngine>>,
         res: Result<SocketAddr, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match res {
             Ok(addr) => {
-                log::info!("Connecting tracer to {}", addr);
+                log::info!("Connecting engine (provider) to {}", addr);
                 rill_engine::config::NODE.offer(addr.to_string());
-                self.spawn_provider(ctx);
+                self.spawn_engine(ctx);
                 Ok(())
             }
             Err(err) => Err(err.into()),
@@ -166,18 +176,42 @@ impl TaskEliminated<WaitForAddr> for RillRate {
     }
 }
 
-struct WaitForAddr {
-    cell: AddrCell,
+#[async_trait]
+impl TaskEliminated<WaitForAddr<RillExport>> for RillRate {
+    async fn handle(
+        &mut self,
+        _id: IdOf<WaitForAddr<RillExport>>,
+        res: Result<SocketAddr, TaskError>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        match res {
+            Ok(addr) => {
+                log::info!("Connecting exporter to {}", addr);
+                rill_export::config::NODE.offer(addr.to_string());
+                self.spawn_exporter(ctx);
+                Ok(())
+            }
+            Err(err) => Err(err.into()),
+        }
+    }
 }
 
-impl WaitForAddr {
+struct WaitForAddr<T> {
+    cell: AddrCell,
+    _waiter: PhantomData<T>,
+}
+
+impl<T> WaitForAddr<T> {
     fn new(cell: AddrCell) -> Self {
-        Self { cell }
+        Self {
+            cell,
+            _waiter: PhantomData,
+        }
     }
 }
 
 #[async_trait]
-impl LiteTask for WaitForAddr {
+impl<T: Actor> LiteTask for WaitForAddr<T> {
     type Output = SocketAddr;
 
     async fn interruptable_routine(self) -> Result<Self::Output, Error> {
