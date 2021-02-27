@@ -9,11 +9,11 @@ use tokio::sync::watch;
 
 pub trait TracerState: Default + Send + 'static {
     type Item;
-    fn aggregate(&mut self, items: &[DataEnvelope<Self::Item>]);
-
-    fn make_deltas(&self, items: &[DataEnvelope<Self::Item>]) -> Vec<RillEvent> {
-        vec![]
-    }
+    fn aggregate(
+        &mut self,
+        items: Vec<DataEnvelope<Self::Item>>,
+        outgoing: Option<&mut Vec<RillEvent>>,
+    );
 
     fn make_snapshot(&self) -> Vec<RillEvent>;
 }

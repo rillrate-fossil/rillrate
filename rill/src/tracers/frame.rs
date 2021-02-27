@@ -22,12 +22,13 @@ impl<T> Frame<T> {
         }
     }
 
-    pub fn insert(&mut self, item: T) -> Option<&T> {
+    /// Returns a reference to the inserted element.
+    pub fn insert(&mut self, item: T) -> &T {
         if self.frame.len() > self.size {
             self.frame.pop_front();
         }
         self.frame.push_back(item);
-        self.frame.back()
+        self.frame.back().unwrap()
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
