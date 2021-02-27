@@ -28,6 +28,9 @@ fn add_channel() -> AddrChannel {
     Mutex::new((Some(tx), Some(rx)))
 }
 
+/// Reference to an address channel
+pub type AddrCell = &'static Lazy<AddrChannel>;
+
 /// External address
 pub static EXTERN_ADDR: Lazy<AddrChannel> = Lazy::new(add_channel);
 

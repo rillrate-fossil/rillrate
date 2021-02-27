@@ -7,7 +7,8 @@ use meio::prelude::{
     TaskError,
 };
 use rill_engine::{config::ProviderConfig, RillEngine};
-use rill_hub::RillHub;
+use rill_export::RillExport;
+use rill_hub::{AddrCell, RillHub};
 use std::net::SocketAddr;
 
 pub struct RillRate {
@@ -31,11 +32,17 @@ impl RillRate {
         let actor = RillEngine::new(config);
         ctx.spawn_actor(actor, Group::Provider);
     }
+
+    fn spawn_exporter(&mut self, ctx: &mut Context<Self>) {
+        let actor = RillExport::new();
+        ctx.spawn_actor(actor, Group::Exporter);
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
     Tuning,
+    Exporter,
     Provider,
     Hub,
 }
@@ -47,7 +54,7 @@ impl Actor for RillRate {
 #[async_trait]
 impl StartedBy<System> for RillRate {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Tuning, Group::Provider, Group::Hub]);
+        ctx.termination_sequence(vec![Group::Tuning, Group::Exporter, Group::Provider, Group::Hub]);
 
         let config_path = env::config();
         let config_task = ReadConfigFile(config_path);
@@ -73,6 +80,17 @@ impl Eliminated<RillEngine> for RillRate {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<RillExport> for RillRate {
+    async fn handle(
+        &mut self,
+        _id: IdOf<RillExport>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         Ok(())
     }
 }
@@ -120,7 +138,7 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             // wait for the address to spawn a provider connected to that.
             let actor = RillHub::new(config.server, config.export);
             ctx.spawn_actor(actor, Group::Hub);
-            let task = WaitForAddr::new();
+            let task = WaitForAddr::new(&rill_hub::INTERN_ADDR);
             ctx.spawn_task(task, Group::Tuning);
         }
 
@@ -148,11 +166,13 @@ impl TaskEliminated<WaitForAddr> for RillRate {
     }
 }
 
-struct WaitForAddr {}
+struct WaitForAddr {
+    cell: AddrCell,
+}
 
 impl WaitForAddr {
-    fn new() -> Self {
-        Self {}
+    fn new(cell: AddrCell) -> Self {
+        Self { cell }
     }
 }
 
@@ -161,7 +181,8 @@ impl LiteTask for WaitForAddr {
     type Output = SocketAddr;
 
     async fn interruptable_routine(self) -> Result<Self::Output, Error> {
-        let intern_rx = rill_hub::INTERN_ADDR
+        let intern_rx = self
+            .cell
             .lock()
             .await
             .1

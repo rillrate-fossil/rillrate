@@ -23,6 +23,7 @@ log = "0.4.14"
 meio = "0.82.0"
 rill-hub = { version = "0.21.0", path = "../rill-hub" }
 rill-engine = { version = "0.21.0", path = "../rill-engine" }
+rill-export = { version = "0.21.0", path = "../rill-export" }
 rill-protocol = { version = "0.21.0", path = "../rill-protocol" }
 serde = "1.0.123"
 tokio = { version = "1.2.0", features = ["full"] }
