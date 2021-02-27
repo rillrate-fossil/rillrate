@@ -1,5 +1,5 @@
 [package]
-name = "rill-server"
+name = "rill-engine"
 version = "0.21.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
@@ -8,31 +8,28 @@ authors = [
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"
-documentation = "https://docs.rs/rill-export/"
+documentation = "https://docs.rs/rill/"
 license = "MIT/Apache-2.0"
 readme = "README.md"
 keywords = ["logging"]
 categories = ["development-tools::debugging"]
-description = "Exporters for rill tracing system"
+description = "Dynamic logging and tracing system"
 
 [dependencies]
 anyhow = "1.0.38"
 async-trait = "0.1.42"
 derive_more = "0.99.11"
-flate2 = "1.0.20"
+futures = "0.3.13"
 log = "0.4.14"
 meio = "0.82.0"
 meio-connect = "0.82.0"
 metacrate = "0.1.2"
-mime_guess = "2.0.3"
 once_cell = "1.7.0"
-reqwest = { version = "0.11.1", default-features = false, features = ["rustls-tls"] }
 rill-protocol = { version = "0.21.0", path = "../rill-protocol" }
 serde = "1.0.123"
-serde-pickle = "0.6.2"
-strum = "0.20.0"
-strum_macros = "0.20.1"
-tar = "0.4.33"
 thiserror = "1.0.24"
 tokio = { version = "1.2.0", features = ["full"] }
-typed-slab = "0.1.0"
+
+[dev-dependencies]
+ctrlc = "3.1.8"
+env_logger = "0.8.3"

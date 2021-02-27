@@ -7,9 +7,9 @@ mod env;
 mod supervisor;
 mod tracers;
 
+pub use rill_engine as engine;
+pub use rill_hub as hub;
 pub use rill_protocol as protocol;
-pub use rill_provider as provider;
-pub use rill_server as server;
 pub use tracers::*;
 
 use anyhow::Error;
