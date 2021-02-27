@@ -3,6 +3,7 @@ use crate::provider::{Description, EntryId, Origin, Path, RillEvent};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
 
+// TODO: Rename to `ClientProtocol`
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ViewProtocol;
 

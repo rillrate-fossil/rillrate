@@ -298,6 +298,7 @@ pub struct WideEnvelope<T: Origin, D> {
     pub data: D,
 }
 
+// TODO: Rename to `ProviderProtocol`
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct RillProtocol;
 
