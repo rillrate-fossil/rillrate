@@ -1,7 +1,7 @@
 //! The module with all adapted tracers.
 
 use anyhow::Error;
-use rill_engine::tracers::{CounterTracer, DictTracer, GaugeTracer, LogTracer};
+use rill_engine::tracers::data::{CounterTracer, DictTracer, GaugeTracer, LogTracer};
 use std::ops::Deref;
 use std::sync::Arc;
 

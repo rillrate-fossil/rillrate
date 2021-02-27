@@ -1,4 +1,4 @@
-use super::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
+use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
