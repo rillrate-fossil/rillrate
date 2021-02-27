@@ -6,8 +6,8 @@ use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, System, TaskEliminated,
     TaskError,
 };
-use rill_engine::{config::ProviderConfig, RillEngine};
-use rill_export::RillExport;
+use rill_engine::{ProviderConfig, RillEngine};
+use rill_export::{ExportConfig, RillExport};
 use rill_hub::{AddrCell, RillHub};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
@@ -17,6 +17,7 @@ pub struct RillRate {
     // and if it's not configured than spawn a standalone server
     // and with for it install the port here and spawn a tracer.
     provider_config: Option<ProviderConfig>,
+    export_config: Option<ExportConfig>,
 }
 
 impl RillRate {
@@ -25,6 +26,7 @@ impl RillRate {
         rill_engine::config::NAME.offer(app_name.into());
         Self {
             provider_config: None,
+            export_config: None,
         }
     }
 
@@ -35,7 +37,8 @@ impl RillRate {
     }
 
     fn spawn_exporter(&mut self, ctx: &mut Context<Self>) {
-        let actor = RillExport::new();
+        let config = self.export_config.take().unwrap_or_default();
+        let actor = RillExport::new(config);
         ctx.spawn_actor(actor, Group::Exporter);
     }
 }

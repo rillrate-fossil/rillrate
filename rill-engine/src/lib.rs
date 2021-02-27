@@ -9,4 +9,6 @@ pub mod tracers;
 
 metacrate::meta!();
 
-pub use crate::actors::engine::RillEngine;
+pub use actors::engine::RillEngine;
+// TODO: Rename to `EngineConfig`
+pub use config::ProviderConfig;

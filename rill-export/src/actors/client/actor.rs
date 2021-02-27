@@ -8,17 +8,17 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::provider::Envelope;
-use rill_protocol::view::{ViewProtocol, ViewResponse};
+use rill_protocol::view::{ViewProtocol, ViewRequest, ViewResponse};
 use std::time::Duration;
 
 pub struct RillClient {
     url: String,
+    sender: Option<WsSender<ViewRequest>>,
 }
 
 impl RillClient {
     pub fn new(url: String) -> Self {
-        Self { url }
+        Self { url, sender: None }
     }
 }
 
@@ -62,6 +62,14 @@ impl InstantActionHandler<WsClientStatus<ViewProtocol>> for RillClient {
         status: WsClientStatus<ViewProtocol>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        match status {
+            WsClientStatus::Connected { sender } => {
+                self.sender = Some(sender);
+            }
+            WsClientStatus::Failed { reason } => {
+                log::error!("Connection failed: {}", reason);
+            }
+        }
         Ok(())
     }
 }
@@ -73,6 +81,7 @@ impl ActionHandler<WsIncoming<ViewResponse>> for RillClient {
         msg: WsIncoming<ViewResponse>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        log::trace!("Incoming to exporter: {:?}", msg);
         Ok(())
     }
 }

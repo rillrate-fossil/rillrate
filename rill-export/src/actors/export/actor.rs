@@ -1,12 +1,15 @@
+use crate::config::ExportConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Context, InterruptedBy, StartedBy};
 
-pub struct RillExport {}
+pub struct RillExport {
+    config: ExportConfig,
+}
 
 impl RillExport {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(config: ExportConfig) -> Self {
+        Self { config }
     }
 }
 
