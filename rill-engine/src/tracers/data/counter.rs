@@ -54,10 +54,8 @@ impl TracerEvent for CounterDelta {
 }
 
 /// Tracers `Counter` metrics that can increments only.
-#[derive(Debug, Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct CounterTracer {
-    #[deref]
-    #[deref_mut]
     tracer: Tracer<CounterDelta>,
 }
 

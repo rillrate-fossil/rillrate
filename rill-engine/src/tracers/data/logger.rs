@@ -53,7 +53,7 @@ impl TracerEvent for LogRecord {
 }
 
 /// This tracer sends text messages.
-#[derive(Debug, Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct LogTracer {
     tracer: Tracer<LogRecord>,
 }

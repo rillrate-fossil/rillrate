@@ -60,10 +60,8 @@ impl TracerEvent for GaugeUpdate {
 }
 
 /// Sends metrics as `gauge` that can change value to any.
-#[derive(Debug, Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct GaugeTracer {
-    #[deref]
-    #[deref_mut]
     tracer: Tracer<GaugeUpdate>,
 }
 

@@ -36,7 +36,7 @@ impl TracerEvent for EntryRecord {
 }
 
 /// This tracer sends entries changes.
-#[derive(Debug, Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct EntryTracer {
     tracer: Tracer<EntryRecord>,
 }

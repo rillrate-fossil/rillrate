@@ -83,7 +83,7 @@ impl TracerEvent for DictRecord {
 }
 
 /// This tracer sends text messages.
-#[derive(Debug, Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct DictTracer {
     tracer: Tracer<DictRecord>,
 }

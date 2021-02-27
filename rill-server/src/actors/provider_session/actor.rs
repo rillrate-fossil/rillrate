@@ -18,6 +18,10 @@ use rill_protocol::provider::{
 use std::collections::HashMap;
 
 pub struct ProviderSession {
+    /*
+    tracer: EntryTracer,
+    tracer_record: Option<ProviderRecord>,
+    */
     handler: WsHandler<ProviderProtocol>,
     registered: Option<EntryId>,
     exporter: ExporterLinkForProvider,
