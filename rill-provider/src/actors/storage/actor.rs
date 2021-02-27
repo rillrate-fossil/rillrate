@@ -1,7 +1,7 @@
 // TODO: Remove this clippy fix
 #![allow(clippy::new_without_default)]
 
-use crate::actors::engine::RillEngine;
+use crate::actors::provider::RillProvider;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::prelude::{Actor, Context, InterruptedBy, StartedBy};
@@ -19,7 +19,7 @@ impl Actor for RillStorage {
 }
 
 #[async_trait]
-impl StartedBy<RillEngine> for RillStorage {
+impl StartedBy<RillProvider> for RillStorage {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         // TODO: Opens a log file
         Ok(())
@@ -27,7 +27,7 @@ impl StartedBy<RillEngine> for RillStorage {
 }
 
 #[async_trait]
-impl InterruptedBy<RillEngine> for RillStorage {
+impl InterruptedBy<RillProvider> for RillStorage {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 
 /// The supervisor that spawns a worker.
-pub struct RillEngine {
+pub struct RillProvider {
     config: Option<ProviderConfig>,
 }
 
@@ -16,17 +16,17 @@ pub enum Group {
     Storage,
 }
 
-impl Actor for RillEngine {
+impl Actor for RillProvider {
     type GroupBy = Group;
 
     /*
     fn name(&self) -> String {
-        format!("RillEngine({})", self.config.entry_id())
+        format!("RillProvider({})", self.config.entry_id())
     }
     */
 }
 
-impl RillEngine {
+impl RillProvider {
     /// Creates a new supervisor instance.
     pub fn new(config: ProviderConfig) -> Self {
         Self {
@@ -36,7 +36,7 @@ impl RillEngine {
 }
 
 #[async_trait]
-impl<T: Actor> StartedBy<T> for RillEngine {
+impl<T: Actor> StartedBy<T> for RillProvider {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Worker, Group::Storage]);
         let storage = RillStorage::new();
@@ -50,7 +50,7 @@ impl<T: Actor> StartedBy<T> for RillEngine {
 }
 
 #[async_trait]
-impl<T: Actor> InterruptedBy<T> for RillEngine {
+impl<T: Actor> InterruptedBy<T> for RillProvider {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -58,7 +58,7 @@ impl<T: Actor> InterruptedBy<T> for RillEngine {
 }
 
 #[async_trait]
-impl Eliminated<RillWorker> for RillEngine {
+impl Eliminated<RillWorker> for RillProvider {
     async fn handle(
         &mut self,
         _id: IdOf<RillWorker>,
@@ -71,7 +71,7 @@ impl Eliminated<RillWorker> for RillEngine {
 }
 
 #[async_trait]
-impl Eliminated<RillStorage> for RillEngine {
+impl Eliminated<RillStorage> for RillProvider {
     async fn handle(
         &mut self,
         _id: IdOf<RillStorage>,

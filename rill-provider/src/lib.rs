@@ -5,10 +5,9 @@
 mod actors;
 pub mod config;
 pub mod prelude;
-mod protocol;
 mod state;
 pub mod tracers;
 
 metacrate::meta!();
 
-pub use crate::actors::engine::RillEngine;
+pub use crate::actors::provider::RillProvider;

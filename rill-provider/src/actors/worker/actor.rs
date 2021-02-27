@@ -1,4 +1,4 @@
-use crate::actors::engine::RillEngine;
+use crate::actors::provider::RillProvider;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::config::ProviderConfig;
 use crate::state;
@@ -89,7 +89,7 @@ impl Actor for RillWorker {
 }
 
 #[async_trait]
-impl StartedBy<RillEngine> for RillWorker {
+impl StartedBy<RillProvider> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![
             Group::WsConnection,
@@ -115,7 +115,7 @@ impl StartedBy<RillEngine> for RillWorker {
 }
 
 #[async_trait]
-impl InterruptedBy<RillEngine> for RillWorker {
+impl InterruptedBy<RillProvider> for RillWorker {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         // Closes the control channel and with then it will be finished
         state::RILL_LINK.sender.close_channel();

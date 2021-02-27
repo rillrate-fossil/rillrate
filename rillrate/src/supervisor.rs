@@ -6,7 +6,7 @@ use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, System, TaskEliminated,
     TaskError,
 };
-use rill_provider::{config::ProviderConfig, RillEngine};
+use rill_provider::{config::ProviderConfig, RillProvider};
 use rill_server::EmbeddedNode;
 use std::net::SocketAddr;
 
@@ -28,15 +28,15 @@ impl RillRate {
 
     fn spawn_provider(&mut self, ctx: &mut Context<Self>) {
         let config = self.provider_config.take().unwrap_or_default();
-        let actor = RillEngine::new(config);
-        ctx.spawn_actor(actor, Group::Engine);
+        let actor = RillProvider::new(config);
+        ctx.spawn_actor(actor, Group::Provider);
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
     Tuning,
-    Engine,
+    Provider,
     EmbeddedNode,
 }
 
@@ -47,7 +47,7 @@ impl Actor for RillRate {
 #[async_trait]
 impl StartedBy<System> for RillRate {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Tuning, Group::Engine, Group::EmbeddedNode]);
+        ctx.termination_sequence(vec![Group::Tuning, Group::Provider, Group::EmbeddedNode]);
 
         let config_path = env::config();
         let config_task = ReadConfigFile(config_path);
@@ -66,10 +66,10 @@ impl InterruptedBy<System> for RillRate {
 }
 
 #[async_trait]
-impl Eliminated<RillEngine> for RillRate {
+impl Eliminated<RillProvider> for RillRate {
     async fn handle(
         &mut self,
-        _id: IdOf<RillEngine>,
+        _id: IdOf<RillProvider>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.shutdown();
