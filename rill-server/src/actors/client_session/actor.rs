@@ -10,7 +10,7 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
-use rill_protocol::transport::Envelope;
+use rill_protocol::transport::{Direction, Envelope, WideEnvelope};
 
 pub struct ClientSession {
     handler: WsHandler<ClientProtocol>,
@@ -105,12 +105,20 @@ impl ActionHandler<PathNotification> for ClientSession {
         match msg {
             PathNotification::Paths { descriptions } => {
                 let response = ClientResponse::Paths(descriptions);
-                //self.handler.send(response);
+                let envelope = WideEnvelope {
+                    direction: Direction::broadcast(),
+                    data: response,
+                };
+                self.handler.send(envelope);
                 Ok(())
             }
             PathNotification::Name { name } => {
                 let response = ClientResponse::Declare(name);
-                //self.handler.send(response);
+                let envelope = WideEnvelope {
+                    direction: Direction::broadcast(),
+                    data: response,
+                };
+                self.handler.send(envelope);
                 Ok(())
             }
         }

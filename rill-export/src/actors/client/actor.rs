@@ -9,7 +9,7 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
-use rill_protocol::transport::Envelope;
+use rill_protocol::transport::{Envelope, WideEnvelope};
 use std::time::Duration;
 
 pub struct RillClient {
@@ -76,10 +76,10 @@ impl InstantActionHandler<WsClientStatus<ClientProtocol>> for RillClient {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientResponse>>> for RillClient {
+impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for RillClient {
     async fn handle(
         &mut self,
-        msg: WsIncoming<Envelope<ClientProtocol, ClientResponse>>,
+        msg: WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
