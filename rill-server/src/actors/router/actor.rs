@@ -1,8 +1,8 @@
 use super::Assets;
 use crate::actors::client_session::ClientSession;
 use crate::actors::exporter::Exporter;
-use crate::actors::hub::RillHub;
 use crate::actors::provider_session::ProviderSession;
+use crate::actors::server::RillServer;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -98,7 +98,7 @@ impl Actor for Router {
 }
 
 #[async_trait]
-impl StartedBy<RillHub> for Router {
+impl StartedBy<RillServer> for Router {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.init_assets(ctx).await?;
 
@@ -125,7 +125,7 @@ impl StartedBy<RillHub> for Router {
 }
 
 #[async_trait]
-impl InterruptedBy<RillHub> for Router {
+impl InterruptedBy<RillServer> for Router {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

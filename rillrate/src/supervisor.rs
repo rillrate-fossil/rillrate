@@ -8,7 +8,7 @@ use meio::{
 };
 use rill_engine::{ProviderConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
-use rill_server::{AddrCell, RillHub};
+use rill_server::{AddrCell, RillServer};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 
@@ -105,8 +105,12 @@ impl Eliminated<RillExport> for RillRate {
 }
 
 #[async_trait]
-impl Eliminated<RillHub> for RillRate {
-    async fn handle(&mut self, _id: IdOf<RillHub>, ctx: &mut Context<Self>) -> Result<(), Error> {
+impl Eliminated<RillServer> for RillRate {
+    async fn handle(
+        &mut self,
+        _id: IdOf<RillServer>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
     }
@@ -145,7 +149,7 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
         } else {
             // If node wasn't specified than spawn an embedded node and
             // wait for the address to spawn a provider connected to that.
-            let actor = RillHub::new(config.server, config.export);
+            let actor = RillServer::new(config.server, config.export);
             ctx.spawn_actor(actor, Group::Hub);
 
             let task = WaitForAddr::<RillEngine>::new(&rill_server::INTERN_ADDR);

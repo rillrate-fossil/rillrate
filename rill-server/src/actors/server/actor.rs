@@ -8,7 +8,7 @@ use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServer;
 
 /// Embedded node.
-pub struct RillHub {
+pub struct RillServer {
     server_config: ServerConfig,
     export_config: ExportConfig,
 }
@@ -21,11 +21,11 @@ pub enum Group {
     Endpoints,
 }
 
-impl Actor for RillHub {
+impl Actor for RillServer {
     type GroupBy = Group;
 }
 
-impl RillHub {
+impl RillServer {
     /// Create a new instance of an embedded node.
     pub fn new(server_config: Option<ServerConfig>, export_config: Option<ExportConfig>) -> Self {
         Self {
@@ -36,7 +36,7 @@ impl RillHub {
 }
 
 #[async_trait]
-impl<T: Actor> StartedBy<T> for RillHub {
+impl<T: Actor> StartedBy<T> for RillServer {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![
             Group::Tuning,
@@ -89,7 +89,7 @@ impl<T: Actor> StartedBy<T> for RillHub {
 }
 
 #[async_trait]
-impl<T: Actor> InterruptedBy<T> for RillHub {
+impl<T: Actor> InterruptedBy<T> for RillServer {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -97,7 +97,7 @@ impl<T: Actor> InterruptedBy<T> for RillHub {
 }
 
 #[async_trait]
-impl Eliminated<Exporter> for RillHub {
+impl Eliminated<Exporter> for RillServer {
     async fn handle(&mut self, _id: IdOf<Exporter>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Exporter finished");
         Ok(())
@@ -105,7 +105,7 @@ impl Eliminated<Exporter> for RillHub {
 }
 
 #[async_trait]
-impl Eliminated<HttpServer> for RillHub {
+impl Eliminated<HttpServer> for RillServer {
     async fn handle(
         &mut self,
         _id: IdOf<HttpServer>,
@@ -117,7 +117,7 @@ impl Eliminated<HttpServer> for RillHub {
 }
 
 #[async_trait]
-impl Eliminated<Router> for RillHub {
+impl Eliminated<Router> for RillServer {
     async fn handle(&mut self, _id: IdOf<Router>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Router finished");
         Ok(())

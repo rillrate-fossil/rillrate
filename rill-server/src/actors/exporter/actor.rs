@@ -1,6 +1,6 @@
 use super::{link, ExportEvent, PathNotification, Publisher};
-use crate::actors::hub::RillHub;
 use crate::actors::provider_session::ProviderSessionLink;
+use crate::actors::server::RillServer;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -69,14 +69,14 @@ impl Actor for Exporter {
 }
 
 #[async_trait]
-impl StartedBy<RillHub> for Exporter {
+impl StartedBy<RillServer> for Exporter {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }
 
 #[async_trait]
-impl InterruptedBy<RillHub> for Exporter {
+impl InterruptedBy<RillServer> for Exporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
         Ok(())
