@@ -3,6 +3,6 @@ members = [
     "rillrate",
     "rill-engine",
     "rill-export",
-    "rill-hub",
     "rill-protocol",
+    "rill-server",
 ]

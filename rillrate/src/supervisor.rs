@@ -8,7 +8,7 @@ use meio::{
 };
 use rill_engine::{ProviderConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
-use rill_hub::{AddrCell, RillHub};
+use rill_server::{AddrCell, RillHub};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 
@@ -148,10 +148,10 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             let actor = RillHub::new(config.server, config.export);
             ctx.spawn_actor(actor, Group::Hub);
 
-            let task = WaitForAddr::<RillEngine>::new(&rill_hub::INTERN_ADDR);
+            let task = WaitForAddr::<RillEngine>::new(&rill_server::INTERN_ADDR);
             ctx.spawn_task(task, Group::Tuning);
 
-            let task = WaitForAddr::<RillExport>::new(&rill_hub::EXTERN_ADDR);
+            let task = WaitForAddr::<RillExport>::new(&rill_server::EXTERN_ADDR);
             ctx.spawn_task(task, Group::Tuning);
         }
 

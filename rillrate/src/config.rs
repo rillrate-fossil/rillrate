@@ -2,7 +2,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::LiteTask;
 use rill_engine::config::ProviderConfig;
-use rill_hub::config::{ExportConfig, ServerConfig};
+use rill_server::config::{ExportConfig, ServerConfig};
 use serde::Deserialize;
 use std::path::PathBuf;
 use tokio::fs::File;
