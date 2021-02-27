@@ -6,8 +6,8 @@ use meio::prelude::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, System, TaskEliminated,
     TaskError,
 };
-use rill::{config::ProviderConfig, RillEngine};
-use rill_export::EmbeddedNode;
+use rill_provider::{config::ProviderConfig, RillEngine};
+use rill_server::EmbeddedNode;
 use std::net::SocketAddr;
 
 pub struct RillRate {
@@ -20,7 +20,7 @@ pub struct RillRate {
 impl RillRate {
     pub fn new(app_name: String) -> Self {
         // TODO: Use MyOnceCell here that will inform that it was set
-        rill::config::NAME.offer(app_name.into());
+        rill_provider::config::NAME.offer(app_name.into());
         Self {
             provider_config: None,
         }
@@ -143,7 +143,7 @@ impl TaskEliminated<WaitForAddr> for RillRate {
         match res {
             Ok(addr) => {
                 log::info!("Connecting tracer to {}", addr);
-                rill::config::NODE.offer(addr.to_string());
+                rill_provider::config::NODE.offer(addr.to_string());
                 self.spawn_provider(ctx);
                 Ok(())
             }
@@ -165,7 +165,7 @@ impl LiteTask for WaitForAddr {
     type Output = SocketAddr;
 
     async fn interruptable_routine(self) -> Result<Self::Output, Error> {
-        let intern_rx = rill_export::INTERN_ADDR
+        let intern_rx = rill_server::INTERN_ADDR
             .lock()
             .await
             .1

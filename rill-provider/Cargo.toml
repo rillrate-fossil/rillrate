@@ -1,5 +1,5 @@
 [package]
-name = "rill"
+name = "rill-provider"
 version = "0.21.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
