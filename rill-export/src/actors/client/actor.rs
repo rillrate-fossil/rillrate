@@ -9,6 +9,7 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
+use rill_protocol::transport::Envelope;
 use std::time::Duration;
 
 pub struct RillClient {

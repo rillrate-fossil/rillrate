@@ -1,14 +1,17 @@
 use crate::codec::JsonCodec;
-use crate::provider::{Description, EntryId, Origin, Path, RillEvent};
+use crate::provider::{Description, EntryId, Path, RillEvent};
+use crate::transport::{DirectId, Envelope, Origin};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
+
+pub type ClientReqId = DirectId<ClientProtocol>;
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ClientProtocol;
 
 impl Protocol for ClientProtocol {
-    type ToServer = ClientRequest;
-    type ToClient = ClientResponse;
+    type ToServer = Envelope<Self, ClientRequest>;
+    type ToClient = Envelope<Self, ClientResponse>;
     type Codec = JsonCodec;
 }
 
