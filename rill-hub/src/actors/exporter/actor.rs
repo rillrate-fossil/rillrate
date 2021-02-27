@@ -1,5 +1,5 @@
 use super::{link, ExportEvent, PathNotification, Publisher};
-use crate::actors::embedded_node::EmbeddedNode;
+use crate::actors::hub::RillHub;
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -69,14 +69,14 @@ impl Actor for Exporter {
 }
 
 #[async_trait]
-impl StartedBy<EmbeddedNode> for Exporter {
+impl StartedBy<RillHub> for Exporter {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }
 
 #[async_trait]
-impl InterruptedBy<EmbeddedNode> for Exporter {
+impl InterruptedBy<RillHub> for Exporter {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
         Ok(())

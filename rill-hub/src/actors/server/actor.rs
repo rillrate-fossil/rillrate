@@ -1,7 +1,7 @@
 use super::Assets;
 use crate::actors::client_session::ClientSession;
-use crate::actors::embedded_node::EmbeddedNode;
 use crate::actors::exporter::Exporter;
+use crate::actors::hub::RillHub;
 use crate::actors::provider_session::ProviderSession;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -98,7 +98,7 @@ impl Actor for Server {
 }
 
 #[async_trait]
-impl StartedBy<EmbeddedNode> for Server {
+impl StartedBy<RillHub> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.init_assets(ctx).await?;
 
@@ -125,7 +125,7 @@ impl StartedBy<EmbeddedNode> for Server {
 }
 
 #[async_trait]
-impl InterruptedBy<EmbeddedNode> for Server {
+impl InterruptedBy<RillHub> for Server {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())

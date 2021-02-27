@@ -1,5 +1,5 @@
 mod client_session;
-pub mod embedded_node;
 mod exporter;
+pub mod hub;
 mod provider_session;
 mod server;

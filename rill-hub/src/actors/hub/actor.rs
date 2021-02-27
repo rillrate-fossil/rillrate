@@ -8,7 +8,7 @@ use meio::prelude::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServer;
 
 /// Embedded node.
-pub struct EmbeddedNode {
+pub struct RillHub {
     server_config: ServerConfig,
     export_config: ExportConfig,
 }
@@ -21,11 +21,11 @@ pub enum Group {
     Endpoints,
 }
 
-impl Actor for EmbeddedNode {
+impl Actor for RillHub {
     type GroupBy = Group;
 }
 
-impl EmbeddedNode {
+impl RillHub {
     /// Create a new instance of an embedded node.
     pub fn new(server_config: Option<ServerConfig>, export_config: Option<ExportConfig>) -> Self {
         Self {
@@ -36,7 +36,7 @@ impl EmbeddedNode {
 }
 
 #[async_trait]
-impl<T: Actor> StartedBy<T> for EmbeddedNode {
+impl<T: Actor> StartedBy<T> for RillHub {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![
             Group::Tuning,
@@ -89,7 +89,7 @@ impl<T: Actor> StartedBy<T> for EmbeddedNode {
 }
 
 #[async_trait]
-impl<T: Actor> InterruptedBy<T> for EmbeddedNode {
+impl<T: Actor> InterruptedBy<T> for RillHub {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -97,7 +97,7 @@ impl<T: Actor> InterruptedBy<T> for EmbeddedNode {
 }
 
 #[async_trait]
-impl Eliminated<Exporter> for EmbeddedNode {
+impl Eliminated<Exporter> for RillHub {
     async fn handle(&mut self, _id: IdOf<Exporter>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Exporter finished");
         Ok(())
@@ -105,7 +105,7 @@ impl Eliminated<Exporter> for EmbeddedNode {
 }
 
 #[async_trait]
-impl Eliminated<HttpServer> for EmbeddedNode {
+impl Eliminated<HttpServer> for RillHub {
     async fn handle(
         &mut self,
         _id: IdOf<HttpServer>,
@@ -117,7 +117,7 @@ impl Eliminated<HttpServer> for EmbeddedNode {
 }
 
 #[async_trait]
-impl Eliminated<Server> for EmbeddedNode {
+impl Eliminated<Server> for RillHub {
     async fn handle(&mut self, _id: IdOf<Server>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Server finished");
         Ok(())

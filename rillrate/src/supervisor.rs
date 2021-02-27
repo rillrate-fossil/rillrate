@@ -7,7 +7,7 @@ use meio::prelude::{
     TaskError,
 };
 use rill_engine::{config::ProviderConfig, RillEngine};
-use rill_hub::EmbeddedNode;
+use rill_hub::RillHub;
 use std::net::SocketAddr;
 
 pub struct RillRate {
@@ -37,7 +37,7 @@ impl RillRate {
 pub enum Group {
     Tuning,
     Provider,
-    EmbeddedNode,
+    Hub,
 }
 
 impl Actor for RillRate {
@@ -47,7 +47,7 @@ impl Actor for RillRate {
 #[async_trait]
 impl StartedBy<System> for RillRate {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Tuning, Group::Provider, Group::EmbeddedNode]);
+        ctx.termination_sequence(vec![Group::Tuning, Group::Provider, Group::Hub]);
 
         let config_path = env::config();
         let config_task = ReadConfigFile(config_path);
@@ -78,12 +78,8 @@ impl Eliminated<RillEngine> for RillRate {
 }
 
 #[async_trait]
-impl Eliminated<EmbeddedNode> for RillRate {
-    async fn handle(
-        &mut self,
-        _id: IdOf<EmbeddedNode>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
+impl Eliminated<RillHub> for RillRate {
+    async fn handle(&mut self, _id: IdOf<RillHub>, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
     }
@@ -122,8 +118,8 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
         } else {
             // If node wasn't specified than spawn an embedded node and
             // wait for the address to spawn a provider connected to that.
-            let actor = EmbeddedNode::new(config.server, config.export);
-            ctx.spawn_actor(actor, Group::EmbeddedNode);
+            let actor = RillHub::new(config.server, config.export);
+            ctx.spawn_actor(actor, Group::Hub);
             let task = WaitForAddr::new();
             ctx.spawn_task(task, Group::Tuning);
         }
