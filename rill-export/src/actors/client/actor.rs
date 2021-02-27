@@ -8,12 +8,12 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::view::{ViewProtocol, ViewRequest, ViewResponse};
+use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
 use std::time::Duration;
 
 pub struct RillClient {
     url: String,
-    sender: Option<WsSender<ViewRequest>>,
+    sender: Option<WsSender<ClientRequest>>,
 }
 
 impl RillClient {
@@ -56,10 +56,10 @@ impl<T: Actor> InterruptedBy<T> for RillClient {
 }
 
 #[async_trait]
-impl InstantActionHandler<WsClientStatus<ViewProtocol>> for RillClient {
+impl InstantActionHandler<WsClientStatus<ClientProtocol>> for RillClient {
     async fn handle(
         &mut self,
-        status: WsClientStatus<ViewProtocol>,
+        status: WsClientStatus<ClientProtocol>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match status {
@@ -75,10 +75,10 @@ impl InstantActionHandler<WsClientStatus<ViewProtocol>> for RillClient {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<ViewResponse>> for RillClient {
+impl ActionHandler<WsIncoming<ClientResponse>> for RillClient {
     async fn handle(
         &mut self,
-        msg: WsIncoming<ViewResponse>,
+        msg: WsIncoming<ClientResponse>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
@@ -87,10 +87,10 @@ impl ActionHandler<WsIncoming<ViewResponse>> for RillClient {
 }
 
 #[async_trait]
-impl TaskEliminated<WsClient<ViewProtocol, Self>> for RillClient {
+impl TaskEliminated<WsClient<ClientProtocol, Self>> for RillClient {
     async fn handle(
         &mut self,
-        _id: IdOf<WsClient<ViewProtocol, Self>>,
+        _id: IdOf<WsClient<ClientProtocol, Self>>,
         _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

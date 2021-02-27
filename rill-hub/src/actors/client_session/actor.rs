@@ -9,15 +9,15 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
-use rill_protocol::view::{ViewProtocol, ViewRequest, ViewResponse};
+use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
 
 pub struct ClientSession {
-    handler: WsHandler<ViewProtocol>,
+    handler: WsHandler<ClientProtocol>,
     exporter: ExporterLinkForClient,
 }
 
 impl ClientSession {
-    pub fn new(handler: WsHandler<ViewProtocol>, exporter: ExporterLinkForClient) -> Self {
+    pub fn new(handler: WsHandler<ClientProtocol>, exporter: ExporterLinkForClient) -> Self {
         Self { handler, exporter }
     }
 
@@ -54,10 +54,10 @@ impl InterruptedBy<Server> for ClientSession {
 }
 
 #[async_trait]
-impl TaskEliminated<WsProcessor<ViewProtocol, Self>> for ClientSession {
+impl TaskEliminated<WsProcessor<ClientProtocol, Self>> for ClientSession {
     async fn handle(
         &mut self,
-        _id: IdOf<WsProcessor<ViewProtocol, Self>>,
+        _id: IdOf<WsProcessor<ClientProtocol, Self>>,
         _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
@@ -67,15 +67,15 @@ impl TaskEliminated<WsProcessor<ViewProtocol, Self>> for ClientSession {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<ViewRequest>> for ClientSession {
+impl ActionHandler<WsIncoming<ClientRequest>> for ClientSession {
     async fn handle(
         &mut self,
-        msg: WsIncoming<ViewRequest>,
+        msg: WsIncoming<ClientRequest>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);
         match msg.0 {
-            ViewRequest::ControlStream { path, active } => {
+            ClientRequest::ControlStream { path, active } => {
                 if active {
                     // TODO: Generate a new link that tracks a subscription.
                     // TODO: And store it in the `Self`.
@@ -102,12 +102,12 @@ impl ActionHandler<PathNotification> for ClientSession {
     ) -> Result<(), Error> {
         match msg {
             PathNotification::Paths { descriptions } => {
-                let response = ViewResponse::Paths(descriptions);
+                let response = ClientResponse::Paths(descriptions);
                 self.handler.send(response);
                 Ok(())
             }
             PathNotification::Name { name } => {
-                let response = ViewResponse::Declare(name);
+                let response = ClientResponse::Declare(name);
                 self.handler.send(response);
                 Ok(())
             }
@@ -120,7 +120,7 @@ impl ActionHandler<ExportEvent> for ClientSession {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
             ExportEvent::BroadcastData { path, event } => {
-                let response = ViewResponse::Data(path, event);
+                let response = ClientResponse::Data(path, event);
                 self.handler.send(response);
             }
         }

@@ -15,8 +15,8 @@ use meio_connect::server::{
     DirectPath, FromRequest, HttpServerLink, Req, WebRoute, WsReq, WsRoute,
 };
 use reqwest::Url;
+use rill_protocol::client::ClientProtocol;
 use rill_protocol::provider::RillProtocol;
-use rill_protocol::view::ViewProtocol;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
@@ -259,7 +259,7 @@ impl Eliminated<ProviderSession> for Server {
 struct ClientLive {}
 
 impl DirectPath for ClientLive {
-    type Parameter = ViewProtocol;
+    type Parameter = ClientProtocol;
 
     fn paths() -> &'static [&'static str] {
         &["/live/client"]
