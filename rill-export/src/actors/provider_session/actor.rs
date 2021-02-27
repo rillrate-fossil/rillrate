@@ -100,14 +100,14 @@ impl ProviderSession {
                 }
             } else {
                 log::error!(
-                    "Unknown direction {:?} of the incoing data {:?}",
+                    "Unknown direction {:?} of the incoming data {:?}",
                     direct_id,
                     event
                 );
             }
         } else {
             log::error!(
-                "Not supported direction {:?} of the incoing data {:?}",
+                "Not supported direction {:?} of the incoming data {:?}",
                 direction,
                 event
             );

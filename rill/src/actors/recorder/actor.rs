@@ -78,7 +78,7 @@ impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let mut batch = self.subscribers.is_empty().then(Vec::new);
+        let mut batch = (!self.subscribers.is_empty()).then(Vec::new);
         self.state.aggregate(chunk, batch.as_mut());
         if let Some(batch) = batch {
             let response = RillToServer::Data { batch };
