@@ -333,6 +333,7 @@ pub enum RillData {
     },
     // TODO: Join with aggregated
     DictUpdate(DictUpdate),
+    EntryUpdate(EntryUpdate),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -340,6 +341,12 @@ pub enum DictUpdate {
     // TODO: Remove `Single`
     Single { key: String, value: String },
     Aggregated { map: HashMap<String, String> },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum EntryUpdate {
+    Add { name: EntryId },
+    Remove { name: EntryId },
 }
 
 #[derive(Debug, Error)]
@@ -363,6 +370,9 @@ impl TryInto<f64> for RillData {
             // TODO: Add extracting rules to pattern/exporter/config
             Self::DictUpdate(_) => Err(RillDataError::Unapplicable(
                 "can't convert dict into a single value",
+            )),
+            Self::EntryUpdate(_) => Err(RillDataError::Unapplicable(
+                "can't convert entry into a single value",
             )),
         }
     }

@@ -1,7 +1,7 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{
-    Description, DictUpdate, EntryId, Path, RillData, RillEvent, StreamType, Timestamp,
+    Description, DictUpdate, EntryId, EntryUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
 };
 use std::collections::{HashMap, HashSet};
 
@@ -13,7 +13,7 @@ pub enum EntryRecord {
 
 #[derive(Debug, Default)]
 pub struct EntryState {
-    map: HashMap<EntryId, HashSet<Path>>,
+    map: HashMap<EntryId, Timestamp>,
 }
 
 impl TracerState for EntryState {
@@ -24,10 +24,21 @@ impl TracerState for EntryState {
         items: Vec<DataEnvelope<Self::Item>>,
         outgoing: Option<&mut Vec<RillEvent>>,
     ) {
+        todo!()
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {
-        Vec::new()
+        self.map
+            .iter()
+            .map(|(name, ts)| {
+                let update = EntryUpdate::Add { name: name.clone() };
+                let data = RillData::EntryUpdate(update);
+                RillEvent {
+                    timestamp: ts.clone(),
+                    data,
+                }
+            })
+            .collect()
     }
 }
 
