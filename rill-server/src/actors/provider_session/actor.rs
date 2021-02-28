@@ -127,6 +127,26 @@ impl ProviderSession {
     }
 }
 
+impl ProviderSession {
+    fn distribute_response(
+        &mut self,
+        direction: Direction<ProviderProtocol>,
+        resp: ClientResponse,
+    ) {
+        let ids = direction.into_vec();
+        // TODO: Send whole batch
+        for direct_id in &ids {
+            if let Some((sender, direct_id)) = self.directions.get(*direct_id) {
+                let envelope = WideEnvelope {
+                    direction: (*direct_id).into(),
+                    data: resp.clone(),
+                };
+                sender.send(envelope);
+            }
+        }
+    }
+}
+
 #[async_trait]
 impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
     for ProviderSession
@@ -139,34 +159,12 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
             ProviderToServer::Data { batch } => {
-                let ids = msg.0.direction.into_vec();
-                // TODO: Send whole batch
                 let resp = ClientResponse::Data(batch);
-                for direct_id in &ids {
-                    if let Some((sender, direct_id)) = self.directions.get(*direct_id) {
-                        let envelope = WideEnvelope {
-                            direction: (*direct_id).into(),
-                            data: resp.clone(),
-                        };
-                        sender.send(envelope);
-                    }
-                }
-                /*
-                for event in batch {
-                    self.distribute_data(msg.0.direction.clone(), event).await?;
-                }
-                */
+                self.distribute_response(msg.0.direction, resp);
             }
             ProviderToServer::BeginStream { snapshot } => {
-                /*
-                // It's important to forward the snapshot, because it
-                // a stream doesn't generate data too often, but the provider
-                // can keep it than we can have the current value in exporters.
-                for event in snapshot {
-                    log::trace!("Processing snapshot event: {:?}", event);
-                    self.distribute_data(msg.0.direction.clone(), event).await?;
-                }
-                */
+                let resp = ClientResponse::Data(snapshot);
+                self.distribute_response(msg.0.direction, resp);
             }
             ProviderToServer::EndStream => {}
             ProviderToServer::Declare { entry_id } => {
