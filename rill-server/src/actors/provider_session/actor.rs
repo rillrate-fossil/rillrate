@@ -162,6 +162,19 @@ impl ProviderSession {
             }
         }
     }
+
+    fn send_done_marker_for(&mut self, rule: ClientRule) {
+        if let ClientRule::Forward { sender, req_id } = rule {
+            let resp = ClientResponse::Done;
+            let envelope = WideEnvelope {
+                direction: req_id.into(),
+                data: resp.clone(),
+            };
+            sender.send(envelope);
+        }
+        // Else `Stream` had finished after unsubscribing.
+        // Do nothing, because `End` notification sent already.
+    }
 }
 
 #[async_trait]
@@ -183,7 +196,15 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
                 let resp = ClientResponse::Data(snapshot);
                 self.distribute_response(msg.0.direction, resp);
             }
-            ProviderToServer::EndStream => {}
+            ProviderToServer::EndStream => {
+                // `distribute_last_response`
+                let ids = msg.0.direction.into_vec();
+                for direct_id in &ids {
+                    if let Some(rule) = self.directions.remove(*direct_id) {
+                        self.send_done_marker_for(rule);
+                    }
+                }
+            }
             ProviderToServer::Declare { entry_id } => {
                 ctx.not_terminating()?;
                 self.exporter
@@ -244,17 +265,19 @@ impl InteractionHandler<link::UnsubscribeFromPath> for ProviderSession {
         log::info!("Unsubscribing {}", msg.path);
         // But don't remove it from `directions` and wait for the `EndStream`
         // marker will be received.
-        let direct_id = msg.direct_id;
+        let provider_req_id = msg.direct_id;
 
-        if let Some(rule) = self.directions.get_mut(direct_id) {
-            *rule = ClientRule::DropTillEnd;
+        if let Some(rule) = self.directions.get_mut(provider_req_id) {
+            let mut term_rule = ClientRule::DropTillEnd;
+            std::mem::swap(rule, &mut term_rule);
+            self.send_done_marker_for(term_rule);
 
             let request = ServerToProvider::ControlStream {
                 path: msg.path,
                 active: false,
             };
 
-            self.send_request(direct_id, request);
+            self.send_request(provider_req_id, request);
         }
 
         Ok(())

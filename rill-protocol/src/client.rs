@@ -30,4 +30,6 @@ pub enum ClientResponse {
     Declare(EntryId),
     Paths(Vec<Description>),
     Data(Vec<RillEvent>),
+    /// Stream closed/finished.
+    Done,
 }
