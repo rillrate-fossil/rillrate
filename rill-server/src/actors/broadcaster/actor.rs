@@ -1,4 +1,4 @@
-use super::{link, ExportEvent, PathNotification, Publisher};
+use super::{link, PathNotification, Publisher};
 use crate::actors::provider_session::ProviderSessionLink;
 use crate::actors::server::RillServer;
 use anyhow::Error;
@@ -16,13 +16,10 @@ pub enum Reason {
     NoActiveSession,
     #[error("Path already declared {0}")]
     AlreadyDeclaredPath(Path),
-    #[error("No meta for path {0}")]
-    NoMetaForPath(Path),
 }
 
 #[derive(Debug)]
 struct Record {
-    distributor: Distributor<ExportEvent>,
     description: Description,
     declared: bool,
 }
@@ -112,6 +109,7 @@ impl ActionHandler<link::SessionLifetime> for Broadcaster {
     }
 }
 
+/*
 #[async_trait]
 impl ActionHandler<link::DataReceived> for Broadcaster {
     async fn handle(
@@ -120,7 +118,7 @@ impl ActionHandler<link::DataReceived> for Broadcaster {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.path.clone();
-        let event = ExportEvent::BroadcastData {
+        let event = BroadcastEvent::BroadcastData {
             path: msg.path,
             event: msg.event,
         };
@@ -132,6 +130,7 @@ impl ActionHandler<link::DataReceived> for Broadcaster {
         }
     }
 }
+*/
 
 impl Broadcaster {
     fn declared_paths(&self) -> Vec<Description> {
@@ -162,7 +161,6 @@ impl ActionHandler<link::PathDeclared> for Broadcaster {
         match entry {
             Entry::Vacant(entry) => {
                 let record = Record {
-                    distributor: Distributor::new(),
                     description: msg.description.clone(),
                     declared: true,
                 };

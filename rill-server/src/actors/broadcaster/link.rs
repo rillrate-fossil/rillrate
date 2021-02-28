@@ -3,7 +3,7 @@ use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::{Action, ActionHandler, ActionRecipient, Actor, Address};
-use rill_protocol::provider::{Description, EntryId, Path, RillEvent};
+use rill_protocol::provider::{Description, EntryId, Path};
 use std::collections::HashSet;
 
 /// This `Link` used by `Session` actor.
@@ -177,6 +177,7 @@ impl ExporterLinkForProvider {
     }
 }
 
+/*
 pub(super) struct DataReceived {
     pub path: Path,
     pub event: RillEvent,
@@ -190,3 +191,4 @@ impl ExporterLinkForProvider {
         self.address.act(msg).await
     }
 }
+*/

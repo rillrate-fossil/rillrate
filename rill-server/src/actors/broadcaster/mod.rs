@@ -8,14 +8,16 @@ pub use link::{ExporterLinkForClient, ExporterLinkForProvider};
 
 use meio::{Action, Actor, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
-use rill_protocol::provider::{Description, EntryId, Path, RillEvent};
+use rill_protocol::provider::{Description, EntryId};
 
+/*
 #[derive(Debug, Clone)]
-pub enum ExportEvent {
+pub enum BroadcastEvent {
     BroadcastData { path: Path, event: RillEvent },
 }
 
-impl Action for ExportEvent {}
+impl Action for BroadcastEvent {}
+*/
 
 #[derive(Debug, Clone)]
 pub enum PathNotification {
