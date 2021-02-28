@@ -1,5 +1,5 @@
 use crate::actors::exporter::{ExportEvent, ExporterLinkForClient, PathNotification};
-use crate::actors::provider_session::ProviderLink;
+use crate::actors::provider_session::{BindedProviderLink, ProviderLink};
 use crate::actors::router::Router;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -20,16 +20,27 @@ pub static PROVIDER: Lazy<Mutex<Option<ProviderLink>>> = Lazy::new(|| Mutex::new
 pub struct ClientSession {
     handler: WsHandler<ClientProtocol>,
     exporter: ExporterLinkForClient,
+    provider: Option<BindedProviderLink>,
 }
 
 impl ClientSession {
     pub fn new(handler: WsHandler<ClientProtocol>, exporter: ExporterLinkForClient) -> Self {
-        Self { handler, exporter }
+        Self {
+            handler,
+            exporter,
+            provider: None,
+        }
     }
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
         self.exporter.unsubscribe_all(ctx.address()).await.ok();
         ctx.shutdown();
+    }
+
+    fn provider(&mut self) -> Result<&mut BindedProviderLink, Error> {
+        self.provider
+            .as_mut()
+            .ok_or_else(|| Error::msg("Provider not binded"))
     }
 }
 
@@ -47,6 +58,9 @@ impl StartedBy<Router> for ClientSession {
         self.exporter
             .subscribe_to_paths(ctx.address().clone())
             .await?;
+
+        let sender = self.handler.sender();
+        self.provider = PROVIDER.lock().await.as_ref().map(|link| link.bind(sender));
 
         Ok(())
     }
@@ -81,14 +95,18 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);
+        // TODO: Return `Error` response to the client by WS
         match msg.0.data {
             ClientRequest::ControlStream { path, active } => {
                 if active {
+                    self.provider()?.subscribe(path, msg.0.direct_id).await?;
                     // TODO: Generate a new link that tracks a subscription.
                     // TODO: And store it in the `Self`.
+                    /*
                     self.exporter
                         .subscribe_to_data(path, ctx.address().clone())
                         .await?;
+                    */
                 } else {
                     self.exporter
                         .unsubscribe_from_data(path, ctx.address())
@@ -135,7 +153,7 @@ impl ActionHandler<ExportEvent> for ClientSession {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
         match msg {
             ExportEvent::BroadcastData { path, event } => {
-                let response = ClientResponse::Data(path, event);
+                //let response = ClientResponse::Data(path, event);
                 //self.handler.send(response);
             }
         }

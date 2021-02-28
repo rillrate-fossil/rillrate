@@ -2,4 +2,4 @@ mod actor;
 pub use actor::ProviderSession;
 
 mod link;
-pub use link::{ProviderLink, ProviderSessionLink};
+pub use link::{BindedProviderLink, ProviderLink, ProviderSessionLink};

@@ -12,11 +12,13 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
+use rill_protocol::client::{ClientReqId, ClientResponse};
 use rill_protocol::provider::{
     EntryId, Path, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent, ServerToProvider,
 };
 use rill_protocol::transport::{DirectId, Direction, Envelope, WideEnvelope};
 use std::collections::HashMap;
+use typed_slab::TypedSlab;
 
 pub struct ProviderSession {
     /*
@@ -29,6 +31,8 @@ pub struct ProviderSession {
     counter: usize,
     // TODO: Replace to `TypedSlab`
     paths: HashMap<DirectId<ProviderProtocol>, Path>,
+
+    directions: TypedSlab<ProviderReqId, (link::ClientSender, ClientReqId)>,
 }
 
 impl ProviderSession {
@@ -39,6 +43,8 @@ impl ProviderSession {
             exporter,
             counter: 0,
             paths: HashMap::new(),
+
+            directions: TypedSlab::new(),
         }
     }
 
@@ -133,20 +139,34 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
             ProviderToServer::Data { batch } => {
-                // TODO: Improve this!
+                let ids = msg.0.direction.into_vec();
+                // TODO: Send whole batch
+                let resp = ClientResponse::Data(batch);
+                for direct_id in &ids {
+                    if let Some((sender, direct_id)) = self.directions.get(*direct_id) {
+                        let envelope = WideEnvelope {
+                            direction: (*direct_id).into(),
+                            data: resp.clone(),
+                        };
+                        sender.send(envelope);
+                    }
+                }
+                /*
                 for event in batch {
                     self.distribute_data(msg.0.direction.clone(), event).await?;
                 }
+                */
             }
             ProviderToServer::BeginStream { snapshot } => {
+                /*
                 // It's important to forward the snapshot, because it
                 // a stream doesn't generate data too often, but the provider
                 // can keep it than we can have the current value in exporters.
-                // TODO: Improve this!
                 for event in snapshot {
                     log::trace!("Processing snapshot event: {:?}", event);
                     self.distribute_data(msg.0.direction.clone(), event).await?;
                 }
+                */
             }
             ProviderToServer::EndStream => {}
             ProviderToServer::Declare { entry_id } => {
@@ -172,6 +192,25 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<link::SubscribeToPath> for ProviderSession {
+    async fn handle(
+        &mut self,
+        msg: link::SubscribeToPath,
+        _ctx: &mut Context<Self>,
+    ) -> Result<ProviderReqId, Error> {
+        let direct_id = self.directions.insert((msg.sender, msg.direct_id));
+
+        let request = ServerToProvider::ControlStream {
+            path: msg.path,
+            active: true,
+        };
+        self.send_request(direct_id, request);
+
+        Ok(direct_id)
     }
 }
 

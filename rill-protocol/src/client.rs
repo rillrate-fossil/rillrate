@@ -11,6 +11,7 @@ pub struct ClientProtocol;
 
 impl Protocol for ClientProtocol {
     type ToServer = Envelope<Self, ClientRequest>;
+    // TODO: Consider to disallow broadcasts and change to ordinary `Envelope`
     type ToClient = WideEnvelope<Self, ClientResponse>;
     type Codec = JsonCodec;
 }
@@ -28,5 +29,5 @@ pub enum ClientRequest {
 pub enum ClientResponse {
     Declare(EntryId),
     Paths(Vec<Description>),
-    Data(Path, RillEvent),
+    Data(Vec<RillEvent>),
 }

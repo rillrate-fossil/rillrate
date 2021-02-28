@@ -2,9 +2,14 @@ use super::ProviderSession;
 use anyhow::Error;
 use derive_more::From;
 use meio::{Action, Address, Interaction};
+use meio_connect::client::WsSender;
+use rill_protocol::client::{ClientProtocol, ClientReqId, ClientResponse};
 use rill_protocol::provider::{Path, ProviderReqId, ServerToProvider};
+use rill_protocol::transport::WideEnvelope;
 use std::collections::hash_map::{Entry, HashMap};
 use thiserror::Error;
+
+pub(super) type ClientSender = WsSender<WideEnvelope<ClientProtocol, ClientResponse>>;
 
 #[derive(Debug, From)]
 pub struct ProviderLink {
@@ -12,8 +17,9 @@ pub struct ProviderLink {
 }
 
 impl ProviderLink {
-    pub fn bind(&self) -> BindedProviderLink {
+    pub fn bind(&self, sender: ClientSender) -> BindedProviderLink {
         BindedProviderLink {
+            sender,
             address: self.address.clone(),
             subscriptions: HashMap::new(),
         }
@@ -22,16 +28,34 @@ impl ProviderLink {
 
 #[derive(Debug, From)]
 pub struct BindedProviderLink {
+    sender: ClientSender,
     address: Address<ProviderSession>,
     subscriptions: HashMap<Path, ProviderReqId>,
 }
 
+pub(super) struct SubscribeToPath {
+    pub path: Path,
+    pub direct_id: ClientReqId,
+    pub sender: ClientSender,
+}
+
+impl Interaction for SubscribeToPath {
+    type Output = ProviderReqId;
+}
+
 impl BindedProviderLink {
-    pub async fn subscribe(&mut self, path: Path) -> Result<(), Error> {
+    pub async fn subscribe(&mut self, path: Path, direct_id: ClientReqId) -> Result<(), Error> {
         match self.subscriptions.entry(path.clone()) {
             Entry::Vacant(entry) => {
-                // TODO: Interact with a provider
-                todo!()
+                let sender = self.sender.clone();
+                let msg = SubscribeToPath {
+                    path,
+                    direct_id,
+                    sender,
+                };
+                let direct_id = self.address.interact_and_wait(msg).await?;
+                entry.insert(direct_id);
+                Ok(())
             }
             Entry::Occupied(_entry) => Err(Reason::AlreadySubscribed(path).into()),
         }
