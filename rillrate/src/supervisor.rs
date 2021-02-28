@@ -149,7 +149,7 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
         } else {
             // If node wasn't specified than spawn an embedded node and
             // wait for the address to spawn a provider connected to that.
-            let actor = RillServer::new(config.server, config.export);
+            let actor = RillServer::new(config.server);
             ctx.spawn_actor(actor, Group::Hub);
 
             let task = WaitForAddr::<RillEngine>::new(&rill_server::INTERN_ADDR);

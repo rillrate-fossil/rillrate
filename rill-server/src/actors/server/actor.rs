@@ -1,7 +1,6 @@
 use crate::actors::exporter::Exporter;
-use crate::actors::exporter::{publishers, ExporterLinkForClient};
 use crate::actors::router::Router;
-use crate::config::{ExportConfig, ServerConfig};
+use crate::config::ServerConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
@@ -10,7 +9,6 @@ use meio_connect::server::HttpServer;
 /// Embedded node.
 pub struct RillServer {
     server_config: ServerConfig,
-    export_config: ExportConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -27,10 +25,9 @@ impl Actor for RillServer {
 
 impl RillServer {
     /// Create a new instance of an embedded node.
-    pub fn new(server_config: Option<ServerConfig>, export_config: Option<ExportConfig>) -> Self {
+    pub fn new(server_config: Option<ServerConfig>) -> Self {
         Self {
             server_config: server_config.unwrap_or_default(),
-            export_config: export_config.unwrap_or_default(),
         }
     }
 }
@@ -70,6 +67,7 @@ impl<T: Actor> StartedBy<T> for RillServer {
         );
         let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
 
+        /*
         let mut exporter: ExporterLinkForClient = exporter.link();
 
         // Spawn exporters if they are exist
@@ -83,6 +81,7 @@ impl<T: Actor> StartedBy<T> for RillServer {
                 .start_publisher::<publishers::GraphitePublisher>(config)
                 .await?;
         }
+        */
 
         Ok(())
     }
