@@ -32,7 +32,15 @@ pub struct ProviderSession {
     // TODO: Replace to `TypedSlab`
     paths: HashMap<DirectId<ProviderProtocol>, Path>,
 
-    directions: TypedSlab<ProviderReqId, (link::ClientSender, ClientReqId)>,
+    directions: TypedSlab<ProviderReqId, ClientRule>,
+}
+
+enum ClientRule {
+    Forward {
+        sender: link::ClientSender,
+        req_id: ClientReqId,
+    },
+    DropTillEnd,
 }
 
 impl ProviderSession {
@@ -136,12 +144,21 @@ impl ProviderSession {
         let ids = direction.into_vec();
         // TODO: Send whole batch
         for direct_id in &ids {
-            if let Some((sender, direct_id)) = self.directions.get(*direct_id) {
-                let envelope = WideEnvelope {
-                    direction: (*direct_id).into(),
-                    data: resp.clone(),
-                };
-                sender.send(envelope);
+            if let Some(rule) = self.directions.get(*direct_id) {
+                match rule {
+                    ClientRule::Forward { req_id, sender } => {
+                        let envelope = WideEnvelope {
+                            direction: (*req_id).into(),
+                            data: resp.clone(),
+                        };
+                        sender.send(envelope);
+                    }
+                    ClientRule::DropTillEnd => {
+                        log::trace!(
+                            "Drop the message since the client unsubscribed from the stream."
+                        );
+                    }
+                }
             }
         }
     }
@@ -200,7 +217,12 @@ impl InteractionHandler<link::SubscribeToPath> for ProviderSession {
         msg: link::SubscribeToPath,
         _ctx: &mut Context<Self>,
     ) -> Result<ProviderReqId, Error> {
-        let direct_id = self.directions.insert((msg.sender, msg.direct_id));
+        log::info!("Subscribing {}", msg.path);
+        let rule = ClientRule::Forward {
+            sender: msg.sender,
+            req_id: msg.direct_id,
+        };
+        let direct_id = self.directions.insert(rule);
 
         let request = ServerToProvider::ControlStream {
             path: msg.path,
@@ -219,16 +241,21 @@ impl InteractionHandler<link::UnsubscribeFromPath> for ProviderSession {
         msg: link::UnsubscribeFromPath,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        log::info!("Unsubscribing {}", msg.path);
         // But don't remove it from `directions` and wait for the `EndStream`
         // marker will be received.
         let direct_id = msg.direct_id;
 
-        let request = ServerToProvider::ControlStream {
-            path: msg.path,
-            active: false,
-        };
+        if let Some(rule) = self.directions.get_mut(direct_id) {
+            *rule = ClientRule::DropTillEnd;
 
-        self.send_request(direct_id, request);
+            let request = ServerToProvider::ControlStream {
+                path: msg.path,
+                active: false,
+            };
+
+            self.send_request(direct_id, request);
+        }
 
         Ok(())
     }

@@ -396,7 +396,6 @@ pub enum ProviderToServer {
         /// Aggregated events.
         batch: Vec<RillEvent>,
     },
-    /// The response to `ControlStream { active: false }` request
     EndStream,
     Error {
         reason: String,
