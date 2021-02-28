@@ -2,7 +2,7 @@ use super::RillClient;
 use anyhow::Error;
 use async_trait::async_trait;
 use derive_more::From;
-use meio::{Address, Action};
+use meio::{Action, Address};
 
 #[derive(Debug, From)]
 pub struct ClientLink {

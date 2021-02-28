@@ -1,5 +1,4 @@
 use super::{link, PathNotification, Publisher};
-use crate::actors::provider_session::ProviderSessionLink;
 use crate::actors::server::RillServer;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -12,8 +11,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Reason {
-    #[error("No active provider available")]
-    NoActiveSession,
     #[error("Path already declared {0}")]
     AlreadyDeclaredPath(Path),
 }
@@ -26,7 +23,9 @@ struct Record {
 
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Broadcaster {
-    provider: Option<(EntryId, ProviderSessionLink)>,
+    //provider: Option<(EntryId, ProviderSessionLink)>,
+    // TODO: Maybe use full names instead of separate top `name`
+    name: Option<EntryId>,
     paths_trackers: Distributor<PathNotification>,
     recipients: HashMap<Path, Record>,
 }
@@ -34,12 +33,13 @@ pub struct Broadcaster {
 impl Broadcaster {
     pub fn new() -> Self {
         Self {
-            provider: None,
+            name: None,
             paths_trackers: Distributor::new(),
             recipients: HashMap::new(),
         }
     }
 
+    /*
     fn provider(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
         if let Some((_, ref mut link)) = self.provider {
             Ok(link)
@@ -47,11 +47,14 @@ impl Broadcaster {
             Err(Reason::NoActiveSession)
         }
     }
+    */
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        /*
         if let Ok(provider) = self.provider() {
             provider.unsubscribe_all().await.ok();
         }
+        */
         ctx.shutdown();
     }
 }
@@ -92,14 +95,14 @@ impl ActionHandler<link::SessionLifetime> for Broadcaster {
     ) -> Result<(), Error> {
         use link::SessionLifetime::*;
         match msg {
-            Attached { name, session } => {
+            Attached { name, .. } => {
                 let msg = PathNotification::Name { name: name.clone() };
                 // Don't subscribe here till the stream (path) will be declared.
-                self.provider = Some((name, session));
+                self.name = Some(name);
                 self.paths_trackers.act_all(msg).await?;
             }
             Detached => {
-                self.provider.take();
+                self.name.take();
                 for record in self.recipients.values_mut() {
                     record.declared = false;
                 }
@@ -188,8 +191,8 @@ impl ActionHandler<link::SubscribeToPaths> for Broadcaster {
     ) -> Result<(), Error> {
         ctx.not_terminating()?;
 
-        if let Some((ref name, _)) = self.provider {
-            let event = PathNotification::Name { name: name.clone() };
+        if let Some(name) = self.name.clone() {
+            let event = PathNotification::Name { name };
             msg.recipient.act(event).await?;
         }
 

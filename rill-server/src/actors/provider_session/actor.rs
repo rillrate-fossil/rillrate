@@ -14,10 +14,9 @@ use meio_connect::{
 };
 use rill_protocol::client::{ClientReqId, ClientResponse};
 use rill_protocol::provider::{
-    EntryId, Path, ProviderProtocol, ProviderReqId, ProviderToServer, ServerToProvider,
+    EntryId, ProviderProtocol, ProviderReqId, ProviderToServer, ServerToProvider,
 };
-use rill_protocol::transport::{DirectId, Direction, Envelope, WideEnvelope};
-use std::collections::HashMap;
+use rill_protocol::transport::{Direction, Envelope, WideEnvelope};
 use typed_slab::TypedSlab;
 
 pub struct ProviderSession {
@@ -28,9 +27,6 @@ pub struct ProviderSession {
     handler: WsHandler<ProviderProtocol>,
     registered: Option<EntryId>,
     exporter: ExporterLinkForProvider,
-    counter: usize,
-    // TODO: Replace to `TypedSlab`
-    paths: HashMap<DirectId<ProviderProtocol>, Path>,
 
     directions: TypedSlab<ProviderReqId, ClientRule>,
 }
@@ -49,8 +45,6 @@ impl ProviderSession {
             handler,
             registered: None,
             exporter,
-            counter: 0,
-            paths: HashMap::new(),
 
             directions: TypedSlab::new(),
         }
@@ -209,9 +203,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
             }
             ProviderToServer::Declare { entry_id } => {
                 ctx.not_terminating()?;
-                self.exporter
-                    .session_attached(entry_id.clone(), ctx.address().link())
-                    .await?;
+                self.exporter.session_attached(entry_id.clone()).await?;
                 self.registered = Some(entry_id);
                 *PROVIDER.lock().await = Some(ctx.address().link());
                 let msg = ServerToProvider::Describe { active: true };
@@ -285,6 +277,7 @@ impl ActionHandler<link::UnsubscribeFromPath> for ProviderSession {
     }
 }
 
+/*
 #[async_trait]
 impl InteractionHandler<link::NewRequest> for ProviderSession {
     async fn handle(
@@ -322,3 +315,4 @@ impl ActionHandler<link::SubRequest> for ProviderSession {
         Ok(())
     }
 }
+*/

@@ -4,7 +4,7 @@ use derive_more::From;
 use meio::{Action, Address, Interaction};
 use meio_connect::client::WsSender;
 use rill_protocol::client::{ClientProtocol, ClientReqId, ClientResponse};
-use rill_protocol::provider::{Path, ProviderReqId, ServerToProvider};
+use rill_protocol::provider::{Path, ProviderReqId};
 use rill_protocol::transport::WideEnvelope;
 use std::collections::hash_map::{Entry, HashMap};
 use thiserror::Error;
@@ -97,10 +97,13 @@ impl BindedProviderLink {
 enum Reason {
     #[error("Already subscribed {0}")]
     AlreadySubscribed(Path),
+    /*
     #[error("Never subscribed {0}")]
     NeverSubscribed(Path),
+    */
 }
 
+/*
 /// It's not cloneable, because it tracks subscriptions.
 #[derive(Debug)]
 pub struct ProviderSessionLink {
@@ -171,3 +174,4 @@ impl ProviderSessionLink {
         Ok(())
     }
 }
+*/

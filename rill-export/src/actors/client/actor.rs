@@ -84,14 +84,10 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
         match msg.0.data {
-            ClientResponse::Declare(entry_id) => {
-            }
-            ClientResponse::Paths(paths) => {
-            }
-            ClientResponse::Data(batch) => {
-            }
-            ClientResponse::Done => {
-            }
+            ClientResponse::Declare(entry_id) => {}
+            ClientResponse::Paths(paths) => {}
+            ClientResponse::Data(batch) => {}
+            ClientResponse::Done => {}
         }
         Ok(())
     }

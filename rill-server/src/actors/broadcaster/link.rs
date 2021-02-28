@@ -1,5 +1,4 @@
 use super::{Broadcaster, PathNotification};
-use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
 use meio::{Action, ActionHandler, ActionRecipient, Actor, Address};
@@ -139,22 +138,15 @@ pub struct ExporterLinkForProvider {
 }
 
 pub(super) enum SessionLifetime {
-    Attached {
-        name: EntryId,
-        session: ProviderSessionLink,
-    },
+    Attached { name: EntryId },
     Detached,
 }
 
 impl Action for SessionLifetime {}
 
 impl ExporterLinkForProvider {
-    pub async fn session_attached(
-        &mut self,
-        name: EntryId,
-        session: ProviderSessionLink,
-    ) -> Result<(), Error> {
-        let msg = SessionLifetime::Attached { name, session };
+    pub async fn session_attached(&mut self, name: EntryId) -> Result<(), Error> {
+        let msg = SessionLifetime::Attached { name };
         self.address.act(msg).await
     }
 
