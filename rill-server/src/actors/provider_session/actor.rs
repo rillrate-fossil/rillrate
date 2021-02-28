@@ -213,6 +213,28 @@ impl InteractionHandler<link::SubscribeToPath> for ProviderSession {
 }
 
 #[async_trait]
+impl InteractionHandler<link::UnsubscribeFromPath> for ProviderSession {
+    async fn handle(
+        &mut self,
+        msg: link::UnsubscribeFromPath,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        // But don't remove it from `directions` and wait for the `EndStream`
+        // marker will be received.
+        let direct_id = msg.direct_id;
+
+        let request = ServerToProvider::ControlStream {
+            path: msg.path,
+            active: false,
+        };
+
+        self.send_request(direct_id, request);
+
+        Ok(())
+    }
+}
+
+#[async_trait]
 impl InteractionHandler<link::NewRequest> for ProviderSession {
     async fn handle(
         &mut self,

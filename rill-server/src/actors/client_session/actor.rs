@@ -108,9 +108,7 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
                         .await?;
                     */
                 } else {
-                    self.exporter
-                        .unsubscribe_from_data(path, ctx.address())
-                        .await?;
+                    self.provider()?.unsubscribe(path).await?;
                 }
             }
         }

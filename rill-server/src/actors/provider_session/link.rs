@@ -62,6 +62,28 @@ impl BindedProviderLink {
     }
 }
 
+pub(super) struct UnsubscribeFromPath {
+    pub path: Path,
+    pub direct_id: ProviderReqId,
+}
+
+impl BindedProviderLink {
+    pub async fn unsubscribe(&mut self, path: Path) -> Result<(), Error> {
+        if let Some(req_id) = self.subscriptions.remove(&path) {
+            let msg = UnsubscribeFromPath {
+                path,
+                direct_id: req_id,
+            };
+            self.address.interact_and_wait(msg).await?;
+        }
+        Ok(())
+    }
+}
+
+impl Interaction for UnsubscribeFromPath {
+    type Output = ();
+}
+
 #[derive(Debug, Error)]
 enum Reason {
     #[error("Already subscribed {0}")]
