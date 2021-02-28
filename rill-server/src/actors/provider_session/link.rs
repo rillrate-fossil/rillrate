@@ -87,7 +87,7 @@ impl BindedProviderLink {
         let paths: Vec<_> = self.subscriptions.keys().cloned().collect();
         for (direct_id, path) in paths {
             if let Err(err) = self.unsubscribe(path, direct_id).await {
-                log::error!("Unsubscribing all partially failed");
+                log::error!("Unsubscribing all partially failed: {}", err);
             }
         }
     }

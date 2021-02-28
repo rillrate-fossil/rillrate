@@ -15,7 +15,6 @@ use meio_connect::server::{
     DirectPath, FromRequest, HttpServerLink, Req, WebRoute, WsReq, WsRoute,
 };
 use reqwest::Url;
-use rill_engine::tracers::meta::EntryTracer;
 use rill_protocol::client::ClientProtocol;
 use rill_protocol::provider::ProviderProtocol;
 use serde::Deserialize;
@@ -40,7 +39,6 @@ enum AssetsMode {
 }
 
 pub struct Router {
-    providers_tracer: EntryTracer,
     inner_server: HttpServerLink,
     extern_server: HttpServerLink,
     exporter: Address<Exporter>,
@@ -55,7 +53,6 @@ impl Router {
         exporter: Address<Exporter>,
     ) -> Self {
         Self {
-            providers_tracer: EntryTracer::new("server_entries".parse().unwrap()),
             inner_server,
             extern_server,
             exporter,

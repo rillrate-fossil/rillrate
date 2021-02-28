@@ -1,9 +1,9 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::provider::{
-    Description, DictUpdate, EntryId, EntryUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
+    Description, EntryId, EntryUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum EntryRecord {
@@ -22,9 +22,10 @@ impl TracerState for EntryState {
     fn aggregate(
         &mut self,
         items: Vec<DataEnvelope<Self::Item>>,
-        outgoing: Option<&mut Vec<RillEvent>>,
+        _outgoing: Option<&mut Vec<RillEvent>>,
     ) {
-        todo!()
+        log::trace!("EntryState incoiming: {:?}", items);
+        log::error!("EntryState aggregation not implemented yet.");
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {

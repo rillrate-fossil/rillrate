@@ -1,4 +1,4 @@
-use crate::actors::exporter::{ExportEvent, ExporterLinkForClient, PathNotification};
+use crate::actors::exporter::{ExporterLinkForClient, PathNotification};
 use crate::actors::provider_session::{BindedProviderLink, ProviderLink};
 use crate::actors::router::Router;
 use anyhow::Error;
@@ -33,7 +33,7 @@ impl ClientSession {
     }
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        //self.exporter.unsubscribe_all(ctx.address()).await.ok();
         if let Ok(provider) = self.provider() {
             provider.unsubscribe_all().await;
         }
@@ -95,7 +95,7 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
     async fn handle(
         &mut self,
         msg: WsIncoming<Envelope<ClientProtocol, ClientRequest>>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client incoming message: {:?}", msg);
         // TODO: Return `Error` response to the client by WS
@@ -103,13 +103,6 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
             ClientRequest::ControlStream { path, active } => {
                 if active {
                     self.provider()?.subscribe(path, msg.0.direct_id).await?;
-                    // TODO: Generate a new link that tracks a subscription.
-                    // TODO: And store it in the `Self`.
-                    /*
-                    self.exporter
-                        .subscribe_to_data(path, ctx.address().clone())
-                        .await?;
-                    */
                 } else {
                     self.provider()?.unsubscribe(path, msg.0.direct_id).await?;
                 }
@@ -149,6 +142,7 @@ impl ActionHandler<PathNotification> for ClientSession {
     }
 }
 
+/*
 #[async_trait]
 impl ActionHandler<ExportEvent> for ClientSession {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
@@ -161,3 +155,4 @@ impl ActionHandler<ExportEvent> for ClientSession {
         Ok(())
     }
 }
+*/

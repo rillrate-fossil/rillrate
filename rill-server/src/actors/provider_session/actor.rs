@@ -14,7 +14,7 @@ use meio_connect::{
 };
 use rill_protocol::client::{ClientReqId, ClientResponse};
 use rill_protocol::provider::{
-    EntryId, Path, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent, ServerToProvider,
+    EntryId, Path, ProviderProtocol, ProviderReqId, ProviderToServer, ServerToProvider,
 };
 use rill_protocol::transport::{DirectId, Direction, Envelope, WideEnvelope};
 use std::collections::HashMap;
@@ -105,6 +105,7 @@ impl TaskEliminated<WsProcessor<ProviderProtocol, Self>> for ProviderSession {
     }
 }
 
+/*
 impl ProviderSession {
     async fn distribute_data(
         &mut self,
@@ -134,6 +135,7 @@ impl ProviderSession {
         Ok(())
     }
 }
+*/
 
 impl ProviderSession {
     fn distribute_response(
