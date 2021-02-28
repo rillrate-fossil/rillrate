@@ -256,7 +256,7 @@ impl InteractionHandler<link::SubscribeToPath> for ProviderSession {
 }
 
 #[async_trait]
-impl InteractionHandler<link::UnsubscribeFromPath> for ProviderSession {
+impl ActionHandler<link::UnsubscribeFromPath> for ProviderSession {
     async fn handle(
         &mut self,
         msg: link::UnsubscribeFromPath,
@@ -279,7 +279,6 @@ impl InteractionHandler<link::UnsubscribeFromPath> for ProviderSession {
 
             self.send_request(provider_req_id, request);
         }
-
         Ok(())
     }
 }

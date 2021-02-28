@@ -30,7 +30,7 @@ impl ProviderLink {
 pub struct BindedProviderLink {
     sender: ClientSender,
     address: Address<ProviderSession>,
-    subscriptions: HashMap<Path, ProviderReqId>,
+    subscriptions: HashMap<(ClientReqId, Path), ProviderReqId>,
 }
 
 pub(super) struct SubscribeToPath {
@@ -45,7 +45,8 @@ impl Interaction for SubscribeToPath {
 
 impl BindedProviderLink {
     pub async fn subscribe(&mut self, path: Path, direct_id: ClientReqId) -> Result<(), Error> {
-        match self.subscriptions.entry(path.clone()) {
+        let key = (direct_id, path.clone());
+        match self.subscriptions.entry(key) {
             Entry::Vacant(entry) => {
                 let sender = self.sender.clone();
                 let msg = SubscribeToPath {
@@ -67,21 +68,29 @@ pub(super) struct UnsubscribeFromPath {
     pub direct_id: ProviderReqId,
 }
 
+impl Action for UnsubscribeFromPath {}
+
 impl BindedProviderLink {
-    pub async fn unsubscribe(&mut self, path: Path) -> Result<(), Error> {
-        if let Some(req_id) = self.subscriptions.remove(&path) {
+    pub async fn unsubscribe(&mut self, path: Path, direct_id: ClientReqId) -> Result<(), Error> {
+        let key = (direct_id, path);
+        if let Some(req_id) = self.subscriptions.remove(&key) {
             let msg = UnsubscribeFromPath {
-                path,
+                path: key.1,
                 direct_id: req_id,
             };
-            self.address.interact_and_wait(msg).await?;
+            self.address.act(msg).await?;
         }
         Ok(())
     }
-}
 
-impl Interaction for UnsubscribeFromPath {
-    type Output = ();
+    pub async fn unsubscribe_all(&mut self) {
+        let paths: Vec<_> = self.subscriptions.keys().cloned().collect();
+        for (direct_id, path) in paths {
+            if let Err(err) = self.unsubscribe(path, direct_id).await {
+                log::error!("Unsubscribing all partially failed");
+            }
+        }
+    }
 }
 
 #[derive(Debug, Error)]

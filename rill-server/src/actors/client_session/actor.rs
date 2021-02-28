@@ -34,6 +34,9 @@ impl ClientSession {
 
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
         self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        if let Ok(provider) = self.provider() {
+            provider.unsubscribe_all().await;
+        }
         ctx.shutdown();
     }
 
@@ -108,7 +111,7 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
                         .await?;
                     */
                 } else {
-                    self.provider()?.unsubscribe(path).await?;
+                    self.provider()?.unsubscribe(path, msg.0.direct_id).await?;
                 }
             }
         }
