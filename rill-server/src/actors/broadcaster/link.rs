@@ -1,4 +1,4 @@
-use super::{Exporter, PathNotification};
+use super::{Broadcaster, PathNotification};
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
@@ -9,12 +9,12 @@ use std::collections::HashSet;
 /// This `Link` used by `Session` actor.
 #[derive(Debug)]
 pub struct ExporterLinkForClient {
-    address: Address<Exporter>,
+    address: Address<Broadcaster>,
     active_streams: HashSet<Path>,
 }
 
-impl From<Address<Exporter>> for ExporterLinkForClient {
-    fn from(address: Address<Exporter>) -> Self {
+impl From<Address<Broadcaster>> for ExporterLinkForClient {
+    fn from(address: Address<Broadcaster>) -> Self {
         Self {
             address,
             active_streams: HashSet::new(),
@@ -135,7 +135,7 @@ impl ExporterLinkForClient {
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
 pub struct ExporterLinkForProvider {
-    address: Address<Exporter>,
+    address: Address<Broadcaster>,
 }
 
 pub(super) enum SessionLifetime {

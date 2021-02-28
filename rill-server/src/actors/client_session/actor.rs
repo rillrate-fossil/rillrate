@@ -1,4 +1,4 @@
-use crate::actors::exporter::{ExporterLinkForClient, PathNotification};
+use crate::actors::broadcaster::{ExporterLinkForClient, PathNotification};
 use crate::actors::provider_session::{BindedProviderLink, ProviderLink};
 use crate::actors::router::Router;
 use anyhow::Error;

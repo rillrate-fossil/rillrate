@@ -1,4 +1,4 @@
-use crate::actors::exporter::Exporter;
+use crate::actors::broadcaster::Broadcaster;
 use crate::actors::router::Router;
 use crate::config::ServerConfig;
 use anyhow::Error;
@@ -14,7 +14,7 @@ pub struct RillServer {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
     Tuning,
-    Exporter,
+    Broadcaster,
     HttpServer,
     Endpoints,
 }
@@ -37,7 +37,7 @@ impl<T: Actor> StartedBy<T> for RillServer {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![
             Group::Tuning,
-            Group::Exporter,
+            Group::Broadcaster,
             Group::HttpServer,
             Group::Endpoints,
         ]);
@@ -57,8 +57,8 @@ impl<T: Actor> StartedBy<T> for RillServer {
         let inner_http_server_actor = HttpServer::new(inner_addr, watcher);
         let inner_http_server = ctx.spawn_actor(inner_http_server_actor, Group::HttpServer);
 
-        let exporter_actor = Exporter::new();
-        let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
+        let exporter_actor = Broadcaster::new();
+        let exporter = ctx.spawn_actor(exporter_actor, Group::Broadcaster);
 
         let server_actor = Router::new(
             inner_http_server.link(),
@@ -96,9 +96,13 @@ impl<T: Actor> InterruptedBy<T> for RillServer {
 }
 
 #[async_trait]
-impl Eliminated<Exporter> for RillServer {
-    async fn handle(&mut self, _id: IdOf<Exporter>, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::info!("Exporter finished");
+impl Eliminated<Broadcaster> for RillServer {
+    async fn handle(
+        &mut self,
+        _id: IdOf<Broadcaster>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        log::info!("Broadcaster finished");
         Ok(())
     }
 }

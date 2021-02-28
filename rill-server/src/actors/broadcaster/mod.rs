@@ -1,5 +1,5 @@
 mod actor;
-pub use actor::Exporter;
+pub use actor::Broadcaster;
 
 mod link;
 pub use link::{ExporterLinkForClient, ExporterLinkForProvider};
@@ -26,7 +26,7 @@ pub enum PathNotification {
 impl Action for PathNotification {}
 
 /// An `Actor` that exports metrics to a third-party system.
-pub trait Publisher: Actor + StartedBy<Exporter> + InterruptedBy<Exporter> {
+pub trait Publisher: Actor + StartedBy<Broadcaster> + InterruptedBy<Broadcaster> {
     type Config: Send;
     fn create(
         config: Self::Config,

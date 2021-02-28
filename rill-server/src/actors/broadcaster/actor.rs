@@ -28,13 +28,13 @@ struct Record {
 }
 
 /// The `Actor` that subscribes to data according to available `Path`s.
-pub struct Exporter {
+pub struct Broadcaster {
     provider: Option<(EntryId, ProviderSessionLink)>,
     paths_trackers: Distributor<PathNotification>,
     recipients: HashMap<Path, Record>,
 }
 
-impl Exporter {
+impl Broadcaster {
     pub fn new() -> Self {
         Self {
             provider: None,
@@ -59,19 +59,19 @@ impl Exporter {
     }
 }
 
-impl Actor for Exporter {
+impl Actor for Broadcaster {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl StartedBy<RillServer> for Exporter {
+impl StartedBy<RillServer> for Broadcaster {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }
 
 #[async_trait]
-impl InterruptedBy<RillServer> for Exporter {
+impl InterruptedBy<RillServer> for Broadcaster {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
         Ok(())
@@ -79,7 +79,7 @@ impl InterruptedBy<RillServer> for Exporter {
 }
 
 #[async_trait]
-impl<T: Publisher> Eliminated<T> for Exporter {
+impl<T: Publisher> Eliminated<T> for Broadcaster {
     async fn handle(&mut self, id: IdOf<T>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Publisher {} finished", id);
         Ok(())
@@ -87,7 +87,7 @@ impl<T: Publisher> Eliminated<T> for Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::SessionLifetime> for Exporter {
+impl ActionHandler<link::SessionLifetime> for Broadcaster {
     async fn handle(
         &mut self,
         msg: link::SessionLifetime,
@@ -113,7 +113,7 @@ impl ActionHandler<link::SessionLifetime> for Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::DataReceived> for Exporter {
+impl ActionHandler<link::DataReceived> for Broadcaster {
     async fn handle(
         &mut self,
         msg: link::DataReceived,
@@ -133,7 +133,7 @@ impl ActionHandler<link::DataReceived> for Exporter {
     }
 }
 
-impl Exporter {
+impl Broadcaster {
     fn declared_paths(&self) -> Vec<Description> {
         self.recipients
             .iter()
@@ -149,7 +149,7 @@ impl Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::PathDeclared> for Exporter {
+impl ActionHandler<link::PathDeclared> for Broadcaster {
     async fn handle(
         &mut self,
         msg: link::PathDeclared,
@@ -182,7 +182,7 @@ impl ActionHandler<link::PathDeclared> for Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::SubscribeToPaths> for Exporter {
+impl ActionHandler<link::SubscribeToPaths> for Broadcaster {
     async fn handle(
         &mut self,
         mut msg: link::SubscribeToPaths,
@@ -206,7 +206,7 @@ impl ActionHandler<link::SubscribeToPaths> for Exporter {
 
 /*
 #[async_trait]
-impl ActionHandler<link::SubscribeToData> for Exporter {
+impl ActionHandler<link::SubscribeToData> for Broadcaster {
     async fn handle(
         &mut self,
         msg: link::SubscribeToData,
@@ -228,7 +228,7 @@ impl ActionHandler<link::SubscribeToData> for Exporter {
 }
 
 #[async_trait]
-impl ActionHandler<link::UnsubscribeFromData> for Exporter {
+impl ActionHandler<link::UnsubscribeFromData> for Broadcaster {
     async fn handle(
         &mut self,
         msg: link::UnsubscribeFromData,
@@ -249,7 +249,7 @@ impl ActionHandler<link::UnsubscribeFromData> for Exporter {
 }
 
 #[async_trait]
-impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Exporter {
+impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Broadcaster {
     async fn handle(
         &mut self,
         msg: link::StartPublisher<T>,

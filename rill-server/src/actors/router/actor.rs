@@ -1,6 +1,6 @@
 use super::Assets;
+use crate::actors::broadcaster::Broadcaster;
 use crate::actors::client_session::ClientSession;
-use crate::actors::exporter::Exporter;
 use crate::actors::provider_session::ProviderSession;
 use crate::actors::server::RillServer;
 use anyhow::Error;
@@ -41,7 +41,7 @@ enum AssetsMode {
 pub struct Router {
     inner_server: HttpServerLink,
     extern_server: HttpServerLink,
-    exporter: Address<Exporter>,
+    exporter: Address<Broadcaster>,
     connected: bool,
     assets: AssetsMode,
 }
@@ -50,7 +50,7 @@ impl Router {
     pub fn new(
         inner_server: HttpServerLink,
         extern_server: HttpServerLink,
-        exporter: Address<Exporter>,
+        exporter: Address<Broadcaster>,
     ) -> Self {
         Self {
             inner_server,
