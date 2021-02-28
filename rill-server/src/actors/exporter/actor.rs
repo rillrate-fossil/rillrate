@@ -6,7 +6,6 @@ use async_trait::async_trait;
 use meio::{
     ActionHandler, Actor, Context, Distributor, Eliminated, IdOf, InterruptedBy, StartedBy,
 };
-use meio_connect::server::HttpServerLink;
 use rill_protocol::provider::{Description, EntryId, Path};
 use std::collections::{hash_map::Entry, HashMap};
 use thiserror::Error;
@@ -17,8 +16,6 @@ pub enum Reason {
     NoActiveSession,
     #[error("Path already declared {0}")]
     AlreadyDeclaredPath(Path),
-    #[error("Path was not declared {0}")]
-    NotDeclaredPath(Path),
     #[error("No meta for path {0}")]
     NoMetaForPath(Path),
 }
@@ -32,16 +29,14 @@ struct Record {
 
 /// The `Actor` that subscribes to data according to available `Path`s.
 pub struct Exporter {
-    server: HttpServerLink,
     provider: Option<(EntryId, ProviderSessionLink)>,
     paths_trackers: Distributor<PathNotification>,
     recipients: HashMap<Path, Record>,
 }
 
 impl Exporter {
-    pub fn new(server: HttpServerLink) -> Self {
+    pub fn new() -> Self {
         Self {
-            server,
             provider: None,
             paths_trackers: Distributor::new(),
             recipients: HashMap::new(),
@@ -209,6 +204,7 @@ impl ActionHandler<link::SubscribeToPaths> for Exporter {
     }
 }
 
+/*
 #[async_trait]
 impl ActionHandler<link::SubscribeToData> for Exporter {
     async fn handle(
@@ -264,3 +260,4 @@ impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Exporter {
         Ok(())
     }
 }
+*/

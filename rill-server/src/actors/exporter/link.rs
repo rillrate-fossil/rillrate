@@ -1,19 +1,10 @@
-use super::{ExportEvent, Exporter, PathNotification, Publisher};
+use super::{Exporter, PathNotification};
 use crate::actors::provider_session::ProviderSessionLink;
 use anyhow::Error;
 use derive_more::From;
-use meio::{Action, ActionHandler, ActionRecipient, Actor, Address, Id};
+use meio::{Action, ActionHandler, ActionRecipient, Actor, Address};
 use rill_protocol::provider::{Description, EntryId, Path, RillEvent};
 use std::collections::HashSet;
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-enum Reason {
-    #[error("Already subscribed {0}")]
-    AlreadySubscribed(Path),
-    #[error("Never subscribed {0}")]
-    NeverSubscribed(Path),
-}
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug)]
@@ -31,6 +22,34 @@ impl From<Address<Exporter>> for ExporterLinkForClient {
     }
 }
 
+pub(super) struct SubscribeToPaths {
+    pub recipient: Box<dyn ActionRecipient<PathNotification>>,
+}
+
+impl Action for SubscribeToPaths {}
+
+impl ExporterLinkForClient {
+    pub async fn subscribe_to_paths<A>(&mut self, address: Address<A>) -> Result<(), Error>
+    where
+        A: Actor + ActionHandler<PathNotification>,
+    {
+        let recipient = Box::new(address);
+        let msg = SubscribeToPaths { recipient };
+        self.address.act(msg).await
+    }
+}
+
+/*
+#[derive(Debug, Error)]
+enum Reason {
+    #[error("Already subscribed {0}")]
+    AlreadySubscribed(Path),
+    #[error("Never subscribed {0}")]
+    NeverSubscribed(Path),
+}
+*/
+
+/*
 pub(super) struct SubscribeToData {
     pub path: Path,
     pub recipient: Box<dyn ActionRecipient<ExportEvent>>,
@@ -93,24 +112,9 @@ impl ExporterLinkForClient {
         Ok(())
     }
 }
+*/
 
-pub(super) struct SubscribeToPaths {
-    pub recipient: Box<dyn ActionRecipient<PathNotification>>,
-}
-
-impl Action for SubscribeToPaths {}
-
-impl ExporterLinkForClient {
-    pub async fn subscribe_to_paths<A>(&mut self, address: Address<A>) -> Result<(), Error>
-    where
-        A: Actor + ActionHandler<PathNotification>,
-    {
-        let recipient = Box::new(address);
-        let msg = SubscribeToPaths { recipient };
-        self.address.act(msg).await
-    }
-}
-
+/*
 pub(super) struct StartPublisher<T: Publisher> {
     pub config: T::Config,
 }
@@ -126,6 +130,7 @@ impl ExporterLinkForClient {
         self.address.act(msg).await
     }
 }
+*/
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]

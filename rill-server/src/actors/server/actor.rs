@@ -57,7 +57,7 @@ impl<T: Actor> StartedBy<T> for RillServer {
         let inner_http_server_actor = HttpServer::new(inner_addr, watcher);
         let inner_http_server = ctx.spawn_actor(inner_http_server_actor, Group::HttpServer);
 
-        let exporter_actor = Exporter::new(extern_http_server.link());
+        let exporter_actor = Exporter::new();
         let exporter = ctx.spawn_actor(exporter_actor, Group::Exporter);
 
         let server_actor = Router::new(
