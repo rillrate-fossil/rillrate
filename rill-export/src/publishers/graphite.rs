@@ -1,16 +1,13 @@
 use super::Publisher;
 use crate::actors::export::RillExport;
-/*
-    ExportEvent, RillExport,
-    Publisher,
-*/
 use crate::config::GraphiteConfig;
 use anyhow::Error;
 use async_trait::async_trait;
+use futures::channel::mpsc;
 use meio::{
     task::{HeartBeat, Tick},
-    ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
-    TaskError,
+    ActionHandler, Actor, Consumer, Context, IdOf, InterruptedBy, LiteTask, StartedBy,
+    TaskEliminated, TaskError,
 };
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
@@ -65,6 +62,7 @@ impl GraphitePublisher {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
     HeartBeat,
+    Streams,
     Connection,
 }
 
@@ -75,7 +73,7 @@ impl Actor for GraphitePublisher {
 #[async_trait]
 impl StartedBy<RillExport> for GraphitePublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
+        ctx.termination_sequence(vec![Group::HeartBeat, Group::Streams, Group::Connection]);
         let interval = self.config.interval.unwrap_or(1_000);
         let duration = Duration::from_millis(interval);
         let heartbeat = HeartBeat::new(duration, ctx.address().clone());
@@ -175,14 +173,30 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
-                        // TODO: Create and provide channel
-                        self.client.subscribe_to_path(path).recv().await?;
-                        // TODO: Attach channel here
+                        let (tx, rx) = mpsc::channel(32);
+                        let req_id = self.client.subscribe_to_path(path, tx).recv().await?;
+                        ctx.attach(rx, Group::Streams);
                     }
                 }
             }
             PathNotification::Name { .. } => {}
         }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Consumer<Vec<RillEvent>> for GraphitePublisher {
+    fn stream_group(&self) -> Self::GroupBy {
+        Group::Streams
+    }
+
+    // TODO: Avoid this VecVecVec (((
+    async fn handle(
+        &mut self,
+        msg: Vec<Vec<RillEvent>>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         Ok(())
     }
 }

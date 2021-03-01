@@ -2,9 +2,10 @@ use super::RillClient;
 use anyhow::Error;
 use async_trait::async_trait;
 use derive_more::From;
+use futures::channel::mpsc;
 use meio::{Action, Address, Interaction, InteractionTask};
 use rill_protocol::client::ClientReqId;
-use rill_protocol::provider::Path;
+use rill_protocol::provider::{Path, RillEvent};
 
 #[derive(Debug, From)]
 pub struct ClientLink {
@@ -13,6 +14,7 @@ pub struct ClientLink {
 
 pub struct SubscribeToPath {
     pub path: Path,
+    pub sender: mpsc::Sender<Vec<RillEvent>>,
 }
 
 impl Interaction for SubscribeToPath {
@@ -20,8 +22,12 @@ impl Interaction for SubscribeToPath {
 }
 
 impl ClientLink {
-    pub fn subscribe_to_path(&mut self, path: Path) -> InteractionTask<SubscribeToPath> {
-        let msg = SubscribeToPath { path };
+    pub fn subscribe_to_path(
+        &mut self,
+        path: Path,
+        sender: mpsc::Sender<Vec<RillEvent>>,
+    ) -> InteractionTask<SubscribeToPath> {
+        let msg = SubscribeToPath { path, sender };
         self.address.interact(msg)
     }
 }

@@ -2,6 +2,7 @@ use super::link;
 use crate::actors::broadcaster::BroadcasterLinkForProvider;
 use anyhow::Error;
 use async_trait::async_trait;
+use futures::channel::mpsc;
 use meio::{
     ActionHandler, Actor, Context, IdOf, InstantActionHandler, InteractionHandler, InterruptedBy,
     StartedBy, TaskEliminated, TaskError,
@@ -11,6 +12,7 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
+use rill_protocol::provider::RillEvent;
 use rill_protocol::transport::{Envelope, WideEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
@@ -21,7 +23,7 @@ pub struct RillClient {
     url: String,
     sender: Option<Connection>,
     broadcaster: BroadcasterLinkForProvider,
-    directions: TypedSlab<ClientReqId, ()>,
+    directions: TypedSlab<ClientReqId, mpsc::Sender<Vec<RillEvent>>>,
 }
 
 impl RillClient {
@@ -139,7 +141,7 @@ impl InteractionHandler<link::SubscribeToPath> for RillClient {
         _ctx: &mut Context<Self>,
     ) -> Result<ClientReqId, Error> {
         log::info!("Subscribing to {}", msg.path);
-        let direct_id = self.directions.insert(());
+        let direct_id = self.directions.insert(msg.sender);
         let data = ClientRequest::ControlStream {
             path: msg.path,
             active: true,
