@@ -3,7 +3,9 @@ use crate::actors::router::Router;
 use crate::config::ServerConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{InteractionHandler, ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use meio::{
+    ActionHandler, Actor, Context, Eliminated, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+};
 use meio_connect::server::{HttpServer, HttpServerLink};
 use rill_client::actors::broadcaster::Broadcaster;
 
@@ -133,8 +135,14 @@ impl Eliminated<Router> for RillServer {
 
 #[async_trait]
 impl InteractionHandler<link::WaitPublicEndpoint> for RillServer {
-    async fn handle(&mut self, msg: link::WaitPublicEndpoint, _ctx: &mut Context<Self>) -> Result<HttpServerLink, Error> {
+    async fn handle(
+        &mut self,
+        msg: link::WaitPublicEndpoint,
+        _ctx: &mut Context<Self>,
+    ) -> Result<HttpServerLink, Error> {
         // `public_server` always available here since it's attached in `StartedBy` handler
-        self.public_server.clone().ok_or_else(|| Error::msg("no public server"))
+        self.public_server
+            .clone()
+            .ok_or_else(|| Error::msg("no public server"))
     }
 }

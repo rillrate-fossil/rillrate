@@ -5,7 +5,7 @@
 mod actors;
 pub mod config;
 
-pub use actors::server::RillServer;
+pub use actors::server::*;
 use once_cell::sync::Lazy;
 use std::net::SocketAddr;
 use tokio::sync::{oneshot, Mutex};

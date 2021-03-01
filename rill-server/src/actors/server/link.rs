@@ -1,14 +1,14 @@
 use super::RillServer;
-use meio::{Address, Interaction, InteractionDone, Actor, Context};
+use derive_more::From;
+use meio::{Actor, Address, Context, Interaction, InteractionDone};
 use meio_connect::server::HttpServerLink;
 
-#[derive(Debug)]
+#[derive(Debug, From)]
 pub struct ServerLink {
     address: Address<RillServer>,
 }
 
-pub struct WaitPublicEndpoint {
-}
+pub struct WaitPublicEndpoint {}
 
 impl Interaction for WaitPublicEndpoint {
     type Output = HttpServerLink;

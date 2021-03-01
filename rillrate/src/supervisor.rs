@@ -3,12 +3,13 @@ use crate::env;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
-    Actor, Context, Eliminated, IdOf, InterruptedBy, LiteTask, StartedBy, System, TaskEliminated,
-    TaskError,
+    Actor, Context, Eliminated, IdOf, InteractionDone, InterruptedBy, LiteTask, StartedBy, System,
+    TaskEliminated, TaskError,
 };
+use meio_connect::server::HttpServerLink;
 use rill_engine::{ProviderConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
-use rill_server::{AddrCell, RillServer};
+use rill_server::{AddrCell, RillServer, ServerLink, WaitPublicEndpoint};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 
@@ -36,9 +37,9 @@ impl RillRate {
         ctx.spawn_actor(actor, Group::Provider);
     }
 
-    fn spawn_exporter(&mut self, ctx: &mut Context<Self>) {
+    fn spawn_exporter(&mut self, server: HttpServerLink, ctx: &mut Context<Self>) {
         let config = self.export_config.take().unwrap_or_default();
-        let actor = RillExport::new(config);
+        let actor = RillExport::new(config, server);
         ctx.spawn_actor(actor, Group::Exporter);
     }
 }
@@ -150,7 +151,8 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             // If node wasn't specified than spawn an embedded node and
             // wait for the address to spawn a provider connected to that.
             let actor = RillServer::new(config.server);
-            ctx.spawn_actor(actor, Group::Hub);
+            let server: ServerLink = ctx.spawn_actor(actor, Group::Hub).link();
+            server.wait_public_endpoint(ctx, Group::Tuning);
 
             let task = WaitForAddr::<RillEngine>::new(&rill_server::INTERN_ADDR);
             ctx.spawn_task(task, Group::Tuning);
@@ -159,6 +161,16 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             ctx.spawn_task(task, Group::Tuning);
         }
 
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl InteractionDone<WaitPublicEndpoint> for RillRate {
+    async fn handle(&mut self, msg: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
+        // TODO: Ask the `server_link` for the `SocketAddress`
+        // TODO: And `spawn_exporter` after that
+        self.spawn_exporter(msg, ctx);
         Ok(())
     }
 }
@@ -195,7 +207,6 @@ impl TaskEliminated<WaitForAddr<RillExport>> for RillRate {
             Ok(addr) => {
                 log::info!("Connecting exporter to {}", addr);
                 rill_export::config::NODE.offer(addr.to_string());
-                self.spawn_exporter(ctx);
                 Ok(())
             }
             Err(err) => Err(err.into()),
@@ -203,6 +214,7 @@ impl TaskEliminated<WaitForAddr<RillExport>> for RillRate {
     }
 }
 
+// TODO: Replace it with `Interaction` approach
 struct WaitForAddr<T> {
     cell: AddrCell,
     _waiter: PhantomData<T>,
