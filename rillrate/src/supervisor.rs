@@ -9,7 +9,7 @@ use meio::{
 use meio_connect::server::{link::WaitForAddress, HttpServerLink};
 use rill_engine::{ProviderConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
-use rill_server::{RillServer, ServerLink, WaitPublicEndpoint};
+use rill_server::{RillServer, ServerLink, WaitPrivateEndpoint, WaitPublicEndpoint};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 
@@ -152,42 +152,42 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             // wait for the address to spawn a provider connected to that.
             let actor = RillServer::new(config.server);
             let server: ServerLink = ctx.spawn_actor(actor, Group::Hub).link();
-            let task = server.wait_public_endpoint();
-            ctx.track_interaction(task, Group::Tuning);
-            // TODO: Add `wait_private_endpoint`
 
-            /*
-            let task = WaitForAddr::<RillEngine>::new(&rill_server::INTERN_ADDR);
-            ctx.spawn_task(task, Group::Tuning);
+            // TODO: Add timeout here
+            let public_http = server.wait_public_endpoint().recv().await?;
+            //ctx.track_interaction(task, Group::Tuning);
 
-            let task = WaitForAddr::<RillExport>::new(&rill_server::EXTERN_ADDR);
-            ctx.spawn_task(task, Group::Tuning);
-            */
+            // TODO: Add timeout here
+            let private_http = server.wait_private_endpoint().recv().await?;
+            //ctx.track_interaction(task, Group::Tuning);
+
+            let addr = private_http.wait_for_address().recv().await?;
+            log::info!("Connecting engine (provider) to {}", addr);
+            rill_engine::config::NODE.offer(addr.to_string());
+            self.spawn_engine(ctx);
+            self.spawn_exporter(public_http, ctx);
         }
-
         Ok(())
     }
 }
 
+/*
 #[async_trait]
 impl InteractionDone<WaitPublicEndpoint> for RillRate {
-    async fn handle(&mut self, msg: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn handle(&mut self, link: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
         log::debug!("Public server is ready");
-        let task = msg.wait_for_address();
-        ctx.track_interaction(task, Group::Tuning);
-        // TODO: Ask the `server_link` for the `SocketAddress`
-        // TODO: And `spawn_exporter` after that
-        self.spawn_exporter(msg, ctx);
+        let res = link.wait_for_address().recv().await;
         Ok(())
     }
 }
 
 #[async_trait]
-impl InteractionDone<WaitForAddress> for RillRate {
-    async fn handle(&mut self, msg: SocketAddr, ctx: &mut Context<Self>) -> Result<(), Error> {
-        Ok(())
+impl InteractionDone<WaitPrivateEndpoint> for RillRate {
+    async fn handle(&mut self, link: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
+        log::debug!("Private server is ready");
     }
 }
+*/
 
 /*
 #[async_trait]
@@ -198,15 +198,6 @@ impl TaskEliminated<WaitForAddr<RillEngine>> for RillRate {
         res: Result<SocketAddr, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        match res {
-            Ok(addr) => {
-                log::info!("Connecting engine (provider) to {}", addr);
-                rill_engine::config::NODE.offer(addr.to_string());
-                self.spawn_engine(ctx);
-                Ok(())
-            }
-            Err(err) => Err(err.into()),
-        }
     }
 }
 
