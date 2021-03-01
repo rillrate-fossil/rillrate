@@ -13,11 +13,15 @@ use meio_connect::{
 use rill_protocol::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
 use rill_protocol::transport::{Envelope, WideEnvelope};
 use std::time::Duration;
+use typed_slab::TypedSlab;
+
+type Connection = WsSender<Envelope<ClientProtocol, ClientRequest>>;
 
 pub struct RillClient {
     url: String,
-    sender: Option<WsSender<Envelope<ClientProtocol, ClientRequest>>>,
+    sender: Option<Connection>,
     broadcaster: BroadcasterLinkForProvider,
+    directions: TypedSlab<ClientReqId, ()>,
 }
 
 impl RillClient {
@@ -26,7 +30,14 @@ impl RillClient {
             url,
             sender: None,
             broadcaster,
+            directions: TypedSlab::new(),
         }
+    }
+
+    fn sender(&self) -> Result<&Connection, Error> {
+        self.sender
+            .as_ref()
+            .ok_or_else(|| Error::msg("not connected"))
     }
 }
 
@@ -128,21 +139,13 @@ impl InteractionHandler<link::SubscribeToPath> for RillClient {
         _ctx: &mut Context<Self>,
     ) -> Result<ClientReqId, Error> {
         log::info!("Subscribing to {}", msg.path);
-        //let direct_id = self.directions.insert(rule);
-        /*
-        let rule = ClientRule::Forward {
-            sender: msg.sender,
-            req_id: msg.direct_id,
-        };
-
-        let request = ServerToProvider::ControlStream {
+        let direct_id = self.directions.insert(());
+        let data = ClientRequest::ControlStream {
             path: msg.path,
             active: true,
         };
-        self.send_request(direct_id, request);
-
+        let envelope = Envelope { direct_id, data };
+        self.sender()?.send(envelope);
         Ok(direct_id)
-        */
-        todo!()
     }
 }

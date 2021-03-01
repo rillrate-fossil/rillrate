@@ -24,3 +24,4 @@ meio = "0.82.0"
 meio-connect = "0.82.0"
 rill-protocol = { version = "0.21.0", path = "../rill-protocol" }
 thiserror = "1.0.24"
+typed-slab = "0.1.0"
