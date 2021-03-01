@@ -2,3 +2,6 @@
 
 mod actor;
 pub use actor::RillServer;
+
+mod link;
+pub use link::ServerLink;

@@ -1,14 +1,16 @@
+use super::link;
 use crate::actors::router::Router;
 use crate::config::ServerConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
-use meio_connect::server::HttpServer;
+use meio::{InteractionHandler, ActionHandler, Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use meio_connect::server::{HttpServer, HttpServerLink};
 use rill_client::actors::broadcaster::Broadcaster;
 
 /// Embedded node.
 pub struct RillServer {
     server_config: ServerConfig,
+    public_server: Option<HttpServerLink>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -28,6 +30,7 @@ impl RillServer {
     pub fn new(server_config: Option<ServerConfig>) -> Self {
         Self {
             server_config: server_config.unwrap_or_default(),
+            public_server: None,
         }
     }
 }
@@ -49,6 +52,7 @@ impl<T: Actor> StartedBy<T> for RillServer {
         let extern_addr = format!("{}:{}", self.server_config.server_address(), 9090).parse()?;
         let extern_http_server_actor = HttpServer::new(extern_addr, watcher);
         let extern_http_server = ctx.spawn_actor(extern_http_server_actor, Group::HttpServer);
+        self.public_server = Some(extern_http_server.link());
 
         // TODO: Don't parse it
         let watcher = crate::INTERN_ADDR.lock().await.0.take();
@@ -124,5 +128,13 @@ impl Eliminated<Router> for RillServer {
     async fn handle(&mut self, _id: IdOf<Router>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         log::info!("Router finished");
         Ok(())
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<link::WaitPublicEndpoint> for RillServer {
+    async fn handle(&mut self, msg: link::WaitPublicEndpoint, _ctx: &mut Context<Self>) -> Result<HttpServerLink, Error> {
+        // `public_server` always available here since it's attached in `StartedBy` handler
+        self.public_server.clone().ok_or_else(|| Error::msg("no public server"))
     }
 }
