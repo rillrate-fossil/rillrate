@@ -1,6 +1,6 @@
 use super::RillServer;
 use derive_more::From;
-use meio::{Actor, Address, Context, Interaction, InteractionDone};
+use meio::{Actor, Address, Context, Interaction, InteractionDone, InteractionTask};
 use meio_connect::server::HttpServerLink;
 
 #[derive(Debug, From)]
@@ -15,11 +15,19 @@ impl Interaction for WaitPublicEndpoint {
 }
 
 impl ServerLink {
-    pub fn wait_public_endpoint<T: Actor>(&self, ctx: &mut Context<T>, group: T::GroupBy)
-    where
-        T: InteractionDone<WaitPublicEndpoint>,
-    {
-        let msg = WaitPublicEndpoint;
-        ctx.interact(&self.address, msg, group);
+    pub fn wait_public_endpoint(&self) -> InteractionTask<WaitPublicEndpoint> {
+        self.address.interact(WaitPublicEndpoint)
+    }
+}
+
+pub struct WaitPrivateEndpoint;
+
+impl Interaction for WaitPrivateEndpoint {
+    type Output = HttpServerLink;
+}
+
+impl ServerLink {
+    pub fn wait_private_endpoint(&self) -> InteractionTask<WaitPrivateEndpoint> {
+        self.address.interact(WaitPrivateEndpoint)
     }
 }

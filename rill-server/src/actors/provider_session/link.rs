@@ -54,7 +54,7 @@ impl BindedProviderLink {
                     direct_id,
                     sender,
                 };
-                let direct_id = self.address.interact_and_wait(msg).await?;
+                let direct_id = self.address.interact(msg).recv().await?;
                 entry.insert(direct_id);
                 Ok(())
             }

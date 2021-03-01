@@ -152,7 +152,8 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             // wait for the address to spawn a provider connected to that.
             let actor = RillServer::new(config.server);
             let server: ServerLink = ctx.spawn_actor(actor, Group::Hub).link();
-            server.wait_public_endpoint(ctx, Group::Tuning);
+            let task = server.wait_public_endpoint();
+            ctx.track_interaction(task, Group::Tuning);
             // TODO: Add `wait_private_endpoint`
 
             /*
@@ -172,7 +173,8 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
 impl InteractionDone<WaitPublicEndpoint> for RillRate {
     async fn handle(&mut self, msg: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
         log::debug!("Public server is ready");
-        msg.wait_for_address(ctx, Group::Tuning);
+        let task = msg.wait_for_address();
+        ctx.track_interaction(task, Group::Tuning);
         // TODO: Ask the `server_link` for the `SocketAddress`
         // TODO: And `spawn_exporter` after that
         self.spawn_exporter(msg, ctx);

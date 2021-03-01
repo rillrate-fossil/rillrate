@@ -56,6 +56,23 @@ impl<T: Actor> StartedBy<T> for RillExport {
         let actor = RillClient::new(url, link);
         let client = ctx.spawn_actor(actor, ());
         self.client = Some(client);
+
+        /*
+        let mut exporter: ExporterLinkForClient = exporter.link();
+
+        // Spawn exporters if they are exist
+        if let Some(config) = self.export_config.prometheus.take() {
+            exporter
+                .start_publisher::<publishers::PrometheusPublisher>(config)
+                .await?;
+        }
+        if let Some(config) = self.export_config.graphite.take() {
+            exporter
+                .start_publisher::<publishers::GraphitePublisher>(config)
+                .await?;
+        }
+        */
+
         Ok(())
     }
 }

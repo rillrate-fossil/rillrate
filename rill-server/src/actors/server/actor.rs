@@ -13,6 +13,7 @@ use rill_client::actors::broadcaster::Broadcaster;
 pub struct RillServer {
     server_config: ServerConfig,
     public_server: Option<HttpServerLink>,
+    private_server: Option<HttpServerLink>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -33,6 +34,7 @@ impl RillServer {
         Self {
             server_config: server_config.unwrap_or_default(),
             public_server: None,
+            private_server: None,
         }
     }
 }
@@ -48,20 +50,15 @@ impl<T: Actor> StartedBy<T> for RillServer {
         ]);
 
         // Starting all basic actors
-        // TODO: Don't parse it
-        //let watcher = crate::EXTERN_ADDR.lock().await.0.take();
-        // TODO: Use port from a config here
         let extern_addr = format!("{}:{}", self.server_config.server_address(), 9090).parse()?;
         let extern_http_server_actor = HttpServer::new(extern_addr);
         let extern_http_server = ctx.spawn_actor(extern_http_server_actor, Group::HttpServer);
         self.public_server = Some(extern_http_server.link());
 
-        // TODO: Don't parse it
-        //let watcher = crate::INTERN_ADDR.lock().await.0.take();
-        // TODO: Use port from config or `any` (0)
         let inner_addr = format!("127.0.0.1:{}", 0).parse()?;
         let inner_http_server_actor = HttpServer::new(inner_addr);
         let inner_http_server = ctx.spawn_actor(inner_http_server_actor, Group::HttpServer);
+        self.private_server = Some(inner_http_server.link());
 
         let exporter_actor = Broadcaster::new();
         let exporter = ctx.spawn_actor(exporter_actor, Group::Broadcaster);
@@ -71,23 +68,7 @@ impl<T: Actor> StartedBy<T> for RillServer {
             extern_http_server.link(),
             exporter.link(),
         );
-        let _server = ctx.spawn_actor(server_actor, Group::Endpoints);
-
-        /*
-        let mut exporter: ExporterLinkForClient = exporter.link();
-
-        // Spawn exporters if they are exist
-        if let Some(config) = self.export_config.prometheus.take() {
-            exporter
-                .start_publisher::<publishers::PrometheusPublisher>(config)
-                .await?;
-        }
-        if let Some(config) = self.export_config.graphite.take() {
-            exporter
-                .start_publisher::<publishers::GraphitePublisher>(config)
-                .await?;
-        }
-        */
+        let _router = ctx.spawn_actor(server_actor, Group::Endpoints);
 
         Ok(())
     }
@@ -144,5 +125,19 @@ impl InteractionHandler<link::WaitPublicEndpoint> for RillServer {
         self.public_server
             .clone()
             .ok_or_else(|| Error::msg("no public server"))
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<link::WaitPrivateEndpoint> for RillServer {
+    async fn handle(
+        &mut self,
+        msg: link::WaitPrivateEndpoint,
+        _ctx: &mut Context<Self>,
+    ) -> Result<HttpServerLink, Error> {
+        // `private_server` always available here since it's attached in `StartedBy` handler
+        self.private_server
+            .clone()
+            .ok_or_else(|| Error::msg("no private server"))
     }
 }
