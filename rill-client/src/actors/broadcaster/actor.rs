@@ -18,6 +18,8 @@ struct Record {
     declared: bool,
 }
 
+// TODO! RENAME TO `StructureWatcher`.
+
 /// The `Actor` that informs about appeared providers and paths.
 pub struct Broadcaster {
     name: Option<EntryId>,

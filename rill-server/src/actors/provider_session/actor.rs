@@ -232,7 +232,7 @@ impl InteractionHandler<link::SubscribeToPath> for ProviderSession {
         msg: link::SubscribeToPath,
         _ctx: &mut Context<Self>,
     ) -> Result<ProviderReqId, Error> {
-        log::info!("Subscribing {}", msg.path);
+        log::info!("Subscribing to {}", msg.path);
         let rule = ClientRule::Forward {
             sender: msg.sender,
             req_id: msg.direct_id,
@@ -256,7 +256,7 @@ impl ActionHandler<link::UnsubscribeFromPath> for ProviderSession {
         msg: link::UnsubscribeFromPath,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        log::info!("Unsubscribing {}", msg.path);
+        log::info!("Unsubscribing from {}", msg.path);
         // But don't remove it from `directions` and wait for the `EndStream`
         // marker will be received.
         let provider_req_id = msg.direct_id;

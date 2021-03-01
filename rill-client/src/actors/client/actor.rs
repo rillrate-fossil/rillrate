@@ -1,15 +1,16 @@
+use super::link;
 use crate::actors::broadcaster::BroadcasterLinkForProvider;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
-    ActionHandler, Actor, Context, IdOf, InstantActionHandler, InterruptedBy, StartedBy,
-    TaskEliminated, TaskError,
+    ActionHandler, Actor, Context, IdOf, InstantActionHandler, InteractionHandler, InterruptedBy,
+    StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
+use rill_protocol::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
 use rill_protocol::transport::{Envelope, WideEnvelope};
 use std::time::Duration;
 
@@ -116,5 +117,32 @@ impl TaskEliminated<WsClient<ClientProtocol, Self>> for RillClient {
     ) -> Result<(), Error> {
         // TODO: Drop unfinished tasks
         Ok(())
+    }
+}
+
+#[async_trait]
+impl InteractionHandler<link::SubscribeToPath> for RillClient {
+    async fn handle(
+        &mut self,
+        msg: link::SubscribeToPath,
+        _ctx: &mut Context<Self>,
+    ) -> Result<ClientReqId, Error> {
+        log::info!("Subscribing to {}", msg.path);
+        //let direct_id = self.directions.insert(rule);
+        /*
+        let rule = ClientRule::Forward {
+            sender: msg.sender,
+            req_id: msg.direct_id,
+        };
+
+        let request = ServerToProvider::ControlStream {
+            path: msg.path,
+            active: true,
+        };
+        self.send_request(direct_id, request);
+
+        Ok(direct_id)
+        */
+        todo!()
     }
 }
