@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use meio::{Actor, Address, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{Broadcaster, BroadcasterLinkForClient};
-use rill_client::actors::client::RillClient;
+use rill_client::actors::client::{ClientLink, RillClient};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
@@ -39,13 +39,21 @@ impl RillExport {
             .ok_or_else(|| Error::msg("No broadcaster attached to RillExport"))
     }
 
+    fn get_client(&self) -> Result<ClientLink, Error> {
+        self.client
+            .clone()
+            .map(ClientLink::from)
+            .ok_or_else(|| Error::msg("No broadcaster attached to RillExport"))
+    }
+
     fn spawn_publisher<T: Publisher>(
         &mut self,
         config: T::Config,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let broadcaster = self.get_broadcaster()?;
-        let publisher = T::create(config, broadcaster, &self.server);
+        let client = self.get_client()?;
+        let publisher = T::create(config, broadcaster, client, &self.server);
         ctx.spawn_actor(publisher, Group::Publishers);
         Ok(())
     }

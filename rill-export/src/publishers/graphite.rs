@@ -14,6 +14,7 @@ use meio::{
 };
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
+use rill_client::actors::client::ClientLink;
 use rill_protocol::provider::{Path, PathPattern, RillEvent};
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -26,6 +27,7 @@ use tokio::sync::broadcast;
 pub struct GraphitePublisher {
     config: GraphiteConfig,
     broadcaster: BroadcasterLinkForClient,
+    client: ClientLink,
     pickled: bool,
     metrics: HashMap<Path, RillEvent>,
     sender: broadcast::Sender<Vec<u8>>,
@@ -37,12 +39,14 @@ impl Publisher for GraphitePublisher {
     fn create(
         config: Self::Config,
         broadcaster: BroadcasterLinkForClient,
+        client: ClientLink,
         _server: &HttpServerLink,
     ) -> Self {
         let (sender, _rx) = broadcast::channel(32);
         Self {
             config,
             broadcaster,
+            client,
             pickled: true, // TODO: Get from the config
             metrics: HashMap::new(),
             sender,
@@ -171,11 +175,9 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
-                        /* TODO: Use it with the `RillClient`
-                        self.broadcaster
-                            .subscribe_to_data(path, ctx.address().clone())
-                            .await?;
-                        */
+                        // TODO: Create and provide channel
+                        self.client.subscribe_to_path(path).recv().await?;
+                        // TODO: Attach channel here
                     }
                 }
             }

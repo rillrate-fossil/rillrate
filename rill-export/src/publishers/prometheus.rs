@@ -30,6 +30,7 @@ impl Publisher for PrometheusPublisher {
     fn create(
         config: Self::Config,
         exporter: ExporterLinkForClient,
+        client: ClientLink,
         server: &HttpServerLink,
     ) -> Self {
         Self {
