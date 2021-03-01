@@ -1,23 +1,42 @@
 use crate::config::ExportConfig;
+use crate::publishers::Publisher;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Address, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
-use rill_client::actors::broadcaster::Broadcaster;
+use meio_connect::server::HttpServerLink;
+use rill_client::actors::broadcaster::{Broadcaster, BroadcasterLinkForClient};
 use rill_client::actors::client::RillClient;
 
 pub struct RillExport {
     config: ExportConfig,
     client: Option<Address<RillClient>>,
     broadcaster: Option<Address<Broadcaster>>,
+    /// It used to bind publishers that require to have an HTTP endpoint.
+    /// Like `Prometheus` publisher.
+    server: HttpServerLink,
 }
 
 impl RillExport {
-    pub fn new(config: ExportConfig) -> Self {
+    pub fn new(config: ExportConfig, server: HttpServerLink) -> Self {
         Self {
             config,
             client: None,
             broadcaster: None,
+            server,
         }
+    }
+
+    fn get_broadcaster(&self) -> Result<BroadcasterLinkForClient, Error> {
+        self.broadcaster
+            .clone()
+            .map(BroadcasterLinkForClient::from)
+            .ok_or_else(|| Error::msg("No broadcaster attached to RillExport"))
+    }
+
+    fn spawn_publisher<T: Publisher>(&mut self, config: T::Config) -> Result<(), Error> {
+        let broadcaster = self.get_broadcaster()?;
+        let publihser = T::create(config, broadcaster, &self.server);
+        Ok(())
     }
 }
 

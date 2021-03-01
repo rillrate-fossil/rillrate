@@ -14,7 +14,8 @@ pub trait Publisher: Actor + StartedBy<RillExport> + InterruptedBy<RillExport> {
     type Config: Send;
     fn create(
         config: Self::Config,
-        exporter: BroadcasterLinkForClient,
+        broadcaster: BroadcasterLinkForClient,
+        // by reference, because it's optinal to use, but required to be present
         server: &HttpServerLink,
     ) -> Self;
 }
