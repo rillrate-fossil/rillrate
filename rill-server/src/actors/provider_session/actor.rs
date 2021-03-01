@@ -1,5 +1,4 @@
 use super::link;
-use crate::actors::broadcaster::ExporterLinkForProvider;
 use crate::actors::client_session::PROVIDER;
 use crate::actors::router::Router;
 use anyhow::Error;
@@ -12,6 +11,7 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
+use rill_client::actors::broadcaster::ExporterLinkForProvider;
 use rill_protocol::client::{ClientReqId, ClientResponse};
 use rill_protocol::provider::{
     EntryId, ProviderProtocol, ProviderReqId, ProviderToServer, ServerToProvider,

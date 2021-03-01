@@ -1,5 +1,4 @@
 use super::Assets;
-use crate::actors::broadcaster::Broadcaster;
 use crate::actors::client_session::ClientSession;
 use crate::actors::provider_session::ProviderSession;
 use crate::actors::server::RillServer;
@@ -15,6 +14,7 @@ use meio_connect::server::{
     DirectPath, FromRequest, HttpServerLink, Req, WebRoute, WsReq, WsRoute,
 };
 use reqwest::Url;
+use rill_client::actors::broadcaster::Broadcaster;
 use rill_protocol::client::ClientProtocol;
 use rill_protocol::provider::ProviderProtocol;
 use serde::Deserialize;

@@ -18,5 +18,9 @@ description = "Dynamic logging and tracing system"
 [dependencies]
 anyhow = "1.0.38"
 async-trait = "0.1.42"
+derive_more = "0.99.11"
 log = "0.4.14"
 meio = "0.82.0"
+meio-connect = "0.82.0"
+rill-protocol = { version = "0.21.0", path = "../rill-protocol" }
+thiserror = "1.0.24"

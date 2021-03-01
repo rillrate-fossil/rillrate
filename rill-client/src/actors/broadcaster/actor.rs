@@ -1,5 +1,4 @@
 use super::{link, PathNotification, Publisher};
-use crate::actors::server::RillServer;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -64,14 +63,14 @@ impl Actor for Broadcaster {
 }
 
 #[async_trait]
-impl StartedBy<RillServer> for Broadcaster {
+impl<T: Actor> StartedBy<T> for Broadcaster {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }
 
 #[async_trait]
-impl InterruptedBy<RillServer> for Broadcaster {
+impl<T: Actor> InterruptedBy<T> for Broadcaster {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
         Ok(())

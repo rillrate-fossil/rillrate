@@ -1,4 +1,3 @@
-use crate::actors::broadcaster::{ExporterLinkForClient, PathNotification};
 use crate::actors::provider_session::{BindedProviderLink, ProviderLink};
 use crate::actors::router::Router;
 use anyhow::Error;
@@ -11,6 +10,7 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use once_cell::sync::Lazy;
+use rill_client::actors::broadcaster::{ExporterLinkForClient, PathNotification};
 use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
 use rill_protocol::transport::{Direction, Envelope, WideEnvelope};
 use tokio::sync::Mutex;

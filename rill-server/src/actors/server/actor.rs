@@ -1,10 +1,10 @@
-use crate::actors::broadcaster::Broadcaster;
 use crate::actors::router::Router;
 use crate::config::ServerConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServer;
+use rill_client::actors::broadcaster::Broadcaster;
 
 /// Embedded node.
 pub struct RillServer {
