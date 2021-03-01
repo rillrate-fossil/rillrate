@@ -59,7 +59,7 @@ impl StartedBy<Router> for ClientSession {
         ctx.spawn_task(worker, ());
 
         self.exporter
-            .subscribe_to_paths(ctx.address().clone())
+            .subscribe_to_struct_changes(ctx.address().clone())
             .await?;
 
         let sender = self.handler.sender();

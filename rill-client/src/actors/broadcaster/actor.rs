@@ -182,10 +182,10 @@ impl ActionHandler<link::PathDeclared> for Broadcaster {
 }
 
 #[async_trait]
-impl ActionHandler<link::SubscribeToPaths> for Broadcaster {
+impl ActionHandler<link::SubscribeToStructChanges> for Broadcaster {
     async fn handle(
         &mut self,
-        mut msg: link::SubscribeToPaths,
+        mut msg: link::SubscribeToStructChanges,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.not_terminating()?;
