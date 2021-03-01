@@ -1,0 +1,22 @@
+[package]
+name = "rill-client"
+version = "0.21.0"
+authors = [
+    "Denis Kolodin <deniskolodin@gmail.com>",
+    "overfloat <rillrate@gmail.com>",
+]
+edition = "2018"
+repository = "https://github.com/rillrate/rillrate"
+homepage = "https://github.com/rillrate/rillrate"
+documentation = "https://docs.rs/rillrate/"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+keywords = ["logging"]
+categories = ["development-tools::debugging"]
+description = "Dynamic logging and tracing system"
+
+[dependencies]
+anyhow = "1.0.38"
+async-trait = "0.1.42"
+log = "0.4.14"
+meio = "0.82.0"
