@@ -6,10 +6,10 @@ use meio::{
     Actor, Context, Eliminated, IdOf, InteractionDone, InterruptedBy, LiteTask, StartedBy, System,
     TaskEliminated, TaskError,
 };
-use meio_connect::server::HttpServerLink;
+use meio_connect::server::{link::WaitForAddress, HttpServerLink};
 use rill_engine::{ProviderConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
-use rill_server::{AddrCell, RillServer, ServerLink, WaitPublicEndpoint};
+use rill_server::{RillServer, ServerLink, WaitPublicEndpoint};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 
@@ -153,12 +153,15 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             let actor = RillServer::new(config.server);
             let server: ServerLink = ctx.spawn_actor(actor, Group::Hub).link();
             server.wait_public_endpoint(ctx, Group::Tuning);
+            // TODO: Add `wait_private_endpoint`
 
+            /*
             let task = WaitForAddr::<RillEngine>::new(&rill_server::INTERN_ADDR);
             ctx.spawn_task(task, Group::Tuning);
 
             let task = WaitForAddr::<RillExport>::new(&rill_server::EXTERN_ADDR);
             ctx.spawn_task(task, Group::Tuning);
+            */
         }
 
         Ok(())
@@ -168,6 +171,8 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
 #[async_trait]
 impl InteractionDone<WaitPublicEndpoint> for RillRate {
     async fn handle(&mut self, msg: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
+        log::debug!("Public server is ready");
+        msg.wait_for_address(ctx, Group::Tuning);
         // TODO: Ask the `server_link` for the `SocketAddress`
         // TODO: And `spawn_exporter` after that
         self.spawn_exporter(msg, ctx);
@@ -175,6 +180,14 @@ impl InteractionDone<WaitPublicEndpoint> for RillRate {
     }
 }
 
+#[async_trait]
+impl InteractionDone<WaitForAddress> for RillRate {
+    async fn handle(&mut self, msg: SocketAddr, ctx: &mut Context<Self>) -> Result<(), Error> {
+        Ok(())
+    }
+}
+
+/*
 #[async_trait]
 impl TaskEliminated<WaitForAddr<RillEngine>> for RillRate {
     async fn handle(
@@ -213,8 +226,11 @@ impl TaskEliminated<WaitForAddr<RillExport>> for RillRate {
         }
     }
 }
+*/
 
-// TODO: Replace it with `Interaction` approach
+/*
+// TODO: Remove
+// Since it has replaced with `Interaction` approach
 struct WaitForAddr<T> {
     cell: AddrCell,
     _waiter: PhantomData<T>,
@@ -244,3 +260,4 @@ impl<T: Actor> LiteTask for WaitForAddr<T> {
         intern_rx.await.map_err(Error::from)
     }
 }
+*/

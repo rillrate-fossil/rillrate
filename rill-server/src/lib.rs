@@ -12,8 +12,9 @@ use tokio::sync::{oneshot, Mutex};
 
 metacrate::meta!();
 
-// TODO: Refactor that below
+// TODO: REMOVE ALL that below!
 
+/*
 /// SocketAddr sender
 pub type AddrSender = oneshot::Sender<SocketAddr>;
 
@@ -36,3 +37,4 @@ pub static EXTERN_ADDR: Lazy<AddrChannel> = Lazy::new(add_channel);
 
 /// Internal address
 pub static INTERN_ADDR: Lazy<AddrChannel> = Lazy::new(add_channel);
+*/

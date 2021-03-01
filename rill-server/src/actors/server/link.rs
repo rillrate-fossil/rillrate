@@ -8,7 +8,7 @@ pub struct ServerLink {
     address: Address<RillServer>,
 }
 
-pub struct WaitPublicEndpoint {}
+pub struct WaitPublicEndpoint;
 
 impl Interaction for WaitPublicEndpoint {
     type Output = HttpServerLink;
@@ -19,7 +19,7 @@ impl ServerLink {
     where
         T: InteractionDone<WaitPublicEndpoint>,
     {
-        let msg = WaitPublicEndpoint {};
+        let msg = WaitPublicEndpoint;
         ctx.interact(&self.address, msg, group);
     }
 }
