@@ -2,7 +2,7 @@ mod actor;
 pub use actor::Broadcaster;
 
 mod link;
-pub use link::{ExporterLinkForClient, ExporterLinkForProvider};
+pub use link::{BroadcasterLinkForClient, BroadcasterLinkForProvider};
 
 //pub mod publishers;
 
@@ -32,7 +32,7 @@ pub trait Publisher: Actor + StartedBy<Broadcaster> + InterruptedBy<Broadcaster>
     type Config: Send;
     fn create(
         config: Self::Config,
-        exporter: ExporterLinkForClient,
+        exporter: BroadcasterLinkForClient,
         server: &HttpServerLink,
     ) -> Self;
 }

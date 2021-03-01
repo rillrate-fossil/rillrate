@@ -7,12 +7,12 @@ use std::collections::HashSet;
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug)]
-pub struct ExporterLinkForClient {
+pub struct BroadcasterLinkForClient {
     address: Address<Broadcaster>,
     active_streams: HashSet<Path>,
 }
 
-impl From<Address<Broadcaster>> for ExporterLinkForClient {
+impl From<Address<Broadcaster>> for BroadcasterLinkForClient {
     fn from(address: Address<Broadcaster>) -> Self {
         Self {
             address,
@@ -27,7 +27,7 @@ pub(super) struct SubscribeToStructChanges {
 
 impl Action for SubscribeToStructChanges {}
 
-impl ExporterLinkForClient {
+impl BroadcasterLinkForClient {
     pub async fn subscribe_to_struct_changes<A>(&mut self, address: Address<A>) -> Result<(), Error>
     where
         A: Actor + ActionHandler<PathNotification>,
@@ -40,7 +40,7 @@ impl ExporterLinkForClient {
 
 /// This `Link` used by `Session` actor.
 #[derive(Debug, Clone, From)]
-pub struct ExporterLinkForProvider {
+pub struct BroadcasterLinkForProvider {
     address: Address<Broadcaster>,
 }
 
@@ -51,7 +51,7 @@ pub(super) enum SessionLifetime {
 
 impl Action for SessionLifetime {}
 
-impl ExporterLinkForProvider {
+impl BroadcasterLinkForProvider {
     pub async fn session_attached(&mut self, name: EntryId) -> Result<(), Error> {
         let msg = SessionLifetime::Attached { name };
         self.address.act(msg).await
@@ -69,7 +69,7 @@ pub(super) struct PathDeclared {
 
 impl Action for PathDeclared {}
 
-impl ExporterLinkForProvider {
+impl BroadcasterLinkForProvider {
     pub async fn path_declared(&mut self, description: Description) -> Result<(), Error> {
         let msg = PathDeclared { description };
         self.address.act(msg).await

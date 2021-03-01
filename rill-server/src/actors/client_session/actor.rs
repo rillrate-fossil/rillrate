@@ -10,7 +10,7 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use once_cell::sync::Lazy;
-use rill_client::actors::broadcaster::{ExporterLinkForClient, PathNotification};
+use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_protocol::client::{ClientProtocol, ClientRequest, ClientResponse};
 use rill_protocol::transport::{Direction, Envelope, WideEnvelope};
 use tokio::sync::Mutex;
@@ -19,12 +19,12 @@ pub static PROVIDER: Lazy<Mutex<Option<ProviderLink>>> = Lazy::new(|| Mutex::new
 
 pub struct ClientSession {
     handler: WsHandler<ClientProtocol>,
-    exporter: ExporterLinkForClient,
+    exporter: BroadcasterLinkForClient,
     provider: Option<BindedProviderLink>,
 }
 
 impl ClientSession {
-    pub fn new(handler: WsHandler<ClientProtocol>, exporter: ExporterLinkForClient) -> Self {
+    pub fn new(handler: WsHandler<ClientProtocol>, exporter: BroadcasterLinkForClient) -> Self {
         Self {
             handler,
             exporter,

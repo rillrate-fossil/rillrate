@@ -11,7 +11,7 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
-use rill_client::actors::broadcaster::ExporterLinkForProvider;
+use rill_client::actors::broadcaster::BroadcasterLinkForProvider;
 use rill_protocol::client::{ClientReqId, ClientResponse};
 use rill_protocol::provider::{
     EntryId, ProviderProtocol, ProviderReqId, ProviderToServer, ServerToProvider,
@@ -26,7 +26,7 @@ pub struct ProviderSession {
     */
     handler: WsHandler<ProviderProtocol>,
     registered: Option<EntryId>,
-    exporter: ExporterLinkForProvider,
+    exporter: BroadcasterLinkForProvider,
 
     directions: TypedSlab<ProviderReqId, ClientRule>,
 }
@@ -40,7 +40,7 @@ enum ClientRule {
 }
 
 impl ProviderSession {
-    pub fn new(handler: WsHandler<ProviderProtocol>, exporter: ExporterLinkForProvider) -> Self {
+    pub fn new(handler: WsHandler<ProviderProtocol>, exporter: BroadcasterLinkForProvider) -> Self {
         Self {
             handler,
             registered: None,
