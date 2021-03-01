@@ -3,15 +3,12 @@ use crate::env;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
-    Actor, Context, Eliminated, IdOf, InteractionDone, InterruptedBy, LiteTask, StartedBy, System,
-    TaskEliminated, TaskError,
+    Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System, TaskEliminated, TaskError,
 };
-use meio_connect::server::{link::WaitForAddress, HttpServerLink};
+use meio_connect::server::HttpServerLink;
 use rill_engine::{ProviderConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
-use rill_server::{RillServer, ServerLink, WaitPrivateEndpoint, WaitPublicEndpoint};
-use std::marker::PhantomData;
-use std::net::SocketAddr;
+use rill_server::{RillServer, ServerLink};
 
 pub struct RillRate {
     // TODO: Keep node addr here as `Option`
@@ -170,87 +167,3 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
         Ok(())
     }
 }
-
-/*
-#[async_trait]
-impl InteractionDone<WaitPublicEndpoint> for RillRate {
-    async fn handle(&mut self, link: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::debug!("Public server is ready");
-        let res = link.wait_for_address().recv().await;
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl InteractionDone<WaitPrivateEndpoint> for RillRate {
-    async fn handle(&mut self, link: HttpServerLink, ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::debug!("Private server is ready");
-    }
-}
-*/
-
-/*
-#[async_trait]
-impl TaskEliminated<WaitForAddr<RillEngine>> for RillRate {
-    async fn handle(
-        &mut self,
-        _id: IdOf<WaitForAddr<RillEngine>>,
-        res: Result<SocketAddr, TaskError>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-    }
-}
-
-#[async_trait]
-impl TaskEliminated<WaitForAddr<RillExport>> for RillRate {
-    async fn handle(
-        &mut self,
-        _id: IdOf<WaitForAddr<RillExport>>,
-        res: Result<SocketAddr, TaskError>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        match res {
-            Ok(addr) => {
-                log::info!("Connecting exporter to {}", addr);
-                rill_export::config::NODE.offer(addr.to_string());
-                Ok(())
-            }
-            Err(err) => Err(err.into()),
-        }
-    }
-}
-*/
-
-/*
-// TODO: Remove
-// Since it has replaced with `Interaction` approach
-struct WaitForAddr<T> {
-    cell: AddrCell,
-    _waiter: PhantomData<T>,
-}
-
-impl<T> WaitForAddr<T> {
-    fn new(cell: AddrCell) -> Self {
-        Self {
-            cell,
-            _waiter: PhantomData,
-        }
-    }
-}
-
-#[async_trait]
-impl<T: Actor> LiteTask for WaitForAddr<T> {
-    type Output = SocketAddr;
-
-    async fn interruptable_routine(self) -> Result<Self::Output, Error> {
-        let intern_rx = self
-            .cell
-            .lock()
-            .await
-            .1
-            .take()
-            .ok_or_else(|| Error::msg("intern address notifier not found"))?;
-        intern_rx.await.map_err(Error::from)
-    }
-}
-*/
