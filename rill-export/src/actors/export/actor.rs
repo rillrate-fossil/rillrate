@@ -1,17 +1,23 @@
 use crate::config::ExportConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use meio::{Actor, Address, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 use rill_client::actors::broadcaster::Broadcaster;
 use rill_client::actors::client::RillClient;
 
 pub struct RillExport {
     config: ExportConfig,
+    client: Option<Address<RillClient>>,
+    broadcaster: Option<Address<Broadcaster>>,
 }
 
 impl RillExport {
     pub fn new(config: ExportConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            client: None,
+            broadcaster: None,
+        }
     }
 }
 
@@ -25,9 +31,12 @@ impl<T: Actor> StartedBy<T> for RillExport {
         let url = self.config.node_url();
         let actor = Broadcaster::new();
         let broadcaster = ctx.spawn_actor(actor, ());
+        let link = broadcaster.link();
+        self.broadcaster = Some(broadcaster);
 
-        let actor = RillClient::new(url, broadcaster.link());
-        ctx.spawn_actor(actor, ());
+        let actor = RillClient::new(url, link);
+        let client = ctx.spawn_actor(actor, ());
+        self.client = Some(client);
         Ok(())
     }
 }
