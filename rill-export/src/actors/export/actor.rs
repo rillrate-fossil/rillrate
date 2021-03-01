@@ -1,8 +1,8 @@
-use crate::actors::client::RillClient;
 use crate::config::ExportConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use rill_client::actors::client::RillClient;
 
 pub struct RillExport {
     config: ExportConfig,
