@@ -1,11 +1,17 @@
 use crate::config::ExportConfig;
-use crate::publishers::Publisher;
+use crate::publishers::{self, Publisher};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Address, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{Broadcaster, BroadcasterLinkForClient};
 use rill_client::actors::client::RillClient;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Group {
+    Middleware,
+    Publishers,
+}
 
 pub struct RillExport {
     config: ExportConfig,
@@ -33,45 +39,46 @@ impl RillExport {
             .ok_or_else(|| Error::msg("No broadcaster attached to RillExport"))
     }
 
-    fn spawn_publisher<T: Publisher>(&mut self, config: T::Config) -> Result<(), Error> {
+    fn spawn_publisher<T: Publisher>(
+        &mut self,
+        config: T::Config,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         let broadcaster = self.get_broadcaster()?;
-        let publihser = T::create(config, broadcaster, &self.server);
+        let publisher = T::create(config, broadcaster, &self.server);
+        ctx.spawn_actor(publisher, Group::Publishers);
         Ok(())
     }
 }
 
 impl Actor for RillExport {
-    type GroupBy = ();
+    type GroupBy = Group;
 }
 
 #[async_trait]
 impl<T: Actor> StartedBy<T> for RillExport {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(vec![Group::Publishers, Group::Middleware]);
         let url = self.config.node_url();
         let actor = Broadcaster::new();
-        let broadcaster = ctx.spawn_actor(actor, ());
+        let broadcaster = ctx.spawn_actor(actor, Group::Middleware);
         let link = broadcaster.link();
         self.broadcaster = Some(broadcaster);
 
         let actor = RillClient::new(url, link);
-        let client = ctx.spawn_actor(actor, ());
+        let client = ctx.spawn_actor(actor, Group::Middleware);
         self.client = Some(client);
 
         /*
-        let mut exporter: ExporterLinkForClient = exporter.link();
-
-        // Spawn exporters if they are exist
-        if let Some(config) = self.export_config.prometheus.take() {
-            exporter
-                .start_publisher::<publishers::PrometheusPublisher>(config)
-                .await?;
-        }
-        if let Some(config) = self.export_config.graphite.take() {
-            exporter
-                .start_publisher::<publishers::GraphitePublisher>(config)
+        if let Some(config) = self.config.prometheus.take() {
+            self
+                .spawn_publisher::<publishers::PrometheusPublisher>(config)
                 .await?;
         }
         */
+        if let Some(config) = self.config.graphite.take() {
+            self.spawn_publisher::<publishers::GraphitePublisher>(config, ctx)?;
+        }
 
         Ok(())
     }
@@ -103,6 +110,13 @@ impl Eliminated<RillClient> for RillExport {
         _id: IdOf<RillClient>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: Publisher> Eliminated<T> for RillExport {
+    async fn handle(&mut self, _id: IdOf<T>, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }
