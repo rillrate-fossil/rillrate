@@ -14,15 +14,3 @@ pub enum PathNotification {
 }
 
 impl Action for PathNotification {}
-
-/*
-/// An `Actor` that exports metrics to a third-party system.
-pub trait Publisher: Actor + StartedBy<Broadcaster> + InterruptedBy<Broadcaster> {
-    type Config: Send;
-    fn create(
-        config: Self::Config,
-        exporter: BroadcasterLinkForClient,
-        server: &HttpServerLink,
-    ) -> Self;
-}
-*/

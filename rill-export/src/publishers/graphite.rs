@@ -1,6 +1,9 @@
-use crate::actors::exporter::{
-    ExportEvent, Exporter, ExporterLinkForClient, PathNotification, Publisher,
-};
+use super::Publisher;
+use crate::actors::export::RillExport;
+/*
+    ExportEvent, RillExport,
+    Publisher,
+*/
 use crate::config::GraphiteConfig;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -10,6 +13,7 @@ use meio::{
     TaskError,
 };
 use meio_connect::server::HttpServerLink;
+use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_protocol::provider::{Path, PathPattern, RillEvent};
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -21,7 +25,7 @@ use tokio::sync::broadcast;
 
 pub struct GraphitePublisher {
     config: GraphiteConfig,
-    exporter: ExporterLinkForClient,
+    broadcaster: BroadcasterLinkForClient,
     pickled: bool,
     metrics: HashMap<Path, RillEvent>,
     sender: broadcast::Sender<Vec<u8>>,
@@ -32,13 +36,13 @@ impl Publisher for GraphitePublisher {
 
     fn create(
         config: Self::Config,
-        exporter: ExporterLinkForClient,
+        broadcaster: BroadcasterLinkForClient,
         _server: &HttpServerLink,
     ) -> Self {
         let (sender, _rx) = broadcast::channel(32);
         Self {
             config,
-            exporter,
+            broadcaster,
             pickled: true, // TODO: Get from the config
             metrics: HashMap::new(),
             sender,
@@ -48,7 +52,8 @@ impl Publisher for GraphitePublisher {
 
 impl GraphitePublisher {
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        // TODO: Do this for the client
+        //self.broadcaster.unsubscribe_all(ctx.address()).await.ok();
         ctx.shutdown();
     }
 }
@@ -64,7 +69,7 @@ impl Actor for GraphitePublisher {
 }
 
 #[async_trait]
-impl StartedBy<Exporter> for GraphitePublisher {
+impl StartedBy<RillExport> for GraphitePublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::HeartBeat, Group::Connection]);
         let interval = self.config.interval.unwrap_or(1_000);
@@ -73,15 +78,15 @@ impl StartedBy<Exporter> for GraphitePublisher {
         ctx.spawn_task(heartbeat, Group::HeartBeat);
         let connection = Connection::new(self.sender.clone());
         ctx.spawn_task(connection, Group::Connection);
-        self.exporter
-            .subscribe_to_paths(ctx.address().clone())
+        self.broadcaster
+            .subscribe_to_struct_changes(ctx.address().clone())
             .await?;
         Ok(())
     }
 }
 
 #[async_trait]
-impl InterruptedBy<Exporter> for GraphitePublisher {
+impl InterruptedBy<RillExport> for GraphitePublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
         Ok(())
@@ -166,9 +171,11 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
-                        self.exporter
+                        /* TODO: Use it with the `RillClient`
+                        self.broadcaster
                             .subscribe_to_data(path, ctx.address().clone())
                             .await?;
+                        */
                     }
                 }
             }
@@ -178,6 +185,7 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
     }
 }
 
+/* TODO: Process separately for all subscribed threads.
 #[async_trait]
 impl ActionHandler<ExportEvent> for GraphitePublisher {
     async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
@@ -189,6 +197,7 @@ impl ActionHandler<ExportEvent> for GraphitePublisher {
         Ok(())
     }
 }
+*/
 
 struct Connection {
     sender: broadcast::Sender<Vec<u8>>,
