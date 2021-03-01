@@ -4,20 +4,8 @@ pub use actor::Broadcaster;
 mod link;
 pub use link::{BroadcasterLinkForClient, BroadcasterLinkForProvider};
 
-//pub mod publishers;
-
-use meio::{Action, Actor, InterruptedBy, StartedBy};
-use meio_connect::server::HttpServerLink;
+use meio::Action;
 use rill_protocol::provider::{Description, EntryId};
-
-/*
-#[derive(Debug, Clone)]
-pub enum BroadcastEvent {
-    BroadcastData { path: Path, event: RillEvent },
-}
-
-impl Action for BroadcastEvent {}
-*/
 
 #[derive(Debug, Clone)]
 pub enum PathNotification {
@@ -27,6 +15,7 @@ pub enum PathNotification {
 
 impl Action for PathNotification {}
 
+/*
 /// An `Actor` that exports metrics to a third-party system.
 pub trait Publisher: Actor + StartedBy<Broadcaster> + InterruptedBy<Broadcaster> {
     type Config: Send;
@@ -36,3 +25,4 @@ pub trait Publisher: Actor + StartedBy<Broadcaster> + InterruptedBy<Broadcaster>
         server: &HttpServerLink,
     ) -> Self;
 }
+*/

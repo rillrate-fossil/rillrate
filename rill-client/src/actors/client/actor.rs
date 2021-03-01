@@ -1,3 +1,4 @@
+use crate::actors::broadcaster::BroadcasterLinkForProvider;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -15,11 +16,16 @@ use std::time::Duration;
 pub struct RillClient {
     url: String,
     sender: Option<WsSender<Envelope<ClientProtocol, ClientRequest>>>,
+    broadcaster: BroadcasterLinkForProvider,
 }
 
 impl RillClient {
-    pub fn new(url: String) -> Self {
-        Self { url, sender: None }
+    pub fn new(url: String, broadcaster: BroadcasterLinkForProvider) -> Self {
+        Self {
+            url,
+            sender: None,
+            broadcaster,
+        }
     }
 }
 
@@ -69,6 +75,7 @@ impl InstantActionHandler<WsClientStatus<ClientProtocol>> for RillClient {
             }
             WsClientStatus::Failed { reason } => {
                 log::error!("Connection failed: {}", reason);
+                self.broadcaster.session_detached().await?;
             }
         }
         Ok(())
@@ -84,8 +91,14 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
         match msg.0.data {
-            ClientResponse::Declare(entry_id) => {}
-            ClientResponse::Paths(paths) => {}
+            ClientResponse::Declare(entry_id) => {
+                self.broadcaster.session_attached(entry_id).await?;
+            }
+            ClientResponse::Paths(descriptions) => {
+                for desc in descriptions {
+                    self.broadcaster.path_declared(desc).await?;
+                }
+            }
             ClientResponse::Data(batch) => {}
             ClientResponse::Done => {}
         }

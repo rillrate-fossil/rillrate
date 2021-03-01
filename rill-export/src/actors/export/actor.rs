@@ -2,6 +2,7 @@ use crate::config::ExportConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
+use rill_client::actors::broadcaster::Broadcaster;
 use rill_client::actors::client::RillClient;
 
 pub struct RillExport {
@@ -22,7 +23,10 @@ impl Actor for RillExport {
 impl<T: Actor> StartedBy<T> for RillExport {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let url = self.config.node_url();
-        let actor = RillClient::new(url);
+        let actor = Broadcaster::new();
+        let broadcaster = ctx.spawn_actor(actor, ());
+
+        let actor = RillClient::new(url, broadcaster.link());
         ctx.spawn_actor(actor, ());
         Ok(())
     }
@@ -32,6 +36,17 @@ impl<T: Actor> StartedBy<T> for RillExport {
 impl<T: Actor> InterruptedBy<T> for RillExport {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<Broadcaster> for RillExport {
+    async fn handle(
+        &mut self,
+        _id: IdOf<Broadcaster>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         Ok(())
     }
 }

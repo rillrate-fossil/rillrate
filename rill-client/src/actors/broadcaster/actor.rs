@@ -1,9 +1,7 @@
-use super::{link, PathNotification, Publisher};
+use super::{link, PathNotification};
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{
-    ActionHandler, Actor, Context, Distributor, Eliminated, IdOf, InterruptedBy, StartedBy,
-};
+use meio::{ActionHandler, Actor, Context, Distributor, InterruptedBy, StartedBy};
 use rill_protocol::provider::{Description, EntryId, Path};
 use std::collections::{hash_map::Entry, HashMap};
 use thiserror::Error;
@@ -20,10 +18,8 @@ struct Record {
     declared: bool,
 }
 
-/// The `Actor` that subscribes to data according to available `Path`s.
+/// The `Actor` that informs about appeared providers and paths.
 pub struct Broadcaster {
-    //provider: Option<(EntryId, ProviderSessionLink)>,
-    // TODO: Maybe use full names instead of separate top `name`
     name: Option<EntryId>,
     paths_trackers: Distributor<PathNotification>,
     recipients: HashMap<Path, Record>,
@@ -38,22 +34,7 @@ impl Broadcaster {
         }
     }
 
-    /*
-    fn provider(&mut self) -> Result<&mut ProviderSessionLink, Reason> {
-        if let Some((_, ref mut link)) = self.provider {
-            Ok(link)
-        } else {
-            Err(Reason::NoActiveSession)
-        }
-    }
-    */
-
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        /*
-        if let Ok(provider) = self.provider() {
-            provider.unsubscribe_all().await.ok();
-        }
-        */
         ctx.shutdown();
     }
 }
@@ -73,14 +54,6 @@ impl<T: Actor> StartedBy<T> for Broadcaster {
 impl<T: Actor> InterruptedBy<T> for Broadcaster {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl<T: Publisher> Eliminated<T> for Broadcaster {
-    async fn handle(&mut self, id: IdOf<T>, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        log::info!("Publisher {} finished", id);
         Ok(())
     }
 }
@@ -111,29 +84,6 @@ impl ActionHandler<link::SessionLifetime> for Broadcaster {
     }
 }
 
-/*
-#[async_trait]
-impl ActionHandler<link::DataReceived> for Broadcaster {
-    async fn handle(
-        &mut self,
-        msg: link::DataReceived,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let path = msg.path.clone();
-        let event = BroadcastEvent::BroadcastData {
-            path: msg.path,
-            event: msg.event,
-        };
-        if let Some(record) = self.recipients.get_mut(&path) {
-            record.distributor.act_all(event).await?;
-            Ok(())
-        } else {
-            Err(Reason::NoMetaForPath(path).into())
-        }
-    }
-}
-*/
-
 impl Broadcaster {
     fn declared_paths(&self) -> Vec<Description> {
         self.recipients
@@ -157,7 +107,6 @@ impl ActionHandler<link::PathDeclared> for Broadcaster {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let path = msg.description.path.clone();
-        //let stream_type = msg.description.stream_type;
         log::info!("Declare path: {}", path);
         let entry = self.recipients.entry(path);
         match entry {
@@ -195,7 +144,6 @@ impl ActionHandler<link::SubscribeToStructChanges> for Broadcaster {
             msg.recipient.act(event).await?;
         }
 
-        // TODO: If there is no `Provider` do I have to ignore this broadcasting?
         let descriptions = self.declared_paths();
         let event = PathNotification::Paths { descriptions };
         msg.recipient.act(event).await?;
@@ -203,61 +151,3 @@ impl ActionHandler<link::SubscribeToStructChanges> for Broadcaster {
         Ok(())
     }
 }
-
-/*
-#[async_trait]
-impl ActionHandler<link::SubscribeToData> for Broadcaster {
-    async fn handle(
-        &mut self,
-        msg: link::SubscribeToData,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        ctx.not_terminating()?;
-        let path = msg.path.clone();
-        if let Some(record) = self.recipients.get_mut(&msg.path) {
-            record.distributor.insert(msg.recipient);
-            if record.distributor.len() == 1 && record.declared {
-                log::info!("Subscribing to: {}", path);
-                self.provider()?.subscribe(path).await?;
-            }
-            Ok(())
-        } else {
-            Err(Reason::NotDeclaredPath(msg.path).into())
-        }
-    }
-}
-
-#[async_trait]
-impl ActionHandler<link::UnsubscribeFromData> for Broadcaster {
-    async fn handle(
-        &mut self,
-        msg: link::UnsubscribeFromData,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let path = msg.path.clone();
-        if let Some(record) = self.recipients.get_mut(&msg.path) {
-            record.distributor.remove(&msg.id);
-            if record.distributor.is_empty() && record.declared {
-                log::info!("Unsubscribing from: {}", path);
-                self.provider()?.unsubscribe(path).await?;
-            }
-            Ok(())
-        } else {
-            Err(Reason::NotDeclaredPath(msg.path).into())
-        }
-    }
-}
-
-#[async_trait]
-impl<T: Publisher> ActionHandler<link::StartPublisher<T>> for Broadcaster {
-    async fn handle(
-        &mut self,
-        msg: link::StartPublisher<T>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let publisher = T::create(msg.config, ctx.address().link(), &self.server);
-        let _address = ctx.spawn_actor(publisher, ());
-        Ok(())
-    }
-}
-*/
