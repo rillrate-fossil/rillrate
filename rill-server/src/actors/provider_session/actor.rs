@@ -203,11 +203,20 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
             }
             ProviderToServer::Declare { entry_id } => {
                 ctx.not_terminating()?;
-                self.exporter.session_attached(entry_id.clone()).await?;
-                self.registered = Some(entry_id);
-                *PROVIDER.lock().await = Some(ctx.address().link());
-                let msg = ServerToProvider::Describe { active: true };
-                self.send_request(0.into(), msg);
+                if self.registered.is_none() {
+                    // Attach the provider
+                    *PROVIDER.lock().await = Some(ctx.address().link());
+                    self.exporter.session_attached(entry_id.clone()).await?;
+                    self.registered = Some(entry_id);
+                    // Describe paths
+                    let msg = ServerToProvider::Describe { active: true };
+                    self.send_request(0.into(), msg);
+                } else {
+                    log::error!(
+                        "Attempt to register a second provider instead of {:?}",
+                        self.registered
+                    );
+                }
             }
             ProviderToServer::Description { list } => {
                 log::trace!("Paths available: {:?}", list);

@@ -62,9 +62,6 @@ impl StartedBy<Router> for ClientSession {
             .subscribe_to_struct_changes(ctx.address().clone())
             .await?;
 
-        let sender = self.handler.sender();
-        self.provider = PROVIDER.lock().await.as_ref().map(|link| link.bind(sender));
-
         Ok(())
     }
 }
@@ -130,6 +127,10 @@ impl ActionHandler<PathNotification> for ClientSession {
                 Ok(())
             }
             PathNotification::Name { name } => {
+                // Get the provider when it connected and declared.
+                let sender = self.handler.sender();
+                self.provider = PROVIDER.lock().await.as_ref().map(|link| link.bind(sender));
+
                 let response = ClientResponse::Declare(name);
                 let envelope = WideEnvelope {
                     direction: Direction::broadcast(),
