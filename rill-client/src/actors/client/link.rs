@@ -1,9 +1,11 @@
 use super::RillClient;
 use derive_more::From;
-use futures::channel::mpsc;
+use futures::task::{Context, Poll};
+use futures::{channel::mpsc, Stream};
 use meio::{Address, InstantAction, Interaction, InteractionTask};
 use rill_protocol::client::ClientReqId;
 use rill_protocol::provider::{Path, RillEvent};
+use std::pin::Pin;
 
 #[derive(Debug, From)]
 pub struct ClientLink {
@@ -14,6 +16,18 @@ pub struct Subscription {
     req_id: ClientReqId,
     receiver: mpsc::Receiver<Vec<RillEvent>>,
     client: Address<RillClient>,
+}
+
+impl Stream for Subscription {
+    type Item = Vec<RillEvent>;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Pin::new(&mut self.receiver).poll_next(cx)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.receiver.size_hint()
+    }
 }
 
 impl Subscription {

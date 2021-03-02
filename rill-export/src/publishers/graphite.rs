@@ -3,7 +3,7 @@ use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::{channel::mpsc, StreamExt};
+use futures::StreamExt;
 use meio::{
     task::{HeartBeat, Tick},
     ActionHandler, Actor, Consumer, Context, IdOf, InterruptedBy, LiteTask, StartedBy,
@@ -32,7 +32,6 @@ pub struct GraphitePublisher {
     broadcaster: BroadcasterLinkForClient,
     client: ClientLink,
     pickled: bool,
-    //directions: HashMap<ClientReqId, Path>,
     metrics: HashMap<Path, Record>,
     sender: broadcast::Sender<Vec<u8>>,
 }
@@ -52,7 +51,6 @@ impl Publisher for GraphitePublisher {
             broadcaster,
             client,
             pickled: true, // TODO: Get from the config
-            //directions: HashMap::new(),
             metrics: HashMap::new(),
             sender,
         }
@@ -174,17 +172,10 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
-                        // TODO: `subscribe_to_path` has to return a Stream
-                        // TODO: To unsubscribe just remove the receiver
-                        // TODO: Use `Sender::is_closed` to track by heartbeat it's not necessary
-                        // and provider's stream can be closed
-                        // TODO: Use `ClientStream` and keep an address of the client inside with
-                        // a `Receiver` and use InstantAction to notify the Client on `Drop` of the
-                        // `ClientStream` wrapper.
                         let subscription =
                             self.client.subscribe_to_path(path.clone()).recv().await?;
                         let path = Arc::new(path);
-                        let rx = rx.map(move |item| (path.clone(), item));
+                        let rx = subscription.map(move |item| (path.clone(), item));
                         ctx.attach(rx, Group::Streams);
                     }
                 }
