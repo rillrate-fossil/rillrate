@@ -12,7 +12,8 @@ use meio::{
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
-use rill_protocol::provider::{Path, PathPattern, RillEvent};
+use rill_protocol::client::ClientReqId;
+use rill_protocol::provider::{Path, PathPattern, RillEvent, Timestamp};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
@@ -21,12 +22,18 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 
+struct Record {
+    timestamp: Timestamp,
+    value: f64,
+}
+
 pub struct GraphitePublisher {
     config: GraphiteConfig,
     broadcaster: BroadcasterLinkForClient,
     client: ClientLink,
     pickled: bool,
-    metrics: HashMap<Path, RillEvent>,
+    directions: HashMap<ClientReqId, Path>,
+    metrics: HashMap<Path, Record>,
     sender: broadcast::Sender<Vec<u8>>,
 }
 
@@ -45,6 +52,7 @@ impl Publisher for GraphitePublisher {
             broadcaster,
             client,
             pickled: true, // TODO: Get from the config
+            directions: HashMap::new(),
             metrics: HashMap::new(),
             sender,
         }
@@ -129,17 +137,10 @@ impl ActionHandler<Tick> for GraphitePublisher {
                 // Collect all metrics values into a pool
                 let mut pool = Vec::with_capacity(self.metrics.len());
                 for (path, record) in self.metrics.drain() {
-                    let converted: Result<f64, _> = record.data.try_into();
-                    match converted {
-                        Ok(value) => {
-                            let line = (path.to_string(), (record.timestamp.as_secs(), value));
-                            log::trace!("Graphite export: {} - {}", path, value);
-                            pool.push(line);
-                        }
-                        Err(err) => {
-                            log::error!("Can't send {} to the Graphite: {}", path, err);
-                        }
-                    }
+                    let value = record.value;
+                    let line = (path.to_string(), (record.timestamp.as_secs(), value));
+                    log::trace!("Graphite export: {} - {}", path, value);
+                    pool.push(line);
                 }
                 // Serialize with pickle
                 let mut buffer = Vec::new();
@@ -174,7 +175,12 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
                         let (tx, rx) = mpsc::channel(32);
-                        let req_id = self.client.subscribe_to_path(path, tx).recv().await?;
+                        let req_id = self
+                            .client
+                            .subscribe_to_path(path.clone(), tx)
+                            .recv()
+                            .await?;
+                        self.directions.insert(req_id, path);
                         ctx.attach(rx, Group::Streams);
                     }
                 }
