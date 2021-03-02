@@ -70,10 +70,6 @@ impl<T: TracerEvent> InterruptedBy<RillWorker> for Recorder<T> {
 
 #[async_trait]
 impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
-    fn stream_group(&self) -> Self::GroupBy {
-        // TODO: Use something here?
-    }
-
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,

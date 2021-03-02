@@ -281,10 +281,6 @@ impl<T: TracerEvent> Eliminated<Recorder<T>> for RillWorker {
 
 #[async_trait]
 impl Consumer<Parcel<Self>> for RillWorker {
-    fn stream_group(&self) -> Self::GroupBy {
-        Group::UpgradeStream
-    }
-
     async fn handle(
         &mut self,
         chunk: Vec<Parcel<Self>>,

@@ -7,7 +7,7 @@ use futures::channel::mpsc;
 use meio::{
     task::{HeartBeat, Tick},
     ActionHandler, Actor, Consumer, Context, IdOf, InterruptedBy, LiteTask, StartedBy,
-    TaskEliminated, TaskError,
+    StreamAcceptor, TaskEliminated, TaskError,
 };
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
@@ -193,17 +193,19 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 
 #[async_trait]
 impl Consumer<Vec<RillEvent>> for GraphitePublisher {
-    fn stream_group(&self) -> Self::GroupBy {
-        Group::Streams
-    }
-
     // TODO: Avoid this VecVecVec (((
     async fn handle(
         &mut self,
-        msg: Vec<Vec<RillEvent>>,
+        _msg: Vec<Vec<RillEvent>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         Ok(())
+    }
+}
+
+impl StreamAcceptor<Vec<RillEvent>> for GraphitePublisher {
+    fn stream_group(&self) -> Self::GroupBy {
+        Group::Streams
     }
 }
 
