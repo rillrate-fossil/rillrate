@@ -1,9 +1,7 @@
 use super::RillClient;
-use anyhow::Error;
-use async_trait::async_trait;
 use derive_more::From;
 use futures::channel::mpsc;
-use meio::{Action, Address, Interaction, InteractionTask};
+use meio::{Address, Interaction, InteractionTask};
 use rill_protocol::client::ClientReqId;
 use rill_protocol::provider::{Path, RillEvent};
 

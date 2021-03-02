@@ -2,7 +2,7 @@ use super::link;
 use crate::actors::broadcaster::BroadcasterLinkForProvider;
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::channel::mpsc;
+use futures::{channel::mpsc, SinkExt};
 use meio::{
     ActionHandler, Actor, Context, IdOf, InstantActionHandler, InteractionHandler, InterruptedBy,
     StartedBy, TaskEliminated, TaskError,
@@ -113,7 +113,16 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
                     self.broadcaster.path_declared(desc).await?;
                 }
             }
-            ClientResponse::Data(batch) => {}
+            ClientResponse::Data(batch) => {
+                let directions = msg.0.direction.into_vec();
+                for direction in directions {
+                    if let Some(sender) = self.directions.get_mut(direction) {
+                        if let Err(err) = sender.send(batch.clone()).await {
+                            log::error!("Can't send data to {:?}: {}", direction, err);
+                        }
+                    }
+                }
+            }
             ClientResponse::Done => {}
         }
         Ok(())
