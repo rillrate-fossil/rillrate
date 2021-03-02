@@ -1,7 +1,7 @@
 use super::RillClient;
 use derive_more::From;
 use futures::channel::mpsc;
-use meio::{Address, Interaction, InteractionTask};
+use meio::{Address, InstantAction, Interaction, InteractionTask};
 use rill_protocol::client::ClientReqId;
 use rill_protocol::provider::{Path, RillEvent};
 
@@ -10,22 +10,55 @@ pub struct ClientLink {
     address: Address<RillClient>,
 }
 
+pub struct Subscription {
+    req_id: ClientReqId,
+    receiver: mpsc::Receiver<Vec<RillEvent>>,
+    client: Address<RillClient>,
+}
+
+impl Subscription {
+    pub(super) fn new(
+        req_id: ClientReqId,
+        receiver: mpsc::Receiver<Vec<RillEvent>>,
+        client: Address<RillClient>,
+    ) -> Self {
+        Self {
+            req_id,
+            receiver,
+            client,
+        }
+    }
+}
+
+pub(crate) struct UnsubscribeFromPath {
+    pub req_id: ClientReqId,
+}
+
+impl InstantAction for UnsubscribeFromPath {}
+
+/// Asks to close a stream when receiver was closed.
+impl Drop for Subscription {
+    fn drop(&mut self) {
+        let msg = UnsubscribeFromPath {
+            req_id: self.req_id,
+        };
+        if let Err(err) = self.client.instant(msg) {
+            log::error!("Can't unsubscribe {:?}: {}", self.req_id, err);
+        }
+    }
+}
+
 pub struct SubscribeToPath {
     pub path: Path,
-    pub sender: mpsc::Sender<Vec<RillEvent>>,
 }
 
 impl Interaction for SubscribeToPath {
-    type Output = ClientReqId;
+    type Output = Subscription;
 }
 
 impl ClientLink {
-    pub fn subscribe_to_path(
-        &mut self,
-        path: Path,
-        sender: mpsc::Sender<Vec<RillEvent>>,
-    ) -> InteractionTask<SubscribeToPath> {
-        let msg = SubscribeToPath { path, sender };
+    pub fn subscribe_to_path(&mut self, path: Path) -> InteractionTask<SubscribeToPath> {
+        let msg = SubscribeToPath { path };
         self.address.interact(msg)
     }
 }

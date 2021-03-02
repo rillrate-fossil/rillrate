@@ -181,12 +181,8 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                         // TODO: Use `ClientStream` and keep an address of the client inside with
                         // a `Receiver` and use InstantAction to notify the Client on `Drop` of the
                         // `ClientStream` wrapper.
-                        let (tx, rx) = mpsc::channel(32);
-                        let req_id = self
-                            .client
-                            .subscribe_to_path(path.clone(), tx)
-                            .recv()
-                            .await?;
+                        let subscription =
+                            self.client.subscribe_to_path(path.clone()).recv().await?;
                         let path = Arc::new(path);
                         let rx = rx.map(move |item| (path.clone(), item));
                         ctx.attach(rx, Group::Streams);

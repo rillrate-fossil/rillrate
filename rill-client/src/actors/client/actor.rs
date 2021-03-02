@@ -12,18 +12,26 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
-use rill_protocol::provider::RillEvent;
+use rill_protocol::provider::{Path, RillEvent};
 use rill_protocol::transport::{Envelope, WideEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
 
 type Connection = WsSender<Envelope<ClientProtocol, ClientRequest>>;
 
+enum Record {
+    Active {
+        path: Path,
+        sender: mpsc::Sender<Vec<RillEvent>>,
+    },
+    AwaitingEnd,
+}
+
 pub struct RillClient {
     url: String,
     sender: Option<Connection>,
     broadcaster: BroadcasterLinkForProvider,
-    directions: TypedSlab<ClientReqId, mpsc::Sender<Vec<RillEvent>>>,
+    directions: TypedSlab<ClientReqId, Record>,
 }
 
 impl RillClient {
@@ -116,14 +124,21 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
             ClientResponse::Data(batch) => {
                 let directions = msg.0.direction.into_vec();
                 for direction in directions {
-                    if let Some(sender) = self.directions.get_mut(direction) {
-                        if let Err(err) = sender.send(batch.clone()).await {
-                            log::error!("Can't send data to {:?}: {}", direction, err);
+                    if let Some(record) = self.directions.get_mut(direction) {
+                        if let Record::Active { sender, .. } = record {
+                            if let Err(err) = sender.send(batch.clone()).await {
+                                log::error!("Can't send data to {:?}: {}", direction, err);
+                            }
                         }
                     }
                 }
             }
-            ClientResponse::Done => {}
+            ClientResponse::Done => {
+                let directions = msg.0.direction.into_vec();
+                for direction in directions {
+                    self.directions.remove(direction);
+                }
+            }
         }
         Ok(())
     }
@@ -147,16 +162,51 @@ impl InteractionHandler<link::SubscribeToPath> for RillClient {
     async fn handle(
         &mut self,
         msg: link::SubscribeToPath,
-        _ctx: &mut Context<Self>,
-    ) -> Result<ClientReqId, Error> {
+        ctx: &mut Context<Self>,
+    ) -> Result<link::Subscription, Error> {
         log::info!("Subscribing to {}", msg.path);
-        let direct_id = self.directions.insert(msg.sender);
+        let (tx, rx) = mpsc::channel(32);
+        let record = Record::Active {
+            path: msg.path.clone(),
+            sender: tx,
+        };
+        let direct_id = self.directions.insert(record);
         let data = ClientRequest::ControlStream {
             path: msg.path,
             active: true,
         };
         let envelope = Envelope { direct_id, data };
         self.sender()?.send(envelope);
-        Ok(direct_id)
+        let subscrtiption = link::Subscription::new(direct_id, rx, ctx.address().clone());
+        Ok(subscrtiption)
+    }
+}
+
+#[async_trait]
+impl InstantActionHandler<link::UnsubscribeFromPath> for RillClient {
+    async fn handle(
+        &mut self,
+        msg: link::UnsubscribeFromPath,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let direct_id = msg.req_id;
+        let record = self.directions.get_mut(direct_id);
+        if let Some(record) = record {
+            let mut new_record = Record::AwaitingEnd;
+            std::mem::swap(record, &mut new_record);
+            if let Record::Active { path, .. } = new_record {
+                let data = ClientRequest::ControlStream {
+                    path,
+                    active: false,
+                };
+                let envelope = Envelope { direct_id, data };
+                self.sender()?.send(envelope);
+            } else {
+                log::error!("Attempt to unsubscribe twice for {:?}", direct_id);
+            }
+        } else {
+            log::error!("Attempt to unsubscribe for non existent {:?}", direct_id);
+        }
+        Ok(())
     }
 }
