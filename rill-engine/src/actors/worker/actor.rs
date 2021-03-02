@@ -281,17 +281,8 @@ impl<T: TracerEvent> Eliminated<Recorder<T>> for RillWorker {
 
 #[async_trait]
 impl Consumer<Parcel<Self>> for RillWorker {
-    async fn handle(
-        &mut self,
-        chunk: Vec<Parcel<Self>>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        for parcel in chunk {
-            if let Err(err) = ctx.address().unpack_parcel(parcel) {
-                log::error!("Can't unpack a parcel for the worker: {}", err);
-            }
-        }
-        Ok(())
+    async fn handle(&mut self, parcel: Parcel<Self>, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.address().unpack_parcel(parcel)
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {

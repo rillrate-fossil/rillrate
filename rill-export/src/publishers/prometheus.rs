@@ -121,19 +121,16 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 
 #[async_trait]
 impl Consumer<(Arc<Path>, Vec<RillEvent>)> for PrometheusPublisher {
-    // TODO: Avoid this VecVecVec (((
     async fn handle(
         &mut self,
-        msg: Vec<(Arc<Path>, Vec<RillEvent>)>,
+        (path, chunk): (Arc<Path>, Vec<RillEvent>),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        for (path, chunk) in msg {
-            if let Some(event) = chunk.into_iter().last() {
-                if let Some(record) = self.metrics.get_mut(&path) {
-                    record.event = Some(event);
-                } else {
-                    log::error!("No record for path: {}", path);
-                }
+        if let Some(event) = chunk.into_iter().last() {
+            if let Some(record) = self.metrics.get_mut(&path) {
+                record.event = Some(event);
+            } else {
+                log::error!("No record for path: {}", path);
             }
         }
         Ok(())

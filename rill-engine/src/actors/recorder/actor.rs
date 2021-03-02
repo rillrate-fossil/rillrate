@@ -3,6 +3,7 @@ use crate::actors::worker::{RillSender, RillWorker};
 use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent, TracerState};
 use anyhow::Error;
 use async_trait::async_trait;
+use futures::StreamExt;
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::provider::{
     Description, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent,
@@ -54,7 +55,11 @@ impl<T: TracerEvent> Actor for Recorder<T> {
 #[async_trait]
 impl<T: TracerEvent> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let rx = self.receiver.take().ok_or(RecorderError::NoReceiver)?;
+        let rx = self
+            .receiver
+            .take()
+            .ok_or(RecorderError::NoReceiver)?
+            .ready_chunks(32);
         ctx.attach(rx, ());
         Ok(())
     }
@@ -69,7 +74,7 @@ impl<T: TracerEvent> InterruptedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: TracerEvent> Consumer<DataEnvelope<T>> for Recorder<T> {
+impl<T: TracerEvent> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,

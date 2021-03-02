@@ -188,26 +188,23 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 
 #[async_trait]
 impl Consumer<(Arc<Path>, Vec<RillEvent>)> for GraphitePublisher {
-    // TODO: Avoid this VecVecVec (((
     async fn handle(
         &mut self,
-        msg: Vec<(Arc<Path>, Vec<RillEvent>)>,
+        (path, chunk): (Arc<Path>, Vec<RillEvent>),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        for (path, chunk) in msg {
-            if let Some(event) = chunk.into_iter().last() {
-                let val: Result<f64, _> = event.data.try_into();
-                match val {
-                    Ok(value) => {
-                        let record = Record {
-                            timestamp: event.timestamp,
-                            value,
-                        };
-                        self.metrics.insert((&*path).clone(), record);
-                    }
-                    Err(err) => {
-                        log::error!("Can't convert {} to a value: {}", path, err);
-                    }
+        if let Some(event) = chunk.into_iter().last() {
+            let val: Result<f64, _> = event.data.try_into();
+            match val {
+                Ok(value) => {
+                    let record = Record {
+                        timestamp: event.timestamp,
+                        value,
+                    };
+                    self.metrics.insert((&*path).clone(), record);
+                }
+                Err(err) => {
+                    log::error!("Can't convert {} to a value: {}", path, err);
                 }
             }
         }
