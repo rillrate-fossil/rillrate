@@ -10,32 +10,26 @@ use rill_engine::{ProviderConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
 use rill_server::{RillServer, ServerLink};
 
-pub struct RillRate {
-    // TODO: Keep node addr here as `Option`
-    // and if it's not configured than spawn a standalone server
-    // and with for it install the port here and spawn a tracer.
-    provider_config: Option<ProviderConfig>,
-    export_config: Option<ExportConfig>,
-}
+pub struct RillRate {}
 
 impl RillRate {
     pub fn new(app_name: String) -> Self {
         // TODO: Use MyOnceCell here that will inform that it was set
         rill_engine::config::NAME.offer(app_name.into());
-        Self {
-            provider_config: None,
-            export_config: None,
-        }
+        Self {}
     }
 
-    fn spawn_engine(&mut self, ctx: &mut Context<Self>) {
-        let config = self.provider_config.take().unwrap_or_default();
+    fn spawn_engine(&mut self, config: ProviderConfig, ctx: &mut Context<Self>) {
         let actor = RillEngine::new(config);
         ctx.spawn_actor(actor, Group::Provider);
     }
 
-    fn spawn_exporter(&mut self, server: HttpServerLink, ctx: &mut Context<Self>) {
-        let config = self.export_config.take().unwrap_or_default();
+    fn spawn_exporter(
+        &mut self,
+        config: ExportConfig,
+        server: HttpServerLink,
+        ctx: &mut Context<Self>,
+    ) {
         let actor = RillExport::new(config, server);
         ctx.spawn_actor(actor, Group::Exporter);
     }
@@ -136,14 +130,10 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
                 Config::default()
             });
 
-        self.provider_config = config.rillrate;
-        let node_specified = self
-            .provider_config
-            .as_ref()
-            .map(ProviderConfig::is_node_specified)
-            .unwrap_or(false);
-        if node_specified {
-            self.spawn_engine(ctx);
+        let engine_config = config.rillrate.unwrap_or_default();
+        let export_config = config.export.unwrap_or_default();
+        if engine_config.is_node_specified() {
+            self.spawn_engine(engine_config, ctx);
         } else {
             // If node wasn't specified than spawn an embedded node and
             // wait for the address to spawn a provider connected to that.
@@ -152,17 +142,15 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
 
             // TODO: Add timeout here
             let public_http = server.wait_public_endpoint().recv().await?;
-            //ctx.track_interaction(task, Group::Tuning);
 
             // TODO: Add timeout here
             let private_http = server.wait_private_endpoint().recv().await?;
-            //ctx.track_interaction(task, Group::Tuning);
 
             let addr = private_http.wait_for_address().recv().await?;
             log::info!("Connecting engine (provider) to {}", addr);
             rill_engine::config::NODE.offer(addr.to_string());
-            self.spawn_engine(ctx);
-            self.spawn_exporter(public_http, ctx);
+            self.spawn_engine(engine_config, ctx);
+            self.spawn_exporter(export_config, public_http, ctx);
         }
         Ok(())
     }

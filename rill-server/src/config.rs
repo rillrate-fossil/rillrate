@@ -8,7 +8,7 @@ use std::net::IpAddr;
 pub static SERVER_ADDRESS: ConfigPatch<IpAddr> = ConfigPatch::new("RILLRATE_SERVER_ADDRESS");
 
 /// Embedded server configuration.
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct ServerConfig {
     /// An address where bind the server.
     pub address: Option<IpAddr>,

@@ -67,6 +67,7 @@ impl Actor for RillExport {
 impl<T: Actor> StartedBy<T> for RillExport {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Publishers, Group::Middleware]);
+        log::warn!("STARTING EXPORT! {:?}", self.config);
         let url = self.config.node_url();
         let actor = Broadcaster::new();
         let broadcaster = ctx.spawn_actor(actor, Group::Middleware);

@@ -11,7 +11,7 @@ use tokio::io::AsyncReadExt;
 
 const DEF_CONFIG: &str = "rillrate.toml";
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Config {
     pub rillrate: Option<ProviderConfig>,
     pub server: Option<ServerConfig>,
@@ -54,6 +54,7 @@ impl LiteTask for ReadConfigFile {
                 Config::read(path).await.ok()
             }
         };
+        log::trace!("Config ready: {:?}", config);
         Ok(config)
     }
 }

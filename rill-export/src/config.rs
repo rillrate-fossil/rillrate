@@ -8,7 +8,7 @@ pub static NODE: ConfigPatch<String> = ConfigPatch::new("VAR-NOT-SPECIFIED");
 
 ///
 /// Config of exporters.
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct ExportConfig {
     /// Optional config for Prometheus
     pub prometheus: Option<PrometheusConfig>,
@@ -35,7 +35,7 @@ impl ExportConfig {
 }
 
 /// Prometheus exporter config.
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct PrometheusConfig {
     // TODO: Deserialize paths here directly using `FromStr`
     /// Patterns of paths.
@@ -43,7 +43,7 @@ pub struct PrometheusConfig {
 }
 
 /// Graphite exporter config.
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct GraphiteConfig {
     // TODO: Deserialize paths here directly using `FromStr`
     /// Patterns of paths.
