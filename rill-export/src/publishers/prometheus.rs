@@ -1,16 +1,19 @@
-use crate::actors::exporter::{
-    ExportEvent, Exporter, ExporterLinkForClient, PathNotification, Publisher,
-};
+use super::Publisher;
+use crate::actors::export::RillExport;
 use crate::config::PrometheusConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::{ActionHandler, Actor, Context, InteractionHandler, InterruptedBy, StartedBy};
+use futures::StreamExt;
+use meio::{ActionHandler, Actor, Consumer, Context, InteractionHandler, InterruptedBy, StartedBy};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
+use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
+use rill_client::actors::client::ClientLink;
 use rill_protocol::provider::{Description, Path, PathPattern, RillEvent, StreamType};
 use serde::Deserialize;
 use std::collections::btree_map::{BTreeMap, Entry};
 use std::convert::TryInto;
+use std::sync::Arc;
 
 struct Record {
     event: Option<RillEvent>,
@@ -19,7 +22,8 @@ struct Record {
 
 pub struct PrometheusPublisher {
     config: PrometheusConfig,
-    exporter: ExporterLinkForClient,
+    broadcaster: BroadcasterLinkForClient,
+    client: ClientLink,
     server: HttpServerLink,
     metrics: BTreeMap<Path, Record>,
 }
@@ -29,13 +33,14 @@ impl Publisher for PrometheusPublisher {
 
     fn create(
         config: Self::Config,
-        exporter: ExporterLinkForClient,
+        broadcaster: BroadcasterLinkForClient,
         client: ClientLink,
         server: &HttpServerLink,
     ) -> Self {
         Self {
             config,
-            exporter,
+            broadcaster,
+            client,
             server: server.clone(),
             metrics: BTreeMap::new(),
         }
@@ -44,29 +49,35 @@ impl Publisher for PrometheusPublisher {
 
 impl PrometheusPublisher {
     async fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        self.exporter.unsubscribe_all(ctx.address()).await.ok();
+        //self.broadcaster.unsubscribe_all(ctx.address()).await.ok();
         ctx.shutdown();
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Group {
+    Streams,
+}
+
 impl Actor for PrometheusPublisher {
-    type GroupBy = ();
+    type GroupBy = Group;
 }
 
 #[async_trait]
-impl StartedBy<Exporter> for PrometheusPublisher {
+impl StartedBy<RillExport> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(vec![Group::Streams]);
         let metrics_route = WebRoute::<RenderMetrics, _>::new(ctx.address().clone());
         self.server.add_route(metrics_route).await?;
-        self.exporter
-            .subscribe_to_paths(ctx.address().clone())
+        self.broadcaster
+            .subscribe_to_struct_changes(ctx.address().clone())
             .await?;
         Ok(())
     }
 }
 
 #[async_trait]
-impl InterruptedBy<Exporter> for PrometheusPublisher {
+impl InterruptedBy<RillExport> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx).await;
         Ok(())
@@ -87,16 +98,18 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
-                        self.exporter
-                            .subscribe_to_data(path.clone(), ctx.address().clone())
-                            .await?;
-                        if let Entry::Vacant(entry) = self.metrics.entry(path) {
+                        let subscription =
+                            self.client.subscribe_to_path(path.clone()).recv().await?;
+                        if let Entry::Vacant(entry) = self.metrics.entry(path.clone()) {
                             let record = Record {
                                 event: None,
                                 description,
                             };
                             entry.insert(record);
                         }
+                        let path = Arc::new(path);
+                        let rx = subscription.map(move |item| (path.clone(), item));
+                        ctx.attach(rx, Group::Streams);
                     }
                 }
             }
@@ -107,12 +120,19 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 }
 
 #[async_trait]
-impl ActionHandler<ExportEvent> for PrometheusPublisher {
-    async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        match msg {
-            ExportEvent::BroadcastData { path, event } => {
+impl Consumer<(Arc<Path>, Vec<RillEvent>)> for PrometheusPublisher {
+    // TODO: Avoid this VecVecVec (((
+    async fn handle(
+        &mut self,
+        msg: Vec<(Arc<Path>, Vec<RillEvent>)>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        for (path, chunk) in msg {
+            if let Some(event) = chunk.into_iter().last() {
                 if let Some(record) = self.metrics.get_mut(&path) {
                     record.event = Some(event);
+                } else {
+                    log::error!("No record for path: {}", path);
                 }
             }
         }

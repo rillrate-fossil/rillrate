@@ -1,8 +1,8 @@
 mod graphite;
 pub use graphite::GraphitePublisher;
 
-//mod prometheus;
-//pub use prometheus::PrometheusPublisher;
+mod prometheus;
+pub use prometheus::PrometheusPublisher;
 
 use crate::actors::export::RillExport;
 use meio::{Actor, InterruptedBy, StartedBy};
