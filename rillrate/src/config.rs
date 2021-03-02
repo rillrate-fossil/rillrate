@@ -1,7 +1,7 @@
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::LiteTask;
-use rill_engine::config::ProviderConfig;
+use rill_engine::config::EngineConfig;
 use rill_export::config::ExportConfig;
 use rill_server::config::ServerConfig;
 use serde::Deserialize;
@@ -13,7 +13,7 @@ const DEF_CONFIG: &str = "rillrate.toml";
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    pub rillrate: Option<ProviderConfig>,
+    pub rillrate: Option<EngineConfig>,
     pub server: Option<ServerConfig>,
     pub export: Option<ExportConfig>,
 }

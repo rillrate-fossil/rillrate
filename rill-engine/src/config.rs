@@ -13,7 +13,7 @@ pub static NAME: ConfigPatch<EntryId> = ConfigPatch::new("RILLRATE_NAME");
 
 /// Provider configuration
 #[derive(Deserialize, Debug, Clone)]
-pub struct ProviderConfig {
+pub struct EngineConfig {
     // TODO: Use default serde value instead
     /// Node where connect the provider
     pub node: Option<String>,
@@ -22,7 +22,7 @@ pub struct ProviderConfig {
     pub name: Option<EntryId>,
 }
 
-impl Default for ProviderConfig {
+impl Default for EngineConfig {
     fn default() -> Self {
         Self {
             node: None,
@@ -31,7 +31,7 @@ impl Default for ProviderConfig {
     }
 }
 
-impl ProviderConfig {
+impl EngineConfig {
     /// Returns `true` if node explicitly specified.
     pub fn is_node_specified(&self) -> bool {
         NODE.env_var().is_ok() || self.node.is_some()

@@ -6,7 +6,7 @@ use meio::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System, TaskEliminated, TaskError,
 };
 use meio_connect::server::HttpServerLink;
-use rill_engine::{ProviderConfig, RillEngine};
+use rill_engine::{EngineConfig, RillEngine};
 use rill_export::{ExportConfig, RillExport};
 use rill_server::{RillServer, ServerLink};
 
@@ -19,7 +19,7 @@ impl RillRate {
         Self {}
     }
 
-    fn spawn_engine(&mut self, config: ProviderConfig, ctx: &mut Context<Self>) {
+    fn spawn_engine(&mut self, config: EngineConfig, ctx: &mut Context<Self>) {
         let actor = RillEngine::new(config);
         ctx.spawn_actor(actor, Group::Provider);
     }

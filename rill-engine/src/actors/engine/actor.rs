@@ -1,13 +1,13 @@
 //use crate::actors::storage::RillStorage;
 use crate::actors::worker::RillWorker;
-use crate::config::ProviderConfig;
+use crate::config::EngineConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 
 /// The supervisor that spawns a worker.
 pub struct RillEngine {
-    config: Option<ProviderConfig>,
+    config: Option<EngineConfig>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -28,7 +28,7 @@ impl Actor for RillEngine {
 
 impl RillEngine {
     /// Creates a new supervisor instance.
-    pub fn new(config: ProviderConfig) -> Self {
+    pub fn new(config: EngineConfig) -> Self {
         Self {
             config: Some(config),
         }
