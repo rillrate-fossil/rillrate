@@ -3,7 +3,7 @@ use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::channel::mpsc;
+use futures::{channel::mpsc, StreamExt};
 use meio::{
     task::{HeartBeat, Tick},
     ActionHandler, Actor, Consumer, Context, IdOf, InterruptedBy, LiteTask, StartedBy,
@@ -12,11 +12,11 @@ use meio::{
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
-use rill_protocol::client::ClientReqId;
 use rill_protocol::provider::{Path, PathPattern, RillEvent, Timestamp};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
@@ -32,7 +32,7 @@ pub struct GraphitePublisher {
     broadcaster: BroadcasterLinkForClient,
     client: ClientLink,
     pickled: bool,
-    directions: HashMap<ClientReqId, Path>,
+    //directions: HashMap<ClientReqId, Path>,
     metrics: HashMap<Path, Record>,
     sender: broadcast::Sender<Vec<u8>>,
 }
@@ -52,7 +52,7 @@ impl Publisher for GraphitePublisher {
             broadcaster,
             client,
             pickled: true, // TODO: Get from the config
-            directions: HashMap::new(),
+            //directions: HashMap::new(),
             metrics: HashMap::new(),
             sender,
         }
@@ -174,13 +174,21 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
+                        // TODO: `subscribe_to_path` has to return a Stream
+                        // TODO: To unsubscribe just remove the receiver
+                        // TODO: Use `Sender::is_closed` to track by heartbeat it's not necessary
+                        // and provider's stream can be closed
+                        // TODO: Use `ClientStream` and keep an address of the client inside with
+                        // a `Receiver` and use InstantAction to notify the Client on `Drop` of the
+                        // `ClientStream` wrapper.
                         let (tx, rx) = mpsc::channel(32);
                         let req_id = self
                             .client
                             .subscribe_to_path(path.clone(), tx)
                             .recv()
                             .await?;
-                        self.directions.insert(req_id, path);
+                        let path = Arc::new(path);
+                        let rx = rx.map(move |item| (path.clone(), item));
                         ctx.attach(rx, Group::Streams);
                     }
                 }
@@ -192,13 +200,30 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 }
 
 #[async_trait]
-impl Consumer<Vec<RillEvent>> for GraphitePublisher {
+impl Consumer<(Arc<Path>, Vec<RillEvent>)> for GraphitePublisher {
     // TODO: Avoid this VecVecVec (((
     async fn handle(
         &mut self,
-        _msg: Vec<Vec<RillEvent>>,
+        msg: Vec<(Arc<Path>, Vec<RillEvent>)>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        for (path, chunk) in msg {
+            if let Some(event) = chunk.into_iter().last() {
+                let val: Result<f64, _> = event.data.try_into();
+                match val {
+                    Ok(value) => {
+                        let record = Record {
+                            timestamp: event.timestamp,
+                            value,
+                        };
+                        self.metrics.insert((&*path).clone(), record);
+                    }
+                    Err(err) => {
+                        log::error!("Can't convert {} to a value: {}", path, err);
+                    }
+                }
+            }
+        }
         Ok(())
     }
 }
@@ -208,20 +233,6 @@ impl StreamAcceptor<Vec<RillEvent>> for GraphitePublisher {
         Group::Streams
     }
 }
-
-/* TODO: Process separately for all subscribed threads.
-#[async_trait]
-impl ActionHandler<ExportEvent> for GraphitePublisher {
-    async fn handle(&mut self, msg: ExportEvent, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        match msg {
-            ExportEvent::BroadcastData { path, event } => {
-                self.metrics.insert(path, event);
-            }
-        }
-        Ok(())
-    }
-}
-*/
 
 struct Connection {
     sender: broadcast::Sender<Vec<u8>>,
