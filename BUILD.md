@@ -1,3 +1,12 @@
+# Release sequence
+
+- rill-protocol
+- rill-engine
+- rill-client
+- rill-export
+- rill-server
+- rillrate
+
 # How to build?
 
 ## Linux
