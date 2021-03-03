@@ -162,6 +162,13 @@ impl TracerState for TableState {
     }
 
     fn make_snapshot(&self) -> Vec<RillEvent> {
-        todo!()
+        let mut events = Vec::new();
+        for (col_id, col_record) in self.columns.iter() {
+            let update = TableUpdate::AddCol {
+                col: *col_id,
+                alias: col_record.alias.clone(),
+            };
+        }
+        events
     }
 }
