@@ -12,6 +12,10 @@ pub enum DictRecord {
     Association { key: String, value: String },
 }
 
+impl TracerEvent for DictRecord {
+    type State = DictState;
+}
+
 #[derive(Debug)]
 pub struct Record {
     timestamp: Timestamp,
@@ -79,10 +83,6 @@ impl TracerState for DictState {
             Vec::new()
         }
     }
-}
-
-impl TracerEvent for DictRecord {
-    type State = DictState;
 }
 
 /// This tracer sends text messages.

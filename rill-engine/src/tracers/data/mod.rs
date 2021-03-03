@@ -11,3 +11,6 @@ pub use gauge::GaugeTracer;
 
 pub(crate) mod logger;
 pub use logger::LogTracer;
+
+pub(crate) mod table;
+pub use table::TableTracer;
