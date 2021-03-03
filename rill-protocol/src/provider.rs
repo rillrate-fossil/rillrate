@@ -250,6 +250,7 @@ pub enum RillData {
     // TODO: Join with aggregated
     DictUpdate(DictUpdate),
     EntryUpdate(EntryUpdate),
+    TableUpdate(TableUpdate),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -263,6 +264,35 @@ pub enum DictUpdate {
 pub enum EntryUpdate {
     Add { name: EntryId },
     Remove { name: EntryId },
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ColId(pub u64);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct RowId(pub u64);
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum TableUpdate {
+    AddCol {
+        col: ColId,
+        alias: Option<String>,
+    },
+    DelCol {
+        col: ColId,
+    },
+    AddRow {
+        row: RowId,
+        alias: Option<String>,
+    },
+    DelRow {
+        row: RowId,
+    },
+    SetCell {
+        row: RowId,
+        col: ColId,
+        value: String,
+    },
 }
 
 #[derive(Debug, Error)]
@@ -289,6 +319,9 @@ impl TryInto<f64> for RillData {
             )),
             Self::EntryUpdate(_) => Err(RillDataError::Unapplicable(
                 "can't convert entry into a single value",
+            )),
+            Self::TableUpdate(_) => Err(RillDataError::Unapplicable(
+                "can't convert table into a single value",
             )),
         }
     }
