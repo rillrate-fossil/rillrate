@@ -26,7 +26,10 @@ impl TracerState for GaugeState {
         mut outgoing: Option<&mut Vec<RillEvent>>,
     ) {
         for item in items {
-            let (data, ts) = item.unpack();
+            let DataEnvelope::Event {
+                timestamp: ts,
+                data,
+            } = item;
             match data {
                 GaugeUpdate::Increment(delta) => {
                     self.gauge += delta;
@@ -35,7 +38,7 @@ impl TracerState for GaugeState {
                     self.gauge -= delta;
                 }
                 GaugeUpdate::Set(value) => {
-                    self.gauge = *value;
+                    self.gauge = value;
                 }
             }
             let data = RillData::GaugeValue { value: self.gauge };

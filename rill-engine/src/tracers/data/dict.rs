@@ -35,7 +35,10 @@ impl TracerState for DictState {
         let mut timestamp = None;
         let mut changes = HashMap::new();
         for item in items {
-            let (data, ts) = item.unpack();
+            let DataEnvelope::Event {
+                timestamp: ts,
+                data,
+            } = item;
             match data {
                 DictRecord::Association { key, value } => {
                     let record = Record {

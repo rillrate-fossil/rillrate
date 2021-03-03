@@ -24,25 +24,7 @@ pub trait TracerEvent: Sized + Send + 'static {
 
 #[derive(Debug)]
 pub enum DataEnvelope<T> {
-    // TODO: Use `Timestamp` here and convert all incoiming
-    // values inside `Tracers`
-    Event { system_time: SystemTime, data: T },
-}
-
-impl<T> DataEnvelope<T> {
-    // TODO: Remove this method
-    pub fn unpack(&self) -> (&T, Timestamp) {
-        // TODO: Fix this unwrap
-        let DataEnvelope::Event {
-            system_time,
-            ref data,
-        } = self;
-        let timestamp = system_time
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .into();
-        (data, timestamp)
-    }
+    Event { timestamp: Timestamp, data: T },
 }
 
 impl<T: TracerEvent> Action for DataEnvelope<T> {}
@@ -99,11 +81,21 @@ impl<T: TracerEvent> Tracer<T> {
 
     pub(crate) fn send(&self, data: T, opt_system_time: Option<SystemTime>) {
         if self.is_active() {
-            let system_time = opt_system_time.unwrap_or_else(SystemTime::now);
-            let envelope = DataEnvelope::Event { system_time, data };
-            // And will never send an event
-            if let Err(err) = self.sender.unbounded_send(envelope) {
-                log::error!("Can't transfer data to sender: {}", err);
+            let ts = opt_system_time
+                .unwrap_or_else(SystemTime::now)
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .map(Timestamp::from);
+            match ts {
+                Ok(timestamp) => {
+                    let envelope = DataEnvelope::Event { timestamp, data };
+                    // And will never send an event
+                    if let Err(err) = self.sender.unbounded_send(envelope) {
+                        log::error!("Can't transfer data to sender: {}", err);
+                    }
+                }
+                Err(err) => {
+                    log::error!("Can't make a timestamp from provided system time: {}", err);
+                }
             }
         }
     }

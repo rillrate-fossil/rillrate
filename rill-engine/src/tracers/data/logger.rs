@@ -24,7 +24,10 @@ impl TracerState for LogState {
         mut outgoing: Option<&mut Vec<RillEvent>>,
     ) {
         for item in items {
-            let (data, ts) = item.unpack();
+            let DataEnvelope::Event {
+                timestamp: ts,
+                data,
+            } = item;
             match data {
                 LogRecord::Message(msg) => {
                     let data = RillData::LogRecord {

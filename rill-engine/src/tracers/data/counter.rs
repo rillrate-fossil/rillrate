@@ -24,7 +24,10 @@ impl TracerState for CounterState {
     ) {
         let mut timestamp = None;
         for item in items {
-            let (data, ts) = item.unpack();
+            let DataEnvelope::Event {
+                timestamp: ts,
+                data,
+            } = item;
             match data {
                 CounterDelta::Increment(delta) => {
                     self.counter += delta;
