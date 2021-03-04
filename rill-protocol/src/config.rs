@@ -1,10 +1,16 @@
 use anyhow::Error;
 use once_cell::sync::OnceCell;
+use std::convert::identity;
 use std::env;
 use std::str::FromStr;
 
+/// Configuration parameter that can be overriden by an environment variable
+/// or explicitly by setting default value.
+#[derive(Debug)]
 pub struct ConfigPatch<T> {
+    /// High-priority value
     pre: &'static str,
+    /// Low-priority value
     post: OnceCell<T>,
 }
 
@@ -20,15 +26,18 @@ impl<T> ConfigPatch<T> {
         self.pre
     }
 
-    pub fn env_var(&self) -> Result<T, Error>
+    pub fn env_var(&self) -> Result<Option<T>, Error>
     where
         T: FromStr,
     {
-        let s = env::var(self.pre)?;
-        let value = s.parse().map_err(|_err| {
-            Error::msg(format!("Can't parse {} variable from '{}'.", self.pre, s))
-        })?;
-        Ok(value)
+        if let Ok(s) = env::var(self.pre) {
+            let value = s.parse().map_err(|_err| {
+                Error::msg(format!("Can't parse {} variable from '{}'.", self.pre, s))
+            })?;
+            Ok(Some(value))
+        } else {
+            Ok(None)
+        }
     }
 
     /// Offers an alternative default if no other value provided.
@@ -49,6 +58,7 @@ impl<T> ConfigPatch<T> {
                 log::error!("Default value for {} will be used: {}", self.pre, err);
             })
             .ok()
+            .and_then(identity)
             .or_else(value)
             .or_else(|| self.post.get().cloned())
             .unwrap_or_else(default)
