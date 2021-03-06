@@ -253,11 +253,11 @@ pub enum RillData {
     TableUpdate(TableUpdate),
 }
 
+// TODO: Rename to `DictDelta`
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum DictUpdate {
-    // TODO: Remove `Single`
-    Single { key: String, value: String },
-    Aggregated { map: HashMap<String, String> },
+pub struct DictUpdate {
+    // TODO: Use `DictAction {Add, Del}` as a value
+    pub map: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

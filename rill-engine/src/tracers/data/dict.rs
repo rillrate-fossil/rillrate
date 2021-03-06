@@ -56,7 +56,7 @@ impl TracerState for DictState {
             timestamp = Some(ts);
         }
         if let Some(timestamp) = timestamp {
-            let update = DictUpdate::Aggregated { map: changes };
+            let update = DictUpdate { map: changes };
             let data = RillData::DictUpdate(update);
             let last_event = RillEvent { timestamp, data };
             if let Some(outgoing) = outgoing {
@@ -75,7 +75,7 @@ impl TracerState for DictState {
                     (Some(&record.timestamp), map)
                 });
         if let Some(timestamp) = ts.cloned() {
-            let update = DictUpdate::Aggregated { map };
+            let update = DictUpdate { map };
             let data = RillData::DictUpdate(update);
             let event = RillEvent { timestamp, data };
             vec![event]
