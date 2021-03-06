@@ -503,7 +503,23 @@ pub struct GaugeState {
     frame: Frame<GaugePoint>,
 }
 
+impl State for GaugeState {
+    type Update = GaugeUpdate;
+
+    fn apply(&mut self, update: Self::Update) {
+        for point in update.points {
+            self.frame.insert(point);
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeUpdate {
     points: Vec<GaugePoint>,
+}
+
+impl Update for GaugeUpdate {
+    fn combine(&mut self, other: Self) {
+        self.points.extend(other.points);
+    }
 }
