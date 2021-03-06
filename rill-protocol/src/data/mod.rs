@@ -17,34 +17,38 @@ pub mod counter {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CounterState {
-        event: CounterEvent,
+        timestamp: Timestamp,
+        value: f64,
     }
 
     impl State for CounterState {
         type Delta = CounterDelta;
 
-        fn apply(&mut self, update: Self::Delta) {
-            self.event = update.last_event;
+        fn apply(&mut self, delta: Self::Delta) {
+            self.timestamp = delta.timestamp;
+            self.value += delta.delta;
         }
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CounterDelta {
-        last_event: CounterEvent,
+        timestamp: Timestamp,
+        delta: f64,
     }
 
     impl Delta for CounterDelta {
         type Event = CounterEvent;
 
         fn combine(&mut self, event: Self::Event) {
-            self.last_event = event;
+            self.timestamp = event.timestamp;
+            self.delta += event.increment;
         }
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CounterEvent {
         timestamp: Timestamp,
-        value: f64,
+        increment: f64,
     }
 }
 
