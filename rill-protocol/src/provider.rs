@@ -566,3 +566,70 @@ impl Delta for DictDelta {
 pub enum DictEvent {
     SetValue { key: String, value: String },
 }
+
+pub mod table {
+    use super::{ColId, Delta, RowId, State};
+    use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct TableState {
+        columns: HashMap<ColId, ColRecord>,
+        rows: HashMap<RowId, RowRecord>,
+    }
+
+    impl State for TableState {
+        type Delta = TableDelta;
+
+        fn apply(&mut self, update: Self::Delta) {
+            todo!()
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct TableDelta {
+        updates: HashMap<(RowId, ColId), String>,
+    }
+
+    impl Delta for TableDelta {
+        type Event = TableEvent;
+
+        fn combine(&mut self, event: Self::Event) {
+            todo!()
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub enum TableEvent {
+        AddCol {
+            col: ColId,
+            alias: Option<String>,
+        },
+        DelCol {
+            col: ColId,
+        },
+        AddRow {
+            row: RowId,
+            alias: Option<String>,
+        },
+        DelRow {
+            row: RowId,
+        },
+        SetCell {
+            row: RowId,
+            col: ColId,
+            value: String,
+        },
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    struct ColRecord {
+        alias: Option<String>,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    struct RowRecord {
+        alias: Option<String>,
+        cols: HashMap<ColId, String>,
+    }
+}
