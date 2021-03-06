@@ -1,5 +1,4 @@
 use crate::codec::JsonCodec;
-use crate::frame::Frame;
 use crate::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
@@ -453,118 +452,131 @@ pub trait Delta {
 /// The basic state of a stream.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StreamState {
-    Counter(CounterState),
+    Counter(counter::CounterState),
 }
 
 /// The update applied to the state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StreamDelta {
-    Counter(CounterDelta),
+    Counter(counter::CounterDelta),
 }
 
-// COUNTER
+pub mod counter {
+    use super::{Delta, State, Timestamp};
+    use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CounterState {
-    event: CounterEvent,
-}
-
-impl State for CounterState {
-    type Delta = CounterDelta;
-
-    fn apply(&mut self, update: Self::Delta) {
-        self.event = update.last_event;
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct CounterState {
+        event: CounterEvent,
     }
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CounterDelta {
-    last_event: CounterEvent,
-}
+    impl State for CounterState {
+        type Delta = CounterDelta;
 
-impl Delta for CounterDelta {
-    type Event = CounterEvent;
-
-    fn combine(&mut self, event: Self::Event) {
-        self.last_event = event;
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CounterEvent {
-    timestamp: Timestamp,
-    value: f64,
-}
-
-// GAUGE
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugeState {
-    frame: Frame<GaugeEvent>,
-}
-
-impl State for GaugeState {
-    type Delta = GaugeDelta;
-
-    fn apply(&mut self, update: Self::Delta) {
-        for event in update.events {
-            self.frame.insert(event);
+        fn apply(&mut self, update: Self::Delta) {
+            self.event = update.last_event;
         }
     }
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugeDelta {
-    events: Vec<GaugeEvent>,
-}
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct CounterDelta {
+        last_event: CounterEvent,
+    }
 
-impl Delta for GaugeDelta {
-    type Event = GaugeEvent;
+    impl Delta for CounterDelta {
+        type Event = CounterEvent;
 
-    fn combine(&mut self, event: Self::Event) {
-        self.events.push(event);
+        fn combine(&mut self, event: Self::Event) {
+            self.last_event = event;
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct CounterEvent {
+        timestamp: Timestamp,
+        value: f64,
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugeEvent {
-    timestamp: Timestamp,
-    value: f64,
-}
+pub mod gauge {
+    use super::{Delta, State, Timestamp};
+    use crate::frame::Frame;
+    use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DictState {
-    map: HashMap<String, String>,
-}
-
-impl State for DictState {
-    type Delta = DictDelta;
-
-    fn apply(&mut self, update: Self::Delta) {
-        self.map.extend(update.map);
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct GaugeState {
+        frame: Frame<GaugeEvent>,
     }
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DictDelta {
-    map: HashMap<String, String>,
-}
+    impl State for GaugeState {
+        type Delta = GaugeDelta;
 
-impl Delta for DictDelta {
-    type Event = DictEvent;
-
-    fn combine(&mut self, event: Self::Event) {
-        match event {
-            DictEvent::SetValue { key, value } => {
-                self.map.insert(key, value);
+        fn apply(&mut self, update: Self::Delta) {
+            for event in update.events {
+                self.frame.insert(event);
             }
         }
     }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct GaugeDelta {
+        events: Vec<GaugeEvent>,
+    }
+
+    impl Delta for GaugeDelta {
+        type Event = GaugeEvent;
+
+        fn combine(&mut self, event: Self::Event) {
+            self.events.push(event);
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct GaugeEvent {
+        timestamp: Timestamp,
+        value: f64,
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum DictEvent {
-    SetValue { key: String, value: String },
+pub mod dict {
+    use super::{Delta, State};
+    use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct DictState {
+        map: HashMap<String, String>,
+    }
+
+    impl State for DictState {
+        type Delta = DictDelta;
+
+        fn apply(&mut self, update: Self::Delta) {
+            self.map.extend(update.map);
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct DictDelta {
+        map: HashMap<String, String>,
+    }
+
+    impl Delta for DictDelta {
+        type Event = DictEvent;
+
+        fn combine(&mut self, event: Self::Event) {
+            match event {
+                DictEvent::SetValue { key, value } => {
+                    self.map.insert(key, value);
+                }
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub enum DictEvent {
+        SetValue { key: String, value: String },
+    }
 }
 
 pub mod table {
