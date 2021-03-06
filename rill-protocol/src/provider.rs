@@ -445,7 +445,9 @@ pub trait State {
 }
 
 pub trait Delta {
-    fn combine(&mut self, other: Self);
+    type Event;
+
+    fn combine(&mut self, event: Self::Event);
 }
 
 /// The basic state of a stream.
@@ -464,62 +466,68 @@ pub enum StreamDelta {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CounterState {
-    timestamp: Timestamp,
-    value: f64,
+    event: CounterEvent,
 }
 
 impl State for CounterState {
     type Delta = CounterDelta;
 
     fn apply(&mut self, update: Self::Delta) {
-        self.timestamp = update.timestamp;
-        self.value = update.value;
+        self.event = update.last_event;
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CounterDelta {
-    timestamp: Timestamp,
-    value: f64,
+    last_event: CounterEvent,
 }
 
 impl Delta for CounterDelta {
-    fn combine(&mut self, other: Self) {
-        self.timestamp = other.timestamp;
-        self.value = other.value;
+    type Event = CounterEvent;
+
+    fn combine(&mut self, event: Self::Event) {
+        self.last_event = event;
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CounterEvent {
+    timestamp: Timestamp,
+    value: f64,
 }
 
 // GAUGE
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugePoint {
-    timestamp: Timestamp,
-    value: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeState {
-    frame: Frame<GaugePoint>,
+    frame: Frame<GaugeEvent>,
 }
 
 impl State for GaugeState {
     type Delta = GaugeDelta;
 
     fn apply(&mut self, update: Self::Delta) {
-        for point in update.points {
-            self.frame.insert(point);
+        for event in update.events {
+            self.frame.insert(event);
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeDelta {
-    points: Vec<GaugePoint>,
+    events: Vec<GaugeEvent>,
 }
 
 impl Delta for GaugeDelta {
-    fn combine(&mut self, other: Self) {
-        self.points.extend(other.points);
+    type Event = GaugeEvent;
+
+    fn combine(&mut self, event: Self::Event) {
+        self.events.push(event);
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GaugeEvent {
+    timestamp: Timestamp,
+    value: f64,
 }
