@@ -439,12 +439,12 @@ pub enum ProviderToServer {
 }
 
 pub trait State {
-    type Update: Update;
+    type Delta: Delta;
 
-    fn apply(&mut self, update: Self::Update);
+    fn apply(&mut self, update: Self::Delta);
 }
 
-pub trait Update {
+pub trait Delta {
     fn combine(&mut self, other: Self);
 }
 
@@ -456,8 +456,8 @@ pub enum StreamState {
 
 /// The update applied to the state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum StreamUpdate {
-    Counter(CounterUpdate),
+pub enum StreamDelta {
+    Counter(CounterDelta),
 }
 
 // COUNTER
@@ -469,21 +469,21 @@ pub struct CounterState {
 }
 
 impl State for CounterState {
-    type Update = CounterUpdate;
+    type Delta = CounterDelta;
 
-    fn apply(&mut self, update: Self::Update) {
+    fn apply(&mut self, update: Self::Delta) {
         self.timestamp = update.timestamp;
         self.value = update.value;
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CounterUpdate {
+pub struct CounterDelta {
     timestamp: Timestamp,
     value: f64,
 }
 
-impl Update for CounterUpdate {
+impl Delta for CounterDelta {
     fn combine(&mut self, other: Self) {
         self.timestamp = other.timestamp;
         self.value = other.value;
@@ -504,9 +504,9 @@ pub struct GaugeState {
 }
 
 impl State for GaugeState {
-    type Update = GaugeUpdate;
+    type Delta = GaugeDelta;
 
-    fn apply(&mut self, update: Self::Update) {
+    fn apply(&mut self, update: Self::Delta) {
         for point in update.points {
             self.frame.insert(point);
         }
@@ -514,11 +514,11 @@ impl State for GaugeState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugeUpdate {
+pub struct GaugeDelta {
     points: Vec<GaugePoint>,
 }
 
-impl Update for GaugeUpdate {
+impl Delta for GaugeDelta {
     fn combine(&mut self, other: Self) {
         self.points.extend(other.points);
     }
