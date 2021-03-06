@@ -763,3 +763,43 @@ pub mod table {
         assert_eq!(expected, set.into_iter().collect::<Vec<_>>());
     }
 }
+
+pub mod log {
+    use super::{Delta, State, Timestamp};
+    use crate::frame::Frame;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct LogState {
+        frame: Frame<LogEvent>,
+    }
+
+    impl State for LogState {
+        type Delta = LogDelta;
+
+        fn apply(&mut self, update: Self::Delta) {
+            for event in update.events {
+                self.frame.insert(event);
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct LogDelta {
+        events: Vec<LogEvent>,
+    }
+
+    impl Delta for LogDelta {
+        type Event = LogEvent;
+
+        fn combine(&mut self, event: Self::Event) {
+            self.events.push(event);
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct LogEvent {
+        timestamp: Timestamp,
+        msg: String,
+    }
+}
