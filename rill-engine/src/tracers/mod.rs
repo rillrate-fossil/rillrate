@@ -5,5 +5,3 @@ pub mod meta;
 
 pub(crate) mod tracer;
 pub use tracer::Tracer;
-
-mod utils;
