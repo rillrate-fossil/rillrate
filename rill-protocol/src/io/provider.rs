@@ -582,12 +582,12 @@ pub mod dict {
 pub mod table {
     use super::{ColId, Delta, RowId, State};
     use serde::{Deserialize, Serialize};
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct TableState {
-        columns: HashMap<ColId, ColRecord>,
-        rows: HashMap<RowId, RowRecord>,
+        columns: BTreeMap<ColId, ColRecord>,
+        rows: BTreeMap<RowId, RowRecord>,
     }
 
     impl State for TableState {
@@ -598,16 +598,54 @@ pub mod table {
         }
     }
 
+    #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub enum TablePointer {
+        Row(RowId),
+        Col(ColId),
+        Cell { row: RowId, col: ColId },
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub enum TableAction {
+        Add { alias: Option<String> },
+        Del,
+        Set { value: String },
+    }
+
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct TableDelta {
-        updates: HashMap<(RowId, ColId), String>,
+        updates: BTreeMap<TablePointer, TableAction>,
     }
 
     impl Delta for TableDelta {
         type Event = TableEvent;
 
         fn combine(&mut self, event: Self::Event) {
-            todo!()
+            let pointer;
+            let action;
+            match event {
+                TableEvent::AddCol { col, alias } => {
+                    pointer = TablePointer::Col(col);
+                    action = TableAction::Add { alias };
+                }
+                TableEvent::DelCol { col } => {
+                    pointer = TablePointer::Col(col);
+                    action = TableAction::Del;
+                }
+                TableEvent::AddRow { row, alias } => {
+                    pointer = TablePointer::Row(row);
+                    action = TableAction::Add { alias };
+                }
+                TableEvent::DelRow { row } => {
+                    pointer = TablePointer::Row(row);
+                    action = TableAction::Del;
+                }
+                TableEvent::SetCell { row, col, value } => {
+                    pointer = TablePointer::Cell { row, col };
+                    action = TableAction::Set { value };
+                }
+            }
+            self.updates.insert(pointer, action);
         }
     }
 
@@ -642,6 +680,6 @@ pub mod table {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     struct RowRecord {
         alias: Option<String>,
-        cols: HashMap<ColId, String>,
+        cols: BTreeMap<ColId, String>,
     }
 }
