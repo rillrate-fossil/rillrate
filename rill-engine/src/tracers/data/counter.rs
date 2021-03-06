@@ -1,8 +1,10 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
+use rill_protocol::data::counter::CounterEvent;
 use rill_protocol::io::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
 
+/*
 #[derive(Debug)]
 pub enum CounterDelta {
     Increment(f64),
@@ -55,11 +57,12 @@ impl TracerState for CounterState {
 impl TracerEvent for CounterDelta {
     type State = CounterState<Item = Self>;
 }
+*/
 
 /// Tracers `Counter` metrics that can increments only.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct CounterTracer {
-    tracer: Tracer<CounterDelta>,
+    tracer: Tracer<CounterEvent>,
 }
 
 impl CounterTracer {
@@ -77,7 +80,7 @@ impl CounterTracer {
 
     /// Increments value by the sepcific delta.
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
-        let data = CounterDelta::Increment(delta);
+        let data = CounterEvent { increment: delta };
         self.tracer.send(data, timestamp);
     }
 }

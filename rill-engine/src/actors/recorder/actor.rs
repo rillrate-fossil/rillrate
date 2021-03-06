@@ -1,12 +1,13 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
-use crate::tracers::tracer::{DataEnvelope, DataReceiver, TracerEvent, TracerState};
+use crate::tracers::tracer::{DataEnvelope, DataReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
+use rill_protocol::data;
 use rill_protocol::io::provider::{
-    Description, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent,
+    Description, ProviderProtocol, ProviderReqId, ProviderToServer, StreamState,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
@@ -19,28 +20,28 @@ enum RecorderError {
     NoReceiver,
 }
 
-pub(crate) struct Recorder<T: TracerEvent> {
+pub(crate) struct Recorder<T: data::State> {
     description: Arc<Description>,
     sender: RillSender,
     // TODO: Change to the specific type receiver
     receiver: Option<DataReceiver<T>>,
     subscribers: HashSet<ProviderReqId>,
-    state: T::State,
+    state: T,
 }
 
-impl<T: TracerEvent> Recorder<T> {
+impl<T: data::State> Recorder<T> {
     pub fn new(description: Arc<Description>, sender: RillSender, rx: DataReceiver<T>) -> Self {
         Self {
             description,
             sender,
             receiver: Some(rx),
             subscribers: HashSet::new(),
-            state: T::State::default(),
+            state: T::default(),
         }
     }
 
-    fn get_snapshot(&self) -> Vec<RillEvent> {
-        self.state.make_snapshot()
+    fn get_snapshot(&self) -> StreamState {
+        self.state.clone().into()
     }
 
     fn get_direction(&self) -> Direction<ProviderProtocol> {
@@ -48,12 +49,12 @@ impl<T: TracerEvent> Recorder<T> {
     }
 }
 
-impl<T: TracerEvent> Actor for Recorder<T> {
+impl<T: data::State> Actor for Recorder<T> {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl<T: TracerEvent> StartedBy<RillWorker> for Recorder<T> {
+impl<T: data::State> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let rx = self
             .receiver
@@ -66,7 +67,7 @@ impl<T: TracerEvent> StartedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: TracerEvent> InterruptedBy<RillWorker> for Recorder<T> {
+impl<T: data::State> InterruptedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -74,12 +75,13 @@ impl<T: TracerEvent> InterruptedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: TracerEvent> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
+impl<T: data::State> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        /*
         let mut batch = (!self.subscribers.is_empty()).then(Vec::new);
         self.state.aggregate(chunk, batch.as_mut());
         if let Some(batch) = batch {
@@ -88,6 +90,8 @@ impl<T: TracerEvent> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
             self.sender.response(direction, response);
         }
         Ok(())
+        */
+        todo!();
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
@@ -100,7 +104,7 @@ impl<T: TracerEvent> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
+impl<T: data::State> ActionHandler<link::ControlStream> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ControlStream,
@@ -143,7 +147,7 @@ impl<T: TracerEvent> ActionHandler<link::ControlStream> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: TracerEvent> ActionHandler<link::ConnectionChanged> for Recorder<T> {
+impl<T: data::State> ActionHandler<link::ConnectionChanged> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ConnectionChanged,

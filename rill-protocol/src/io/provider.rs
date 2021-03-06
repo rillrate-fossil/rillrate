@@ -1,4 +1,4 @@
-use crate::data::counter::{CounterDelta, CounterState};
+use crate::data::{counter, dict, gauge, log as logger, table};
 use crate::io::codec::JsonCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, From, FromStr, Index, Into};
@@ -429,8 +429,7 @@ pub enum ProviderToServer {
     },
     /// The response to `ControlStream { active: true }` request
     BeginStream {
-        /// Reproduced events.
-        snapshot: Vec<RillEvent>,
+        snapshot: StreamState,
     },
     Data {
         /// Aggregated events.
@@ -443,13 +442,17 @@ pub enum ProviderToServer {
 }
 
 /// The basic state of a stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, From, Serialize, Deserialize)]
 pub enum StreamState {
-    Counter(CounterState),
+    Counter(counter::CounterState),
+    Gauge(gauge::GaugeState),
+    Table(table::TableState),
+    Dict(dict::DictState),
+    Log(logger::LogState),
 }
 
 /// The update applied to the state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, From, Serialize, Deserialize)]
 pub enum StreamDelta {
-    Counter(CounterDelta),
+    Counter(counter::CounterDelta),
 }

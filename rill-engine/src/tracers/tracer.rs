@@ -2,6 +2,7 @@
 use crate::state::RILL_LINK;
 use futures::channel::mpsc;
 use meio::Action;
+use rill_protocol::data;
 use rill_protocol::io::provider::{Description, Path, RillEvent, Timestamp};
 use std::sync::Arc;
 use std::time::SystemTime;
@@ -22,6 +23,7 @@ pub trait TracerEvent: Sized + Send + 'static {
     type State: TracerState<Item = Self>;
 }
 
+// TODO: Replace `DataEnvelope` with `TimedEvent`
 #[derive(Debug)]
 pub enum DataEnvelope<T> {
     Event { timestamp: Timestamp, data: T },
@@ -53,7 +55,7 @@ impl<T> Clone for Tracer<T> {
     }
 }
 
-impl<T: TracerEvent> Tracer<T> {
+impl<T: data::Event> Tracer<T> {
     pub(crate) fn new(description: Description) -> Self {
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
@@ -65,7 +67,7 @@ impl<T: TracerEvent> Tracer<T> {
             description: description.clone(),
             sender: tx,
         };
-        if let Err(err) = RILL_LINK.register_tracer(description, rx) {
+        if let Err(err) = RILL_LINK.register_tracer::<T::State>(description, rx) {
             log::error!(
                 "Can't register a Tracer. The worker can be terminated already: {}",
                 err

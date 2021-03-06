@@ -1,10 +1,11 @@
 use crate::actors::worker::RillWorker;
-use crate::tracers::tracer::{DataReceiver, TracerEvent};
+use crate::tracers::tracer::DataReceiver;
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 use meio::{InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
+use rill_protocol::data;
 use rill_protocol::io::provider::Description;
 use std::sync::Arc;
 
@@ -36,7 +37,7 @@ impl RillState {
     ) -> Result<(), Error>
     where
         RillWorker: InstantActionHandler<RegisterTracer<T>>,
-        T: TracerEvent,
+        T: data::State,
     {
         let msg = RegisterTracer {
             description,
@@ -58,4 +59,4 @@ pub(crate) struct RegisterTracer<T> {
     pub receiver: DataReceiver<T>,
 }
 
-impl<T: TracerEvent> InstantAction for RegisterTracer<T> {}
+impl<T: data::State> InstantAction for RegisterTracer<T> {}

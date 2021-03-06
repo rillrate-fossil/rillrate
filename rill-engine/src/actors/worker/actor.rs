@@ -2,7 +2,6 @@ use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::config::EngineConfig;
 use crate::state;
-use crate::tracers::tracer::TracerEvent;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -13,6 +12,7 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
+use rill_protocol::data;
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
@@ -235,7 +235,7 @@ impl TaskEliminated<WsClient<ProviderProtocol, Self>> for RillWorker {
 }
 
 #[async_trait]
-impl<T: TracerEvent> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
+impl<T: data::State> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
     async fn handle(
         &mut self,
         msg: state::RegisterTracer<T>,
@@ -261,7 +261,7 @@ impl<T: TracerEvent> InstantActionHandler<state::RegisterTracer<T>> for RillWork
 }
 
 #[async_trait]
-impl<T: TracerEvent> Eliminated<Recorder<T>> for RillWorker {
+impl<T: data::State> Eliminated<Recorder<T>> for RillWorker {
     async fn handle(
         &mut self,
         id: IdOf<Recorder<T>>,

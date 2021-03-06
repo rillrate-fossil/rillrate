@@ -1,8 +1,8 @@
 use super::Recorder;
 use crate::actors::worker::RillSender;
-use crate::tracers::tracer::TracerEvent;
 use anyhow::Error;
 use meio::{Action, ActionRecipient, Address};
+use rill_protocol::data;
 use rill_protocol::io::provider::ProviderReqId;
 
 #[derive(Debug)]
@@ -12,7 +12,7 @@ pub(crate) struct RecorderLink {
     connection_recipient: Box<dyn ActionRecipient<ConnectionChanged>>,
 }
 
-impl<T: TracerEvent> From<Address<Recorder<T>>> for RecorderLink {
+impl<T: data::State> From<Address<Recorder<T>>> for RecorderLink {
     fn from(address: Address<Recorder<T>>) -> Self {
         Self {
             control_recipient: address.clone().into(),

@@ -1,31 +1,53 @@
-pub trait State {
+use crate::io::provider::{StreamState, Timestamp};
+use serde::{Deserialize, Serialize};
+
+pub trait State: Into<StreamState> + Clone + Default + Send + 'static {
     type Delta: Delta;
 
     fn apply(&mut self, update: Self::Delta);
 }
 
 pub trait Delta {
-    type Event;
+    type Event: Event;
 
-    fn combine(&mut self, event: Self::Event);
+    fn combine(&mut self, event: TimedEvent<Self::Event>);
+}
+
+pub trait Event {
+    type State: State;
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TimedEvent<T> {
+    timestamp: Timestamp,
+    event: T,
 }
 
 pub mod counter {
-    use super::{Delta, State};
+    use super::{Delta, Event, State, TimedEvent};
     use crate::io::provider::Timestamp;
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CounterState {
-        timestamp: Timestamp,
+        timestamp: Option<Timestamp>,
         value: f64,
+    }
+
+    impl Default for CounterState {
+        fn default() -> Self {
+            Self {
+                timestamp: None,
+                value: 0.0,
+            }
+        }
     }
 
     impl State for CounterState {
         type Delta = CounterDelta;
 
         fn apply(&mut self, delta: Self::Delta) {
-            self.timestamp = delta.timestamp;
+            self.timestamp = Some(delta.timestamp);
             self.value += delta.delta;
         }
     }
@@ -39,28 +61,38 @@ pub mod counter {
     impl Delta for CounterDelta {
         type Event = CounterEvent;
 
-        fn combine(&mut self, event: Self::Event) {
+        fn combine(&mut self, event: TimedEvent<Self::Event>) {
             self.timestamp = event.timestamp;
-            self.delta += event.increment;
+            self.delta += event.event.increment;
         }
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CounterEvent {
-        timestamp: Timestamp,
         increment: f64,
+    }
+
+    impl Event for CounterEvent {
+        type State = CounterState;
     }
 }
 
 pub mod gauge {
-    use super::{Delta, State};
+    use super::{Delta, Event, State, TimedEvent};
     use crate::frame::Frame;
-    use crate::io::provider::Timestamp;
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct GaugeState {
-        frame: Frame<GaugeEvent>,
+        frame: Frame<TimedEvent<GaugeEvent>>,
+    }
+
+    impl Default for GaugeState {
+        fn default() -> Self {
+            Self {
+                frame: Frame::new(30),
+            }
+        }
     }
 
     impl State for GaugeState {
@@ -75,32 +107,43 @@ pub mod gauge {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct GaugeDelta {
-        events: Vec<GaugeEvent>,
+        events: Vec<TimedEvent<GaugeEvent>>,
     }
 
     impl Delta for GaugeDelta {
         type Event = GaugeEvent;
 
-        fn combine(&mut self, event: Self::Event) {
+        fn combine(&mut self, event: TimedEvent<Self::Event>) {
             self.events.push(event);
         }
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct GaugeEvent {
-        timestamp: Timestamp,
         value: f64,
+    }
+
+    impl Event for GaugeEvent {
+        type State = GaugeState;
     }
 }
 
 pub mod dict {
-    use super::{Delta, State};
+    use super::{Delta, Event, State, TimedEvent};
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct DictState {
         map: HashMap<String, String>,
+    }
+
+    impl Default for DictState {
+        fn default() -> Self {
+            Self {
+                map: HashMap::new(),
+            }
+        }
     }
 
     impl State for DictState {
@@ -119,8 +162,8 @@ pub mod dict {
     impl Delta for DictDelta {
         type Event = DictEvent;
 
-        fn combine(&mut self, event: Self::Event) {
-            match event {
+        fn combine(&mut self, event: TimedEvent<Self::Event>) {
+            match event.event {
                 DictEvent::SetValue { key, value } => {
                     self.map.insert(key, value);
                 }
@@ -132,10 +175,14 @@ pub mod dict {
     pub enum DictEvent {
         SetValue { key: String, value: String },
     }
+
+    impl Event for DictEvent {
+        type State = DictState;
+    }
 }
 
 pub mod table {
-    use super::{Delta, State};
+    use super::{Delta, Event, State, TimedEvent};
     use crate::io::provider::{ColId, RowId};
     use serde::{Deserialize, Serialize};
     use std::collections::BTreeMap;
@@ -144,6 +191,15 @@ pub mod table {
     pub struct TableState {
         columns: BTreeMap<ColId, ColRecord>,
         rows: BTreeMap<RowId, RowRecord>,
+    }
+
+    impl Default for TableState {
+        fn default() -> Self {
+            Self {
+                columns: BTreeMap::new(),
+                rows: BTreeMap::new(),
+            }
+        }
     }
 
     impl State for TableState {
@@ -209,10 +265,10 @@ pub mod table {
     impl Delta for TableDelta {
         type Event = TableEvent;
 
-        fn combine(&mut self, event: Self::Event) {
+        fn combine(&mut self, event: TimedEvent<Self::Event>) {
             let pointer;
             let action;
-            match event {
+            match event.event {
                 TableEvent::AddCol { col, alias } => {
                     pointer = TablePointer::Col(col);
                     action = TableAction::Add { alias };
@@ -259,6 +315,10 @@ pub mod table {
             col: ColId,
             value: String,
         },
+    }
+
+    impl Event for TableEvent {
+        type State = TableState;
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -316,15 +376,23 @@ pub mod table {
     }
 }
 
+// TODO: Rename to `logger`
 pub mod log {
-    use super::{Delta, State};
+    use super::{Delta, Event, State, TimedEvent};
     use crate::frame::Frame;
-    use crate::io::provider::Timestamp;
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct LogState {
-        frame: Frame<LogEvent>,
+        frame: Frame<TimedEvent<LogEvent>>,
+    }
+
+    impl Default for LogState {
+        fn default() -> Self {
+            Self {
+                frame: Frame::new(30),
+            }
+        }
     }
 
     impl State for LogState {
@@ -339,20 +407,23 @@ pub mod log {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct LogDelta {
-        events: Vec<LogEvent>,
+        events: Vec<TimedEvent<LogEvent>>,
     }
 
     impl Delta for LogDelta {
         type Event = LogEvent;
 
-        fn combine(&mut self, event: Self::Event) {
+        fn combine(&mut self, event: TimedEvent<Self::Event>) {
             self.events.push(event);
         }
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct LogEvent {
-        timestamp: Timestamp,
         msg: String,
+    }
+
+    impl Event for LogEvent {
+        type State = LogState;
     }
 }
