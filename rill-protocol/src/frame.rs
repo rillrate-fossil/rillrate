@@ -1,8 +1,9 @@
+use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
 static DEFAULT_SIZE: usize = 20;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Frame<T> {
     size: usize,
     frame: VecDeque<T>,

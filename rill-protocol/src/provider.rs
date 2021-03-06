@@ -1,4 +1,5 @@
 use crate::codec::JsonCodec;
+use crate::frame::Frame;
 use crate::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
@@ -491,7 +492,6 @@ impl Update for CounterUpdate {
 
 // GAUGE
 
-/*
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugePoint {
     timestamp: Timestamp,
@@ -507,4 +507,3 @@ pub struct GaugeState {
 pub struct GaugeUpdate {
     points: Vec<GaugePoint>,
 }
-*/
