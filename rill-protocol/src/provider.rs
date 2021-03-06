@@ -436,3 +436,75 @@ pub enum ProviderToServer {
         reason: String,
     },
 }
+
+pub trait State {
+    type Update: Update;
+
+    fn apply(&mut self, update: Self::Update);
+}
+
+pub trait Update {
+    fn combine(&mut self, other: Self);
+}
+
+/// The basic state of a stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum StreamState {
+    Counter(CounterState),
+}
+
+/// The update applied to the state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum StreamUpdate {
+    Counter(CounterUpdate),
+}
+
+// COUNTER
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CounterState {
+    timestamp: Timestamp,
+    value: f64,
+}
+
+impl State for CounterState {
+    type Update = CounterUpdate;
+
+    fn apply(&mut self, update: Self::Update) {
+        self.timestamp = update.timestamp;
+        self.value = update.value;
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CounterUpdate {
+    timestamp: Timestamp,
+    value: f64,
+}
+
+impl Update for CounterUpdate {
+    fn combine(&mut self, other: Self) {
+        self.timestamp = other.timestamp;
+        self.value = other.value;
+    }
+}
+
+// GAUGE
+
+/*
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GaugePoint {
+    timestamp: Timestamp,
+    value: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GaugeState {
+    frame: Frame<GaugePoint>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GaugeUpdate {
+    points: Vec<GaugePoint>,
+}
+*/
