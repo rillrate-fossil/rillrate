@@ -531,3 +531,38 @@ pub struct GaugeEvent {
     timestamp: Timestamp,
     value: f64,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DictState {
+    map: HashMap<String, String>,
+}
+
+impl State for DictState {
+    type Delta = DictDelta;
+
+    fn apply(&mut self, update: Self::Delta) {
+        self.map.extend(update.map);
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DictDelta {
+    map: HashMap<String, String>,
+}
+
+impl Delta for DictDelta {
+    type Event = DictEvent;
+
+    fn combine(&mut self, event: Self::Event) {
+        match event {
+            DictEvent::SetValue { key, value } => {
+                self.map.insert(key, value);
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DictEvent {
+    SetValue { key: String, value: String },
+}
