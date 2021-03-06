@@ -34,7 +34,7 @@ impl Default for EngineConfig {
 impl EngineConfig {
     /// Returns `true` if node explicitly specified.
     pub fn is_node_specified(&self) -> bool {
-        NODE.env_var().is_ok() || self.node.is_some()
+        NODE.env_var().transpose().is_some() || self.node.is_some()
     }
 
     /// Full url of the node

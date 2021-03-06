@@ -133,8 +133,10 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
         let engine_config = config.rillrate.unwrap_or_default();
         let export_config = config.export.unwrap_or_default();
         if engine_config.is_node_specified() {
+            log::info!("Remote node set.");
             self.spawn_engine(engine_config, ctx);
         } else {
+            log::info!("Local node set.");
             // If node wasn't specified than spawn an embedded node and
             // wait for the address to spawn a provider connected to that.
             let actor = RillServer::new(config.server);

@@ -2,6 +2,7 @@ use anyhow::Error;
 use once_cell::sync::OnceCell;
 use std::convert::identity;
 use std::env;
+use std::fmt;
 use std::str::FromStr;
 
 /// Configuration parameter that can be overriden by an environment variable
@@ -49,11 +50,12 @@ impl<T> ConfigPatch<T> {
 
     pub fn get<F, D>(&self, value: F, default: D) -> T
     where
-        T: FromStr + Clone,
+        T: fmt::Debug + FromStr + Clone,
         F: Fn() -> Option<T>,
         D: Fn() -> T,
     {
-        self.env_var()
+        let value = self
+            .env_var()
             .map_err(|err| {
                 log::error!("Default value for {} will be used: {}", self.pre, err);
             })
@@ -61,6 +63,8 @@ impl<T> ConfigPatch<T> {
             .and_then(identity)
             .or_else(value)
             .or_else(|| self.post.get().cloned())
-            .unwrap_or_else(default)
+            .unwrap_or_else(default);
+        log::debug!("{} = {:?}", self.pre, value);
+        value
     }
 }
