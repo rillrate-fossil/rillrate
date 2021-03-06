@@ -2,7 +2,7 @@ use super::{link, PathNotification};
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Actor, Context, Distributor, InterruptedBy, StartedBy};
-use rill_protocol::provider::{Description, EntryId, Path};
+use rill_protocol::io::provider::{Description, EntryId, Path};
 use std::collections::{hash_map::Entry, HashMap};
 use thiserror::Error;
 

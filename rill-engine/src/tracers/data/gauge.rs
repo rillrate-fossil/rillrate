@@ -1,7 +1,7 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
 use rill_protocol::frame::Frame;
-use rill_protocol::provider::{Description, Path, RillData, RillEvent, StreamType};
+use rill_protocol::io::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
 
 #[derive(Debug)]

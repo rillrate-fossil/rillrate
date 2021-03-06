@@ -3,9 +3,9 @@ use anyhow::Error;
 use derive_more::From;
 use meio::{Action, Address, Interaction};
 use meio_connect::client::WsSender;
-use rill_protocol::client::{ClientProtocol, ClientReqId, ClientResponse};
-use rill_protocol::provider::{Path, ProviderReqId};
-use rill_protocol::transport::WideEnvelope;
+use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientResponse};
+use rill_protocol::io::provider::{Path, ProviderReqId};
+use rill_protocol::io::transport::WideEnvelope;
 use std::collections::hash_map::{Entry, HashMap};
 use thiserror::Error;
 

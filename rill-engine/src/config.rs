@@ -1,7 +1,7 @@
 //! Configuration structs for the provider and tracers
 
 use rill_protocol::config::ConfigPatch;
-use rill_protocol::provider::EntryId;
+use rill_protocol::io::provider::EntryId;
 use serde::Deserialize;
 
 /// The external user app can set this value to override default server.

@@ -12,7 +12,7 @@ use meio::{
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
-use rill_protocol::provider::{Path, PathPattern, RillEvent, Timestamp};
+use rill_protocol::io::provider::{Path, PathPattern, RillEvent, Timestamp};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;

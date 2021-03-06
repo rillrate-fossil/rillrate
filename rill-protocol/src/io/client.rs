@@ -1,6 +1,6 @@
-use crate::codec::JsonCodec;
-use crate::provider::{Description, EntryId, Path, RillEvent};
-use crate::transport::{DirectId, Envelope, Origin, WideEnvelope};
+use crate::io::codec::JsonCodec;
+use crate::io::provider::{Description, EntryId, Path, RillEvent};
+use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
 

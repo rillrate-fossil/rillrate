@@ -11,9 +11,9 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
-use rill_protocol::provider::{Path, RillEvent};
-use rill_protocol::transport::{Envelope, WideEnvelope};
+use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
+use rill_protocol::io::provider::{Path, RillEvent};
+use rill_protocol::io::transport::{Envelope, WideEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
 

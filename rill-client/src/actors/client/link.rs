@@ -3,8 +3,8 @@ use derive_more::From;
 use futures::task::{Context, Poll};
 use futures::{channel::mpsc, Stream};
 use meio::{Address, InstantAction, Interaction, InteractionTask};
-use rill_protocol::client::ClientReqId;
-use rill_protocol::provider::{Path, RillEvent};
+use rill_protocol::io::client::ClientReqId;
+use rill_protocol::io::provider::{Path, RillEvent};
 use std::pin::Pin;
 
 #[derive(Debug, From)]

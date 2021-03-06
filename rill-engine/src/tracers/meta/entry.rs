@@ -1,6 +1,6 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::provider::{
+use rill_protocol::io::provider::{
     Description, EntryId, EntryUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
 };
 use std::collections::HashMap;

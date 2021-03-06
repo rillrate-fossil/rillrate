@@ -1,5 +1,5 @@
 use rill_protocol::config::ConfigPatch;
-use rill_protocol::provider::PathPattern;
+use rill_protocol::io::provider::PathPattern;
 use serde::Deserialize;
 use std::collections::HashSet;
 

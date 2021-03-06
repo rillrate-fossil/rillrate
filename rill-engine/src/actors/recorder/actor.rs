@@ -5,10 +5,10 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::provider::{
+use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderReqId, ProviderToServer, RillEvent,
 };
-use rill_protocol::transport::Direction;
+use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::Arc;
 use thiserror::Error;

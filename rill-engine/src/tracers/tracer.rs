@@ -2,7 +2,7 @@
 use crate::state::RILL_LINK;
 use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::provider::{Description, Path, RillEvent, Timestamp};
+use rill_protocol::io::provider::{Description, Path, RillEvent, Timestamp};
 use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::watch;

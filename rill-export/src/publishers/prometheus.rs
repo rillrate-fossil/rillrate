@@ -9,7 +9,7 @@ use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
-use rill_protocol::provider::{Description, Path, PathPattern, RillEvent, StreamType};
+use rill_protocol::io::provider::{Description, Path, PathPattern, RillEvent, StreamType};
 use serde::Deserialize;
 use std::collections::btree_map::{BTreeMap, Entry};
 use std::convert::TryInto;

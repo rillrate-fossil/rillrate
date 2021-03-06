@@ -1,5 +1,5 @@
-use crate::codec::JsonCodec;
-use crate::transport::{DirectId, Envelope, Origin, WideEnvelope};
+use crate::io::codec::JsonCodec;
+use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};

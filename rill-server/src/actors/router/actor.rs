@@ -15,8 +15,8 @@ use meio_connect::server::{
 };
 use reqwest::Url;
 use rill_client::actors::broadcaster::Broadcaster;
-use rill_protocol::client::ClientProtocol;
-use rill_protocol::provider::ProviderProtocol;
+use rill_protocol::io::client::ClientProtocol;
+use rill_protocol::io::provider::ProviderProtocol;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};

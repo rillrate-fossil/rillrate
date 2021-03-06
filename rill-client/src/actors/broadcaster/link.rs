@@ -2,7 +2,7 @@ use super::{Broadcaster, PathNotification};
 use anyhow::Error;
 use derive_more::From;
 use meio::{Action, ActionHandler, ActionRecipient, Actor, Address};
-use rill_protocol::provider::{Description, EntryId, Path};
+use rill_protocol::io::provider::{Description, EntryId, Path};
 use std::collections::HashSet;
 
 /// This `Link` used by `Session` actor.

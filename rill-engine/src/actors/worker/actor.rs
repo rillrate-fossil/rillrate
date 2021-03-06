@@ -13,9 +13,11 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
+use rill_protocol::io::provider::{
+    Description, ProviderProtocol, ProviderToServer, ServerToProvider,
+};
+use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use rill_protocol::pathfinder::{Pathfinder, Record};
-use rill_protocol::provider::{Description, ProviderProtocol, ProviderToServer, ServerToProvider};
-use rill_protocol::transport::{Direction, Envelope, WideEnvelope};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;

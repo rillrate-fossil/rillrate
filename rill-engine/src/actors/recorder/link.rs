@@ -3,7 +3,7 @@ use crate::actors::worker::RillSender;
 use crate::tracers::tracer::TracerEvent;
 use anyhow::Error;
 use meio::{Action, ActionRecipient, Address};
-use rill_protocol::provider::ProviderReqId;
+use rill_protocol::io::provider::ProviderReqId;
 
 #[derive(Debug)]
 pub(crate) struct RecorderLink {

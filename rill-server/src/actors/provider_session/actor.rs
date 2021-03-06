@@ -12,11 +12,11 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_client::actors::broadcaster::BroadcasterLinkForProvider;
-use rill_protocol::client::{ClientReqId, ClientResponse};
-use rill_protocol::provider::{
+use rill_protocol::io::client::{ClientReqId, ClientResponse};
+use rill_protocol::io::provider::{
     EntryId, ProviderProtocol, ProviderReqId, ProviderToServer, ServerToProvider,
 };
-use rill_protocol::transport::{Direction, Envelope, WideEnvelope};
+use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use typed_slab::TypedSlab;
 
 pub struct ProviderSession {
