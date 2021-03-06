@@ -597,8 +597,41 @@ pub mod table {
     impl State for TableState {
         type Delta = TableDelta;
 
-        fn apply(&mut self, update: Self::Delta) {
-            todo!()
+        fn apply(&mut self, delta: Self::Delta) {
+            for pair in delta.updates {
+                match pair {
+                    (TablePointer::Col(col), TableAction::Add { alias }) => {
+                        let record = ColRecord { alias };
+                        self.columns.insert(col, record);
+                    }
+                    (TablePointer::Col(col), TableAction::Del) => {
+                        self.columns.remove(&col);
+                        for (_row, record) in self.rows.iter_mut() {
+                            record.cols.remove(&col);
+                        }
+                    }
+                    (TablePointer::Row(row), TableAction::Add { alias }) => {
+                        let record = RowRecord {
+                            alias,
+                            cols: BTreeMap::new(),
+                        };
+                        self.rows.insert(row, record);
+                    }
+                    (TablePointer::Row(row), TableAction::Del) => {
+                        self.rows.remove(&row);
+                    }
+                    (TablePointer::Cell { row, col }, TableAction::Set { value }) => {
+                        if let Some(record) = self.rows.get_mut(&row) {
+                            if let Some(cell) = record.cols.get_mut(&col) {
+                                *cell = value;
+                            }
+                        }
+                    }
+                    (pointer, action) => {
+                        log::error!("Incorrect pair of the {:?} and {:?}", pointer, action);
+                    }
+                }
+            }
         }
     }
 
