@@ -1,5 +1,6 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
+use rill_protocol::data::table::TableEvent;
 use rill_protocol::io::provider::{
     ColId, Description, Path, RillData, RillEvent, RowId, StreamType, TableUpdate,
 };
@@ -9,7 +10,7 @@ use std::time::SystemTime;
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct TableTracer {
-    tracer: Tracer<TableRecord>,
+    tracer: Tracer<TableEvent>,
 }
 
 impl TableTracer {
@@ -27,30 +28,26 @@ impl TableTracer {
 
     /// Adds a new column
     pub fn add_col(&self, id: ColId, alias: Option<String>) {
-        let update = TableUpdate::AddCol { col: id, alias };
-        let data = TableRecord { update };
-        self.tracer.send(data, None);
+        let event = TableEvent::AddCol { col: id, alias };
+        self.tracer.send(event, None);
     }
 
     /// Deletes a column by id
     pub fn del_col(&self, id: ColId) {
-        let update = TableUpdate::DelCol { col: id };
-        let data = TableRecord { update };
-        self.tracer.send(data, None);
+        let event = TableEvent::DelCol { col: id };
+        self.tracer.send(event, None);
     }
 
     /// Adds a new row
     pub fn add_row(&self, id: RowId, alias: Option<String>) {
-        let update = TableUpdate::AddRow { row: id, alias };
-        let data = TableRecord { update };
-        self.tracer.send(data, None);
+        let event = TableEvent::AddRow { row: id, alias };
+        self.tracer.send(event, None);
     }
 
     /// Deletes a row by id
     pub fn del_row(&self, id: RowId) {
-        let update = TableUpdate::DelRow { row: id };
-        let data = TableRecord { update };
-        self.tracer.send(data, None);
+        let event = TableEvent::DelRow { row: id };
+        self.tracer.send(event, None);
     }
 
     /// Sets a value to the cell
@@ -61,16 +58,16 @@ impl TableTracer {
         value: impl ToString,
         timestamp: Option<SystemTime>,
     ) {
-        let update = TableUpdate::SetCell {
+        let event = TableEvent::SetCell {
             row,
             col,
             value: value.to_string(),
         };
-        let data = TableRecord { update };
-        self.tracer.send(data, timestamp);
+        self.tracer.send(event, timestamp);
     }
 }
 
+/*
 #[derive(Debug)]
 pub struct TableRecord {
     update: TableUpdate,
@@ -172,3 +169,4 @@ impl TracerState for TableState {
         events
     }
 }
+*/

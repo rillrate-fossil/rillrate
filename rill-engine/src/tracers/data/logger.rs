@@ -1,9 +1,11 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
+use rill_protocol::data::log::LogEvent;
 use rill_protocol::frame::Frame;
 use rill_protocol::io::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
 
+/*
 #[derive(Debug)]
 pub enum LogRecord {
     // TODO: Track hash templates here
@@ -54,11 +56,12 @@ impl TracerState for LogState {
 impl TracerEvent for LogRecord {
     type State = LogState;
 }
+*/
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct LogTracer {
-    tracer: Tracer<LogRecord>,
+    tracer: Tracer<LogEvent>,
 }
 
 impl LogTracer {
@@ -76,7 +79,7 @@ impl LogTracer {
 
     /// Writes a message.
     pub fn log(&self, message: String, timestamp: Option<SystemTime>) {
-        let data = LogRecord::Message(message);
+        let data = LogEvent { msg: message };
         self.tracer.send(data, timestamp);
     }
 }
