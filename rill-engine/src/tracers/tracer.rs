@@ -2,7 +2,7 @@
 use crate::state::RILL_LINK;
 use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::data;
+use rill_protocol::data::{self, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, RillEvent, Timestamp};
 use std::sync::Arc;
 use std::time::SystemTime;
@@ -26,7 +26,7 @@ pub trait TracerEvent: Sized + Send + 'static {
 // TODO: Replace `DataEnvelope` with `TimedEvent`
 #[derive(Debug)]
 pub enum DataEnvelope<T> {
-    Event { timestamp: Timestamp, data: T },
+    Event(TimedEvent<T>),
 }
 
 impl<T: TracerEvent> Action for DataEnvelope<T> {}
@@ -89,7 +89,11 @@ impl<T: data::Event> Tracer<T> {
                 .map(Timestamp::from);
             match ts {
                 Ok(timestamp) => {
-                    let envelope = DataEnvelope::Event { timestamp, data };
+                    let timed_event = TimedEvent {
+                        timestamp,
+                        event: data,
+                    };
+                    let envelope = DataEnvelope::Event(timed_event);
                     // And will never send an event
                     if let Err(err) = self.sender.unbounded_send(envelope) {
                         log::error!("Can't transfer data to sender: {}", err);

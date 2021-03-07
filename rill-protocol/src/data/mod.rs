@@ -19,8 +19,8 @@ pub trait Event: Send + 'static {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TimedEvent<T> {
-    timestamp: Timestamp,
-    event: T,
+    pub timestamp: Timestamp,
+    pub event: T,
 }
 
 pub mod counter {
