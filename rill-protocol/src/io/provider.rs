@@ -429,11 +429,11 @@ pub enum ProviderToServer {
     },
     /// The response to `ControlStream { active: true }` request
     BeginStream {
-        snapshot: StreamState,
+        state: StreamState,
     },
     Data {
         /// Aggregated events.
-        batch: Vec<RillEvent>,
+        delta: StreamDelta,
     },
     EndStream,
     Error {

@@ -121,7 +121,12 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
                     self.broadcaster.path_declared(desc).await?;
                 }
             }
-            ClientResponse::Data(batch) => {
+            ClientResponse::State(state) => {
+                todo!("IMPLEMENT STATE RESPONSES");
+            }
+            ClientResponse::Delta(delta) => {
+                todo!("IMPLEMENT DELTA RESPONSES");
+                /*
                 let directions = msg.0.direction.into_vec();
                 for direction in directions {
                     if let Some(record) = self.directions.get_mut(direction) {
@@ -132,6 +137,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
                         }
                     }
                 }
+                */
             }
             ClientResponse::Done => {
                 let directions = msg.0.direction.into_vec();

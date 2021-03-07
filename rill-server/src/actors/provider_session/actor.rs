@@ -184,12 +184,12 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
     ) -> Result<(), Error> {
         log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
-            ProviderToServer::Data { batch } => {
-                let resp = ClientResponse::Data(batch);
+            ProviderToServer::Data { delta } => {
+                let resp = ClientResponse::Delta(delta);
                 self.distribute_response(msg.0.direction, resp);
             }
-            ProviderToServer::BeginStream { snapshot } => {
-                let resp = ClientResponse::Data(snapshot);
+            ProviderToServer::BeginStream { state } => {
+                let resp = ClientResponse::State(state);
                 self.distribute_response(msg.0.direction, resp);
             }
             ProviderToServer::EndStream => {

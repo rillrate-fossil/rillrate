@@ -122,8 +122,8 @@ impl<T: data::Event> ActionHandler<link::ControlStream> for Recorder<T> {
             #[allow(clippy::collapsible_if)]
             if msg.active {
                 if self.subscribers.insert(id) {
-                    let snapshot = self.get_snapshot();
-                    let response = ProviderToServer::BeginStream { snapshot };
+                    let state = self.get_snapshot();
+                    let response = ProviderToServer::BeginStream { state };
                     let direction = Direction::from(msg.direct_id);
                     self.sender.response(direction, response);
                 } else {
