@@ -11,7 +11,7 @@ use meio::{
 };
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
-use rill_client::actors::client::ClientLink;
+use rill_client::actors::client::{ClientLink, StateOrDelta};
 use rill_protocol::io::provider::{Path, PathPattern, RillEvent, Timestamp};
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -187,12 +187,14 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 }
 
 #[async_trait]
-impl Consumer<(Arc<Path>, Vec<RillEvent>)> for GraphitePublisher {
+impl Consumer<(Arc<Path>, StateOrDelta)> for GraphitePublisher {
     async fn handle(
         &mut self,
-        (path, chunk): (Arc<Path>, Vec<RillEvent>),
+        (path, chunk): (Arc<Path>, StateOrDelta),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        todo!()
+        /*
         if let Some(event) = chunk.into_iter().last() {
             let val: Result<f64, _> = event.data.try_into();
             match val {
@@ -209,6 +211,7 @@ impl Consumer<(Arc<Path>, Vec<RillEvent>)> for GraphitePublisher {
             }
         }
         Ok(())
+        */
     }
 }
 

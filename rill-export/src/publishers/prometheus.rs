@@ -8,7 +8,7 @@ use meio::{ActionHandler, Actor, Consumer, Context, InteractionHandler, Interrup
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
-use rill_client::actors::client::ClientLink;
+use rill_client::actors::client::{ClientLink, StateOrDelta};
 use rill_protocol::io::provider::{Description, Path, PathPattern, RillEvent, StreamType};
 use serde::Deserialize;
 use std::collections::btree_map::{BTreeMap, Entry};
@@ -120,12 +120,14 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 }
 
 #[async_trait]
-impl Consumer<(Arc<Path>, Vec<RillEvent>)> for PrometheusPublisher {
+impl Consumer<(Arc<Path>, StateOrDelta)> for PrometheusPublisher {
     async fn handle(
         &mut self,
-        (path, chunk): (Arc<Path>, Vec<RillEvent>),
+        (path, chunk): (Arc<Path>, StateOrDelta),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        todo!()
+        /*
         if let Some(event) = chunk.into_iter().last() {
             if let Some(record) = self.metrics.get_mut(&path) {
                 record.event = Some(event);
@@ -134,6 +136,7 @@ impl Consumer<(Arc<Path>, Vec<RillEvent>)> for PrometheusPublisher {
             }
         }
         Ok(())
+        */
     }
 }
 

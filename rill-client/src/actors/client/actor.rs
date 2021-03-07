@@ -12,17 +12,23 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
-use rill_protocol::io::provider::{Path, RillEvent};
-use rill_protocol::io::transport::{Envelope, WideEnvelope};
+use rill_protocol::io::provider::{Path, RillEvent, StreamDelta, StreamState};
+use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
 
 type Connection = WsSender<Envelope<ClientProtocol, ClientRequest>>;
 
+#[derive(Debug, Clone)]
+pub enum StateOrDelta {
+    State(StreamState),
+    Delta(StreamDelta),
+}
+
 enum Record {
     Active {
         path: Path,
-        sender: mpsc::Sender<Vec<RillEvent>>,
+        sender: mpsc::Sender<StateOrDelta>,
     },
     AwaitingEnd,
 }
@@ -104,6 +110,24 @@ impl InstantActionHandler<WsClientStatus<ClientProtocol>> for RillClient {
     }
 }
 
+impl RillClient {
+    async fn distribute_event(
+        &mut self,
+        direction: Direction<ClientProtocol>,
+        event: StateOrDelta,
+    ) {
+        for direction in direction.into_vec() {
+            if let Some(record) = self.directions.get_mut(direction) {
+                if let Record::Active { sender, .. } = record {
+                    if let Err(err) = sender.send(event.clone()).await {
+                        log::error!("Can't send data to {:?}: {}", direction, err);
+                    }
+                }
+            }
+        }
+    }
+}
+
 #[async_trait]
 impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for RillClient {
     async fn handle(
@@ -122,22 +146,12 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
                 }
             }
             ClientResponse::State(state) => {
-                todo!("IMPLEMENT STATE RESPONSES");
+                let event = StateOrDelta::State(state);
+                self.distribute_event(msg.0.direction, event).await;
             }
             ClientResponse::Delta(delta) => {
-                todo!("IMPLEMENT DELTA RESPONSES");
-                /*
-                let directions = msg.0.direction.into_vec();
-                for direction in directions {
-                    if let Some(record) = self.directions.get_mut(direction) {
-                        if let Record::Active { sender, .. } = record {
-                            if let Err(err) = sender.send(batch.clone()).await {
-                                log::error!("Can't send data to {:?}: {}", direction, err);
-                            }
-                        }
-                    }
-                }
-                */
+                let event = StateOrDelta::Delta(delta);
+                self.distribute_event(msg.0.direction, event).await;
             }
             ClientResponse::Done => {
                 let directions = msg.0.direction.into_vec();

@@ -1,4 +1,4 @@
-use super::RillClient;
+use super::{RillClient, StateOrDelta};
 use derive_more::From;
 use futures::task::{Context, Poll};
 use futures::{channel::mpsc, Stream};
@@ -14,12 +14,12 @@ pub struct ClientLink {
 
 pub struct Subscription {
     req_id: ClientReqId,
-    receiver: mpsc::Receiver<Vec<RillEvent>>,
+    receiver: mpsc::Receiver<StateOrDelta>,
     client: Address<RillClient>,
 }
 
 impl Stream for Subscription {
-    type Item = Vec<RillEvent>;
+    type Item = StateOrDelta;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         Pin::new(&mut self.receiver).poll_next(cx)
@@ -33,7 +33,7 @@ impl Stream for Subscription {
 impl Subscription {
     pub(super) fn new(
         req_id: ClientReqId,
-        receiver: mpsc::Receiver<Vec<RillEvent>>,
+        receiver: mpsc::Receiver<StateOrDelta>,
         client: Address<RillClient>,
     ) -> Self {
         Self {
