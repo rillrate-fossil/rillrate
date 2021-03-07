@@ -1,69 +1,8 @@
-use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
+use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::data::gauge::GaugeEvent;
-use rill_protocol::frame::Frame;
-use rill_protocol::io::provider::{Description, Path, RillData, RillEvent, StreamType};
+use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
-
-/*
-#[derive(Debug)]
-pub enum GaugeUpdate {
-    Increment(f64),
-    Decrement(f64),
-    Set(f64),
-}
-
-#[derive(Debug, Default)]
-pub struct GaugeState {
-    gauge: f64,
-    frame: Frame<RillEvent>,
-}
-
-impl TracerState for GaugeState {
-    type Item = GaugeUpdate;
-
-    fn aggregate(
-        &mut self,
-        items: Vec<DataEnvelope<Self::Item>>,
-        mut outgoing: Option<&mut Vec<RillEvent>>,
-    ) {
-        for item in items {
-            let DataEnvelope::Event {
-                timestamp: ts,
-                data,
-            } = item;
-            match data {
-                GaugeUpdate::Increment(delta) => {
-                    self.gauge += delta;
-                }
-                GaugeUpdate::Decrement(delta) => {
-                    self.gauge -= delta;
-                }
-                GaugeUpdate::Set(value) => {
-                    self.gauge = value;
-                }
-            }
-            let data = RillData::GaugeValue { value: self.gauge };
-            let last_event = RillEvent {
-                timestamp: ts,
-                data,
-            };
-            if let Some(outgoing) = outgoing.as_mut() {
-                outgoing.push(last_event.clone());
-            }
-            self.frame.insert(last_event);
-        }
-    }
-
-    fn make_snapshot(&self) -> Vec<RillEvent> {
-        self.frame.iter().cloned().collect()
-    }
-}
-
-impl TracerEvent for GaugeUpdate {
-    type State = GaugeState;
-}
-*/
 
 /// Sends metrics as `gauge` that can change value to any.
 #[derive(Debug, Deref, DerefMut, Clone)]

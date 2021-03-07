@@ -3,33 +3,17 @@ use crate::state::RILL_LINK;
 use futures::channel::mpsc;
 use meio::Action;
 use rill_protocol::data::{self, TimedEvent};
-use rill_protocol::io::provider::{Description, Path, RillEvent, Timestamp};
+use rill_protocol::io::provider::{Description, Path, Timestamp};
 use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::watch;
 
-pub trait TracerState: Default + Send + 'static {
-    type Item;
-    fn aggregate(
-        &mut self,
-        items: Vec<DataEnvelope<Self::Item>>,
-        outgoing: Option<&mut Vec<RillEvent>>,
-    );
-
-    fn make_snapshot(&self) -> Vec<RillEvent>;
-}
-
-pub trait TracerEvent: Sized + Send + 'static {
-    type State: TracerState<Item = Self>;
-}
-
-// TODO: Replace `DataEnvelope` with `TimedEvent`
 #[derive(Debug)]
 pub enum DataEnvelope<T> {
     Event(TimedEvent<T>),
 }
 
-impl<T: TracerEvent> Action for DataEnvelope<T> {}
+impl<T: data::Event> Action for DataEnvelope<T> {}
 
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
