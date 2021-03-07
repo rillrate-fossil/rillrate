@@ -5,9 +5,9 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::data;
+use rill_protocol::data::{self, Delta, State};
 use rill_protocol::io::provider::{
-    Description, ProviderProtocol, ProviderReqId, ProviderToServer, StreamState,
+    Description, ProviderProtocol, ProviderReqId, ProviderToServer, StreamDelta, StreamState,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
@@ -81,18 +81,24 @@ impl<T: data::Event> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let delta = T::Delta::default();
-        /*
-        let mut batch = (!self.subscribers.is_empty()).then(Vec::new);
-        self.state.aggregate(chunk, batch.as_mut());
-        if let Some(batch) = batch {
-            let response = ProviderToServer::Data { batch };
-            let direction = self.get_direction();
-            self.sender.response(direction, response);
+        let mut iter = chunk.into_iter();
+        let first = iter.next();
+        if let Some(first_event) = first {
+            let mut delta: T::Delta = Delta::produce(first_event.into_inner());
+            for envelope in iter {
+                let event = envelope.into_inner();
+                delta.combine(event);
+            }
+            if !self.subscribers.is_empty() {
+                let response = ProviderToServer::Data {
+                    delta: delta.clone().into(),
+                };
+                let direction = self.get_direction();
+                self.sender.response(direction, response);
+            }
+            self.state.apply(delta);
         }
         Ok(())
-        */
-        todo!();
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {

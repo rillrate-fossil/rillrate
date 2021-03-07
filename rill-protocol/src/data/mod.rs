@@ -1,4 +1,4 @@
-use crate::io::provider::{StreamState, Timestamp};
+use crate::io::provider::{StreamDelta, StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
 
 pub trait State: Into<StreamState> + Clone + Default + Send + 'static {
@@ -7,7 +7,7 @@ pub trait State: Into<StreamState> + Clone + Default + Send + 'static {
     fn apply(&mut self, update: Self::Delta);
 }
 
-pub trait Delta {
+pub trait Delta: Into<StreamDelta> + Clone {
     type Event: Event;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self;
@@ -15,8 +15,8 @@ pub trait Delta {
 }
 
 pub trait Event: Send + 'static {
-    type State: State;
-    type Delta: Delta;
+    type State: State<Delta = Self::Delta>;
+    type Delta: Delta<Event = Self>;
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

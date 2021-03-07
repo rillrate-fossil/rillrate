@@ -15,6 +15,14 @@ pub enum DataEnvelope<T> {
 
 impl<T: data::Event> Action for DataEnvelope<T> {}
 
+impl<T> DataEnvelope<T> {
+    pub fn into_inner(self) -> TimedEvent<T> {
+        match self {
+            Self::Event(event) => event,
+        }
+    }
+}
+
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;

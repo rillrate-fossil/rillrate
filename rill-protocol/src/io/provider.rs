@@ -455,4 +455,8 @@ pub enum StreamState {
 #[derive(Debug, Clone, From, Serialize, Deserialize)]
 pub enum StreamDelta {
     Counter(counter::CounterDelta),
+    Gauge(gauge::GaugeDelta),
+    Table(table::TableDelta),
+    Dict(dict::DictDelta),
+    Log(logger::LogDelta),
 }
