@@ -13,7 +13,7 @@ pub trait Delta {
     fn combine(&mut self, event: TimedEvent<Self::Event>);
 }
 
-pub trait Event {
+pub trait Event: Send + 'static {
     type State: State;
 }
 
@@ -63,13 +63,17 @@ pub mod counter {
 
         fn combine(&mut self, event: TimedEvent<Self::Event>) {
             self.timestamp = event.timestamp;
-            self.delta += event.event.increment;
+            match event.event {
+                CounterEvent::Increment(value) => {
+                    self.delta += value;
+                }
+            }
         }
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct CounterEvent {
-        increment: f64,
+    pub enum CounterEvent {
+        Increment(f64),
     }
 
     impl Event for CounterEvent {
@@ -445,7 +449,8 @@ pub mod log {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct LogEvent {
-        msg: String,
+        // TODO: Replace with enum
+        pub msg: String,
     }
 
     impl Event for LogEvent {

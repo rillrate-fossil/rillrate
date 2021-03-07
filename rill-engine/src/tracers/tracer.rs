@@ -67,7 +67,7 @@ impl<T: data::Event> Tracer<T> {
             description: description.clone(),
             sender: tx,
         };
-        if let Err(err) = RILL_LINK.register_tracer::<T::State>(description, rx) {
+        if let Err(err) = RILL_LINK.register_tracer(description, rx) {
             log::error!(
                 "Can't register a Tracer. The worker can be terminated already: {}",
                 err

@@ -20,23 +20,23 @@ enum RecorderError {
     NoReceiver,
 }
 
-pub(crate) struct Recorder<T: data::State> {
+pub(crate) struct Recorder<T: data::Event> {
     description: Arc<Description>,
     sender: RillSender,
     // TODO: Change to the specific type receiver
     receiver: Option<DataReceiver<T>>,
     subscribers: HashSet<ProviderReqId>,
-    state: T,
+    state: T::State,
 }
 
-impl<T: data::State> Recorder<T> {
+impl<T: data::Event> Recorder<T> {
     pub fn new(description: Arc<Description>, sender: RillSender, rx: DataReceiver<T>) -> Self {
         Self {
             description,
             sender,
             receiver: Some(rx),
             subscribers: HashSet::new(),
-            state: T::default(),
+            state: T::State::default(),
         }
     }
 
@@ -49,12 +49,12 @@ impl<T: data::State> Recorder<T> {
     }
 }
 
-impl<T: data::State> Actor for Recorder<T> {
+impl<T: data::Event> Actor for Recorder<T> {
     type GroupBy = ();
 }
 
 #[async_trait]
-impl<T: data::State> StartedBy<RillWorker> for Recorder<T> {
+impl<T: data::Event> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let rx = self
             .receiver
@@ -67,7 +67,7 @@ impl<T: data::State> StartedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::State> InterruptedBy<RillWorker> for Recorder<T> {
+impl<T: data::Event> InterruptedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -75,7 +75,7 @@ impl<T: data::State> InterruptedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::State> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
+impl<T: data::Event> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,
@@ -104,7 +104,7 @@ impl<T: data::State> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::State> ActionHandler<link::ControlStream> for Recorder<T> {
+impl<T: data::Event> ActionHandler<link::ControlStream> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ControlStream,
@@ -147,7 +147,7 @@ impl<T: data::State> ActionHandler<link::ControlStream> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::State> ActionHandler<link::ConnectionChanged> for Recorder<T> {
+impl<T: data::Event> ActionHandler<link::ConnectionChanged> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ConnectionChanged,

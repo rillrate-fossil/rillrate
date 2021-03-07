@@ -37,7 +37,7 @@ impl RillState {
     ) -> Result<(), Error>
     where
         RillWorker: InstantActionHandler<RegisterTracer<T>>,
-        T: data::State,
+        T: data::Event,
     {
         let msg = RegisterTracer {
             description,
@@ -59,4 +59,4 @@ pub(crate) struct RegisterTracer<T> {
     pub receiver: DataReceiver<T>,
 }
 
-impl<T: data::State> InstantAction for RegisterTracer<T> {}
+impl<T: data::Event> InstantAction for RegisterTracer<T> {}
