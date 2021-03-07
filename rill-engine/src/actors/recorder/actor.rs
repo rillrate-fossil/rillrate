@@ -81,6 +81,7 @@ impl<T: data::Event> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let delta = T::Delta::default();
         /*
         let mut batch = (!self.subscribers.is_empty()).then(Vec::new);
         self.state.aggregate(chunk, batch.as_mut());

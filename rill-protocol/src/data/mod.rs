@@ -10,6 +10,7 @@ pub trait State: Into<StreamState> + Clone + Default + Send + 'static {
 pub trait Delta {
     type Event: Event;
 
+    fn produce(event: TimedEvent<Self::Event>) -> Self;
     fn combine(&mut self, event: TimedEvent<Self::Event>);
 }
 
@@ -61,6 +62,19 @@ pub mod counter {
 
     impl Delta for CounterDelta {
         type Event = CounterEvent;
+
+        fn produce(event: TimedEvent<Self::Event>) -> Self {
+            let delta;
+            match event.event {
+                CounterEvent::Increment(value) => {
+                    delta = value;
+                }
+            }
+            Self {
+                timestamp: event.timestamp,
+                delta,
+            }
+        }
 
         fn combine(&mut self, event: TimedEvent<Self::Event>) {
             self.timestamp = event.timestamp;
@@ -142,6 +156,12 @@ pub mod gauge {
     impl Delta for GaugeDelta {
         type Event = GaugeEvent;
 
+        fn produce(event: TimedEvent<Self::Event>) -> Self {
+            Self {
+                events: vec![event],
+            }
+        }
+
         fn combine(&mut self, event: TimedEvent<Self::Event>) {
             self.events.push(event);
         }
@@ -193,6 +213,14 @@ pub mod dict {
 
     impl Delta for DictDelta {
         type Event = DictEvent;
+
+        fn produce(event: TimedEvent<Self::Event>) -> Self {
+            let mut this = Self {
+                map: HashMap::new(),
+            };
+            this.combine(event);
+            this
+        }
 
         fn combine(&mut self, event: TimedEvent<Self::Event>) {
             match event.event {
@@ -297,6 +325,14 @@ pub mod table {
 
     impl Delta for TableDelta {
         type Event = TableEvent;
+
+        fn produce(event: TimedEvent<Self::Event>) -> Self {
+            let mut this = Self {
+                updates: BTreeMap::new(),
+            };
+            this.combine(event);
+            this
+        }
 
         fn combine(&mut self, event: TimedEvent<Self::Event>) {
             let pointer;
@@ -445,6 +481,12 @@ pub mod logger {
 
     impl Delta for LogDelta {
         type Event = LogEvent;
+
+        fn produce(event: TimedEvent<Self::Event>) -> Self {
+            Self {
+                events: vec![event],
+            }
+        }
 
         fn combine(&mut self, event: TimedEvent<Self::Event>) {
             self.events.push(event);
