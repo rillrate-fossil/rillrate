@@ -410,8 +410,7 @@ pub mod table {
     }
 }
 
-// TODO: Rename to `logger`
-pub mod log {
+pub mod logger {
     use super::{Delta, Event, State, TimedEvent};
     use crate::frame::Frame;
     use serde::{Deserialize, Serialize};

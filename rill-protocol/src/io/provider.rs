@@ -1,4 +1,4 @@
-use crate::data::{counter, dict, gauge, log as logger, table};
+use crate::data::{counter, dict, gauge, logger, table};
 use crate::io::codec::JsonCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, From, FromStr, Index, Into};

@@ -1,5 +1,5 @@
 use crate::io::codec::JsonCodec;
-use crate::io::provider::{Description, EntryId, Path, RillEvent, StreamDelta, StreamState};
+use crate::io::provider::{Description, EntryId, Path, StreamDelta, StreamState};
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
