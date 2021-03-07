@@ -15,6 +15,7 @@ pub trait Delta {
 
 pub trait Event: Send + 'static {
     type State: State;
+    type Delta: Delta;
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -78,6 +79,7 @@ pub mod counter {
 
     impl Event for CounterEvent {
         type State = CounterState;
+        type Delta = CounterDelta;
     }
 }
 
@@ -154,6 +156,7 @@ pub mod gauge {
 
     impl Event for GaugeEvent {
         type State = GaugeState;
+        type Delta = GaugeDelta;
     }
 }
 
@@ -207,6 +210,7 @@ pub mod dict {
 
     impl Event for DictEvent {
         type State = DictState;
+        type Delta = DictDelta;
     }
 }
 
@@ -348,6 +352,7 @@ pub mod table {
 
     impl Event for TableEvent {
         type State = TableState;
+        type Delta = TableDelta;
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -455,5 +460,6 @@ pub mod log {
 
     impl Event for LogEvent {
         type State = LogState;
+        type Delta = LogDelta;
     }
 }
