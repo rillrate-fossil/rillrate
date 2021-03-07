@@ -78,19 +78,27 @@ pub mod counter {
 }
 
 pub mod gauge {
-    use super::{Delta, Event, State, TimedEvent};
+    use super::{Delta, Event, State, TimedEvent, Timestamp};
     use crate::frame::Frame;
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct GaugePoint {
+        timestamp: Timestamp,
+        value: f64,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct GaugeState {
-        frame: Frame<TimedEvent<GaugeEvent>>,
+        frame: Frame<GaugePoint>,
+        value: f64,
     }
 
     impl Default for GaugeState {
         fn default() -> Self {
             Self {
                 frame: Frame::new(30),
+                value: 0.0,
             }
         }
     }
@@ -98,9 +106,24 @@ pub mod gauge {
     impl State for GaugeState {
         type Delta = GaugeDelta;
 
-        fn apply(&mut self, update: Self::Delta) {
-            for event in update.events {
-                self.frame.insert(event);
+        fn apply(&mut self, delta: Self::Delta) {
+            for event in delta.events {
+                match event.event {
+                    GaugeEvent::Increment(delta) => {
+                        self.value += delta;
+                    }
+                    GaugeEvent::Decrement(delta) => {
+                        self.value -= delta;
+                    }
+                    GaugeEvent::Set(value) => {
+                        self.value = value;
+                    }
+                }
+                let point = GaugePoint {
+                    timestamp: event.timestamp,
+                    value: self.value,
+                };
+                self.frame.insert(point);
             }
         }
     }
@@ -119,8 +142,10 @@ pub mod gauge {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct GaugeEvent {
-        value: f64,
+    pub enum GaugeEvent {
+        Increment(f64),
+        Decrement(f64),
+        Set(f64),
     }
 
     impl Event for GaugeEvent {

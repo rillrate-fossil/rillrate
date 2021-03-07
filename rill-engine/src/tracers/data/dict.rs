@@ -1,11 +1,13 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
+use rill_protocol::data::dict::DictEvent;
 use rill_protocol::io::provider::{
     Description, DictUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
 };
 use std::collections::HashMap;
 use std::time::SystemTime;
 
+/*
 #[derive(Debug)]
 pub enum DictRecord {
     // TODO: Track hash templates here
@@ -84,11 +86,12 @@ impl TracerState for DictState {
         }
     }
 }
+*/
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct DictTracer {
-    tracer: Tracer<DictRecord>,
+    tracer: Tracer<DictEvent>,
 }
 
 impl DictTracer {
@@ -106,7 +109,7 @@ impl DictTracer {
 
     /// Set a value to key.
     pub fn set(&self, key: impl ToString, value: impl ToString, timestamp: Option<SystemTime>) {
-        let data = DictRecord::Association {
+        let data = DictEvent::SetValue {
             key: key.to_string(),
             value: value.to_string(),
         };

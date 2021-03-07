@@ -1,9 +1,11 @@
 use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
 use derive_more::{Deref, DerefMut};
+use rill_protocol::data::gauge::GaugeEvent;
 use rill_protocol::frame::Frame;
 use rill_protocol::io::provider::{Description, Path, RillData, RillEvent, StreamType};
 use std::time::SystemTime;
 
+/*
 #[derive(Debug)]
 pub enum GaugeUpdate {
     Increment(f64),
@@ -61,11 +63,12 @@ impl TracerState for GaugeState {
 impl TracerEvent for GaugeUpdate {
     type State = GaugeState;
 }
+*/
 
 /// Sends metrics as `gauge` that can change value to any.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct GaugeTracer {
-    tracer: Tracer<GaugeUpdate>,
+    tracer: Tracer<GaugeEvent>,
 }
 
 impl GaugeTracer {
@@ -83,19 +86,19 @@ impl GaugeTracer {
 
     /// Increments the value by the specific delta.
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
-        let data = GaugeUpdate::Increment(delta);
+        let data = GaugeEvent::Increment(delta);
         self.tracer.send(data, timestamp);
     }
 
     /// Decrements the value by the specific delta.
     pub fn dec(&self, delta: f64, timestamp: Option<SystemTime>) {
-        let data = GaugeUpdate::Decrement(delta);
+        let data = GaugeEvent::Decrement(delta);
         self.tracer.send(data, timestamp);
     }
 
     /// Set the value.
     pub fn set(&self, new_value: f64, timestamp: Option<SystemTime>) {
-        let data = GaugeUpdate::Set(new_value);
+        let data = GaugeEvent::Set(new_value);
         self.tracer.send(data, timestamp);
     }
 }
