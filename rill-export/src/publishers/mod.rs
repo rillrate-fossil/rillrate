@@ -4,6 +4,9 @@ pub use graphite::GraphitePublisher;
 mod prometheus;
 pub use prometheus::PrometheusPublisher;
 
+mod converter;
+use converter::Converter;
+
 use crate::actors::export::RillExport;
 use anyhow::Error;
 use meio::{Actor, InterruptedBy, StartedBy};

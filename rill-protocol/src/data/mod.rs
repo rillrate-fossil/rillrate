@@ -1,13 +1,15 @@
 use crate::io::provider::{StreamDelta, StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
+use std::convert::TryFrom;
+use thiserror::Error;
 
-pub trait State: Into<StreamState> + Clone + Default + Send + 'static {
+pub trait State: Into<StreamState> /*+ TryFrom<StreamState>*/ + Clone + Default + Send + 'static {
     type Delta: Delta;
 
     fn apply(&mut self, update: Self::Delta);
 }
 
-pub trait Delta: Into<StreamDelta> + Clone {
+pub trait Delta: Into<StreamDelta> /*+ TryFrom<StreamDelta>*/ + Clone {
     type Event: Event;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self;
@@ -25,10 +27,15 @@ pub struct TimedEvent<T> {
     pub event: T,
 }
 
+#[derive(Debug, Error)]
+#[error("Can't convert into the specific state of delta.")]
+pub struct ConvertError;
+
 pub mod counter {
-    use super::{Delta, Event, State, TimedEvent};
-    use crate::io::provider::Timestamp;
+    use super::{Delta, Event, State, TimedEvent, ConvertError};
+    use crate::io::provider::{Timestamp, StreamState, StreamDelta};
     use serde::{Deserialize, Serialize};
+    use std::convert::TryFrom;
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CounterState {
@@ -41,6 +48,17 @@ pub mod counter {
             Self {
                 timestamp: None,
                 value: 0.0,
+            }
+        }
+    }
+
+    impl TryFrom<StreamState> for CounterState {
+        type Error = ConvertError;
+
+        fn try_from(state: StreamState) -> Result<Self, ConvertError> {
+            match state {
+                StreamState::Counter(state) => Ok(state),
+                _ => Err(ConvertError),
             }
         }
     }
@@ -58,6 +76,17 @@ pub mod counter {
     pub struct CounterDelta {
         timestamp: Timestamp,
         delta: f64,
+    }
+
+    impl TryFrom<StreamDelta> for CounterDelta {
+        type Error = ConvertError;
+
+        fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
+            match delta {
+                StreamDelta::Counter(delta) => Ok(delta),
+                _ => Err(ConvertError),
+            }
+        }
     }
 
     impl Delta for CounterDelta {
