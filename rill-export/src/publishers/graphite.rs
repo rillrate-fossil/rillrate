@@ -25,8 +25,6 @@ use tokio::sync::broadcast;
 
 struct Record {
     extractor: Box<dyn Extractor>,
-    timestamp: Timestamp,
-    value: f64,
 }
 
 pub struct GraphitePublisher {
@@ -137,10 +135,11 @@ impl ActionHandler<Tick> for GraphitePublisher {
                 // Collect all metrics values into a pool
                 let mut pool = Vec::with_capacity(self.metrics.len());
                 for (path, record) in self.metrics.drain() {
-                    let value = record.value;
-                    let line = (path.to_string(), (record.timestamp.as_secs(), value));
-                    log::trace!("Graphite export: {} - {}", path, value);
-                    pool.push(line);
+                    if let Some((ts, value)) = record.extractor.to_value() {
+                        let line = (path.to_string(), (ts.as_secs(), value));
+                        log::trace!("Graphite export: {} - {}", path, value);
+                        pool.push(line);
+                    }
                 }
                 // Serialize with pickle
                 let mut buffer = Vec::new();
@@ -170,13 +169,15 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
         match msg {
             PathNotification::Paths { descriptions } => {
                 for description in descriptions {
-                    let path = description.path;
+                    let path = &description.path;
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
                         let subscription =
                             self.client.subscribe_to_path(path.clone()).recv().await?;
-                        let path = Arc::new(path);
+                        let extractor = Extractor::make_extractor(&description);
+                        let record = Record { extractor };
+                        let path = Arc::new(path.clone());
                         let rx = subscription.map(move |item| (path.clone(), item));
                         ctx.attach(rx, Group::Streams);
                     }

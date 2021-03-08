@@ -5,13 +5,15 @@ use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::convert::TryFrom;
 use thiserror::Error;
 
-pub fn make_extractor(desc: &Description) -> Box<dyn Extractor> {
-    match desc.stream_type {
-        StreamType::LogStream => Box::new(Converter::<logger::LogState>::new()),
-        StreamType::CounterStream => Box::new(Converter::<counter::CounterState>::new()),
-        StreamType::GaugeStream => Box::new(Converter::<gauge::GaugeState>::new()),
-        StreamType::DictStream => Box::new(Converter::<dict::DictState>::new()),
-        StreamType::TableStream => Box::new(Converter::<table::TableState>::new()),
+impl Extractor {
+    pub fn make_extractor(desc: &Description) -> Box<dyn Extractor> {
+        match desc.stream_type {
+            StreamType::LogStream => Box::new(Converter::<logger::LogState>::new()),
+            StreamType::CounterStream => Box::new(Converter::<counter::CounterState>::new()),
+            StreamType::GaugeStream => Box::new(Converter::<gauge::GaugeState>::new()),
+            StreamType::DictStream => Box::new(Converter::<dict::DictState>::new()),
+            StreamType::TableStream => Box::new(Converter::<table::TableState>::new()),
+        }
     }
 }
 
