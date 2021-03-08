@@ -10,14 +10,14 @@ use std::convert::TryFrom;
 use thiserror::Error;
 
 pub trait State:
-    Into<StreamState> + TryFrom<StreamState> + Clone + Default + Send + 'static
+    Into<StreamState> + TryFrom<StreamState, Error = ConvertError> + Clone + Default + Send + 'static
 {
     type Delta: Delta;
 
     fn apply(&mut self, update: Self::Delta);
 }
 
-pub trait Delta: Into<StreamDelta> + TryFrom<StreamDelta> + Clone {
+pub trait Delta: Into<StreamDelta> + TryFrom<StreamDelta, Error = ConvertError> + Clone {
     type Event: Event;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self;
