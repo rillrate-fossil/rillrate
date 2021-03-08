@@ -4,7 +4,7 @@ use futures::task::{Context, Poll};
 use futures::{channel::mpsc, Stream};
 use meio::{Address, InstantAction, Interaction, InteractionTask};
 use rill_protocol::io::client::ClientReqId;
-use rill_protocol::io::provider::{Path, RillEvent};
+use rill_protocol::io::provider::Path;
 use std::pin::Pin;
 
 #[derive(Debug, From)]

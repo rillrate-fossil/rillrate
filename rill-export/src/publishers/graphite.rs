@@ -1,4 +1,4 @@
-use super::Publisher;
+use super::{extract_value, Publisher};
 use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
 use anyhow::Error;
@@ -190,10 +190,11 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 impl Consumer<(Arc<Path>, StateOrDelta)> for GraphitePublisher {
     async fn handle(
         &mut self,
-        (path, chunk): (Arc<Path>, StateOrDelta),
+        (path, msg): (Arc<Path>, StateOrDelta),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        todo!()
+        let value = extract_value(msg)?;
+        todo!();
         /*
         if let Some(event) = chunk.into_iter().last() {
             let val: Result<f64, _> = event.data.try_into();

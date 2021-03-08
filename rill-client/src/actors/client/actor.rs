@@ -12,18 +12,12 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
-use rill_protocol::io::provider::{Path, RillEvent, StreamDelta, StreamState};
+use rill_protocol::io::provider::{Path, StreamDelta, StreamState};
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
 
 type Connection = WsSender<Envelope<ClientProtocol, ClientRequest>>;
-
-#[derive(Debug, Clone)]
-pub enum StateOrDelta {
-    State(StreamState),
-    Delta(StreamDelta),
-}
 
 enum Record {
     Active {
@@ -229,4 +223,11 @@ impl InstantActionHandler<link::UnsubscribeFromPath> for RillClient {
         }
         Ok(())
     }
+}
+
+// TODO: Move somewwhere?
+#[derive(Debug, Clone)]
+pub enum StateOrDelta {
+    State(StreamState),
+    Delta(StreamDelta),
 }

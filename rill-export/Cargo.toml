@@ -27,4 +27,5 @@ rill-client = { version = "0.22.1", path = "../rill-client" }
 rill-protocol = { version = "0.22.1", path = "../rill-protocol" }
 serde = "1.0.123"
 serde-pickle = "0.6.2"
+thiserror = "1.0.24"
 tokio = { version = "1.2.0", features = ["full"] }

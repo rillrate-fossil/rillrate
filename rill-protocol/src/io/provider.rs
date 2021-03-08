@@ -179,7 +179,19 @@ impl FromStr for Path {
 // `i64` used, becuase it's widely supported as UTC timestamp
 // and for example it's used as timestamp value in BSON format.
 #[derive(
-    Serialize, Deserialize, From, Into, Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash,
+    Serialize,
+    Deserialize,
+    From,
+    Into,
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
 )]
 pub struct Timestamp(pub i64);
 

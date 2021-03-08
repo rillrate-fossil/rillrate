@@ -32,8 +32,8 @@ pub mod counter {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CounterState {
-        timestamp: Option<Timestamp>,
-        value: f64,
+        pub timestamp: Option<Timestamp>,
+        pub value: f64,
     }
 
     impl Default for CounterState {
@@ -104,13 +104,13 @@ pub mod gauge {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct GaugePoint {
-        timestamp: Timestamp,
-        value: f64,
+        pub timestamp: Timestamp,
+        pub value: f64,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct GaugeState {
-        frame: Frame<GaugePoint>,
+        pub frame: Frame<GaugePoint>,
         value: f64,
     }
 
