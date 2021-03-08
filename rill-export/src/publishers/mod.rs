@@ -7,6 +7,9 @@ pub use prometheus::PrometheusPublisher;
 mod converter;
 use converter::Converter;
 
+mod observer;
+use observer::Observer;
+
 use crate::actors::export::RillExport;
 use anyhow::Error;
 use meio::{Actor, InterruptedBy, StartedBy};

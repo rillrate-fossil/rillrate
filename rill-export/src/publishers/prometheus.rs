@@ -1,6 +1,7 @@
 use super::Publisher;
 use crate::actors::export::RillExport;
 use crate::config::PrometheusConfig;
+use crate::publishers::converter::Extractor;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -16,6 +17,7 @@ use std::convert::TryInto;
 use std::sync::Arc;
 
 struct Record {
+    extractor: Box<dyn Extractor>,
     event: Option<RillEvent>,
     description: Description,
 }
@@ -101,7 +103,9 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                         let subscription =
                             self.client.subscribe_to_path(path.clone()).recv().await?;
                         if let Entry::Vacant(entry) = self.metrics.entry(path.clone()) {
+                            let extractor = Extractor::make_extractor(&description);
                             let record = Record {
+                                extractor,
                                 event: None,
                                 description,
                             };
@@ -126,6 +130,8 @@ impl Consumer<(Arc<Path>, StateOrDelta)> for PrometheusPublisher {
         (path, chunk): (Arc<Path>, StateOrDelta),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        if let Some(record) = self.metrics.get_mut(&path) {
+        }
         todo!()
         /*
         if let Some(event) = chunk.into_iter().last() {
