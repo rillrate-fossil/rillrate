@@ -1,6 +1,7 @@
-use super::{extract_value, Publisher};
+use super::Publisher;
 use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
+use crate::publishers::converter::Extractor;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -23,6 +24,7 @@ use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 
 struct Record {
+    extractor: Box<dyn Extractor>,
     timestamp: Timestamp,
     value: f64,
 }
@@ -193,8 +195,8 @@ impl Consumer<(Arc<Path>, StateOrDelta)> for GraphitePublisher {
         (path, msg): (Arc<Path>, StateOrDelta),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let value = extract_value(msg)?;
         todo!();
+        //let value = extract_value(msg)?;
         /*
         if let Some(event) = chunk.into_iter().last() {
             let val: Result<f64, _> = event.data.try_into();
