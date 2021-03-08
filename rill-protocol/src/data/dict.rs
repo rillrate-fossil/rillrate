@@ -1,6 +1,8 @@
-use super::{Delta, Event, State, TimedEvent};
+use super::{ConvertError, Delta, Event, State, TimedEvent};
+use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictState {
@@ -11,6 +13,17 @@ impl Default for DictState {
     fn default() -> Self {
         Self {
             map: HashMap::new(),
+        }
+    }
+}
+
+impl TryFrom<StreamState> for DictState {
+    type Error = ConvertError;
+
+    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
+        match state {
+            StreamState::Dict(state) => Ok(state),
+            _ => Err(ConvertError),
         }
     }
 }
@@ -26,6 +39,17 @@ impl State for DictState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictDelta {
     map: HashMap<String, String>,
+}
+
+impl TryFrom<StreamDelta> for DictDelta {
+    type Error = ConvertError;
+
+    fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
+        match delta {
+            StreamDelta::Dict(delta) => Ok(delta),
+            _ => Err(ConvertError),
+        }
+    }
 }
 
 impl Delta for DictDelta {

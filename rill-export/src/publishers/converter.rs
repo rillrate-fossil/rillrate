@@ -7,8 +7,7 @@ pub struct Converter<T> {
 }
 
 impl<T> Converter<T> {
-    pub fn process_state_or_delta(&mut self, msg: StateOrDelta) {
-    }
+    pub fn process_state_or_delta(&mut self, msg: StateOrDelta) {}
 }
 
 /// Converts a state and deltas into a flow of numeric values
@@ -25,6 +24,9 @@ impl Extractor for counter::CounterState {
 
 impl Extractor for gauge::GaugeState {
     fn to_value(&self) -> Option<(Timestamp, f64)> {
-        self.frame.iter().last().map(|point| (point.timestamp, point.value))
+        self.frame
+            .iter()
+            .last()
+            .map(|point| (point.timestamp, point.value))
     }
 }

@@ -1,6 +1,8 @@
-use super::{Delta, Event, State, TimedEvent, Timestamp};
+use super::{ConvertError, Delta, Event, State, TimedEvent, Timestamp};
 use crate::frame::Frame;
+use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugePoint {
@@ -19,6 +21,17 @@ impl Default for GaugeState {
         Self {
             frame: Frame::new(30),
             value: 0.0,
+        }
+    }
+}
+
+impl TryFrom<StreamState> for GaugeState {
+    type Error = ConvertError;
+
+    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
+        match state {
+            StreamState::Gauge(state) => Ok(state),
+            _ => Err(ConvertError),
         }
     }
 }
@@ -51,6 +64,17 @@ impl State for GaugeState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeDelta {
     events: Vec<TimedEvent<GaugeEvent>>,
+}
+
+impl TryFrom<StreamDelta> for GaugeDelta {
+    type Error = ConvertError;
+
+    fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
+        match delta {
+            StreamDelta::Gauge(delta) => Ok(delta),
+            _ => Err(ConvertError),
+        }
+    }
 }
 
 impl Delta for GaugeDelta {

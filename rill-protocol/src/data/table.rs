@@ -1,7 +1,8 @@
-use super::{Delta, Event, State, TimedEvent};
-use crate::io::provider::{ColId, RowId};
+use super::{ConvertError, Delta, Event, State, TimedEvent};
+use crate::io::provider::{ColId, RowId, StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
@@ -14,6 +15,17 @@ impl Default for TableState {
         Self {
             columns: BTreeMap::new(),
             rows: BTreeMap::new(),
+        }
+    }
+}
+
+impl TryFrom<StreamState> for TableState {
+    type Error = ConvertError;
+
+    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
+        match state {
+            StreamState::Table(state) => Ok(state),
+            _ => Err(ConvertError),
         }
     }
 }
@@ -76,6 +88,17 @@ pub enum TableAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableDelta {
     updates: BTreeMap<TablePointer, TableAction>,
+}
+
+impl TryFrom<StreamDelta> for TableDelta {
+    type Error = ConvertError;
+
+    fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
+        match delta {
+            StreamDelta::Table(delta) => Ok(delta),
+            _ => Err(ConvertError),
+        }
+    }
 }
 
 impl Delta for TableDelta {

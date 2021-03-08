@@ -1,5 +1,5 @@
-use super::{Delta, Event, State, TimedEvent, ConvertError};
-use crate::io::provider::{Timestamp, StreamState, StreamDelta};
+use super::{ConvertError, Delta, Event, State, TimedEvent};
+use crate::io::provider::{StreamDelta, StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 

@@ -1,21 +1,23 @@
 pub mod counter;
-pub mod gauge;
 pub mod dict;
-pub mod table;
+pub mod gauge;
 pub mod logger;
+pub mod table;
 
 use crate::io::provider::{StreamDelta, StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use thiserror::Error;
 
-pub trait State: Into<StreamState> /*+ TryFrom<StreamState>*/ + Clone + Default + Send + 'static {
+pub trait State:
+    Into<StreamState> + TryFrom<StreamState> + Clone + Default + Send + 'static
+{
     type Delta: Delta;
 
     fn apply(&mut self, update: Self::Delta);
 }
 
-pub trait Delta: Into<StreamDelta> /*+ TryFrom<StreamDelta>*/ + Clone {
+pub trait Delta: Into<StreamDelta> + TryFrom<StreamDelta> + Clone {
     type Event: Event;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self;
