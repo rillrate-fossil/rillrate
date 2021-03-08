@@ -17,7 +17,6 @@ use std::convert::TryInto;
 use std::sync::Arc;
 
 struct Record {
-    extractor: Box<dyn Extractor>,
     event: Option<RillEvent>,
     description: Description,
 }
@@ -103,6 +102,7 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                         let subscription =
                             self.client.subscribe_to_path(path.clone()).recv().await?;
                         if let Entry::Vacant(entry) = self.metrics.entry(path.clone()) {
+                            /*
                             let extractor = Extractor::make_extractor(&description);
                             let record = Record {
                                 extractor,
@@ -110,6 +110,7 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                                 description,
                             };
                             entry.insert(record);
+                            */
                         }
                         let path = Arc::new(path);
                         let rx = subscription.map(move |item| (path.clone(), item));
@@ -130,8 +131,7 @@ impl Consumer<(Arc<Path>, StateOrDelta)> for PrometheusPublisher {
         (path, chunk): (Arc<Path>, StateOrDelta),
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        if let Some(record) = self.metrics.get_mut(&path) {
-        }
+        if let Some(record) = self.metrics.get_mut(&path) {}
         todo!()
         /*
         if let Some(event) = chunk.into_iter().last() {

@@ -5,6 +5,7 @@ use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::convert::TryFrom;
 use thiserror::Error;
 
+/*
 impl Extractor {
     pub fn make_extractor(desc: &Description) -> Box<dyn Extractor> {
         match desc.stream_type {
@@ -54,14 +55,11 @@ where
             .and_then(std::convert::identity)
     }
 }
+*/
 
 /// Converts a state and deltas into a flow of numeric values
 /// suitable for the metrics tracing systems.
-pub trait Extractor: Send {
-    fn process_state_or_delta(&mut self, msg: StateOrDelta) -> Result<(), Error> {
-        Err(Error::msg("not implemented for the state directly"))
-    }
-
+pub trait Extractor: State {
     fn to_value(&self) -> Option<(Timestamp, f64)>;
 }
 

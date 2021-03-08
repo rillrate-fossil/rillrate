@@ -1,10 +1,10 @@
 use crate::publishers::converter::Extractor;
-use rill_protocol::data::State;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::LiteTask;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
+use rill_protocol::data::State;
 use rill_protocol::io::provider::{Path, Timestamp};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -79,10 +79,7 @@ where
                 .map(Extractor::to_value)
                 .and_then(std::convert::identity);
             if let Some((timestamp, value)) = pair {
-                let record = Record {
-                    timestamp,
-                    value,
-                };
+                let record = Record { timestamp, value };
                 self.record.update(record).await;
             }
         }

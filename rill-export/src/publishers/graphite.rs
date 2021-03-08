@@ -2,6 +2,7 @@ use super::Publisher;
 use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
 use crate::publishers::converter::Extractor;
+use crate::publishers::observer::SharedRecord;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -23,16 +24,12 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 
-struct Record {
-    extractor: Box<dyn Extractor>,
-}
-
 pub struct GraphitePublisher {
     config: GraphiteConfig,
     broadcaster: BroadcasterLinkForClient,
     client: ClientLink,
     pickled: bool,
-    metrics: HashMap<Path, Record>,
+    metrics: HashMap<Path, SharedRecord>,
     sender: broadcast::Sender<Vec<u8>>,
 }
 
@@ -135,7 +132,9 @@ impl ActionHandler<Tick> for GraphitePublisher {
                 // Collect all metrics values into a pool
                 let mut pool = Vec::with_capacity(self.metrics.len());
                 for (path, record) in self.metrics.drain() {
-                    if let Some((ts, value)) = record.extractor.to_value() {
+                    if let Some(record) = record.get().await {
+                        let ts = record.timestamp;
+                        let value = record.value;
                         let line = (path.to_string(), (ts.as_secs(), value));
                         log::trace!("Graphite export: {} - {}", path, value);
                         pool.push(line);
@@ -175,11 +174,13 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     if self.config.paths.contains(&pattern) {
                         let subscription =
                             self.client.subscribe_to_path(path.clone()).recv().await?;
-                        let extractor = Extractor::make_extractor(&description);
-                        let record = Record { extractor };
+                        self.metrics.insert(path.clone(), SharedRecord::new());
+                        // TODO: Spawn an `Observer`
+                        /*
                         let path = Arc::new(path.clone());
                         let rx = subscription.map(move |item| (path.clone(), item));
                         ctx.attach(rx, Group::Streams);
+                        */
                     }
                 }
             }
@@ -189,6 +190,7 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
     }
 }
 
+/*
 #[async_trait]
 impl Consumer<(Arc<Path>, StateOrDelta)> for GraphitePublisher {
     async fn handle(
@@ -218,6 +220,7 @@ impl Consumer<(Arc<Path>, StateOrDelta)> for GraphitePublisher {
         */
     }
 }
+*/
 
 impl StreamAcceptor<Vec<RillEvent>> for GraphitePublisher {
     fn stream_group(&self) -> Self::GroupBy {

@@ -5,7 +5,7 @@ mod prometheus;
 pub use prometheus::PrometheusPublisher;
 
 mod converter;
-use converter::Converter;
+use converter::Extractor;
 
 mod observer;
 use observer::Observer;
