@@ -6,7 +6,7 @@ use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictState {
-    map: HashMap<String, String>,
+    pub map: HashMap<String, String>,
 }
 
 impl Default for DictState {

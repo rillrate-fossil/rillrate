@@ -6,7 +6,7 @@ use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogState {
-    frame: Frame<TimedEvent<LogEvent>>,
+    pub frame: Frame<TimedEvent<LogEvent>>,
 }
 
 impl Default for LogState {
