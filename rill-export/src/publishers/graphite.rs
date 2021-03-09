@@ -3,20 +3,18 @@ use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::StreamExt;
 use meio::{
     task::{HeartBeat, Tick},
-    ActionHandler, Actor, Consumer, Context, IdOf, InterruptedBy, LiteTask, StartedBy,
-    StreamAcceptor, TaskEliminated, TaskError,
+    ActionHandler, Actor, Context, IdOf, InterruptedBy, LiteTask, StartedBy, TaskEliminated,
+    TaskError,
 };
 use meio_connect::server::HttpServerLink;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
-use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::io::provider::{Path, PathPattern, RillEvent, Timestamp};
+use rill_client::actors::client::ClientLink;
+use rill_protocol::io::provider::{Path, PathPattern};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::io::Write;
-use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;

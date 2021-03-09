@@ -3,20 +3,17 @@ use crate::actors::export::RillExport;
 use crate::config::PrometheusConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::StreamExt;
 use meio::{
-    ActionHandler, Actor, Consumer, Context, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+    ActionHandler, Actor, Context, IdOf, InteractionHandler, InterruptedBy, StartedBy,
     TaskEliminated, TaskError,
 };
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
-use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::io::provider::{Description, Path, PathPattern, RillEvent, StreamType};
+use rill_client::actors::client::ClientLink;
+use rill_protocol::io::provider::{Description, Path, PathPattern, StreamType};
 use serde::Deserialize;
 use std::collections::btree_map::{BTreeMap, Entry};
-use std::convert::TryInto;
-use std::sync::Arc;
 
 struct Record {
     event: SharedRecord,
@@ -101,8 +98,6 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
-                        let subscription =
-                            self.client.subscribe_to_path(path.clone()).recv().await?;
                         if let Entry::Vacant(entry) = self.metrics.entry(path.clone()) {
                             let event = SharedRecord::new();
                             let record = Record {

@@ -1,11 +1,10 @@
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
-use meio::{Actor, Context, LiteTask};
+use meio::LiteTask;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
 use rill_protocol::data::{counter, dict, gauge, logger, table, State};
-use rill_protocol::io::provider::{Description, Path, StreamType, Timestamp};
-use std::collections::HashMap;
+use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::convert::TryFrom;
 use std::sync::Arc;
 use tokio::sync::Mutex;
