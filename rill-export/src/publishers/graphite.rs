@@ -1,8 +1,6 @@
-use super::Publisher;
+use super::{Publisher, Observer, SharedRecord};
 use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
-use crate::publishers::converter::Extractor;
-use crate::publishers::observer::SharedRecord;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -172,9 +170,13 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
+                        /*
                         let subscription =
                             self.client.subscribe_to_path(path.clone()).recv().await?;
-                        self.metrics.insert(path.clone(), SharedRecord::new());
+                        */
+                        let record = SharedRecord::new();
+                        self.metrics.insert(path.clone(), record.clone());
+                        //let observer = Observer::new(path, self.client.clone(), record);
                         // TODO: Spawn an `Observer`
                         /*
                         let path = Arc::new(path.clone());

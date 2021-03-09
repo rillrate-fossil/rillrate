@@ -1,11 +1,10 @@
-use crate::publishers::converter::Extractor;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
-use meio::LiteTask;
+use meio::{Actor, Context, LiteTask};
 use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::data::State;
-use rill_protocol::io::provider::{Path, Timestamp};
+use rill_protocol::data::{counter, dict, gauge, logger, table, State};
+use rill_protocol::io::provider::{Description, Path, Timestamp, StreamType};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Arc;
@@ -17,7 +16,7 @@ pub struct Record {
     pub value: f64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SharedRecord {
     protected_record: Arc<Mutex<Option<Record>>>,
 }
@@ -50,10 +49,21 @@ pub struct ObserveTask<T> {
     record: SharedRecord,
 }
 
+impl<T> ObserveTask<T> {
+    fn new(path: Path, client: ClientLink, record: SharedRecord) -> Self {
+        Self {
+            path,
+            client,
+            state: None,
+            record,
+        }
+    }
+}
+
 #[async_trait]
 impl<T> LiteTask for ObserveTask<T>
 where
-    T: State + Extractor, // TODO: Require `State` in the `Extractor`
+    T: Extractor,
 {
     type Output = ();
 
@@ -84,5 +94,44 @@ where
             }
         }
         Ok(())
+    }
+}
+
+/// Converts a state and deltas into a flow of numeric values
+/// suitable for the metrics tracing systems.
+trait Extractor: State {
+    fn to_value(&self) -> Option<(Timestamp, f64)>;
+}
+
+impl Extractor for counter::CounterState {
+    fn to_value(&self) -> Option<(Timestamp, f64)> {
+        self.timestamp.map(|ts| (ts, self.value))
+    }
+}
+
+impl Extractor for gauge::GaugeState {
+    fn to_value(&self) -> Option<(Timestamp, f64)> {
+        self.frame
+            .iter()
+            .last()
+            .map(|point| (point.timestamp, point.value))
+    }
+}
+
+impl Extractor for logger::LogState {
+    fn to_value(&self) -> Option<(Timestamp, f64)> {
+        None
+    }
+}
+
+impl Extractor for table::TableState {
+    fn to_value(&self) -> Option<(Timestamp, f64)> {
+        None
+    }
+}
+
+impl Extractor for dict::DictState {
+    fn to_value(&self) -> Option<(Timestamp, f64)> {
+        None
     }
 }

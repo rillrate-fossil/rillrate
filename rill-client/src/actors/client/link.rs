@@ -7,7 +7,7 @@ use rill_protocol::io::client::ClientReqId;
 use rill_protocol::io::provider::Path;
 use std::pin::Pin;
 
-#[derive(Debug, From)]
+#[derive(Debug, Clone, From)]
 pub struct ClientLink {
     address: Address<RillClient>,
 }

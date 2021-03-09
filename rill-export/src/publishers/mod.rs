@@ -4,11 +4,8 @@ pub use graphite::GraphitePublisher;
 mod prometheus;
 pub use prometheus::PrometheusPublisher;
 
-mod converter;
-use converter::Extractor;
-
 mod observer;
-use observer::Observer;
+use observer::{SharedRecord, Observer};
 
 use crate::actors::export::RillExport;
 use anyhow::Error;

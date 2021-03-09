@@ -1,7 +1,6 @@
 use super::Publisher;
 use crate::actors::export::RillExport;
 use crate::config::PrometheusConfig;
-use crate::publishers::converter::Extractor;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
