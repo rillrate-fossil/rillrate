@@ -1,10 +1,13 @@
-use super::Publisher;
+use super::{Observer, Publisher, SharedRecord};
 use crate::actors::export::RillExport;
 use crate::config::PrometheusConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
-use meio::{ActionHandler, Actor, Consumer, Context, InteractionHandler, InterruptedBy, StartedBy};
+use meio::{
+    ActionHandler, Actor, Consumer, Context, IdOf, InteractionHandler, InterruptedBy, StartedBy,
+    TaskEliminated, TaskError,
+};
 use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
@@ -16,7 +19,7 @@ use std::convert::TryInto;
 use std::sync::Arc;
 
 struct Record {
-    event: Option<RillEvent>,
+    event: SharedRecord,
     description: Description,
 }
 
@@ -101,19 +104,15 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                         let subscription =
                             self.client.subscribe_to_path(path.clone()).recv().await?;
                         if let Entry::Vacant(entry) = self.metrics.entry(path.clone()) {
-                            /*
-                            let extractor = Extractor::make_extractor(&description);
+                            let event = SharedRecord::new();
                             let record = Record {
-                                extractor,
-                                event: None,
-                                description,
+                                event: event.clone(),
+                                description: description.clone(),
                             };
                             entry.insert(record);
-                            */
+                            let observer = Observer::new(description, self.client.clone(), event);
+                            ctx.spawn_task(observer, Group::Streams);
                         }
-                        let path = Arc::new(path);
-                        let rx = subscription.map(move |item| (path.clone(), item));
-                        ctx.attach(rx, Group::Streams);
                     }
                 }
             }
@@ -124,24 +123,14 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 }
 
 #[async_trait]
-impl Consumer<(Arc<Path>, StateOrDelta)> for PrometheusPublisher {
+impl TaskEliminated<Observer> for PrometheusPublisher {
     async fn handle(
         &mut self,
-        (path, chunk): (Arc<Path>, StateOrDelta),
+        _id: IdOf<Observer>,
+        _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        if let Some(record) = self.metrics.get_mut(&path) {}
-        todo!()
-        /*
-        if let Some(event) = chunk.into_iter().last() {
-            if let Some(record) = self.metrics.get_mut(&path) {
-                record.event = Some(event);
-            } else {
-                log::error!("No record for path: {}", path);
-            }
-        }
         Ok(())
-        */
     }
 }
 
@@ -165,7 +154,7 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
         let mut buffer = String::new();
         for (path, record) in &self.metrics {
             let info = &record.description.info;
-            if let Some(event) = record.event.clone() {
+            if let Some(event) = record.event.get().await {
                 let name = path.as_ref().join("_");
                 let typ = match record.description.stream_type {
                     StreamType::CounterStream => "counter",
@@ -178,13 +167,7 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
                         continue;
                     }
                 };
-                let value: f64 = match event.data.clone().try_into() {
-                    Ok(n) => n, // TODO: Round?
-                    Err(err) => {
-                        log::error!("Can't convert data {:?} into a number: {}", event.data, err);
-                        continue;
-                    }
-                };
+                let value = event.value;
                 let ts = event.timestamp;
                 let line = format!("# HELP {}\n", info);
                 buffer.push_str(&line);

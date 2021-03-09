@@ -4,7 +4,7 @@ use futures::StreamExt;
 use meio::{Actor, Context, LiteTask};
 use rill_client::actors::client::{ClientLink, StateOrDelta};
 use rill_protocol::data::{counter, dict, gauge, logger, table, State};
-use rill_protocol::io::provider::{Description, Path, Timestamp, StreamType};
+use rill_protocol::io::provider::{Description, Path, StreamType, Timestamp};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Arc;
@@ -39,52 +39,41 @@ impl SharedRecord {
 }
 
 pub struct Observer {
-    map: HashMap<Path, SharedRecord>,
-}
-
-pub struct ObserveTask<T> {
-    path: Path,
+    description: Description,
     client: ClientLink,
-    state: Option<T>,
     record: SharedRecord,
 }
 
-impl<T> ObserveTask<T> {
-    fn new(path: Path, client: ClientLink, record: SharedRecord) -> Self {
+impl Observer {
+    pub fn new(description: Description, client: ClientLink, record: SharedRecord) -> Self {
         Self {
-            path,
+            description,
             client,
-            state: None,
             record,
         }
     }
-}
 
-#[async_trait]
-impl<T> LiteTask for ObserveTask<T>
-where
-    T: Extractor,
-{
-    type Output = ();
-
-    async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
-        let path = self.path.clone();
+    async fn state_routine<T>(mut self) -> Result<(), Error>
+    where
+        T: Extractor,
+    {
+        let path = self.description.path.clone();
         let mut subscription = self.client.subscribe_to_path(path).recv().await?;
+        let mut state = None;
         while let Some(msg) = subscription.next().await {
             match msg {
-                StateOrDelta::State(state) => {
-                    let state = T::try_from(state)?;
-                    self.state = Some(state);
+                StateOrDelta::State(new_state) => {
+                    let new_state = T::try_from(new_state)?;
+                    state = Some(new_state);
                 }
                 StateOrDelta::Delta(delta) => {
                     let delta = T::Delta::try_from(delta)?;
-                    if let Some(state) = self.state.as_mut() {
+                    if let Some(state) = state.as_mut() {
                         state.apply(delta);
                     }
                 }
             }
-            let pair = self
-                .state
+            let pair = state
                 .as_ref()
                 .map(Extractor::to_value)
                 .and_then(std::convert::identity);
@@ -94,6 +83,21 @@ where
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl LiteTask for Observer {
+    type Output = ();
+
+    async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
+        match self.description.stream_type {
+            StreamType::CounterStream => self.state_routine::<counter::CounterState>().await,
+            StreamType::GaugeStream => self.state_routine::<gauge::GaugeState>().await,
+            StreamType::LogStream => self.state_routine::<logger::LogState>().await,
+            StreamType::DictStream => self.state_routine::<dict::DictState>().await,
+            StreamType::TableStream => self.state_routine::<table::TableState>().await,
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-use super::{Publisher, Observer, SharedRecord};
+use super::{Observer, Publisher, SharedRecord};
 use crate::actors::export::RillExport;
 use crate::config::GraphiteConfig;
 use anyhow::Error;
@@ -170,19 +170,10 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                     // TODO: Improve that... Maybe use `PatternMatcher` that wraps `HashSet` of `Patterns`
                     let pattern = PathPattern { path: path.clone() };
                     if self.config.paths.contains(&pattern) {
-                        /*
-                        let subscription =
-                            self.client.subscribe_to_path(path.clone()).recv().await?;
-                        */
                         let record = SharedRecord::new();
                         self.metrics.insert(path.clone(), record.clone());
-                        //let observer = Observer::new(path, self.client.clone(), record);
-                        // TODO: Spawn an `Observer`
-                        /*
-                        let path = Arc::new(path.clone());
-                        let rx = subscription.map(move |item| (path.clone(), item));
-                        ctx.attach(rx, Group::Streams);
-                        */
+                        let observer = Observer::new(description, self.client.clone(), record);
+                        ctx.spawn_task(observer, Group::Streams);
                     }
                 }
             }
@@ -192,41 +183,15 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
     }
 }
 
-/*
 #[async_trait]
-impl Consumer<(Arc<Path>, StateOrDelta)> for GraphitePublisher {
+impl TaskEliminated<Observer> for GraphitePublisher {
     async fn handle(
         &mut self,
-        (path, msg): (Arc<Path>, StateOrDelta),
+        _id: IdOf<Observer>,
+        _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        todo!();
-        //let value = extract_value(msg)?;
-        /*
-        if let Some(event) = chunk.into_iter().last() {
-            let val: Result<f64, _> = event.data.try_into();
-            match val {
-                Ok(value) => {
-                    let record = Record {
-                        timestamp: event.timestamp,
-                        value,
-                    };
-                    self.metrics.insert((&*path).clone(), record);
-                }
-                Err(err) => {
-                    log::error!("Can't convert {} to a value: {}", path, err);
-                }
-            }
-        }
         Ok(())
-        */
-    }
-}
-*/
-
-impl StreamAcceptor<Vec<RillEvent>> for GraphitePublisher {
-    fn stream_group(&self) -> Self::GroupBy {
-        Group::Streams
     }
 }
 

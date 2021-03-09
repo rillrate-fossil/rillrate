@@ -5,7 +5,7 @@ mod prometheus;
 pub use prometheus::PrometheusPublisher;
 
 mod observer;
-use observer::{SharedRecord, Observer};
+use observer::{Observer, SharedRecord};
 
 use crate::actors::export::RillExport;
 use anyhow::Error;
