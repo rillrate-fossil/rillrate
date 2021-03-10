@@ -38,18 +38,23 @@ fn main() -> Result<(), Error> {
 
         let my_table = Table::create("my.table.one")?;
         // TODO: Add and use `ToAlias` trait
-        my_table.add_col(0.into(), Some("A".into()));
-        my_table.add_row(0.into(), Some("Row-1".into()));
-        my_table.set_cell(0.into(), 0.into(), "value", None);
+        my_table.add_col(0.into(), Some("Thread".into()));
+        my_table.add_col(1.into(), Some("State".into()));
 
         for i in 1..=5 {
+            let tbl = my_table.clone();
+            let tname = format!("thread-{}", i);
+            tbl.add_row(i.into(), Some(tname.clone()));
+            tbl.set_cell(i.into(), 0.into(), &tname, None);
             let mt_gauge_cloned = mt_gauge.clone();
             let running_cloned = running.clone();
-            let tname = format!("thread-{}", i);
             thread::Builder::new().name(tname).spawn(move || {
                 while running_cloned.load(Ordering::SeqCst) {
                     mt_gauge_cloned.set(i as f64);
-                    thread::sleep(Duration::from_secs(1));
+                    tbl.set_cell(i.into(), 1.into(), "wait 1", None);
+                    thread::sleep(Duration::from_millis(500));
+                    tbl.set_cell(i.into(), 1.into(), "wait 2", None);
+                    thread::sleep(Duration::from_millis(500));
                 }
             })?;
         }
