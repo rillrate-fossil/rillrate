@@ -18,7 +18,8 @@ pub struct GaugeState {
 impl Default for GaugeState {
     fn default() -> Self {
         Self {
-            frame: Frame::new(30),
+            // TODO: Use duration for removing obsolete values instead
+            frame: Frame::new(100),
             value: 0.0,
         }
     }

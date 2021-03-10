@@ -12,7 +12,7 @@ pub struct LogState {
 impl Default for LogState {
     fn default() -> Self {
         Self {
-            frame: Frame::new(30),
+            frame: Frame::new(10),
         }
     }
 }
