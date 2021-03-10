@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::{Counter, Dict, Gauge, Logger, RillRate};
+use rillrate::{Counter, Dict, Gauge, Logger, RillRate, Table};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -35,6 +35,12 @@ fn main() -> Result<(), Error> {
         let mt_gauge = Gauge::create("my.gauge.multithread")?;
 
         let my_dict = Dict::create("my.dict.key-value")?;
+
+        let my_table = Table::create("my.table.one")?;
+        // TODO: Add and use `ToAlias` trait
+        my_table.add_col(0.into(), Some("A".into()));
+        my_table.add_row(0.into(), Some("Row-1".into()));
+        my_table.set_cell(0.into(), 0.into(), "value", None);
 
         for i in 1..=5 {
             let mt_gauge_cloned = mt_gauge.clone();

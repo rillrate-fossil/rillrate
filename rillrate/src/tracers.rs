@@ -1,7 +1,7 @@
 //! The module with all adapted tracers.
 
 use anyhow::Error;
-use rill_engine::tracers::data::{CounterTracer, DictTracer, GaugeTracer, LogTracer};
+use rill_engine::tracers::data::{CounterTracer, DictTracer, GaugeTracer, LogTracer, TableTracer};
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -97,3 +97,13 @@ impl Dict {
         self.tracer.set(key, value, None);
     }
 }
+
+/// `Table` tracer.
+#[derive(Debug, Clone)]
+pub struct Table {
+    tracer: Arc<TableTracer>,
+}
+
+impl_tracer!(Table<TableTracer>);
+
+impl Table {}
