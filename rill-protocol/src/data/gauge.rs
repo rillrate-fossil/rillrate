@@ -1,4 +1,4 @@
-use super::{ConvertError, Delta, Event, State, TimedEvent, Timestamp};
+use super::{ConvertError, Delta, Event, State, TimedEvent};
 use crate::frame::Frame;
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
@@ -6,13 +6,12 @@ use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugePoint {
-    pub timestamp: Timestamp,
     pub value: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeState {
-    pub frame: Frame<GaugePoint>,
+    pub frame: Frame<TimedEvent<GaugePoint>>,
     value: f64,
 }
 
@@ -52,11 +51,12 @@ impl State for GaugeState {
                     self.value = value;
                 }
             }
-            let point = GaugePoint {
+            let point = GaugePoint { value: self.value };
+            let timed_event = TimedEvent {
                 timestamp: event.timestamp,
-                value: self.value,
+                event: point,
             };
-            self.frame.insert(point);
+            self.frame.insert(timed_event);
         }
     }
 }

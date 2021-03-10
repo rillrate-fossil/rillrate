@@ -117,7 +117,7 @@ impl Extractor for gauge::GaugeState {
         self.frame
             .iter()
             .last()
-            .map(|point| (point.timestamp, point.value))
+            .map(|event| (event.timestamp, event.event.value))
     }
 }
 
