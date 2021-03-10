@@ -284,10 +284,22 @@ pub enum EntryUpdate {
 )]
 pub struct ColId(pub u64);
 
+impl fmt::Display for ColId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
 pub struct RowId(pub u64);
+
+impl fmt::Display for RowId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum TableUpdate {

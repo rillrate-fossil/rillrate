@@ -6,8 +6,8 @@ use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
-    columns: BTreeMap<ColId, ColRecord>,
-    rows: BTreeMap<RowId, RowRecord>,
+    pub columns: BTreeMap<ColId, ColRecord>,
+    pub rows: BTreeMap<RowId, RowRecord>,
 }
 
 impl Default for TableState {
@@ -58,8 +58,8 @@ impl State for TableState {
                 }
                 (TablePointer::Cell { row, col }, TableAction::Set { value }) => {
                     if let Some(record) = self.rows.get_mut(&row) {
-                        if let Some(cell) = record.cols.get_mut(&col) {
-                            *cell = value;
+                        if self.columns.contains_key(&col) {
+                            record.cols.insert(col, value);
                         }
                     }
                 }
@@ -170,14 +170,14 @@ impl Event for TableEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct ColRecord {
-    alias: Option<String>,
+pub struct ColRecord {
+    pub alias: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct RowRecord {
-    alias: Option<String>,
-    cols: BTreeMap<ColId, String>,
+pub struct RowRecord {
+    pub alias: Option<String>,
+    pub cols: BTreeMap<ColId, String>,
 }
 
 #[test]
