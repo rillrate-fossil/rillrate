@@ -8,6 +8,7 @@ use once_cell::sync::Lazy;
 use rill_protocol::data;
 use rill_protocol::io::provider::Description;
 use std::sync::Arc;
+use std::time::Duration;
 
 /// It used by tracers to register them into the state.
 pub(crate) static RILL_LINK: Lazy<RillState> = Lazy::new(RillState::new);
@@ -39,7 +40,9 @@ impl RillState {
         RillWorker: InstantActionHandler<RegisterTracer<T>>,
         T: data::State,
     {
-        let mode = TracerMode::Push { receiver };
+        let mode = TracerMode::Push {
+            receiver: Some(receiver),
+        };
         let msg = RegisterTracer { description, mode };
         let parcel = Parcel::pack(msg);
         self.sender
@@ -54,7 +57,11 @@ impl RillState {
 
 pub(crate) enum TracerMode<T: data::State> {
     /// Real-time mode
-    Push { receiver: DataReceiver<T> },
+    Push { receiver: Option<DataReceiver<T>> },
+    Pull {
+        state: Arc<Mutex<T>>,
+        interval: Duration,
+    },
 }
 
 pub(crate) struct RegisterTracer<T: data::State> {

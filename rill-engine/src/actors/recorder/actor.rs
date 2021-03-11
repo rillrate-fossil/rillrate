@@ -17,7 +17,7 @@ use std::sync::Arc;
 pub(crate) struct Recorder<T: data::State> {
     description: Arc<Description>,
     sender: RillSender,
-    mode: Option<TracerMode<T>>,
+    mode: TracerMode<T>,
     subscribers: HashSet<ProviderReqId>,
     state: T,
 }
@@ -27,7 +27,7 @@ impl<T: data::State> Recorder<T> {
         Self {
             description,
             sender,
-            mode: Some(mode),
+            mode,
             subscribers: HashSet::new(),
             state: T::default(),
         }
@@ -49,14 +49,18 @@ impl<T: data::State> Actor for Recorder<T> {
 #[async_trait]
 impl<T: data::State> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        match self.mode.take() {
-            Some(TracerMode::Push { receiver }) => {
-                let rx = receiver.ready_chunks(32);
+        match &mut self.mode {
+            TracerMode::Push { receiver } => {
+                let rx = receiver
+                    .take()
+                    .expect("tracer hasn't attached receiver")
+                    .ready_chunks(32);
                 ctx.attach(rx, ());
                 Ok(())
             }
-            None => {
-                unreachable!("mode was not set by the tracer");
+            TracerMode::Pull { .. } => {
+                // Waiting for the subscribers to spawn a heartbeat activity
+                Ok(())
             }
         }
     }
@@ -137,6 +141,11 @@ impl<T: data::State> ActionHandler<link::ControlStream> for Recorder<T> {
                 } else {
                     log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
                 }
+            }
+            if self.subscribers.is_empty() {
+                // TODO: Terminate `HeartBeat`
+            } else {
+                // TODO: Spawn a `HeartBeat` state extractor
             }
         } else {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
