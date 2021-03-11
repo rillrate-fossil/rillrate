@@ -40,6 +40,7 @@ pub(crate) enum TracerMode<T: data::State> {
 #[derive(Debug, Clone)]
 enum InnerMode<T: data::State> {
     Push { sender: DataSender<T> },
+    Pull { state: Arc<Mutex<T>> },
 }
 
 /// The generic provider that forwards metrics to worker and keeps a flag
@@ -98,17 +99,20 @@ impl<T: data::State> Tracer<T> {
                 .map(Timestamp::from);
             match ts {
                 Ok(timestamp) => {
+                    let timed_event = TimedEvent {
+                        timestamp,
+                        event: data,
+                    };
                     match &self.mode {
                         InnerMode::Push { sender } => {
-                            let timed_event = TimedEvent {
-                                timestamp,
-                                event: data,
-                            };
                             let envelope = DataEnvelope::Event(timed_event);
                             // And will never send an event
                             if let Err(err) = sender.unbounded_send(envelope) {
                                 log::error!("Can't transfer data to sender: {}", err);
                             }
+                        }
+                        InnerMode::Pull { state } => {
+                            todo!();
                         }
                     }
                 }
