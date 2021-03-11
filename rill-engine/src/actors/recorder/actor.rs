@@ -1,7 +1,7 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
 use crate::state::TracerMode;
-use crate::tracers::tracer::{DataEnvelope, DataReceiver};
+use crate::tracers::tracer::DataEnvelope;
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -13,33 +13,23 @@ use rill_protocol::io::provider::{
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::Arc;
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-enum RecorderError {
-    #[error("no receiver attached")]
-    NoReceiver,
-}
 
 pub(crate) struct Recorder<T: data::State> {
     description: Arc<Description>,
     sender: RillSender,
-    // TODO: Change to the specific type receiver
-    receiver: Option<DataReceiver<T>>,
+    mode: Option<TracerMode<T>>,
     subscribers: HashSet<ProviderReqId>,
     state: T,
 }
 
 impl<T: data::State> Recorder<T> {
     pub fn new(description: Arc<Description>, sender: RillSender, mode: TracerMode<T>) -> Self {
-        match mode {
-            TracerMode::Push { receiver } => Self {
-                description,
-                sender,
-                receiver: Some(receiver),
-                subscribers: HashSet::new(),
-                state: T::default(),
-            },
+        Self {
+            description,
+            sender,
+            mode: Some(mode),
+            subscribers: HashSet::new(),
+            state: T::default(),
         }
     }
 
@@ -59,13 +49,16 @@ impl<T: data::State> Actor for Recorder<T> {
 #[async_trait]
 impl<T: data::State> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let rx = self
-            .receiver
-            .take()
-            .ok_or(RecorderError::NoReceiver)?
-            .ready_chunks(32);
-        ctx.attach(rx, ());
-        Ok(())
+        match self.mode.take() {
+            Some(TracerMode::Push { receiver }) => {
+                let rx = receiver.ready_chunks(32);
+                ctx.attach(rx, ());
+                Ok(())
+            }
+            None => {
+                unreachable!("mode was not set by the tracer");
+            }
+        }
     }
 }
 
