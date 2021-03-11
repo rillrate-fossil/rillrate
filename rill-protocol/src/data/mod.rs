@@ -15,7 +15,7 @@ impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = Convert
 
 pub trait State: Convertable<StreamState> + Clone + Default + Send + 'static {
     type Event: Event;
-    type Delta: Delta;
+    type Delta: Convertable<StreamDelta> + Clone + Default;
 
     fn apply(&mut self, update: Self::Delta);
 }
