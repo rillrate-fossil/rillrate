@@ -68,7 +68,10 @@ impl Observer {
                 StateOrDelta::Delta(delta) => {
                     let delta = T::Delta::try_from(delta)?;
                     if let Some(state) = state.as_mut() {
-                        state.apply(delta);
+                        let events: Vec<_> = delta.into();
+                        for event in events {
+                            state.apply(event);
+                        }
                     }
                 }
             }

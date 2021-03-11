@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::data::{self, Delta};
+use rill_protocol::data;
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderReqId, ProviderToServer, StreamState,
 };
