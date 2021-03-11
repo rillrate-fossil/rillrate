@@ -242,14 +242,13 @@ impl<T: data::State> InstantActionHandler<state::RegisterTracer<T>> for RillWork
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let description = msg.description;
-        let receiver = msg.receiver;
         let path = description.path.clone();
         log::info!("Add tracer: {:?}", path);
         let record = self.recorders.dig(path.clone());
         if record.get_link().is_none() {
             let sender = self.sender.clone();
             //let link = ctx.address().link();
-            let actor = Recorder::new(description.clone(), sender, receiver);
+            let actor = Recorder::new(description.clone(), sender, msg.mode);
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             self.registered.insert(recorder.id().into(), description);

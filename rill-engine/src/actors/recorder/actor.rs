@@ -1,5 +1,6 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
+use crate::state::TracerMode;
 use crate::tracers::tracer::{DataEnvelope, DataReceiver};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -30,13 +31,15 @@ pub(crate) struct Recorder<T: data::State> {
 }
 
 impl<T: data::State> Recorder<T> {
-    pub fn new(description: Arc<Description>, sender: RillSender, rx: DataReceiver<T>) -> Self {
-        Self {
-            description,
-            sender,
-            receiver: Some(rx),
-            subscribers: HashSet::new(),
-            state: T::default(),
+    pub fn new(description: Arc<Description>, sender: RillSender, mode: TracerMode<T>) -> Self {
+        match mode {
+            TracerMode::Push { receiver } => Self {
+                description,
+                sender,
+                receiver: Some(receiver),
+                subscribers: HashSet::new(),
+                state: T::default(),
+            },
         }
     }
 

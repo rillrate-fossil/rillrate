@@ -39,10 +39,8 @@ impl RillState {
         RillWorker: InstantActionHandler<RegisterTracer<T>>,
         T: data::State,
     {
-        let msg = RegisterTracer {
-            description,
-            receiver,
-        };
+        let mode = TracerMode::Push { receiver };
+        let msg = RegisterTracer { description, mode };
         let parcel = Parcel::pack(msg);
         self.sender
             .unbounded_send(parcel)
@@ -54,9 +52,14 @@ impl RillState {
     }
 }
 
+pub(crate) enum TracerMode<T: data::State> {
+    /// Real-time mode
+    Push { receiver: DataReceiver<T> },
+}
+
 pub(crate) struct RegisterTracer<T: data::State> {
     pub description: Arc<Description>,
-    pub receiver: DataReceiver<T>,
+    pub mode: TracerMode<T>,
 }
 
 impl<T: data::State> InstantAction for RegisterTracer<T> {}
