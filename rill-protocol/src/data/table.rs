@@ -34,62 +34,41 @@ impl State for TableState {
     type Delta = TableDelta;
 
     fn apply(&mut self, delta: Self::Delta) {
-        for pair in delta.updates {
-            match pair {
-                (TablePointer::Col(col), TableAction::Add { alias }) => {
+        for event in delta {
+            match event.event {
+                TableEvent::AddCol { col, alias } => {
                     let record = ColRecord { alias };
                     self.columns.insert(col, record);
                 }
-                (TablePointer::Col(col), TableAction::Del) => {
+                TableEvent::DelCol { col } => {
                     self.columns.remove(&col);
                     for (_row, record) in self.rows.iter_mut() {
                         record.cols.remove(&col);
                     }
                 }
-                (TablePointer::Row(row), TableAction::Add { alias }) => {
+                TableEvent::AddRow { row, alias } => {
                     let record = RowRecord {
                         alias,
                         cols: BTreeMap::new(),
                     };
                     self.rows.insert(row, record);
                 }
-                (TablePointer::Row(row), TableAction::Del) => {
+                TableEvent::DelRow { row } => {
                     self.rows.remove(&row);
                 }
-                (TablePointer::Cell { row, col }, TableAction::Set { value }) => {
+                TableEvent::SetCell { row, col, value } => {
                     if let Some(record) = self.rows.get_mut(&row) {
                         if self.columns.contains_key(&col) {
                             record.cols.insert(col, value);
                         }
                     }
                 }
-                (pointer, action) => {
-                    log::error!("Incorrect pair of the {:?} and {:?}", pointer, action);
-                }
             }
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum TablePointer {
-    Col(ColId),
-    Row(RowId),
-    Cell { row: RowId, col: ColId },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TableAction {
-    Add { alias: Option<String> },
-    Del,
-    Set { value: String },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableDelta {
-    #[serde(with = "serde_patch")]
-    updates: BTreeMap<TablePointer, TableAction>,
-}
+pub type TableDelta = Vec<TimedEvent<TableEvent>>;
 
 impl TryFrom<StreamDelta> for TableDelta {
     type Error = ConvertError;
@@ -106,56 +85,11 @@ impl Delta for TableDelta {
     type Event = TableEvent;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self {
-        let mut this = Self {
-            updates: BTreeMap::new(),
-        };
-        this.combine(event);
-        this
+        vec![event]
     }
 
     fn combine(&mut self, event: TimedEvent<Self::Event>) {
-        let pointer;
-        let action;
-        match event.event {
-            TableEvent::AddCol { col, alias } => {
-                pointer = TablePointer::Col(col);
-                action = TableAction::Add { alias };
-            }
-            TableEvent::DelCol { col } => {
-                pointer = TablePointer::Col(col);
-                action = TableAction::Del;
-            }
-            TableEvent::AddRow { row, alias } => {
-                pointer = TablePointer::Row(row);
-                action = TableAction::Add { alias };
-            }
-            TableEvent::DelRow { row } => {
-                pointer = TablePointer::Row(row);
-                action = TableAction::Del;
-            }
-            TableEvent::SetCell { row, col, value } => {
-                pointer = TablePointer::Cell { row, col };
-                action = TableAction::Set { value };
-            }
-        }
-        self.updates.insert(pointer, action);
-    }
-}
-
-mod serde_patch {
-    use super::*;
-    use serde::{Deserializer, Serializer};
-
-    type Target = BTreeMap<TablePointer, TableAction>;
-
-    pub(super) fn serialize<S: Serializer>(target: &Target, ser: S) -> Result<S::Ok, S::Error> {
-        let container: Vec<_> = target.iter().collect();
-        serde::Serialize::serialize(&container, ser)
-    }
-
-    pub(super) fn deserialize<'de, D: Deserializer<'de>>(des: D) -> Result<Target, D::Error> {
-        let container: Vec<_> = serde::Deserialize::deserialize(des)?;
-        Ok(container.into_iter().collect())
+        self.push(event);
     }
 }
 
