@@ -87,6 +87,7 @@ pub enum TableAction {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableDelta {
+    #[serde(with = "serde_patch")]
     updates: BTreeMap<TablePointer, TableAction>,
 }
 
@@ -138,6 +139,23 @@ impl Delta for TableDelta {
             }
         }
         self.updates.insert(pointer, action);
+    }
+}
+
+mod serde_patch {
+    use super::*;
+    use serde::{Deserializer, Serializer};
+
+    type Target = BTreeMap<TablePointer, TableAction>;
+
+    pub(super) fn serialize<S: Serializer>(target: &Target, ser: S) -> Result<S::Ok, S::Error> {
+        let container: Vec<_> = target.iter().collect();
+        serde::Serialize::serialize(&container, ser)
+    }
+
+    pub(super) fn deserialize<'de, D: Deserializer<'de>>(des: D) -> Result<Target, D::Error> {
+        let container: Vec<_> = serde::Deserialize::deserialize(des)?;
+        Ok(container.into_iter().collect())
     }
 }
 
