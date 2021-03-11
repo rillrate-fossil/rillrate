@@ -1,18 +1,18 @@
 use super::{ConvertError, Delta, Event, State, TimedEvent};
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictState {
-    pub map: HashMap<String, String>,
+    pub map: BTreeMap<String, String>,
 }
 
 impl Default for DictState {
     fn default() -> Self {
         Self {
-            map: HashMap::new(),
+            map: BTreeMap::new(),
         }
     }
 }
@@ -38,7 +38,7 @@ impl State for DictState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictDelta {
-    map: HashMap<String, String>,
+    map: BTreeMap<String, String>,
 }
 
 impl TryFrom<StreamDelta> for DictDelta {
@@ -57,7 +57,7 @@ impl Delta for DictDelta {
 
     fn produce(event: TimedEvent<Self::Event>) -> Self {
         let mut this = Self {
-            map: HashMap::new(),
+            map: BTreeMap::new(),
         };
         this.combine(event);
         this
