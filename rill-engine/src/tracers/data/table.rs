@@ -50,8 +50,8 @@ impl TableTracer {
     /// Sets a value to the cell
     pub fn set_cell(
         &self,
-        col: ColId,
         row: RowId,
+        col: ColId,
         value: impl ToString,
         timestamp: Option<SystemTime>,
     ) {
