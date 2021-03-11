@@ -22,6 +22,7 @@ pub trait State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send 
 
     // TODO: Use `struct Delta` here.
     fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta;
+    fn try_extract(delta: StreamDelta) -> Result<Vec<TimedEvent<Self::Event>>, ConvertError>;
 }
 
 pub trait Delta: Convertable<StreamDelta> + Default + Clone {

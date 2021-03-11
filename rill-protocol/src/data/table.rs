@@ -2,7 +2,7 @@ use super::{ConvertError, Delta, State, TimedEvent};
 use crate::io::provider::{ColId, RowId, StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
@@ -68,6 +68,10 @@ impl State for TableState {
 
     fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta {
         StreamDelta::from(events)
+    }
+
+    fn try_extract(delta: StreamDelta) -> Result<Vec<TimedEvent<Self::Event>>, ConvertError> {
+        delta.try_into()
     }
 }
 
