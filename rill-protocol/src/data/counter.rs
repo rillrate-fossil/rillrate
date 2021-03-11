@@ -33,16 +33,18 @@ impl State for CounterState {
     type Delta = CounterDelta;
 
     fn apply(&mut self, delta: Self::Delta) {
-        self.timestamp = Some(delta.timestamp);
-        self.value += delta.delta;
+        for event in delta {
+            match event.event {
+                CounterEvent::Increment(delta) => {
+                    self.timestamp = Some(event.timestamp);
+                    self.value += delta;
+                }
+            }
+        }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CounterDelta {
-    timestamp: Timestamp,
-    delta: f64,
-}
+pub type CounterDelta = Vec<TimedEvent<CounterEvent>>;
 
 impl TryFrom<StreamDelta> for CounterDelta {
     type Error = ConvertError;
@@ -59,25 +61,11 @@ impl Delta for CounterDelta {
     type Event = CounterEvent;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self {
-        let delta;
-        match event.event {
-            CounterEvent::Increment(value) => {
-                delta = value;
-            }
-        }
-        Self {
-            timestamp: event.timestamp,
-            delta,
-        }
+        vec![event]
     }
 
     fn combine(&mut self, event: TimedEvent<Self::Event>) {
-        self.timestamp = event.timestamp;
-        match event.event {
-            CounterEvent::Increment(value) => {
-                self.delta += value;
-            }
-        }
+        self.push(event);
     }
 }
 
