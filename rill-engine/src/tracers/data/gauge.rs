@@ -1,13 +1,13 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::gauge::GaugeEvent;
+use rill_protocol::data::gauge::{GaugeEvent, GaugeState};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
 /// Sends metrics as `gauge` that can change value to any.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct GaugeTracer {
-    tracer: Tracer<GaugeEvent>,
+    tracer: Tracer<GaugeState>,
 }
 
 impl GaugeTracer {

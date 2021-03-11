@@ -1,13 +1,13 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::table::TableEvent;
+use rill_protocol::data::table::{TableEvent, TableState};
 use rill_protocol::io::provider::{ColId, Description, Path, RowId, StreamType};
 use std::time::SystemTime;
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct TableTracer {
-    tracer: Tracer<TableEvent>,
+    tracer: Tracer<TableState>,
 }
 
 impl TableTracer {

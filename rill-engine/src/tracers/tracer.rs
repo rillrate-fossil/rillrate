@@ -9,14 +9,14 @@ use std::time::SystemTime;
 use tokio::sync::watch;
 
 #[derive(Debug)]
-pub enum DataEnvelope<T> {
-    Event(TimedEvent<T>),
+pub enum DataEnvelope<T: data::State> {
+    Event(TimedEvent<T::Event>),
 }
 
-impl<T: data::Event> Action for DataEnvelope<T> {}
+impl<T: data::State> Action for DataEnvelope<T> {}
 
-impl<T> DataEnvelope<T> {
-    pub fn into_inner(self) -> TimedEvent<T> {
+impl<T: data::State> DataEnvelope<T> {
+    pub fn into_inner(self) -> TimedEvent<T::Event> {
         match self {
             Self::Event(event) => event,
         }
@@ -30,14 +30,14 @@ pub type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
-pub struct Tracer<T> {
+pub struct Tracer<T: data::State> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     description: Arc<Description>,
     sender: DataSender<T>,
 }
 
-impl<T> Clone for Tracer<T> {
+impl<T: data::State> Clone for Tracer<T> {
     fn clone(&self) -> Self {
         Self {
             active: self.active.clone(),
@@ -47,7 +47,7 @@ impl<T> Clone for Tracer<T> {
     }
 }
 
-impl<T: data::Event> Tracer<T> {
+impl<T: data::State> Tracer<T> {
     pub(crate) fn new(description: Description) -> Self {
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
@@ -73,7 +73,7 @@ impl<T: data::Event> Tracer<T> {
         &self.description.path
     }
 
-    pub(crate) fn send(&self, data: T, opt_system_time: Option<SystemTime>) {
+    pub(crate) fn send(&self, data: T::Event, opt_system_time: Option<SystemTime>) {
         if self.is_active() {
             let ts = opt_system_time
                 .unwrap_or_else(SystemTime::now)
@@ -99,7 +99,7 @@ impl<T: data::Event> Tracer<T> {
     }
 }
 
-impl<T> Tracer<T> {
+impl<T: data::State> Tracer<T> {
     /// Returns `true` is the `Tracer` has to send data.
     pub fn is_active(&self) -> bool {
         *self.active.borrow()

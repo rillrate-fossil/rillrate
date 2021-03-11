@@ -7,15 +7,16 @@ pub mod table;
 use crate::io::provider::{StreamDelta, StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
+use std::fmt;
 use thiserror::Error;
 
 pub trait Convertable<T>: Into<T> + TryFrom<T, Error = ConvertError> {}
 
 impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = ConvertError> {}
 
-pub trait State: Convertable<StreamState> + Clone + Default + Send + 'static {
+pub trait State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send + 'static {
     type Event: Event;
-    type Delta: Convertable<StreamDelta> + Clone + Default;
+    type Delta: Delta<Event = Self::Event>;
 
     fn apply(&mut self, update: Self::Delta);
 }
@@ -26,7 +27,7 @@ pub trait Delta: Convertable<StreamDelta> + Default + Clone {
     fn push(&mut self, event: TimedEvent<Self::Event>);
 }
 
-pub trait Event: Send + 'static {
+pub trait Event: fmt::Debug + Send + 'static {
     type State: State<Delta = Self::Delta, Event = Self>;
     type Delta: Delta<Event = Self>;
 }
