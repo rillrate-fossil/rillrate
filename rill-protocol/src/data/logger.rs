@@ -1,4 +1,4 @@
-use super::{ConvertError, Delta, Event, State, TimedEvent};
+use super::{ConvertError, Delta, State, TimedEvent};
 use crate::frame::Frame;
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
@@ -65,5 +65,3 @@ pub struct LogEvent {
     // TODO: Replace with enum
     pub msg: String,
 }
-
-impl Event for LogEvent {}

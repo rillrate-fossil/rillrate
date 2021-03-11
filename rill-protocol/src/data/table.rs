@@ -1,4 +1,4 @@
-use super::{ConvertError, Delta, Event, State, TimedEvent};
+use super::{ConvertError, Delta, State, TimedEvent};
 use crate::io::provider::{ColId, RowId, StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -112,8 +112,6 @@ pub enum TableEvent {
         value: String,
     },
 }
-
-impl Event for TableEvent {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ColRecord {

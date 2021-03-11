@@ -1,4 +1,4 @@
-use super::{ConvertError, Delta, Event, State, TimedEvent};
+use super::{ConvertError, Delta, State, TimedEvent};
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -68,5 +68,3 @@ impl Delta for DictDelta {
 pub enum DictEvent {
     SetValue { key: String, value: String },
 }
-
-impl Event for DictEvent {}

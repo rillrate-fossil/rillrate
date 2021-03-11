@@ -1,4 +1,4 @@
-use super::{ConvertError, Delta, Event, State, TimedEvent};
+use super::{ConvertError, Delta, State, TimedEvent};
 use crate::frame::Frame;
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
@@ -90,5 +90,3 @@ pub enum GaugeEvent {
     Decrement(f64),
     Set(f64),
 }
-
-impl Event for GaugeEvent {}

@@ -1,4 +1,4 @@
-use super::{ConvertError, Delta, Event, State, TimedEvent};
+use super::{ConvertError, Delta, State, TimedEvent};
 use crate::io::provider::{StreamDelta, StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
@@ -70,5 +70,3 @@ impl Delta for CounterDelta {
 pub enum CounterEvent {
     Increment(f64),
 }
-
-impl Event for CounterEvent {}
