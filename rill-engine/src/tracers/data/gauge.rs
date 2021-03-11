@@ -19,7 +19,7 @@ impl GaugeTracer {
             info,
             stream_type: StreamType::GaugeStream,
         };
-        let tracer = Tracer::new(description);
+        let tracer = Tracer::new(description, None);
         Self { tracer }
     }
 

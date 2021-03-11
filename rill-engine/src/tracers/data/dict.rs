@@ -19,7 +19,7 @@ impl DictTracer {
             info,
             stream_type: StreamType::DictStream,
         };
-        let tracer = Tracer::new(description);
+        let tracer = Tracer::new(description, None);
         Self { tracer }
     }
 

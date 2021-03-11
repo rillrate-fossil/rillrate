@@ -19,7 +19,7 @@ impl LogTracer {
             info,
             stream_type: StreamType::LogStream,
         };
-        let tracer = Tracer::new(description);
+        let tracer = Tracer::new(description, None);
         Self { tracer }
     }
 

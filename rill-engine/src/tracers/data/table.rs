@@ -19,7 +19,7 @@ impl TableTracer {
             info,
             stream_type: StreamType::TableStream,
         };
-        let tracer = Tracer::new(description);
+        let tracer = Tracer::new(description, None);
         Self { tracer }
     }
 

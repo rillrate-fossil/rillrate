@@ -19,7 +19,7 @@ impl CounterTracer {
             info,
             stream_type: StreamType::CounterStream,
         };
-        let tracer = Tracer::new(description);
+        let tracer = Tracer::new(description, None);
         Self { tracer }
     }
 

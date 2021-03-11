@@ -1,11 +1,10 @@
 //! This module contains a generic `Tracer`'s methods.
 use crate::state::RILL_LINK;
 use futures::channel::mpsc;
-use futures::lock::Mutex;
 use meio::Action;
 use rill_protocol::data::{self, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, Timestamp};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 
@@ -32,7 +31,7 @@ pub(crate) enum TracerMode<T: data::State> {
     /// Real-time mode
     Push { receiver: Option<DataReceiver<T>> },
     Pull {
-        state: Arc<Mutex<T>>,
+        state: Weak<Mutex<T>>,
         interval: Duration,
     },
 }
@@ -64,19 +63,30 @@ impl<T: data::State> Clone for Tracer<T> {
 }
 
 impl<T: data::State> Tracer<T> {
-    pub(crate) fn new(description: Description) -> Self {
+    pub(crate) fn new(description: Description, pull: Option<Duration>) -> Self {
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {:?}", description.path);
-        let (tx, rx) = mpsc::unbounded();
         let description = Arc::new(description);
-        let inner_mode = InnerMode::Push { sender: tx };
+        let inner_mode;
+        let mode;
+        if let Some(interval) = pull {
+            let state = Arc::new(Mutex::new(T::default()));
+            mode = TracerMode::Pull {
+                state: Arc::downgrade(&state),
+                interval,
+            };
+            inner_mode = InnerMode::Pull { state };
+        } else {
+            let (tx, rx) = mpsc::unbounded();
+            mode = TracerMode::Push { receiver: Some(rx) };
+            inner_mode = InnerMode::Push { sender: tx };
+        }
         let this = Tracer {
             active: active_rx,
             description: description.clone(),
             mode: inner_mode,
         };
-        let mode = TracerMode::Push { receiver: Some(rx) };
         if let Err(err) = RILL_LINK.register_tracer(description, mode) {
             log::error!(
                 "Can't register a Tracer. The worker can be terminated already: {}",
@@ -111,9 +121,14 @@ impl<T: data::State> Tracer<T> {
                                 log::error!("Can't transfer data to sender: {}", err);
                             }
                         }
-                        InnerMode::Pull { state } => {
-                            todo!();
-                        }
+                        InnerMode::Pull { state } => match state.lock() {
+                            Ok(mut state) => {
+                                state.apply(timed_event);
+                            }
+                            Err(err) => {
+                                log::error!("Can't lock the mutex to apply the changes: {}", err);
+                            }
+                        },
                     }
                 }
                 Err(err) => {
