@@ -38,7 +38,7 @@ impl State for DictState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictDelta {
-    map: BTreeMap<String, String>,
+    pub map: BTreeMap<String, String>,
 }
 
 impl TryFrom<StreamDelta> for DictDelta {
