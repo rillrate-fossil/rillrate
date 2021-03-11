@@ -30,6 +30,7 @@ impl TryFrom<StreamState> for LogState {
 
 impl State for LogState {
     type Delta = LogDelta;
+    type Event = LogEvent;
 
     fn apply(&mut self, update: Self::Delta) {
         for event in update {

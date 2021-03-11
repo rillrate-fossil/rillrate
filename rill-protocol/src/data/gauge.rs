@@ -38,6 +38,7 @@ impl TryFrom<StreamState> for GaugeState {
 
 impl State for GaugeState {
     type Delta = GaugeDelta;
+    type Event = GaugeEvent;
 
     fn apply(&mut self, delta: Self::Delta) {
         for event in delta {

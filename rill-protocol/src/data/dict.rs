@@ -30,6 +30,7 @@ impl TryFrom<StreamState> for DictState {
 
 impl State for DictState {
     type Delta = DictDelta;
+    type Event = DictEvent;
 
     fn apply(&mut self, delta: Self::Delta) {
         for event in delta {

@@ -12,6 +12,7 @@ use thiserror::Error;
 pub trait State:
     Into<StreamState> + TryFrom<StreamState, Error = ConvertError> + Clone + Default + Send + 'static
 {
+    type Event: Event;
     type Delta: Delta;
 
     fn apply(&mut self, update: Self::Delta);
@@ -25,7 +26,7 @@ pub trait Delta: Into<StreamDelta> + TryFrom<StreamDelta, Error = ConvertError> 
 }
 
 pub trait Event: Send + 'static {
-    type State: State<Delta = Self::Delta>;
+    type State: State<Delta = Self::Delta, Event = Self>;
     type Delta: Delta<Event = Self>;
 }
 

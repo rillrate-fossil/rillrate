@@ -32,6 +32,7 @@ impl TryFrom<StreamState> for TableState {
 
 impl State for TableState {
     type Delta = TableDelta;
+    type Event = TableEvent;
 
     fn apply(&mut self, delta: Self::Delta) {
         for event in delta {

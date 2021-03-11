@@ -31,6 +31,7 @@ impl TryFrom<StreamState> for CounterState {
 
 impl State for CounterState {
     type Delta = CounterDelta;
+    type Event = CounterEvent;
 
     fn apply(&mut self, delta: Self::Delta) {
         for event in delta {
