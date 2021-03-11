@@ -41,11 +41,11 @@ impl State for CounterState {
         }
     }
 
-    fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta {
+    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
         StreamDelta::from(events)
     }
 
-    fn try_extract(delta: StreamDelta) -> Result<Vec<TimedEvent<Self::Event>>, ConvertError> {
+    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
         delta.try_into()
     }
 }
@@ -62,16 +62,6 @@ impl TryFrom<StreamDelta> for CounterDelta {
         }
     }
 }
-
-/*
-impl Delta for CounterDelta {
-    type Event = CounterEvent;
-
-    fn push(&mut self, event: TimedEvent<Self::Event>) {
-        self.push(event);
-    }
-}
-*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CounterEvent {
