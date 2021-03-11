@@ -40,7 +40,7 @@ impl State for GaugeState {
     type Delta = GaugeDelta;
 
     fn apply(&mut self, delta: Self::Delta) {
-        for event in delta.events {
+        for event in delta {
             match event.event {
                 GaugeEvent::Increment(delta) => {
                     self.value += delta;
@@ -62,10 +62,7 @@ impl State for GaugeState {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugeDelta {
-    events: Vec<TimedEvent<GaugeEvent>>,
-}
+pub type GaugeDelta = Vec<TimedEvent<GaugeEvent>>;
 
 impl TryFrom<StreamDelta> for GaugeDelta {
     type Error = ConvertError;
@@ -82,13 +79,11 @@ impl Delta for GaugeDelta {
     type Event = GaugeEvent;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self {
-        Self {
-            events: vec![event],
-        }
+        vec![event]
     }
 
     fn combine(&mut self, event: TimedEvent<Self::Event>) {
-        self.events.push(event);
+        self.push(event);
     }
 }
 

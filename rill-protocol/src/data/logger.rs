@@ -32,16 +32,13 @@ impl State for LogState {
     type Delta = LogDelta;
 
     fn apply(&mut self, update: Self::Delta) {
-        for event in update.events {
+        for event in update {
             self.frame.insert(event);
         }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogDelta {
-    events: Vec<TimedEvent<LogEvent>>,
-}
+pub type LogDelta = Vec<TimedEvent<LogEvent>>;
 
 impl TryFrom<StreamDelta> for LogDelta {
     type Error = ConvertError;
@@ -58,13 +55,11 @@ impl Delta for LogDelta {
     type Event = LogEvent;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self {
-        Self {
-            events: vec![event],
-        }
+        vec![event]
     }
 
     fn combine(&mut self, event: TimedEvent<Self::Event>) {
-        self.events.push(event);
+        self.push(event);
     }
 }
 
