@@ -37,6 +37,11 @@ pub(crate) enum TracerMode<T: data::State> {
     },
 }
 
+#[derive(Debug, Clone)]
+enum InnerMode<T: data::State> {
+    Push { sender: DataSender<T> },
+}
+
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
@@ -44,7 +49,7 @@ pub struct Tracer<T: data::State> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     description: Arc<Description>,
-    sender: DataSender<T>,
+    mode: InnerMode<T>,
 }
 
 impl<T: data::State> Clone for Tracer<T> {
@@ -52,7 +57,7 @@ impl<T: data::State> Clone for Tracer<T> {
         Self {
             active: self.active.clone(),
             description: self.description.clone(),
-            sender: self.sender.clone(),
+            mode: self.mode.clone(),
         }
     }
 }
@@ -64,10 +69,11 @@ impl<T: data::State> Tracer<T> {
         log::trace!("Creating Tracer with path: {:?}", description.path);
         let (tx, rx) = mpsc::unbounded();
         let description = Arc::new(description);
+        let inner_mode = InnerMode::Push { sender: tx };
         let this = Tracer {
             active: active_rx,
             description: description.clone(),
-            sender: tx,
+            mode: inner_mode,
         };
         let mode = TracerMode::Push { receiver: Some(rx) };
         if let Err(err) = RILL_LINK.register_tracer(description, mode) {
@@ -92,14 +98,18 @@ impl<T: data::State> Tracer<T> {
                 .map(Timestamp::from);
             match ts {
                 Ok(timestamp) => {
-                    let timed_event = TimedEvent {
-                        timestamp,
-                        event: data,
-                    };
-                    let envelope = DataEnvelope::Event(timed_event);
-                    // And will never send an event
-                    if let Err(err) = self.sender.unbounded_send(envelope) {
-                        log::error!("Can't transfer data to sender: {}", err);
+                    match &self.mode {
+                        InnerMode::Push { sender } => {
+                            let timed_event = TimedEvent {
+                                timestamp,
+                                event: data,
+                            };
+                            let envelope = DataEnvelope::Event(timed_event);
+                            // And will never send an event
+                            if let Err(err) = sender.unbounded_send(envelope) {
+                                log::error!("Can't transfer data to sender: {}", err);
+                            }
+                        }
                     }
                 }
                 Err(err) => {
