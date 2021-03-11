@@ -80,19 +80,21 @@ impl<T: data::State> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         chunk: Vec<DataEnvelope<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let mut delta = T::Delta::default();
+        let mut delta = Vec::new();
         for envelope in chunk.into_iter() {
             let event = envelope.into_inner();
             delta.push(event);
         }
         if !self.subscribers.is_empty() {
             let response = ProviderToServer::Data {
-                delta: delta.clone().into(),
+                delta: T::wrap(delta.clone()),
             };
             let direction = self.get_direction();
             self.sender.response(direction, response);
         }
-        self.state.apply(delta);
+        for event in delta {
+            self.state.apply(event);
+        }
         Ok(())
     }
 

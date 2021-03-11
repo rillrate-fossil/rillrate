@@ -15,10 +15,13 @@ pub trait Convertable<T>: Into<T> + TryFrom<T, Error = ConvertError> {}
 impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = ConvertError> {}
 
 pub trait State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send + 'static {
-    type Event: fmt::Debug + Send + 'static;
+    type Event: Clone + fmt::Debug + Send + 'static;
     type Delta: Delta<Event = Self::Event>;
 
-    fn apply(&mut self, update: Self::Delta);
+    fn apply(&mut self, event: TimedEvent<Self::Event>);
+
+    // TODO: Use `struct Delta` here.
+    fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta;
 }
 
 pub trait Delta: Convertable<StreamDelta> + Default + Clone {

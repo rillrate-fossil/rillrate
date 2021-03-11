@@ -34,38 +34,40 @@ impl State for TableState {
     type Delta = TableDelta;
     type Event = TableEvent;
 
-    fn apply(&mut self, delta: Self::Delta) {
-        for event in delta {
-            match event.event {
-                TableEvent::AddCol { col, alias } => {
-                    let record = ColRecord { alias };
-                    self.columns.insert(col, record);
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            TableEvent::AddCol { col, alias } => {
+                let record = ColRecord { alias };
+                self.columns.insert(col, record);
+            }
+            TableEvent::DelCol { col } => {
+                self.columns.remove(&col);
+                for (_row, record) in self.rows.iter_mut() {
+                    record.cols.remove(&col);
                 }
-                TableEvent::DelCol { col } => {
-                    self.columns.remove(&col);
-                    for (_row, record) in self.rows.iter_mut() {
-                        record.cols.remove(&col);
-                    }
-                }
-                TableEvent::AddRow { row, alias } => {
-                    let record = RowRecord {
-                        alias,
-                        cols: BTreeMap::new(),
-                    };
-                    self.rows.insert(row, record);
-                }
-                TableEvent::DelRow { row } => {
-                    self.rows.remove(&row);
-                }
-                TableEvent::SetCell { row, col, value } => {
-                    if let Some(record) = self.rows.get_mut(&row) {
-                        if self.columns.contains_key(&col) {
-                            record.cols.insert(col, value);
-                        }
+            }
+            TableEvent::AddRow { row, alias } => {
+                let record = RowRecord {
+                    alias,
+                    cols: BTreeMap::new(),
+                };
+                self.rows.insert(row, record);
+            }
+            TableEvent::DelRow { row } => {
+                self.rows.remove(&row);
+            }
+            TableEvent::SetCell { row, col, value } => {
+                if let Some(record) = self.rows.get_mut(&row) {
+                    if self.columns.contains_key(&col) {
+                        record.cols.insert(col, value);
                     }
                 }
             }
         }
+    }
+
+    fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta {
+        StreamDelta::from(events)
     }
 }
 

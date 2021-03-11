@@ -33,15 +33,17 @@ impl State for CounterState {
     type Delta = CounterDelta;
     type Event = CounterEvent;
 
-    fn apply(&mut self, delta: Self::Delta) {
-        for event in delta {
-            match event.event {
-                CounterEvent::Increment(delta) => {
-                    self.timestamp = Some(event.timestamp);
-                    self.value += delta;
-                }
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            CounterEvent::Increment(delta) => {
+                self.timestamp = Some(event.timestamp);
+                self.value += delta;
             }
         }
+    }
+
+    fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta {
+        StreamDelta::from(events)
     }
 }
 

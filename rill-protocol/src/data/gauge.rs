@@ -40,26 +40,28 @@ impl State for GaugeState {
     type Delta = GaugeDelta;
     type Event = GaugeEvent;
 
-    fn apply(&mut self, delta: Self::Delta) {
-        for event in delta {
-            match event.event {
-                GaugeEvent::Increment(delta) => {
-                    self.value += delta;
-                }
-                GaugeEvent::Decrement(delta) => {
-                    self.value -= delta;
-                }
-                GaugeEvent::Set(value) => {
-                    self.value = value;
-                }
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            GaugeEvent::Increment(delta) => {
+                self.value += delta;
             }
-            let point = GaugePoint { value: self.value };
-            let timed_event = TimedEvent {
-                timestamp: event.timestamp,
-                event: point,
-            };
-            self.frame.insert(timed_event);
+            GaugeEvent::Decrement(delta) => {
+                self.value -= delta;
+            }
+            GaugeEvent::Set(value) => {
+                self.value = value;
+            }
         }
+        let point = GaugePoint { value: self.value };
+        let timed_event = TimedEvent {
+            timestamp: event.timestamp,
+            event: point,
+        };
+        self.frame.insert(timed_event);
+    }
+
+    fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta {
+        StreamDelta::from(events)
     }
 }
 

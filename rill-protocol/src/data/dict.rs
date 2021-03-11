@@ -32,14 +32,16 @@ impl State for DictState {
     type Delta = DictDelta;
     type Event = DictEvent;
 
-    fn apply(&mut self, delta: Self::Delta) {
-        for event in delta {
-            match event.event {
-                DictEvent::SetValue { key, value } => {
-                    self.map.insert(key, value);
-                }
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            DictEvent::SetValue { key, value } => {
+                self.map.insert(key, value);
             }
         }
+    }
+
+    fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta {
+        StreamDelta::from(events)
     }
 }
 

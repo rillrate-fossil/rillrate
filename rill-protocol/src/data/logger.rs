@@ -32,10 +32,12 @@ impl State for LogState {
     type Delta = LogDelta;
     type Event = LogEvent;
 
-    fn apply(&mut self, update: Self::Delta) {
-        for event in update {
-            self.frame.insert(event);
-        }
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        self.frame.insert(event);
+    }
+
+    fn wrap(events: Vec<TimedEvent<Self::Event>>) -> StreamDelta {
+        StreamDelta::from(events)
     }
 }
 
