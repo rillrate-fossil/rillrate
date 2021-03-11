@@ -29,7 +29,6 @@ impl TryFrom<StreamState> for DictState {
 }
 
 impl State for DictState {
-    type Delta = DictDelta;
     type Event = DictEvent;
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
@@ -62,6 +61,7 @@ impl TryFrom<StreamDelta> for DictDelta {
     }
 }
 
+/*
 impl Delta for DictDelta {
     type Event = DictEvent;
 
@@ -69,6 +69,7 @@ impl Delta for DictDelta {
         self.push(event);
     }
 }
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DictEvent {

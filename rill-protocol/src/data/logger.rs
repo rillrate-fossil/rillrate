@@ -29,7 +29,6 @@ impl TryFrom<StreamState> for LogState {
 }
 
 impl State for LogState {
-    type Delta = LogDelta;
     type Event = LogEvent;
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
@@ -58,6 +57,7 @@ impl TryFrom<StreamDelta> for LogDelta {
     }
 }
 
+/*
 impl Delta for LogDelta {
     type Event = LogEvent;
 
@@ -65,6 +65,7 @@ impl Delta for LogDelta {
         self.push(event);
     }
 }
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogEvent {

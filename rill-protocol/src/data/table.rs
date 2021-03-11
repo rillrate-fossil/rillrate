@@ -31,7 +31,6 @@ impl TryFrom<StreamState> for TableState {
 }
 
 impl State for TableState {
-    type Delta = TableDelta;
     type Event = TableEvent;
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
@@ -88,6 +87,7 @@ impl TryFrom<StreamDelta> for TableDelta {
     }
 }
 
+/*
 impl Delta for TableDelta {
     type Event = TableEvent;
 
@@ -95,6 +95,7 @@ impl Delta for TableDelta {
         self.push(event);
     }
 }
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TableEvent {

@@ -37,7 +37,6 @@ impl TryFrom<StreamState> for GaugeState {
 }
 
 impl State for GaugeState {
-    type Delta = GaugeDelta;
     type Event = GaugeEvent;
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
@@ -82,6 +81,7 @@ impl TryFrom<StreamDelta> for GaugeDelta {
     }
 }
 
+/*
 impl Delta for GaugeDelta {
     type Event = GaugeEvent;
 
@@ -89,6 +89,7 @@ impl Delta for GaugeDelta {
         self.push(event);
     }
 }
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GaugeEvent {

@@ -30,7 +30,6 @@ impl TryFrom<StreamState> for CounterState {
 }
 
 impl State for CounterState {
-    type Delta = CounterDelta;
     type Event = CounterEvent;
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
@@ -64,6 +63,7 @@ impl TryFrom<StreamDelta> for CounterDelta {
     }
 }
 
+/*
 impl Delta for CounterDelta {
     type Event = CounterEvent;
 
@@ -71,6 +71,7 @@ impl Delta for CounterDelta {
         self.push(event);
     }
 }
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CounterEvent {
