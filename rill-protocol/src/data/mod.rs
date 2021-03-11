@@ -9,16 +9,18 @@ use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use thiserror::Error;
 
-pub trait State:
-    Into<StreamState> + TryFrom<StreamState, Error = ConvertError> + Clone + Default + Send + 'static
-{
+pub trait Convertable<T>: Into<T> + TryFrom<T, Error = ConvertError> {}
+
+impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = ConvertError> {}
+
+pub trait State: Convertable<StreamState> + Clone + Default + Send + 'static {
     type Event: Event;
     type Delta: Delta;
 
     fn apply(&mut self, update: Self::Delta);
 }
 
-pub trait Delta: Into<StreamDelta> + TryFrom<StreamDelta, Error = ConvertError> + Clone {
+pub trait Delta: Convertable<StreamDelta> + Clone {
     type Event: Event;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self;
