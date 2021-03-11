@@ -1,11 +1,12 @@
 //! This module contains a generic `Tracer`'s methods.
 use crate::state::RILL_LINK;
 use futures::channel::mpsc;
+use futures::lock::Mutex;
 use meio::Action;
 use rill_protocol::data::{self, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, Timestamp};
 use std::sync::Arc;
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 
 #[derive(Debug)]
@@ -26,6 +27,15 @@ impl<T: data::State> DataEnvelope<T> {
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
+
+pub(crate) enum TracerMode<T: data::State> {
+    /// Real-time mode
+    Push { receiver: Option<DataReceiver<T>> },
+    Pull {
+        state: Arc<Mutex<T>>,
+        interval: Duration,
+    },
+}
 
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
@@ -59,7 +69,8 @@ impl<T: data::State> Tracer<T> {
             description: description.clone(),
             sender: tx,
         };
-        if let Err(err) = RILL_LINK.register_tracer(description, rx) {
+        let mode = TracerMode::Push { receiver: Some(rx) };
+        if let Err(err) = RILL_LINK.register_tracer(description, mode) {
             log::error!(
                 "Can't register a Tracer. The worker can be terminated already: {}",
                 err

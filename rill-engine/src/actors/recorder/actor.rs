@@ -1,7 +1,6 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
-use crate::state::TracerMode;
-use crate::tracers::tracer::DataEnvelope;
+use crate::tracers::tracer::{DataEnvelope, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;

@@ -1,5 +1,5 @@
 use crate::actors::worker::RillWorker;
-use crate::tracers::tracer::DataReceiver;
+use crate::tracers::tracer::TracerMode;
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
@@ -8,7 +8,6 @@ use once_cell::sync::Lazy;
 use rill_protocol::data;
 use rill_protocol::io::provider::Description;
 use std::sync::Arc;
-use std::time::Duration;
 
 /// It used by tracers to register them into the state.
 pub(crate) static RILL_LINK: Lazy<RillState> = Lazy::new(RillState::new);
@@ -34,15 +33,12 @@ impl RillState {
     pub fn register_tracer<T>(
         &self,
         description: Arc<Description>,
-        receiver: DataReceiver<T>,
+        mode: TracerMode<T>,
     ) -> Result<(), Error>
     where
         RillWorker: InstantActionHandler<RegisterTracer<T>>,
         T: data::State,
     {
-        let mode = TracerMode::Push {
-            receiver: Some(receiver),
-        };
         let msg = RegisterTracer { description, mode };
         let parcel = Parcel::pack(msg);
         self.sender
@@ -53,15 +49,6 @@ impl RillState {
     pub async fn take_receiver(&self) -> Option<Receiver> {
         self.receiver.lock().await.take()
     }
-}
-
-pub(crate) enum TracerMode<T: data::State> {
-    /// Real-time mode
-    Push { receiver: Option<DataReceiver<T>> },
-    Pull {
-        state: Arc<Mutex<T>>,
-        interval: Duration,
-    },
 }
 
 pub(crate) struct RegisterTracer<T: data::State> {
