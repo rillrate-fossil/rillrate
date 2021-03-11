@@ -55,11 +55,7 @@ impl TryFrom<StreamDelta> for LogDelta {
 impl Delta for LogDelta {
     type Event = LogEvent;
 
-    fn produce(event: TimedEvent<Self::Event>) -> Self {
-        vec![event]
-    }
-
-    fn combine(&mut self, event: TimedEvent<Self::Event>) {
+    fn push(&mut self, event: TimedEvent<Self::Event>) {
         self.push(event);
     }
 }

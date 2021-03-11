@@ -85,11 +85,7 @@ impl TryFrom<StreamDelta> for TableDelta {
 impl Delta for TableDelta {
     type Event = TableEvent;
 
-    fn produce(event: TimedEvent<Self::Event>) -> Self {
-        vec![event]
-    }
-
-    fn combine(&mut self, event: TimedEvent<Self::Event>) {
+    fn push(&mut self, event: TimedEvent<Self::Event>) {
         self.push(event);
     }
 }

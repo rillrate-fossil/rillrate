@@ -61,11 +61,7 @@ impl TryFrom<StreamDelta> for CounterDelta {
 impl Delta for CounterDelta {
     type Event = CounterEvent;
 
-    fn produce(event: TimedEvent<Self::Event>) -> Self {
-        vec![event]
-    }
-
-    fn combine(&mut self, event: TimedEvent<Self::Event>) {
+    fn push(&mut self, event: TimedEvent<Self::Event>) {
         self.push(event);
     }
 }

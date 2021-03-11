@@ -20,11 +20,10 @@ pub trait State: Convertable<StreamState> + Clone + Default + Send + 'static {
     fn apply(&mut self, update: Self::Delta);
 }
 
-pub trait Delta: Convertable<StreamDelta> + Clone {
+pub trait Delta: Convertable<StreamDelta> + Default + Clone {
     type Event: Event;
 
-    fn produce(event: TimedEvent<Self::Event>) -> Self;
-    fn combine(&mut self, event: TimedEvent<Self::Event>);
+    fn push(&mut self, event: TimedEvent<Self::Event>);
 }
 
 pub trait Event: Send + 'static {

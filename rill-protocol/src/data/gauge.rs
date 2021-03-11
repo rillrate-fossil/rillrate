@@ -79,11 +79,7 @@ impl TryFrom<StreamDelta> for GaugeDelta {
 impl Delta for GaugeDelta {
     type Event = GaugeEvent;
 
-    fn produce(event: TimedEvent<Self::Event>) -> Self {
-        vec![event]
-    }
-
-    fn combine(&mut self, event: TimedEvent<Self::Event>) {
+    fn push(&mut self, event: TimedEvent<Self::Event>) {
         self.push(event);
     }
 }
