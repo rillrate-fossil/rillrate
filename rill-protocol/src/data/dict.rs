@@ -31,15 +31,18 @@ impl TryFrom<StreamState> for DictState {
 impl State for DictState {
     type Delta = DictDelta;
 
-    fn apply(&mut self, update: Self::Delta) {
-        self.map.extend(update.map);
+    fn apply(&mut self, delta: Self::Delta) {
+        for event in delta {
+            match event.event {
+                DictEvent::SetValue { key, value } => {
+                    self.map.insert(key, value);
+                }
+            }
+        }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DictDelta {
-    pub map: BTreeMap<String, String>,
-}
+pub type DictDelta = Vec<TimedEvent<DictEvent>>;
 
 impl TryFrom<StreamDelta> for DictDelta {
     type Error = ConvertError;
@@ -56,19 +59,11 @@ impl Delta for DictDelta {
     type Event = DictEvent;
 
     fn produce(event: TimedEvent<Self::Event>) -> Self {
-        let mut this = Self {
-            map: BTreeMap::new(),
-        };
-        this.combine(event);
-        this
+        vec![event]
     }
 
     fn combine(&mut self, event: TimedEvent<Self::Event>) {
-        match event.event {
-            DictEvent::SetValue { key, value } => {
-                self.map.insert(key, value);
-            }
-        }
+        self.push(event);
     }
 }
 
