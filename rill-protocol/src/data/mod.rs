@@ -27,10 +27,7 @@ pub trait Delta: Convertable<StreamDelta> + Default + Clone {
     fn push(&mut self, event: TimedEvent<Self::Event>);
 }
 
-pub trait Event: fmt::Debug + Send + 'static {
-    type State: State<Delta = Self::Delta, Event = Self>;
-    type Delta: Delta<Event = Self>;
-}
+pub trait Event: fmt::Debug + Send + 'static {}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TimedEvent<T> {

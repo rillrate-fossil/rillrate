@@ -91,7 +91,4 @@ pub enum GaugeEvent {
     Set(f64),
 }
 
-impl Event for GaugeEvent {
-    type State = GaugeState;
-    type Delta = GaugeDelta;
-}
+impl Event for GaugeEvent {}

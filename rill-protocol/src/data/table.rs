@@ -113,10 +113,7 @@ pub enum TableEvent {
     },
 }
 
-impl Event for TableEvent {
-    type State = TableState;
-    type Delta = TableDelta;
-}
+impl Event for TableEvent {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ColRecord {

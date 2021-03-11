@@ -71,7 +71,4 @@ pub enum CounterEvent {
     Increment(f64),
 }
 
-impl Event for CounterEvent {
-    type State = CounterState;
-    type Delta = CounterDelta;
-}
+impl Event for CounterEvent {}

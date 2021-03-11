@@ -66,7 +66,4 @@ pub struct LogEvent {
     pub msg: String,
 }
 
-impl Event for LogEvent {
-    type State = LogState;
-    type Delta = LogDelta;
-}
+impl Event for LogEvent {}

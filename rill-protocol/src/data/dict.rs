@@ -69,7 +69,4 @@ pub enum DictEvent {
     SetValue { key: String, value: String },
 }
 
-impl Event for DictEvent {
-    type State = DictState;
-    type Delta = DictDelta;
-}
+impl Event for DictEvent {}
