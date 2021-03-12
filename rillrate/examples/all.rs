@@ -1,5 +1,6 @@
 use anyhow::Error;
-use rillrate::{Counter, Dict, Logger, Pulse, RillRate, Table};
+use rand::Rng;
+use rillrate::{Counter, Dict, Gauge, Logger, Pulse, RillRate, Table};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -59,11 +60,14 @@ fn main() -> Result<(), Error> {
             })?;
         }
 
+        let my_gauge = Gauge::create("my.gauge", 0.0, 100.0)?;
+
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
             mt_pulse.set(0.0);
             counter += 1;
             my_dict.set("state", "step 1");
+            my_gauge.set(rand::thread_rng().gen_range(0.0..100.0));
             for x in 0..3 {
                 counter_two.inc(1.0);
                 fast_pulse.set(x as f64);
