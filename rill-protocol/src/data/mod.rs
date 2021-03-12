@@ -5,7 +5,7 @@ pub mod logger;
 pub mod table;
 
 use crate::io::provider::{StreamDelta, StreamState, Timestamp};
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt;
 use thiserror::Error;
@@ -16,7 +16,7 @@ impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = Convert
 
 pub trait Metric: fmt::Debug + Send + 'static {
     type State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send + 'static;
-    type Event: Clone + fmt::Debug + Send + 'static;
+    type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
@@ -24,11 +24,17 @@ pub trait Metric: fmt::Debug + Send + 'static {
     fn wrap(events: Delta<Self::Event>) -> StreamDelta;
     fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError>;
 
+    fn pack_delta(delta: Delta<Self::Event>) -> Result<Vec<u8>, ConvertError> {
+        serde_json::to_vec(&delta).map_err(|_| ConvertError)
+    }
+
+    fn unpack_delta(data: Vec<u8>) -> Result<Delta<Self::Event>, ConvertError> {
+        serde_json::from_slice(&data).map_err(|_| ConvertError)
+    }
+
     // TODO: Add methods:
-    // - `pack_state(self) -> Vec<u8>`
-    // - `unpack_state(data: Vec<u8>) -> Self`
-    // - `pack_delta(delta: Delta<Self::Event>) -> Vec<u8>`
-    // - `unpack_delta(data: Vec<u8>) -> Delta<Self::Event>`
+    // - `pack_state(self) -> Result<Vec<u8>, ConvertError>`
+    // - `unpack_state(data: Vec<u8>) -> Result<Self, ConvertError>`
 }
 
 pub type Delta<T> = Vec<TimedEvent<T>>;
