@@ -1,5 +1,6 @@
 pub mod counter;
 pub mod dict;
+pub mod gauge;
 pub mod logger;
 pub mod pulse;
 pub mod table;
