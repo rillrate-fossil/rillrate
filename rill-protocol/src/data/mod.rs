@@ -4,7 +4,7 @@ pub mod gauge;
 pub mod logger;
 pub mod table;
 
-use crate::io::provider::{StreamDelta, StreamState, Timestamp};
+use crate::io::provider::{StreamState, Timestamp};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt;

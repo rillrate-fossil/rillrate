@@ -1,8 +1,8 @@
-use super::{ConvertError, Delta, Metric, TimedEvent};
-use crate::io::provider::{StreamDelta, StreamState};
+use super::{ConvertError, Metric, TimedEvent};
+use crate::io::provider::StreamState;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct DictMetric;
@@ -45,17 +45,6 @@ impl TryFrom<StreamState> for DictState {
 }
 
 pub type DictDelta = Vec<TimedEvent<DictEvent>>;
-
-impl TryFrom<StreamDelta> for DictDelta {
-    type Error = ConvertError;
-
-    fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
-        match delta {
-            StreamDelta::Dict(delta) => Ok(delta),
-            _ => Err(ConvertError),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DictEvent {

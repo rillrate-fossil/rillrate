@@ -1,7 +1,7 @@
-use super::{ConvertError, Delta, Metric, TimedEvent};
-use crate::io::provider::{StreamDelta, StreamState, Timestamp};
+use super::{ConvertError, Metric, TimedEvent};
+use crate::io::provider::{StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct CounterMetric;
@@ -47,17 +47,6 @@ impl TryFrom<StreamState> for CounterState {
 }
 
 pub type CounterDelta = Vec<TimedEvent<CounterEvent>>;
-
-impl TryFrom<StreamDelta> for CounterDelta {
-    type Error = ConvertError;
-
-    fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
-        match delta {
-            StreamDelta::Counter(delta) => Ok(delta),
-            _ => Err(ConvertError),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CounterEvent {

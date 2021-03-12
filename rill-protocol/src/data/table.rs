@@ -1,8 +1,8 @@
-use super::{ConvertError, Delta, Metric, TimedEvent};
-use crate::io::provider::{ColId, RowId, StreamDelta, StreamState};
+use super::{ConvertError, Metric, TimedEvent};
+use crate::io::provider::{ColId, RowId, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct TableMetric;
@@ -71,17 +71,6 @@ impl TryFrom<StreamState> for TableState {
 }
 
 pub type TableDelta = Vec<TimedEvent<TableEvent>>;
-
-impl TryFrom<StreamDelta> for TableDelta {
-    type Error = ConvertError;
-
-    fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
-        match delta {
-            StreamDelta::Table(delta) => Ok(delta),
-            _ => Err(ConvertError),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TableEvent {

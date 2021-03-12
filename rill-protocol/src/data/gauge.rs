@@ -1,8 +1,8 @@
-use super::{ConvertError, Delta, Metric, TimedEvent};
+use super::{ConvertError, Metric, TimedEvent};
 use crate::frame::Frame;
-use crate::io::provider::{StreamDelta, StreamState};
+use crate::io::provider::StreamState;
 use serde::{Deserialize, Serialize};
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct GaugeMetric;
@@ -65,17 +65,6 @@ impl TryFrom<StreamState> for GaugeState {
 }
 
 pub type GaugeDelta = Vec<TimedEvent<GaugeEvent>>;
-
-impl TryFrom<StreamDelta> for GaugeDelta {
-    type Error = ConvertError;
-
-    fn try_from(delta: StreamDelta) -> Result<Self, ConvertError> {
-        match delta {
-            StreamDelta::Gauge(delta) => Ok(delta),
-            _ => Err(ConvertError),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GaugeEvent {
