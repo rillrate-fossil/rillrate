@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::{Counter, Dict, Gauge, Logger, RillRate, Table};
+use rillrate::{Counter, Dict, Logger, Pulse, RillRate, Table};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -19,20 +19,20 @@ fn main() -> Result<(), Error> {
     })?;
 
     {
-        // This gauge used to check that the Prometheus exporter can read
+        // This pulse used to check that the Prometheus exporter can read
         // data from a snapshot event if the data will never updated again.
-        let instances = Gauge::create("my.gauge.instances")?;
+        let instances = Pulse::create("my.pulse.instances")?;
         instances.inc(1.0);
 
         let counter_one = Counter::create("my.counter.one")?;
         let counter_two = Counter::create("my.counter.two")?;
-        let gauge = Gauge::create("my.gauge")?;
-        let fast_gauge = Gauge::create("my.gauge.fast")?;
-        let random_gauge = Gauge::create("my.gauge.random")?;
+        let pulse = Pulse::create("my.pulse")?;
+        let fast_pulse = Pulse::create("my.pulse.fast")?;
+        let random_pulse = Pulse::create("my.pulse.random")?;
         let logger = Logger::create("my.direct.logs.trace")?;
         let fast_logger = Logger::create("my.direct.logs.fast")?;
 
-        let mt_gauge = Gauge::create("my.gauge.multithread")?;
+        let mt_pulse = Pulse::create("my.pulse.multithread")?;
 
         let my_dict = Dict::create("my.dict.key-value")?;
 
@@ -46,11 +46,11 @@ fn main() -> Result<(), Error> {
             let tname = format!("thread-{}", i);
             tbl.add_row(i.into(), Some(tname.clone()));
             tbl.set_cell(i.into(), 0.into(), &tname, None);
-            let mt_gauge_cloned = mt_gauge.clone();
+            let mt_pulse_cloned = mt_pulse.clone();
             let running_cloned = running.clone();
             thread::Builder::new().name(tname).spawn(move || {
                 while running_cloned.load(Ordering::SeqCst) {
-                    mt_gauge_cloned.set(i as f64);
+                    mt_pulse_cloned.set(i as f64);
                     tbl.set_cell(i.into(), 1.into(), "wait 1", None);
                     thread::sleep(Duration::from_millis(500));
                     tbl.set_cell(i.into(), 1.into(), "wait 2", None);
@@ -61,27 +61,27 @@ fn main() -> Result<(), Error> {
 
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
-            mt_gauge.set(0.0);
+            mt_pulse.set(0.0);
             counter += 1;
             my_dict.set("state", "step 1");
             for x in 0..3 {
                 counter_two.inc(1.0);
-                fast_gauge.set(x as f64);
-                random_gauge.set(rand::random());
+                fast_pulse.set(x as f64);
+                random_pulse.set(rand::random());
                 thread::sleep(Duration::from_millis(100));
                 fast_logger.log(format!("first loop - {}/{}", counter, x));
             }
-            gauge.set(1.0);
+            pulse.set(1.0);
             my_dict.set("state", "step 2");
             for x in 0..7 {
                 counter_two.inc(1.0);
-                fast_gauge.set(x as f64);
-                random_gauge.set(rand::random());
+                fast_pulse.set(x as f64);
+                random_pulse.set(rand::random());
                 thread::sleep(Duration::from_millis(100));
                 fast_logger.log(format!("second loop - {}/{}", counter, x));
             }
             my_dict.set("state", "last");
-            gauge.set(10.0);
+            pulse.set(10.0);
             counter_two.inc(1.0);
             counter_one.inc(1.0);
             logger.log(format!("okay :) - {}", counter));
