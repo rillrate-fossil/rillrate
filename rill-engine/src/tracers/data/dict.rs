@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::dict::{DictEvent, DictMetric};
+use rill_protocol::data::dict::{DictEvent, DictMetric, DictState};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
@@ -19,7 +19,8 @@ impl DictTracer {
             info,
             stream_type: StreamType::DictStream,
         };
-        let tracer = Tracer::new(description, None);
+        let state = DictState::new();
+        let tracer = Tracer::new(state, description, None);
         Self { tracer }
     }
 

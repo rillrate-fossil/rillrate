@@ -12,7 +12,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
 
 pub trait Metric: fmt::Debug + Send + 'static {
-    type State: DeserializeOwned + Serialize + Clone + Default + fmt::Debug + Send + 'static;
+    type State: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
     type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);

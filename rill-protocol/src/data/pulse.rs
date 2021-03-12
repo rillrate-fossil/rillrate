@@ -41,8 +41,8 @@ pub struct PulseState {
     value: f64,
 }
 
-impl Default for PulseState {
-    fn default() -> Self {
+impl PulseState {
+    pub fn new() -> Self {
         Self {
             // TODO: Use duration for removing obsolete values instead
             frame: Frame::new(100),

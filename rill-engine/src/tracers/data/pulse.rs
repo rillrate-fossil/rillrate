@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::pulse::{PulseEvent, PulseMetric};
+use rill_protocol::data::pulse::{PulseEvent, PulseMetric, PulseState};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
@@ -19,7 +19,8 @@ impl PulseTracer {
             info,
             stream_type: StreamType::PulseStream,
         };
-        let tracer = Tracer::new(description, None);
+        let state = PulseState::new();
+        let tracer = Tracer::new(state, description, None);
         Self { tracer }
     }
 

@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::table::{TableEvent, TableMetric};
+use rill_protocol::data::table::{TableEvent, TableMetric, TableState};
 use rill_protocol::io::provider::{ColId, Description, Path, RowId, StreamType};
 use std::time::SystemTime;
 
@@ -19,7 +19,8 @@ impl TableTracer {
             info,
             stream_type: StreamType::TableStream,
         };
-        let tracer = Tracer::new(description, None);
+        let state = TableState::new();
+        let tracer = Tracer::new(state, description, None);
         Self { tracer }
     }
 

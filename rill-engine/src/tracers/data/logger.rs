@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::logger::{LogEvent, LogMetric};
+use rill_protocol::data::logger::{LogEvent, LogMetric, LogState};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
@@ -19,7 +19,8 @@ impl LogTracer {
             info,
             stream_type: StreamType::LogStream,
         };
-        let tracer = Tracer::new(description, None);
+        let state = LogState::new();
+        let tracer = Tracer::new(state, description, None);
         Self { tracer }
     }
 

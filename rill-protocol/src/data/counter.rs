@@ -25,8 +25,8 @@ pub struct CounterState {
     pub value: f64,
 }
 
-impl Default for CounterState {
-    fn default() -> Self {
+impl CounterState {
+    pub fn new() -> Self {
         Self {
             timestamp: None,
             value: 0.0,

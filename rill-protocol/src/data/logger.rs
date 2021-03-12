@@ -19,8 +19,8 @@ pub struct LogState {
     pub frame: Frame<TimedEvent<LogEvent>>,
 }
 
-impl Default for LogState {
-    fn default() -> Self {
+impl LogState {
+    pub fn new() -> Self {
         Self {
             frame: Frame::new(10),
         }

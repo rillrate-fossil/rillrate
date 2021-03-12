@@ -52,8 +52,8 @@ pub struct TableState {
     pub rows: BTreeMap<RowId, RowRecord>,
 }
 
-impl Default for TableState {
-    fn default() -> Self {
+impl TableState {
+    pub fn new() -> Self {
         Self {
             columns: BTreeMap::new(),
             rows: BTreeMap::new(),

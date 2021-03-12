@@ -27,11 +27,11 @@ pub struct GaugeState {
     pub value: f64,
 }
 
-impl Default for GaugeState {
-    fn default() -> Self {
+impl GaugeState {
+    pub fn new(min: f64, max: f64) -> Self {
         Self {
-            min: todo!(),
-            max: todo!(),
+            min,
+            max,
             timestamp: None,
             value: 0.0,
         }

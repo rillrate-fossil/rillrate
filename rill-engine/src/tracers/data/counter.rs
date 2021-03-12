@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::counter::{CounterEvent, CounterMetric};
+use rill_protocol::data::counter::{CounterEvent, CounterMetric, CounterState};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
@@ -19,7 +19,8 @@ impl CounterTracer {
             info,
             stream_type: StreamType::CounterStream,
         };
-        let tracer = Tracer::new(description, None);
+        let state = CounterState::new();
+        let tracer = Tracer::new(state, description, None);
         Self { tracer }
     }
 

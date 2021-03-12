@@ -23,8 +23,8 @@ pub struct DictState {
     pub map: BTreeMap<String, String>,
 }
 
-impl Default for DictState {
-    fn default() -> Self {
+impl DictState {
+    pub fn new() -> Self {
         Self {
             map: BTreeMap::new(),
         }

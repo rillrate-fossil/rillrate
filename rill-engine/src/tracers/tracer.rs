@@ -80,14 +80,13 @@ impl<T: data::Metric> Clone for Tracer<T> {
 }
 
 impl<T: data::Metric> Tracer<T> {
-    pub(crate) fn new(description: Description, pull: Option<Duration>) -> Self {
+    pub(crate) fn new(state: T::State, description: Description, pull: Option<Duration>) -> Self {
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {:?}", description.path);
         let description = Arc::new(description);
         let inner_mode;
         let mode;
-        let state = T::State::default();
         if let Some(interval) = pull {
             let state = Arc::new(Mutex::new(state));
             mode = TracerMode::Pull {
