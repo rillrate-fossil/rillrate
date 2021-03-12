@@ -7,9 +7,7 @@ use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::data;
-use rill_protocol::io::provider::{
-    Description, ProviderProtocol, ProviderReqId, ProviderToServer, StreamState,
-};
+use rill_protocol::io::provider::{Description, ProviderProtocol, ProviderReqId, ProviderToServer};
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
@@ -19,7 +17,6 @@ pub(crate) struct Recorder<T: data::State> {
     sender: RillSender,
     mode: TracerMode<T>,
     subscribers: HashSet<ProviderReqId>,
-    state: T,
 }
 
 impl<T: data::State> Recorder<T> {
@@ -29,12 +26,7 @@ impl<T: data::State> Recorder<T> {
             sender,
             mode,
             subscribers: HashSet::new(),
-            state: T::default(),
         }
-    }
-
-    fn get_snapshot(&self) -> StreamState {
-        self.state.clone().into()
     }
 
     fn get_direction(&self) -> Direction<ProviderProtocol> {
@@ -50,7 +42,7 @@ impl<T: data::State> Actor for Recorder<T> {
 impl<T: data::State> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         match &mut self.mode {
-            TracerMode::Push { receiver } => {
+            TracerMode::Push { receiver, .. } => {
                 let rx = receiver
                     .take()
                     .expect("tracer hasn't attached receiver")
@@ -95,8 +87,10 @@ impl<T: data::State> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
             let direction = self.get_direction();
             self.sender.response(direction, response);
         }
-        for event in delta {
-            self.state.apply(event);
+        if let TracerMode::Push { state, .. } = &mut self.mode {
+            for event in delta {
+                state.apply(event);
+            }
         }
         Ok(())
     }
@@ -165,10 +159,12 @@ impl<T: data::State> ActionHandler<link::ControlStream> for Recorder<T> {
             #[allow(clippy::collapsible_if)]
             if msg.active {
                 if self.subscribers.insert(id) {
-                    let state = self.get_snapshot();
-                    let response = ProviderToServer::State { state };
-                    let direction = Direction::from(msg.direct_id);
-                    self.sender.response(direction, response);
+                    if let TracerMode::Push { state, .. } = &self.mode {
+                        let state = state.clone().into();
+                        let response = ProviderToServer::State { state };
+                        let direction = Direction::from(msg.direct_id);
+                        self.sender.response(direction, response);
+                    }
                 } else {
                     log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
                 }

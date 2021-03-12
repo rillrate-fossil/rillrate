@@ -29,7 +29,10 @@ pub type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
 pub(crate) enum TracerMode<T: data::State> {
     /// Real-time mode
-    Push { receiver: Option<DataReceiver<T>> },
+    Push {
+        state: T,
+        receiver: Option<DataReceiver<T>>,
+    },
     Pull {
         state: Weak<Mutex<T>>,
         interval: Duration,
@@ -70,8 +73,9 @@ impl<T: data::State> Tracer<T> {
         let description = Arc::new(description);
         let inner_mode;
         let mode;
+        let state = T::default();
         if let Some(interval) = pull {
-            let state = Arc::new(Mutex::new(T::default()));
+            let state = Arc::new(Mutex::new(state));
             mode = TracerMode::Pull {
                 state: Arc::downgrade(&state),
                 interval,
@@ -79,7 +83,10 @@ impl<T: data::State> Tracer<T> {
             inner_mode = InnerMode::Pull { state };
         } else {
             let (tx, rx) = mpsc::unbounded();
-            mode = TracerMode::Push { receiver: Some(rx) };
+            mode = TracerMode::Push {
+                state,
+                receiver: Some(rx),
+            };
             inner_mode = InnerMode::Push { sender: tx };
         }
         let this = Tracer {

@@ -14,6 +14,7 @@ pub trait Convertable<T>: Into<T> + TryFrom<T, Error = ConvertError> {}
 
 impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = ConvertError> {}
 
+// TODO: Rename to `Metric` and move `State` inner as a type parameter
 pub trait State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send + 'static {
     type Event: Clone + fmt::Debug + Send + 'static;
 
