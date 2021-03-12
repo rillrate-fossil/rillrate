@@ -12,7 +12,8 @@ pub mod encoding {
     where
         T: Deserialize<'a>,
     {
-        bincode::deserialize(v).map_err(Error::from)
+        //bincode::deserialize(v).map_err(Error::from)
+        flexbuffers::from_slice(v).map_err(Error::from)
         //serde_json::from_slice(v).map_err(Error::from)
     }
 
@@ -20,7 +21,8 @@ pub mod encoding {
     where
         T: Serialize,
     {
-        bincode::serialize(value).map_err(Error::from)
+        //bincode::serialize(value).map_err(Error::from)
+        flexbuffers::to_vec(value).map_err(Error::from)
         //serde_json::to_vec(value).map_err(Error::from)
     }
 }
