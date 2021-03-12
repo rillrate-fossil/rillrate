@@ -14,14 +14,6 @@ impl Metric for LogMetric {
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         state.frame.insert(event);
     }
-
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
-        StreamDelta::from(events)
-    }
-
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
-        delta.try_into()
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

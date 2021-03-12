@@ -42,14 +42,6 @@ impl Metric for TableMetric {
             }
         }
     }
-
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
-        StreamDelta::from(events)
-    }
-
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
-        delta.try_into()
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

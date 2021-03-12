@@ -20,10 +20,6 @@ pub trait Metric: fmt::Debug + Send + 'static {
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
-    // TODO: REMOVE THEM!
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta;
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError>;
-
     fn pack_delta(delta: Delta<Self::Event>) -> Result<Vec<u8>, ConvertError> {
         serde_json::to_vec(&delta).map_err(|_| ConvertError)
     }
