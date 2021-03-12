@@ -375,6 +375,7 @@ impl fmt::Display for EntryType {
 pub enum StreamType {
     LogStream,
     CounterStream,
+    GaugeStream,
     PulseStream,
     DictStream,
     TableStream,
@@ -386,6 +387,7 @@ impl fmt::Display for StreamType {
         let value = match self {
             Self::LogStream => "log",
             Self::CounterStream => "counter",
+            Self::GaugeStream => "gauge",
             Self::PulseStream => "pulse",
             Self::DictStream => "dict",
             Self::TableStream => "table",
