@@ -4,7 +4,7 @@ pub mod frame;
 pub mod io;
 pub mod pathfinder;
 
-mod encoding {
+pub mod encoding {
     use anyhow::Error;
     use serde::{Deserialize, Serialize};
 
