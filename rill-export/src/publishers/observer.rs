@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::LiteTask;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::data::{counter, dict, gauge, logger, table, Metric};
+use rill_protocol::data::{counter, dict, logger, pulse, table, Metric};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -93,7 +93,7 @@ impl LiteTask for Observer {
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
         match self.description.stream_type {
             StreamType::CounterStream => self.state_routine::<counter::CounterMetric>().await,
-            StreamType::GaugeStream => self.state_routine::<gauge::GaugeMetric>().await,
+            StreamType::PulseStream => self.state_routine::<pulse::PulseMetric>().await,
             StreamType::LogStream => self.state_routine::<logger::LogMetric>().await,
             StreamType::DictStream => self.state_routine::<dict::DictMetric>().await,
             StreamType::TableStream => self.state_routine::<table::TableMetric>().await,
@@ -113,7 +113,7 @@ impl Extractor for counter::CounterMetric {
     }
 }
 
-impl Extractor for gauge::GaugeMetric {
+impl Extractor for pulse::PulseMetric {
     fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state
             .frame

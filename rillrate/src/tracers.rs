@@ -1,7 +1,7 @@
 //! The module with all adapted tracers.
 
 use anyhow::Error;
-use rill_engine::tracers::data::{CounterTracer, DictTracer, GaugeTracer, LogTracer, TableTracer};
+use rill_engine::tracers::data::{CounterTracer, DictTracer, LogTracer, PulseTracer, TableTracer};
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -43,15 +43,15 @@ impl Counter {
     }
 }
 
-/// `Gauge` tracer.
+/// `Pulse` tracer.
 #[derive(Debug, Clone)]
-pub struct Gauge {
-    tracer: Arc<GaugeTracer>,
+pub struct Pulse {
+    tracer: Arc<PulseTracer>,
 }
 
-impl_tracer!(Gauge<GaugeTracer>);
+impl_tracer!(Pulse<PulseTracer>);
 
-impl Gauge {
+impl Pulse {
     /// Increments the value by the specific delta.
     pub fn inc(&self, delta: f64) {
         self.tracer.inc(delta, None);

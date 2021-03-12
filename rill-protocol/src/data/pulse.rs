@@ -3,21 +3,21 @@ use crate::frame::Frame;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
-pub struct GaugeMetric;
+pub struct PulseMetric;
 
-impl Metric for GaugeMetric {
-    type State = GaugeState;
-    type Event = GaugeEvent;
+impl Metric for PulseMetric {
+    type State = PulseState;
+    type Event = PulseEvent;
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
-            GaugeEvent::Increment(delta) => {
+            PulseEvent::Increment(delta) => {
                 state.value += delta;
             }
-            GaugeEvent::Decrement(delta) => {
+            PulseEvent::Decrement(delta) => {
                 state.value -= delta;
             }
-            GaugeEvent::Set(value) => {
+            PulseEvent::Set(value) => {
                 state.value = value;
             }
         }
@@ -36,12 +36,12 @@ pub struct GaugePoint {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugeState {
+pub struct PulseState {
     pub frame: Frame<TimedEvent<GaugePoint>>,
     value: f64,
 }
 
-impl Default for GaugeState {
+impl Default for PulseState {
     fn default() -> Self {
         Self {
             // TODO: Use duration for removing obsolete values instead
@@ -51,10 +51,10 @@ impl Default for GaugeState {
     }
 }
 
-pub type GaugeDelta = Vec<TimedEvent<GaugeEvent>>;
+pub type GaugeDelta = Vec<TimedEvent<PulseEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum GaugeEvent {
+pub enum PulseEvent {
     Increment(f64),
     Decrement(f64),
     Set(f64),

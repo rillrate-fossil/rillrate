@@ -6,8 +6,8 @@ pub use counter::CounterTracer;
 pub(crate) mod dict;
 pub use dict::DictTracer;
 
-pub(crate) mod gauge;
-pub use gauge::GaugeTracer;
+pub(crate) mod pulse;
+pub use pulse::PulseTracer;
 
 pub(crate) mod logger;
 pub use logger::LogTracer;

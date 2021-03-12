@@ -256,7 +256,7 @@ pub enum RillData {
     CounterRecord {
         value: f64,
     },
-    GaugeValue {
+    PulseValue {
         value: f64,
     },
     // TODO: Join with aggregated
@@ -323,38 +323,6 @@ pub enum TableUpdate {
     },
 }
 
-#[derive(Debug, Error)]
-pub enum RillDataError {
-    #[error("can't prase float: {0}")]
-    ParseFloatError(#[from] std::num::ParseFloatError),
-    #[error("unapplicable: {0}")]
-    Unapplicable(&'static str),
-}
-
-/// This convertion used by exporters, because most of them support
-/// gauge/counter types only.
-impl TryInto<f64> for RillData {
-    type Error = RillDataError;
-
-    fn try_into(self) -> Result<f64, Self::Error> {
-        match self {
-            Self::LogRecord { message } => message.parse().map_err(RillDataError::from),
-            Self::CounterRecord { value } => Ok(value),
-            Self::GaugeValue { value } => Ok(value),
-            // TODO: Add extracting rules to pattern/exporter/config
-            Self::DictUpdate(_) => Err(RillDataError::Unapplicable(
-                "can't convert dict into a single value",
-            )),
-            Self::EntryUpdate(_) => Err(RillDataError::Unapplicable(
-                "can't convert entry into a single value",
-            )),
-            Self::TableUpdate(_) => Err(RillDataError::Unapplicable(
-                "can't convert table into a single value",
-            )),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RillEvent {
     pub timestamp: Timestamp,
@@ -407,7 +375,7 @@ impl fmt::Display for EntryType {
 pub enum StreamType {
     LogStream,
     CounterStream,
-    GaugeStream,
+    PulseStream,
     DictStream,
     TableStream,
     //EntryStream,
@@ -418,7 +386,7 @@ impl fmt::Display for StreamType {
         let value = match self {
             Self::LogStream => "log",
             Self::CounterStream => "counter",
-            Self::GaugeStream => "gauge",
+            Self::PulseStream => "pulse",
             Self::DictStream => "dict",
             Self::TableStream => "table",
             //Self::EntryStream => "entry",

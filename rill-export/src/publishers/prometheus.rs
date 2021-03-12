@@ -153,7 +153,7 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
                 let name = path.as_ref().join("_");
                 let typ = match record.description.stream_type {
                     StreamType::CounterStream => "counter",
-                    StreamType::GaugeStream => "gauge",
+                    StreamType::PulseStream => "gauge",
                     _ => {
                         log::error!(
                             "Prometheus publisher is not supported type of stream: {}",
