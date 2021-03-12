@@ -379,6 +379,7 @@ pub enum StreamType {
     PulseStream,
     DictStream,
     TableStream,
+    HistogramStream,
     //EntryStream,
 }
 
@@ -391,6 +392,7 @@ impl fmt::Display for StreamType {
             Self::PulseStream => "pulse",
             Self::DictStream => "dict",
             Self::TableStream => "table",
+            Self::HistogramStream => "histogram",
             //Self::EntryStream => "entry",
         };
         value.fmt(f)

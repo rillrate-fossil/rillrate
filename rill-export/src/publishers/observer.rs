@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::LiteTask;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::data::{counter, dict, gauge, logger, pulse, table, Metric};
+use rill_protocol::data::{counter, dict, gauge, histogram, logger, pulse, table, Metric};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -98,6 +98,7 @@ impl LiteTask for Observer {
             StreamType::LogStream => self.state_routine::<logger::LogMetric>().await,
             StreamType::DictStream => self.state_routine::<dict::DictMetric>().await,
             StreamType::TableStream => self.state_routine::<table::TableMetric>().await,
+            StreamType::HistogramStream => self.state_routine::<histogram::HistogramMetric>().await,
         }
     }
 }
@@ -145,5 +146,12 @@ impl Extractor for table::TableMetric {
 impl Extractor for dict::DictMetric {
     fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
         None
+    }
+}
+
+impl Extractor for histogram::HistogramMetric {
+    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
+        // TODO: Histogram result have to be here (not a plain timestamp)
+        todo!()
     }
 }
