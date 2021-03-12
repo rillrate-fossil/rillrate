@@ -12,14 +12,16 @@ mod encoding {
     where
         T: Deserialize<'a>,
     {
-        serde_json::from_slice(v).map_err(Error::from)
+        bincode::deserialize(v).map_err(Error::from)
+        //serde_json::from_slice(v).map_err(Error::from)
     }
 
     pub fn to_vec<T: ?Sized>(value: &T) -> Result<Vec<u8>, Error>
     where
         T: Serialize,
     {
-        serde_json::to_vec(value).map_err(Error::from)
+        bincode::serialize(value).map_err(Error::from)
+        //serde_json::to_vec(value).map_err(Error::from)
     }
 }
 
