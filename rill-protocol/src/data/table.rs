@@ -94,6 +94,7 @@ pub struct ColRecord {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RowRecord {
     pub alias: Option<String>,
+    #[serde(with = "vectorize")]
     pub cols: BTreeMap<ColId, String>,
 }
 
