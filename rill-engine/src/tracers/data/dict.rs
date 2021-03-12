@@ -1,13 +1,13 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::dict::{DictEvent, DictState};
+use rill_protocol::data::dict::{DictEvent, DictMetric};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct DictTracer {
-    tracer: Tracer<DictState>,
+    tracer: Tracer<DictMetric>,
 }
 
 impl DictTracer {

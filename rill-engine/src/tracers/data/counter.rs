@@ -1,13 +1,13 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::counter::{CounterEvent, CounterState};
+use rill_protocol::data::counter::{CounterEvent, CounterMetric};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
 /// Tracers `Counter` metrics that can increments only.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct CounterTracer {
-    tracer: Tracer<CounterState>,
+    tracer: Tracer<CounterMetric>,
 }
 
 impl CounterTracer {

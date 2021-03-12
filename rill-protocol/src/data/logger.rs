@@ -1,8 +1,28 @@
-use super::{ConvertError, Delta, State, TimedEvent};
+use super::{ConvertError, Delta, Metric, TimedEvent};
 use crate::frame::Frame;
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::convert::{TryFrom, TryInto};
+
+#[derive(Debug)]
+pub struct LogMetric;
+
+impl Metric for LogMetric {
+    type State = LogState;
+    type Event = LogEvent;
+
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+        state.frame.insert(event);
+    }
+
+    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
+        StreamDelta::from(events)
+    }
+
+    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
+        delta.try_into()
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogState {
@@ -25,22 +45,6 @@ impl TryFrom<StreamState> for LogState {
             StreamState::Log(state) => Ok(state),
             _ => Err(ConvertError),
         }
-    }
-}
-
-impl State for LogState {
-    type Event = LogEvent;
-
-    fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        self.frame.insert(event);
-    }
-
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
-        StreamDelta::from(events)
-    }
-
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
-        delta.try_into()
     }
 }
 

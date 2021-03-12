@@ -14,11 +14,11 @@ pub trait Convertable<T>: Into<T> + TryFrom<T, Error = ConvertError> {}
 
 impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = ConvertError> {}
 
-// TODO: Rename to `Metric` and move `State` inner as a type parameter
-pub trait State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send + 'static {
+pub trait Metric: fmt::Debug + Send + 'static {
+    type State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send + 'static;
     type Event: Clone + fmt::Debug + Send + 'static;
 
-    fn apply(&mut self, event: TimedEvent<Self::Event>);
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
     // TODO: Replace with `pack_*` methods
     fn wrap(events: Delta<Self::Event>) -> StreamDelta;

@@ -1,13 +1,13 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::logger::{LogEvent, LogState};
+use rill_protocol::data::logger::{LogEvent, LogMetric};
 use rill_protocol::io::provider::{Description, Path, StreamType};
 use std::time::SystemTime;
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct LogTracer {
-    tracer: Tracer<LogState>,
+    tracer: Tracer<LogMetric>,
 }
 
 impl LogTracer {

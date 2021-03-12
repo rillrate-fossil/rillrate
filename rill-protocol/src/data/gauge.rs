@@ -1,8 +1,44 @@
-use super::{ConvertError, Delta, State, TimedEvent};
+use super::{ConvertError, Delta, Metric, TimedEvent};
 use crate::frame::Frame;
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::convert::{TryFrom, TryInto};
+
+#[derive(Debug)]
+pub struct GaugeMetric;
+
+impl Metric for GaugeMetric {
+    type State = GaugeState;
+    type Event = GaugeEvent;
+
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+        match event.event {
+            GaugeEvent::Increment(delta) => {
+                state.value += delta;
+            }
+            GaugeEvent::Decrement(delta) => {
+                state.value -= delta;
+            }
+            GaugeEvent::Set(value) => {
+                state.value = value;
+            }
+        }
+        let point = GaugePoint { value: state.value };
+        let timed_event = TimedEvent {
+            timestamp: event.timestamp,
+            event: point,
+        };
+        state.frame.insert(timed_event);
+    }
+
+    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
+        StreamDelta::from(events)
+    }
+
+    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
+        delta.try_into()
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugePoint {
@@ -33,38 +69,6 @@ impl TryFrom<StreamState> for GaugeState {
             StreamState::Gauge(state) => Ok(state),
             _ => Err(ConvertError),
         }
-    }
-}
-
-impl State for GaugeState {
-    type Event = GaugeEvent;
-
-    fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        match event.event {
-            GaugeEvent::Increment(delta) => {
-                self.value += delta;
-            }
-            GaugeEvent::Decrement(delta) => {
-                self.value -= delta;
-            }
-            GaugeEvent::Set(value) => {
-                self.value = value;
-            }
-        }
-        let point = GaugePoint { value: self.value };
-        let timed_event = TimedEvent {
-            timestamp: event.timestamp,
-            event: point,
-        };
-        self.frame.insert(timed_event);
-    }
-
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
-        StreamDelta::from(events)
-    }
-
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
-        delta.try_into()
     }
 }
 

@@ -235,7 +235,7 @@ impl TaskEliminated<WsClient<ProviderProtocol, Self>> for RillWorker {
 }
 
 #[async_trait]
-impl<T: data::State> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
+impl<T: data::Metric> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
     async fn handle(
         &mut self,
         msg: state::RegisterTracer<T>,
@@ -260,7 +260,7 @@ impl<T: data::State> InstantActionHandler<state::RegisterTracer<T>> for RillWork
 }
 
 #[async_trait]
-impl<T: data::State> Eliminated<Recorder<T>> for RillWorker {
+impl<T: data::Metric> Eliminated<Recorder<T>> for RillWorker {
     async fn handle(
         &mut self,
         id: IdOf<Recorder<T>>,

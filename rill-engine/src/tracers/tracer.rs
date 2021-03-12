@@ -9,13 +9,13 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 
 #[derive(Debug)]
-pub enum DataEnvelope<T: data::State> {
+pub enum DataEnvelope<T: data::Metric> {
     Event(TimedEvent<T::Event>),
 }
 
-impl<T: data::State> Action for DataEnvelope<T> {}
+impl<T: data::Metric> Action for DataEnvelope<T> {}
 
-impl<T: data::State> DataEnvelope<T> {
+impl<T: data::Metric> DataEnvelope<T> {
     pub fn into_inner(self) -> TimedEvent<T::Event> {
         match self {
             Self::Event(event) => event,
@@ -27,35 +27,49 @@ impl<T: data::State> DataEnvelope<T> {
 pub type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
-pub(crate) enum TracerMode<T: data::State> {
+pub(crate) enum TracerMode<T: data::Metric> {
     /// Real-time mode
     Push {
-        state: T,
+        state: T::State,
         receiver: Option<DataReceiver<T>>,
     },
     Pull {
-        state: Weak<Mutex<T>>,
+        state: Weak<Mutex<T::State>>,
         interval: Duration,
     },
 }
 
-#[derive(Debug, Clone)]
-enum InnerMode<T: data::State> {
+#[derive(Debug)]
+enum InnerMode<T: data::Metric> {
     Push { sender: DataSender<T> },
-    Pull { state: Arc<Mutex<T>> },
+    Pull { state: Arc<Mutex<T::State>> },
+}
+
+// TODO: Or require `Clone` for the `Metric` to derive this
+impl<T: data::Metric> Clone for InnerMode<T> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Push { sender } => Self::Push {
+                sender: sender.clone(),
+            },
+            Self::Pull { state } => Self::Pull {
+                state: state.clone(),
+            },
+        }
+    }
 }
 
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
-pub struct Tracer<T: data::State> {
+pub struct Tracer<T: data::Metric> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     description: Arc<Description>,
     mode: InnerMode<T>,
 }
 
-impl<T: data::State> Clone for Tracer<T> {
+impl<T: data::Metric> Clone for Tracer<T> {
     fn clone(&self) -> Self {
         Self {
             active: self.active.clone(),
@@ -65,7 +79,7 @@ impl<T: data::State> Clone for Tracer<T> {
     }
 }
 
-impl<T: data::State> Tracer<T> {
+impl<T: data::Metric> Tracer<T> {
     pub(crate) fn new(description: Description, pull: Option<Duration>) -> Self {
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
@@ -73,7 +87,7 @@ impl<T: data::State> Tracer<T> {
         let description = Arc::new(description);
         let inner_mode;
         let mode;
-        let state = T::default();
+        let state = T::State::default();
         if let Some(interval) = pull {
             let state = Arc::new(Mutex::new(state));
             mode = TracerMode::Pull {
@@ -129,8 +143,8 @@ impl<T: data::State> Tracer<T> {
                             }
                         }
                         InnerMode::Pull { state } => match state.lock() {
-                            Ok(mut state) => {
-                                state.apply(timed_event);
+                            Ok(ref mut state) => {
+                                T::apply(state, timed_event);
                             }
                             Err(err) => {
                                 log::error!("Can't lock the mutex to apply the changes: {}", err);
@@ -146,7 +160,7 @@ impl<T: data::State> Tracer<T> {
     }
 }
 
-impl<T: data::State> Tracer<T> {
+impl<T: data::Metric> Tracer<T> {
     /// Returns `true` is the `Tracer` has to send data.
     pub fn is_active(&self) -> bool {
         *self.active.borrow()

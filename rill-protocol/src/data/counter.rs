@@ -1,7 +1,32 @@
-use super::{ConvertError, Delta, State, TimedEvent};
+use super::{ConvertError, Delta, Metric, TimedEvent};
 use crate::io::provider::{StreamDelta, StreamState, Timestamp};
 use serde::{Deserialize, Serialize};
 use std::convert::{TryFrom, TryInto};
+
+#[derive(Debug)]
+pub struct CounterMetric;
+
+impl Metric for CounterMetric {
+    type State = CounterState;
+    type Event = CounterEvent;
+
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+        match event.event {
+            CounterEvent::Increment(delta) => {
+                state.timestamp = Some(event.timestamp);
+                state.value += delta;
+            }
+        }
+    }
+
+    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
+        StreamDelta::from(events)
+    }
+
+    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
+        delta.try_into()
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CounterState {
@@ -26,27 +51,6 @@ impl TryFrom<StreamState> for CounterState {
             StreamState::Counter(state) => Ok(state),
             _ => Err(ConvertError),
         }
-    }
-}
-
-impl State for CounterState {
-    type Event = CounterEvent;
-
-    fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        match event.event {
-            CounterEvent::Increment(delta) => {
-                self.timestamp = Some(event.timestamp);
-                self.value += delta;
-            }
-        }
-    }
-
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
-        StreamDelta::from(events)
-    }
-
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
-        delta.try_into()
     }
 }
 

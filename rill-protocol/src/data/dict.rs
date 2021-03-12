@@ -1,8 +1,32 @@
-use super::{ConvertError, Delta, State, TimedEvent};
+use super::{ConvertError, Delta, Metric, TimedEvent};
 use crate::io::provider::{StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::convert::{TryFrom, TryInto};
+
+#[derive(Debug)]
+pub struct DictMetric;
+
+impl Metric for DictMetric {
+    type State = DictState;
+    type Event = DictEvent;
+
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+        match event.event {
+            DictEvent::SetValue { key, value } => {
+                state.map.insert(key, value);
+            }
+        }
+    }
+
+    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
+        StreamDelta::from(events)
+    }
+
+    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
+        delta.try_into()
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictState {
@@ -25,26 +49,6 @@ impl TryFrom<StreamState> for DictState {
             StreamState::Dict(state) => Ok(state),
             _ => Err(ConvertError),
         }
-    }
-}
-
-impl State for DictState {
-    type Event = DictEvent;
-
-    fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        match event.event {
-            DictEvent::SetValue { key, value } => {
-                self.map.insert(key, value);
-            }
-        }
-    }
-
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
-        StreamDelta::from(events)
-    }
-
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
-        delta.try_into()
     }
 }
 

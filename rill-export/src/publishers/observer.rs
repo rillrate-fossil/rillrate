@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::LiteTask;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::data::{counter, dict, gauge, logger, table, State};
+use rill_protocol::data::{counter, dict, gauge, logger, table, Metric};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -103,39 +103,40 @@ impl LiteTask for Observer {
 
 /// Converts a state and deltas into a flow of numeric values
 /// suitable for the metrics tracing systems.
-trait Extractor: State {
-    fn to_value(&self) -> Option<(Timestamp, f64)>;
+trait Extractor: Metric {
+    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)>;
 }
 
-impl Extractor for counter::CounterState {
-    fn to_value(&self) -> Option<(Timestamp, f64)> {
-        self.timestamp.map(|ts| (ts, self.value))
+impl Extractor for counter::CounterMetric {
+    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+        state.timestamp.map(|ts| (ts, state.value))
     }
 }
 
-impl Extractor for gauge::GaugeState {
-    fn to_value(&self) -> Option<(Timestamp, f64)> {
-        self.frame
+impl Extractor for gauge::GaugeMetric {
+    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+        state
+            .frame
             .iter()
             .last()
             .map(|event| (event.timestamp, event.event.value))
     }
 }
 
-impl Extractor for logger::LogState {
-    fn to_value(&self) -> Option<(Timestamp, f64)> {
+impl Extractor for logger::LogMetric {
+    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         None
     }
 }
 
-impl Extractor for table::TableState {
-    fn to_value(&self) -> Option<(Timestamp, f64)> {
+impl Extractor for table::TableMetric {
+    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         None
     }
 }
 
-impl Extractor for dict::DictState {
-    fn to_value(&self) -> Option<(Timestamp, f64)> {
+impl Extractor for dict::DictMetric {
+    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         None
     }
 }

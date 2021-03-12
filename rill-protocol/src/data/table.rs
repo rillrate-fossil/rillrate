@@ -1,8 +1,56 @@
-use super::{ConvertError, Delta, State, TimedEvent};
+use super::{ConvertError, Delta, Metric, TimedEvent};
 use crate::io::provider::{ColId, RowId, StreamDelta, StreamState};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::convert::{TryFrom, TryInto};
+
+#[derive(Debug)]
+pub struct TableMetric;
+
+impl Metric for TableMetric {
+    type State = TableState;
+    type Event = TableEvent;
+
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+        match event.event {
+            TableEvent::AddCol { col, alias } => {
+                let record = ColRecord { alias };
+                state.columns.insert(col, record);
+            }
+            TableEvent::DelCol { col } => {
+                state.columns.remove(&col);
+                for (_row, record) in state.rows.iter_mut() {
+                    record.cols.remove(&col);
+                }
+            }
+            TableEvent::AddRow { row, alias } => {
+                let record = RowRecord {
+                    alias,
+                    cols: BTreeMap::new(),
+                };
+                state.rows.insert(row, record);
+            }
+            TableEvent::DelRow { row } => {
+                state.rows.remove(&row);
+            }
+            TableEvent::SetCell { row, col, value } => {
+                if let Some(record) = state.rows.get_mut(&row) {
+                    if state.columns.contains_key(&col) {
+                        record.cols.insert(col, value);
+                    }
+                }
+            }
+        }
+    }
+
+    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
+        StreamDelta::from(events)
+    }
+
+    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
+        delta.try_into()
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
@@ -27,50 +75,6 @@ impl TryFrom<StreamState> for TableState {
             StreamState::Table(state) => Ok(state),
             _ => Err(ConvertError),
         }
-    }
-}
-
-impl State for TableState {
-    type Event = TableEvent;
-
-    fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        match event.event {
-            TableEvent::AddCol { col, alias } => {
-                let record = ColRecord { alias };
-                self.columns.insert(col, record);
-            }
-            TableEvent::DelCol { col } => {
-                self.columns.remove(&col);
-                for (_row, record) in self.rows.iter_mut() {
-                    record.cols.remove(&col);
-                }
-            }
-            TableEvent::AddRow { row, alias } => {
-                let record = RowRecord {
-                    alias,
-                    cols: BTreeMap::new(),
-                };
-                self.rows.insert(row, record);
-            }
-            TableEvent::DelRow { row } => {
-                self.rows.remove(&row);
-            }
-            TableEvent::SetCell { row, col, value } => {
-                if let Some(record) = self.rows.get_mut(&row) {
-                    if self.columns.contains_key(&col) {
-                        record.cols.insert(col, value);
-                    }
-                }
-            }
-        }
-    }
-
-    fn wrap(events: Delta<Self::Event>) -> StreamDelta {
-        StreamDelta::from(events)
-    }
-
-    fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError> {
-        delta.try_into()
     }
 }
 
