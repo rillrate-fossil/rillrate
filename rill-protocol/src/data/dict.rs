@@ -1,8 +1,6 @@
-use super::{ConvertError, Metric, TimedEvent};
-use crate::io::provider::StreamState;
+use super::{Metric, TimedEvent};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct DictMetric;
@@ -29,17 +27,6 @@ impl Default for DictState {
     fn default() -> Self {
         Self {
             map: BTreeMap::new(),
-        }
-    }
-}
-
-impl TryFrom<StreamState> for DictState {
-    type Error = ConvertError;
-
-    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
-        match state {
-            StreamState::Dict(state) => Ok(state),
-            _ => Err(ConvertError),
         }
     }
 }

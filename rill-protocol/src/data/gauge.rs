@@ -1,8 +1,6 @@
-use super::{ConvertError, Metric, TimedEvent};
+use super::{Metric, TimedEvent};
 use crate::frame::Frame;
-use crate::io::provider::StreamState;
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct GaugeMetric;
@@ -49,17 +47,6 @@ impl Default for GaugeState {
             // TODO: Use duration for removing obsolete values instead
             frame: Frame::new(100),
             value: 0.0,
-        }
-    }
-}
-
-impl TryFrom<StreamState> for GaugeState {
-    type Error = ConvertError;
-
-    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
-        match state {
-            StreamState::Gauge(state) => Ok(state),
-            _ => Err(ConvertError),
         }
     }
 }

@@ -1,8 +1,7 @@
-use super::{ConvertError, Metric, TimedEvent};
-use crate::io::provider::{ColId, RowId, StreamState};
+use super::{Metric, TimedEvent};
+use crate::io::provider::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct TableMetric;
@@ -55,17 +54,6 @@ impl Default for TableState {
         Self {
             columns: BTreeMap::new(),
             rows: BTreeMap::new(),
-        }
-    }
-}
-
-impl TryFrom<StreamState> for TableState {
-    type Error = ConvertError;
-
-    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
-        match state {
-            StreamState::Table(state) => Ok(state),
-            _ => Err(ConvertError),
         }
     }
 }

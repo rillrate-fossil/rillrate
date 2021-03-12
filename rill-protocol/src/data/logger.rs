@@ -1,8 +1,6 @@
-use super::{ConvertError, Metric, TimedEvent};
+use super::{Metric, TimedEvent};
 use crate::frame::Frame;
-use crate::io::provider::StreamState;
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct LogMetric;
@@ -25,17 +23,6 @@ impl Default for LogState {
     fn default() -> Self {
         Self {
             frame: Frame::new(10),
-        }
-    }
-}
-
-impl TryFrom<StreamState> for LogState {
-    type Error = ConvertError;
-
-    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
-        match state {
-            StreamState::Log(state) => Ok(state),
-            _ => Err(ConvertError),
         }
     }
 }

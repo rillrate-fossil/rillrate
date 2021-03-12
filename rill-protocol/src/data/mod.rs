@@ -4,43 +4,31 @@ pub mod gauge;
 pub mod logger;
 pub mod table;
 
-use crate::io::provider::{StreamState, Timestamp};
+use crate::io::provider::Timestamp;
+use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::convert::TryFrom;
 use std::fmt;
-use thiserror::Error;
-
-pub trait Convertable<T>: Into<T> + TryFrom<T, Error = ConvertError> {}
-
-impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = ConvertError> {}
 
 pub trait Metric: fmt::Debug + Send + 'static {
-    type State: DeserializeOwned
-        + Serialize
-        + Convertable<StreamState>
-        + Clone
-        + Default
-        + fmt::Debug
-        + Send
-        + 'static;
+    type State: DeserializeOwned + Serialize + Clone + Default + fmt::Debug + Send + 'static;
     type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
-    fn pack_delta(delta: Delta<Self::Event>) -> Result<Vec<u8>, ConvertError> {
-        serde_json::to_vec(&delta).map_err(|_| ConvertError)
+    fn pack_delta(delta: Delta<Self::Event>) -> Result<Vec<u8>, Error> {
+        serde_json::to_vec(&delta).map_err(Error::from)
     }
 
-    fn unpack_delta(data: Vec<u8>) -> Result<Delta<Self::Event>, ConvertError> {
-        serde_json::from_slice(&data).map_err(|_| ConvertError)
+    fn unpack_delta(data: Vec<u8>) -> Result<Delta<Self::Event>, Error> {
+        serde_json::from_slice(&data).map_err(Error::from)
     }
 
-    fn pack_state(state: Self::State) -> Result<Vec<u8>, ConvertError> {
-        serde_json::to_vec(&state).map_err(|_| ConvertError)
+    fn pack_state(state: Self::State) -> Result<Vec<u8>, Error> {
+        serde_json::to_vec(&state).map_err(Error::from)
     }
 
-    fn unpack_state(data: Vec<u8>) -> Result<Self::State, ConvertError> {
-        serde_json::from_slice(&data).map_err(|_| ConvertError)
+    fn unpack_state(data: Vec<u8>) -> Result<Self::State, Error> {
+        serde_json::from_slice(&data).map_err(Error::from)
     }
 }
 
@@ -51,7 +39,3 @@ pub struct TimedEvent<T> {
     pub timestamp: Timestamp,
     pub event: T,
 }
-
-#[derive(Debug, Error)]
-#[error("Can't convert into the specific state of delta.")]
-pub struct ConvertError;

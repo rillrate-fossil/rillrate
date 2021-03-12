@@ -1,7 +1,6 @@
-use super::{ConvertError, Metric, TimedEvent};
-use crate::io::provider::{StreamState, Timestamp};
+use super::{Metric, TimedEvent};
+use crate::io::provider::Timestamp;
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct CounterMetric;
@@ -31,17 +30,6 @@ impl Default for CounterState {
         Self {
             timestamp: None,
             value: 0.0,
-        }
-    }
-}
-
-impl TryFrom<StreamState> for CounterState {
-    type Error = ConvertError;
-
-    fn try_from(state: StreamState) -> Result<Self, ConvertError> {
-        match state {
-            StreamState::Counter(state) => Ok(state),
-            _ => Err(ConvertError),
         }
     }
 }

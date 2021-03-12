@@ -1,4 +1,3 @@
-use crate::data::{counter, dict, gauge, logger, table};
 use crate::io::codec::JsonCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, From, FromStr, Index, Into};
@@ -451,7 +450,6 @@ pub enum ProviderToServer {
     SnapshotReady {
         snapshot: Option<RillEvent>,
     },
-    // TODO: Rename `BeginStream` to `State`
     /// The response to `ControlStream { active: true }` request
     State {
         state: Vec<u8>,
@@ -464,14 +462,4 @@ pub enum ProviderToServer {
     Error {
         reason: String,
     },
-}
-
-/// The basic state of a stream.
-#[derive(Debug, Clone, From, Serialize, Deserialize)]
-pub enum StreamState {
-    Counter(counter::CounterState),
-    Gauge(gauge::GaugeState),
-    Table(table::TableState),
-    Dict(dict::DictState),
-    Log(logger::LogState),
 }
