@@ -4,6 +4,7 @@ use crate::tracers::tracer::{DataEnvelope, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
+use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::data;
 use rill_protocol::io::provider::{
@@ -57,7 +58,9 @@ impl<T: data::State> StartedBy<RillWorker> for Recorder<T> {
                 ctx.attach(rx, ());
                 Ok(())
             }
-            TracerMode::Pull { .. } => {
+            TracerMode::Pull { interval, .. } => {
+                let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
+                let _task = ctx.spawn_task(heartbeat, ());
                 // Waiting for the subscribers to spawn a heartbeat activity
                 Ok(())
             }
@@ -103,6 +106,18 @@ impl<T: data::State> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         // TODO: Remove all subscribers
         ctx.shutdown();
         // TODO: Maybe send an instant `StopList` event and avoid shutdown for a while
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: data::State> OnTick for Recorder<T> {
+    async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
+        todo!()
+    }
+
+    async fn done(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }
