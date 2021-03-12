@@ -121,7 +121,7 @@ impl<T: data::State> OnTick for Recorder<T> {
                             .lock()
                             .map_err(|_| Error::msg("Can't lock state to send a state."))?
                             .clone();
-                        let response = ProviderToServer::BeginStream {
+                        let response = ProviderToServer::State {
                             state: state.into(),
                         };
                         let direction = self.get_direction();
@@ -166,7 +166,7 @@ impl<T: data::State> ActionHandler<link::ControlStream> for Recorder<T> {
             if msg.active {
                 if self.subscribers.insert(id) {
                     let state = self.get_snapshot();
-                    let response = ProviderToServer::BeginStream { state };
+                    let response = ProviderToServer::State { state };
                     let direction = Direction::from(msg.direct_id);
                     self.sender.response(direction, response);
                 } else {

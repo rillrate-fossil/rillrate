@@ -453,7 +453,7 @@ pub enum ProviderToServer {
     },
     // TODO: Rename `BeginStream` to `State`
     /// The response to `ControlStream { active: true }` request
-    BeginStream {
+    State {
         state: StreamState,
     },
     Data {

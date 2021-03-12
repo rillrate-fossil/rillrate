@@ -188,7 +188,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
                 let resp = ClientResponse::Delta(delta);
                 self.distribute_response(msg.0.direction, resp);
             }
-            ProviderToServer::BeginStream { state } => {
+            ProviderToServer::State { state } => {
                 let resp = ClientResponse::State(state);
                 self.distribute_response(msg.0.direction, resp);
             }
