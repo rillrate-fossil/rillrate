@@ -5,6 +5,7 @@ use meio::LiteTask;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
 use rill_protocol::data::{counter, dict, gauge, logger, table, Metric};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
+use std::convert::TryFrom;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -61,21 +62,21 @@ impl Observer {
         while let Some(msg) = subscription.next().await {
             match msg {
                 StateOrDelta::State(new_state) => {
-                    let new_state = T::try_from(new_state)?;
+                    let new_state = T::State::try_from(new_state)?;
                     state = Some(new_state);
                 }
                 StateOrDelta::Delta(delta) => {
                     if let Some(state) = state.as_mut() {
                         let events = T::try_extract(delta)?;
                         for event in events {
-                            state.apply(event);
+                            T::apply(state, event);
                         }
                     }
                 }
             }
             let pair = state
                 .as_ref()
-                .map(Extractor::to_value)
+                .map(T::to_value)
                 .and_then(std::convert::identity);
             if let Some((timestamp, value)) = pair {
                 let record = Record { timestamp, value };
@@ -92,11 +93,11 @@ impl LiteTask for Observer {
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
         match self.description.stream_type {
-            StreamType::CounterStream => self.state_routine::<counter::CounterState>().await,
-            StreamType::GaugeStream => self.state_routine::<gauge::GaugeState>().await,
-            StreamType::LogStream => self.state_routine::<logger::LogState>().await,
-            StreamType::DictStream => self.state_routine::<dict::DictState>().await,
-            StreamType::TableStream => self.state_routine::<table::TableState>().await,
+            StreamType::CounterStream => self.state_routine::<counter::CounterMetric>().await,
+            StreamType::GaugeStream => self.state_routine::<gauge::GaugeMetric>().await,
+            StreamType::LogStream => self.state_routine::<logger::LogMetric>().await,
+            StreamType::DictStream => self.state_routine::<dict::DictMetric>().await,
+            StreamType::TableStream => self.state_routine::<table::TableMetric>().await,
         }
     }
 }
@@ -124,19 +125,19 @@ impl Extractor for gauge::GaugeMetric {
 }
 
 impl Extractor for logger::LogMetric {
-    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
         None
     }
 }
 
 impl Extractor for table::TableMetric {
-    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
         None
     }
 }
 
 impl Extractor for dict::DictMetric {
-    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
         None
     }
 }
