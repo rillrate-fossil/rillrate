@@ -1,4 +1,4 @@
-use crate::io::codec::JsonCodec;
+use crate::io::codec::RRCodec;
 use crate::io::provider::{Description, EntryId, Path};
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use meio_protocol::Protocol;
@@ -13,7 +13,7 @@ impl Protocol for ClientProtocol {
     type ToServer = Envelope<Self, ClientRequest>;
     // TODO: Consider to disallow broadcasts and change to ordinary `Envelope`
     type ToClient = WideEnvelope<Self, ClientResponse>;
-    type Codec = JsonCodec;
+    type Codec = RRCodec;
 }
 
 impl Origin for ClientProtocol {}

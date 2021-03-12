@@ -1,15 +1,14 @@
 use anyhow::Error;
 use meio_protocol::{ProtocolCodec, ProtocolData};
 
-// TODO: Consider to move it to `meio-protocol`
-pub struct JsonCodec;
+pub struct RRCodec;
 
-impl ProtocolCodec for JsonCodec {
+impl ProtocolCodec for RRCodec {
     fn decode<T: ProtocolData>(data: &[u8]) -> Result<T, Error> {
-        serde_json::from_slice(data).map_err(Error::from)
+        flexbuffers::from_slice(data).map_err(Error::from)
     }
 
     fn encode<T: ProtocolData>(value: &T) -> Result<Vec<u8>, Error> {
-        serde_json::to_vec(value).map_err(Error::from)
+        flexbuffers::to_vec(value).map_err(Error::from)
     }
 }

@@ -1,4 +1,4 @@
-use crate::io::codec::JsonCodec;
+use crate::io::codec::RRCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
@@ -233,7 +233,7 @@ pub struct ProviderProtocol;
 impl Protocol for ProviderProtocol {
     type ToServer = WideEnvelope<Self, ProviderToServer>;
     type ToClient = Envelope<Self, ServerToProvider>;
-    type Codec = JsonCodec;
+    type Codec = RRCodec;
 }
 
 impl Origin for ProviderProtocol {}

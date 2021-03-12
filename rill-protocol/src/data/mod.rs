@@ -16,19 +16,19 @@ pub trait Metric: fmt::Debug + Send + 'static {
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
     fn pack_delta(delta: Delta<Self::Event>) -> Result<Vec<u8>, Error> {
-        serde_json::to_vec(&delta).map_err(Error::from)
+        flexbuffers::to_vec(&delta).map_err(Error::from)
     }
 
     fn unpack_delta(data: Vec<u8>) -> Result<Delta<Self::Event>, Error> {
-        serde_json::from_slice(&data).map_err(Error::from)
+        flexbuffers::from_slice(&data).map_err(Error::from)
     }
 
     fn pack_state(state: Self::State) -> Result<Vec<u8>, Error> {
-        serde_json::to_vec(&state).map_err(Error::from)
+        flexbuffers::to_vec(&state).map_err(Error::from)
     }
 
     fn unpack_state(data: Vec<u8>) -> Result<Self::State, Error> {
-        serde_json::from_slice(&data).map_err(Error::from)
+        flexbuffers::from_slice(&data).map_err(Error::from)
     }
 }
 
