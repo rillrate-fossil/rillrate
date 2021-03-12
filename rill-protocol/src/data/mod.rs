@@ -15,7 +15,14 @@ pub trait Convertable<T>: Into<T> + TryFrom<T, Error = ConvertError> {}
 impl<B, T> Convertable<T> for B where Self: Into<T> + TryFrom<T, Error = ConvertError> {}
 
 pub trait Metric: fmt::Debug + Send + 'static {
-    type State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send + 'static;
+    type State: DeserializeOwned
+        + Serialize
+        + Convertable<StreamState>
+        + Clone
+        + Default
+        + fmt::Debug
+        + Send
+        + 'static;
     type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
@@ -28,9 +35,13 @@ pub trait Metric: fmt::Debug + Send + 'static {
         serde_json::from_slice(&data).map_err(|_| ConvertError)
     }
 
-    // TODO: Add methods:
-    // - `pack_state(self) -> Result<Vec<u8>, ConvertError>`
-    // - `unpack_state(data: Vec<u8>) -> Result<Self, ConvertError>`
+    fn pack_state(state: Self::State) -> Result<Vec<u8>, ConvertError> {
+        serde_json::to_vec(&state).map_err(|_| ConvertError)
+    }
+
+    fn unpack_state(data: Vec<u8>) -> Result<Self::State, ConvertError> {
+        serde_json::from_slice(&data).map_err(|_| ConvertError)
+    }
 }
 
 pub type Delta<T> = Vec<TimedEvent<T>>;

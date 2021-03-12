@@ -454,7 +454,7 @@ pub enum ProviderToServer {
     // TODO: Rename `BeginStream` to `State`
     /// The response to `ControlStream { active: true }` request
     State {
-        state: StreamState,
+        state: Vec<u8>,
     },
     Data {
         /// Aggregated events.

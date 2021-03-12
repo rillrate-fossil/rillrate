@@ -5,7 +5,6 @@ use meio::LiteTask;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
 use rill_protocol::data::{counter, dict, gauge, logger, table, Metric};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
-use std::convert::TryFrom;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -62,7 +61,7 @@ impl Observer {
         while let Some(msg) = subscription.next().await {
             match msg {
                 StateOrDelta::State(new_state) => {
-                    let new_state = T::State::try_from(new_state)?;
+                    let new_state = T::unpack_state(new_state)?;
                     state = Some(new_state);
                 }
                 StateOrDelta::Delta(delta) => {

@@ -117,7 +117,7 @@ impl<T: data::Metric> OnTick for Recorder<T> {
                             .map_err(|_| Error::msg("Can't lock state to send a state."))?
                             .clone();
                         let response = ProviderToServer::State {
-                            state: state.into(),
+                            state: T::pack_state(state)?,
                         };
                         let direction = self.get_direction();
                         self.sender.response(direction, response);
@@ -161,7 +161,7 @@ impl<T: data::Metric> ActionHandler<link::ControlStream> for Recorder<T> {
             if msg.active {
                 if self.subscribers.insert(id) {
                     if let TracerMode::Push { state, .. } = &self.mode {
-                        let state = state.clone().into();
+                        let state = T::pack_state(state.clone())?;
                         let response = ProviderToServer::State { state };
                         let direction = Direction::from(msg.direct_id);
                         self.sender.response(direction, response);
