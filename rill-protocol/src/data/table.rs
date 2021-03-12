@@ -1,4 +1,5 @@
 use super::{Metric, TimedEvent};
+use crate::io::codec::vectorize;
 use crate::io::provider::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -45,7 +46,9 @@ impl Metric for TableMetric {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
+    #[serde(with = "vectorize")]
     pub columns: BTreeMap<ColId, ColRecord>,
+    #[serde(with = "vectorize")]
     pub rows: BTreeMap<RowId, RowRecord>,
 }
 
