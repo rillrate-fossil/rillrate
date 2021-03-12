@@ -20,7 +20,7 @@ pub trait Metric: fmt::Debug + Send + 'static {
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
-    // TODO: Replace with `pack_*` methods
+    // TODO: REMOVE THEM!
     fn wrap(events: Delta<Self::Event>) -> StreamDelta;
     fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError>;
 

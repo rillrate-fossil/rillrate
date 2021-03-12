@@ -82,7 +82,8 @@ impl<T: data::Metric> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         }
         if !self.subscribers.is_empty() {
             let response = ProviderToServer::Data {
-                delta: T::wrap(delta.clone()),
+                // TODO: Use a reference here? (no clone?)
+                delta: T::pack_delta(delta.clone())?,
             };
             let direction = self.get_direction();
             self.sender.response(direction, response);

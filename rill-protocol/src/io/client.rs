@@ -1,5 +1,5 @@
 use crate::io::codec::JsonCodec;
-use crate::io::provider::{Description, EntryId, Path, StreamDelta, StreamState};
+use crate::io::provider::{Description, EntryId, Path, StreamState};
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ pub enum ClientResponse {
     Declare(EntryId),
     Paths(Vec<Description>),
     State(StreamState),
-    Delta(StreamDelta),
+    Delta(Vec<u8>),
     /// Stream closed/finished.
     Done,
 }

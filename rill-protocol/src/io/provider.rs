@@ -458,7 +458,7 @@ pub enum ProviderToServer {
     },
     Data {
         /// Aggregated events.
-        delta: StreamDelta,
+        delta: Vec<u8>,
     },
     EndStream,
     Error {
