@@ -18,8 +18,16 @@ pub trait State: Convertable<StreamState> + Clone + Default + fmt::Debug + Send 
     type Event: Clone + fmt::Debug + Send + 'static;
 
     fn apply(&mut self, event: TimedEvent<Self::Event>);
+
+    // TODO: Replace with `pack_*` methods
     fn wrap(events: Delta<Self::Event>) -> StreamDelta;
     fn try_extract(delta: StreamDelta) -> Result<Delta<Self::Event>, ConvertError>;
+
+    // TODO: Add methods:
+    // - `pack_state(self) -> Vec<u8>`
+    // - `unpack_state(data: Vec<u8>) -> Self`
+    // - `pack_delta(delta: Delta<Self::Event>) -> Vec<u8>`
+    // - `unpack_delta(data: Vec<u8>) -> Delta<Self::Event>`
 }
 
 pub type Delta<T> = Vec<TimedEvent<T>>;
