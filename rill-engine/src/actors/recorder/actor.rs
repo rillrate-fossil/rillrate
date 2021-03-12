@@ -12,7 +12,7 @@ use rill_protocol::io::provider::{
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
-use std::sync::Arc;
+use std::sync::{Arc, Weak};
 
 pub(crate) struct Recorder<T: data::State> {
     description: Arc<Description>,
@@ -113,7 +113,31 @@ impl<T: data::State> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 #[async_trait]
 impl<T: data::State> OnTick for Recorder<T> {
     async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
-        todo!()
+        if !self.subscribers.is_empty() {
+            match &self.mode {
+                TracerMode::Pull { state, .. } => {
+                    if let Some(state) = Weak::upgrade(state) {
+                        let state = state
+                            .lock()
+                            .map_err(|_| Error::msg("Can't lock state to send a state."))?
+                            .clone();
+                        let response = ProviderToServer::BeginStream {
+                            state: state.into(),
+                        };
+                        let direction = self.get_direction();
+                        self.sender.response(direction, response);
+                    } else {
+                        // TODO: Consider to use a `channel` to get informed if the stream was
+                        // closed.
+                        ctx.shutdown();
+                    }
+                }
+                TracerMode::Push { .. } => {
+                    log::error!("Pulling tick received for the push mode.");
+                }
+            }
+        }
+        Ok(())
     }
 
     async fn done(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {

@@ -451,6 +451,7 @@ pub enum ProviderToServer {
     SnapshotReady {
         snapshot: Option<RillEvent>,
     },
+    // TODO: Rename `BeginStream` to `State`
     /// The response to `ControlStream { active: true }` request
     BeginStream {
         state: StreamState,
