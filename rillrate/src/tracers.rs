@@ -1,12 +1,14 @@
 //! The module with all adapted tracers.
 
 use anyhow::Error;
-use rill_engine::tracers::data::{CounterTracer, DictTracer, LogTracer, PulseTracer, TableTracer};
+use rill_engine::tracers::data::{
+    CounterTracer, DictTracer, GaugeTracer, LogTracer, PulseTracer, TableTracer,
+};
 use std::ops::Deref;
 use std::sync::Arc;
 
 macro_rules! impl_tracer {
-    ($wrapper:ident < $tracer:ident >) => {
+    ($wrapper:ident < $tracer:ident > ( $( $arg:ident : $typ:ty ),* )) => {
         impl Deref for $wrapper {
             type Target = $tracer;
 
@@ -17,9 +19,9 @@ macro_rules! impl_tracer {
 
         impl $wrapper {
             /// Creates an instance of the tracer.
-            pub fn create(path: &str) -> Result<Self, Error> {
+            pub fn create(path: &str, $( $arg : $typ ),*) -> Result<Self, Error> {
                 let path = path.parse()?;
-                let tracer = $tracer::new(path);
+                let tracer = $tracer::new(path, $( $arg ),*);
                 Ok(Self {
                     tracer: Arc::new(tracer),
                 })
@@ -34,12 +36,27 @@ pub struct Counter {
     tracer: Arc<CounterTracer>,
 }
 
-impl_tracer!(Counter<CounterTracer>);
+impl_tracer!(Counter<CounterTracer>());
 
 impl Counter {
     /// Increments value by the sepcific delta.
     pub fn inc(&self, delta: f64) {
         self.tracer.inc(delta, None);
+    }
+}
+
+/// `Gauge` tracer.
+#[derive(Debug, Clone)]
+pub struct Gauge {
+    tracer: Arc<GaugeTracer>,
+}
+
+impl_tracer!(Gauge<GaugeTracer>(min: f64, max: f64));
+
+impl Gauge {
+    /// Increments value by the sepcific delta.
+    pub fn set(&self, value: f64) {
+        self.tracer.set(value, None);
     }
 }
 
@@ -49,7 +66,7 @@ pub struct Pulse {
     tracer: Arc<PulseTracer>,
 }
 
-impl_tracer!(Pulse<PulseTracer>);
+impl_tracer!(Pulse<PulseTracer>());
 
 impl Pulse {
     /// Increments the value by the specific delta.
@@ -74,7 +91,7 @@ pub struct Logger {
     tracer: Arc<LogTracer>,
 }
 
-impl_tracer!(Logger<LogTracer>);
+impl_tracer!(Logger<LogTracer>());
 
 impl Logger {
     /// Writes a message.
@@ -89,7 +106,7 @@ pub struct Dict {
     tracer: Arc<DictTracer>,
 }
 
-impl_tracer!(Dict<DictTracer>);
+impl_tracer!(Dict<DictTracer>());
 
 impl Dict {
     /// Writes a message.
@@ -104,6 +121,6 @@ pub struct Table {
     tracer: Arc<TableTracer>,
 }
 
-impl_tracer!(Table<TableTracer>);
+impl_tracer!(Table<TableTracer>());
 
 impl Table {}
