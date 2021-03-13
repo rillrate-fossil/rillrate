@@ -1,10 +1,12 @@
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::LiteTask;
+use once_cell::sync::Lazy;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::data::{counter, dict, gauge, histogram, logger, pulse, table, Metric};
+use rill_protocol::data::{counter::CounterMetric, gauge::GaugeMetric, pulse::PulseMetric, Metric};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -33,6 +35,49 @@ impl SharedRecord {
 
     pub async fn get(&self) -> Option<Record> {
         self.protected_record.lock().await.clone()
+    }
+}
+
+static ROUTINES: Lazy<RoutineMap> = Lazy::new(|| {
+    let mut map = RoutineMap::new();
+    map.insert(CounterMetric);
+    map
+});
+
+struct RoutineMap {
+    map: HashMap<StreamType, Box<dyn AbstractObserver>>,
+}
+
+impl RoutineMap {
+    fn new() -> Self {
+        Self {
+            map: HashMap::new(),
+        }
+    }
+
+    fn insert<T: Extractor>(&mut self, extractor: T) {
+        let stream_type = T::stream_type();
+        let routine = Box::new(extractor);
+        self.map.insert(stream_type, routine);
+    }
+
+    fn get(&self, stream_type: &StreamType) -> Option<&dyn AbstractObserver> {
+        self.map.get(stream_type).map(Box::as_ref)
+    }
+}
+
+#[async_trait]
+trait AbstractObserver: Sync + Send {
+    async fn execute(&self, observer: Observer) -> Result<(), Error>;
+}
+
+#[async_trait]
+impl<T> AbstractObserver for T
+where
+    T: Extractor,
+{
+    async fn execute(&self, observer: Observer) -> Result<(), Error> {
+        observer.state_routine::<T>().await
     }
 }
 
@@ -93,14 +138,14 @@ impl LiteTask for Observer {
     type Output = ();
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
-        match self.description.stream_type {
-            StreamType::CounterStream => self.state_routine::<counter::CounterMetric>().await,
-            StreamType::GaugeStream => self.state_routine::<gauge::GaugeMetric>().await,
-            StreamType::PulseStream => self.state_routine::<pulse::PulseMetric>().await,
-            StreamType::LogStream => self.state_routine::<logger::LogMetric>().await,
-            StreamType::DictStream => self.state_routine::<dict::DictMetric>().await,
-            StreamType::TableStream => self.state_routine::<table::TableMetric>().await,
-            StreamType::HistogramStream => self.state_routine::<histogram::HistogramMetric>().await,
+        let stream_type = &self.description.stream_type;
+        if let Some(routine) = ROUTINES.get(&self.description.stream_type) {
+            routine.execute(self).await
+        } else {
+            Err(anyhow!(
+                "Streams with type {} are not supported.",
+                stream_type
+            ))
         }
     }
 }
@@ -111,49 +156,24 @@ trait Extractor: Metric {
     fn to_value(state: &Self::State) -> Option<(Timestamp, f64)>;
 }
 
-impl Extractor for counter::CounterMetric {
+impl Extractor for CounterMetric {
     fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state.timestamp.map(|ts| (ts, state.value))
     }
 }
 
-impl Extractor for gauge::GaugeMetric {
+impl Extractor for GaugeMetric {
     fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state.timestamp.map(|ts| (ts, state.value))
     }
 }
 
-impl Extractor for pulse::PulseMetric {
+impl Extractor for PulseMetric {
     fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state
             .frame
             .iter()
             .last()
             .map(|event| (event.timestamp, event.event.value))
-    }
-}
-
-impl Extractor for logger::LogMetric {
-    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
-        None
-    }
-}
-
-impl Extractor for table::TableMetric {
-    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
-        None
-    }
-}
-
-impl Extractor for dict::DictMetric {
-    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
-        None
-    }
-}
-
-impl Extractor for histogram::HistogramMetric {
-    fn to_value(_state: &Self::State) -> Option<(Timestamp, f64)> {
-        // TODO: Histogram result have to be here (not a plain timestamp)
-        todo!()
     }
 }

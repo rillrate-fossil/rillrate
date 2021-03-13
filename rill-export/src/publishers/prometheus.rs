@@ -11,10 +11,13 @@ use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
-use rill_protocol::data::{Metric, counter::CounterMetric, gauge::GaugeMetric, pulse::PulseMetric};
+use rill_protocol::data::{counter::CounterMetric, gauge::GaugeMetric, pulse::PulseMetric, Metric};
 use rill_protocol::io::provider::{Description, Path, PathPattern, StreamType};
 use serde::Deserialize;
-use std::collections::{btree_map::{BTreeMap, Entry}, HashMap};
+use std::collections::{
+    btree_map::{BTreeMap, Entry},
+    HashMap,
+};
 use strum::Display;
 
 struct Record {
