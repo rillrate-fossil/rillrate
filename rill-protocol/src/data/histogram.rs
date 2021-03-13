@@ -24,6 +24,7 @@ impl Metric for HistogramMetric {
                 for (level, stat) in &mut state.buckets {
                     if &expected <= level {
                         stat.add(amount);
+                        break;
                     }
                 }
             }
