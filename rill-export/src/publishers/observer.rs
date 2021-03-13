@@ -36,6 +36,8 @@ impl SharedRecord {
     }
 }
 
+/// `Observer` subscribes to a path and receives all the new values from the stream
+/// and writes values to a shared state (`SharedRecord`).
 pub struct Observer {
     description: Description,
     client: ClientLink,

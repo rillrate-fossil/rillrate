@@ -11,13 +11,22 @@ use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
+use rill_protocol::data::{Metric, counter::CounterMetric, gauge::GaugeMetric, pulse::PulseMetric};
 use rill_protocol::io::provider::{Description, Path, PathPattern, StreamType};
 use serde::Deserialize;
-use std::collections::btree_map::{BTreeMap, Entry};
+use std::collections::{btree_map::{BTreeMap, Entry}, HashMap};
+use strum::Display;
 
 struct Record {
     event: SharedRecord,
     description: Description,
+}
+
+#[derive(Debug, Display)]
+#[strum(serialize_all = "UPPERCASE")]
+enum PrometheusType {
+    Counter,
+    Gauge,
 }
 
 pub struct PrometheusPublisher {
@@ -26,6 +35,7 @@ pub struct PrometheusPublisher {
     client: ClientLink,
     server: HttpServerLink,
     metrics: BTreeMap<Path, Record>,
+    supported_types: HashMap<StreamType, PrometheusType>,
 }
 
 impl Publisher for PrometheusPublisher {
@@ -37,12 +47,17 @@ impl Publisher for PrometheusPublisher {
         client: ClientLink,
         server: &HttpServerLink,
     ) -> Self {
+        let mut supported_types = HashMap::new();
+        supported_types.insert(CounterMetric::stream_type(), PrometheusType::Counter);
+        supported_types.insert(GaugeMetric::stream_type(), PrometheusType::Gauge);
+        supported_types.insert(PulseMetric::stream_type(), PrometheusType::Gauge);
         Self {
             config,
             broadcaster,
             client,
             server: server.clone(),
             metrics: BTreeMap::new(),
+            supported_types,
         }
     }
 }
@@ -151,25 +166,23 @@ impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
             let info = &record.description.info;
             if let Some(event) = record.event.get().await {
                 let name = path.as_ref().join("_");
-                let typ = match record.description.stream_type {
-                    StreamType::CounterStream => "counter",
-                    StreamType::PulseStream => "gauge",
-                    _ => {
-                        log::error!(
-                            "Prometheus publisher is not supported type of stream: {}",
-                            record.description.stream_type
-                        );
-                        continue;
-                    }
-                };
-                let value = event.value;
-                let ts = event.timestamp;
-                let line = format!("# HELP {}\n", info);
-                buffer.push_str(&line);
-                let line = format!("# TYPE {} {}\n", name, typ);
-                buffer.push_str(&line);
-                let line = format!("{} {} {}\n\n", name, value, ts.as_millis());
-                buffer.push_str(&line);
+                let stream_type = &record.description.stream_type;
+                if let Some(typ) = self.supported_types.get(stream_type) {
+                    let value = event.value;
+                    let ts = event.timestamp;
+                    let line = format!("# HELP {}\n", info);
+                    buffer.push_str(&line);
+                    let line = format!("# TYPE {} {}\n", name, typ);
+                    buffer.push_str(&line);
+                    let line = format!("{} {} {}\n\n", name, value, ts.as_millis());
+                    buffer.push_str(&line);
+                } else {
+                    log::error!(
+                        "Prometheus publisher is not supported type of stream: {}",
+                        stream_type
+                    );
+                    continue;
+                }
             }
         }
         Ok(Response::new(buffer.into()))
