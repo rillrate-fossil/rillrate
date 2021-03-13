@@ -4,7 +4,7 @@ use rill_protocol::data::gauge::{GaugeEvent, GaugeMetric, GaugeState};
 use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
-/// Tracers `Gauge` metrics that can increments only.
+/// Tracers `Gauge` metrics.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct GaugeTracer {
     #[deref]

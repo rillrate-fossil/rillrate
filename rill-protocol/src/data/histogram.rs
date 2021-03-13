@@ -17,7 +17,7 @@ impl Metric for HistogramMetric {
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
-            HistogramEvent::Count(amount) => {
+            HistogramEvent::Add(amount) => {
                 state.total.add(amount);
                 let expected = OrderedFloat::from(amount);
                 for (level, stat) in &mut state.buckets {
@@ -76,5 +76,5 @@ pub type HistogramDelta = Vec<TimedEvent<HistogramEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum HistogramEvent {
-    Count(f64),
+    Add(f64),
 }

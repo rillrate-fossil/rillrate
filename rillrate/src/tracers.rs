@@ -2,7 +2,7 @@
 
 use anyhow::Error;
 use rill_engine::tracers::data::{
-    CounterTracer, DictTracer, GaugeTracer, LoggerTracer, PulseTracer, TableTracer,
+    CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
 use std::ops::Deref;
 use std::sync::Arc;
@@ -57,6 +57,21 @@ impl Gauge {
     /// Increments value by the sepcific delta.
     pub fn set(&self, value: f64) {
         self.tracer.set(value, None);
+    }
+}
+
+/// `Histogram` tracer.
+#[derive(Debug, Clone)]
+pub struct Histogram {
+    tracer: Arc<HistogramTracer>,
+}
+
+impl_tracer!(Histogram<HistogramTracer>(levels: &[f64]));
+
+impl Histogram {
+    /// Adds a value to the histogram.
+    pub fn add(&self, value: f64) {
+        self.tracer.add(value, None);
     }
 }
 

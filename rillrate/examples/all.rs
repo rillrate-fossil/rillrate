@@ -1,6 +1,6 @@
 use anyhow::Error;
 use rand::Rng;
-use rillrate::{Counter, Dict, Gauge, Logger, Pulse, RillRate, Table};
+use rillrate::{Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Table};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,

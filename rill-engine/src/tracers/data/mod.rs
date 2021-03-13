@@ -9,6 +9,9 @@ pub use dict::DictTracer;
 pub(crate) mod gauge;
 pub use gauge::GaugeTracer;
 
+pub(crate) mod histogram;
+pub use histogram::HistogramTracer;
+
 pub(crate) mod pulse;
 pub use pulse::PulseTracer;
 
