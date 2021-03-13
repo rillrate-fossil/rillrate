@@ -1,4 +1,5 @@
 use super::{Metric, TimedEvent};
+use crate::io::codec::vectorize;
 use crate::io::provider::StreamType;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
@@ -51,6 +52,7 @@ impl Stat {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HistogramState {
+    #[serde(with = "vectorize")]
     pub buckets: BTreeMap<OrderedFloat<f64>, Stat>,
     pub total: Stat,
 }
