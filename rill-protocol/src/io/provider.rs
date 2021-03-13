@@ -244,27 +244,6 @@ pub type ServerRequest = Envelope<ProviderProtocol, ServerToProvider>;
 pub type ProviderResponse = WideEnvelope<ProviderProtocol, ProviderToServer>;
 */
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum RillData {
-    /// Use empty strings if value is not provided.
-    ///
-    /// For `module` and `level` use `Path`s hierarchy.
-    // TODO: Fix names...
-    LogRecord {
-        message: String,
-    },
-    CounterRecord {
-        value: f64,
-    },
-    PulseValue {
-        value: f64,
-    },
-    // TODO: Join with aggregated
-    DictUpdate(DictUpdate),
-    EntryUpdate(EntryUpdate),
-    TableUpdate(TableUpdate),
-}
-
 // TODO: Rename to `DictDelta`
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DictUpdate {
@@ -321,12 +300,6 @@ pub enum TableUpdate {
         col: ColId,
         value: String,
     },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct RillEvent {
-    pub timestamp: Timestamp,
-    pub data: RillData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -404,10 +377,6 @@ pub enum ProviderToServer {
     // TODO: Consider renaming to ListReady
     Entries {
         entries: HashMap<EntryId, EntryType>,
-    },
-    // TODO: Join it with `BeginStream`?
-    SnapshotReady {
-        snapshot: Option<RillEvent>,
     },
     /// The response to `ControlStream { active: true }` request
     State {
