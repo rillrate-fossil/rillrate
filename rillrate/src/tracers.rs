@@ -2,7 +2,7 @@
 
 use anyhow::Error;
 use rill_engine::tracers::data::{
-    CounterTracer, DictTracer, GaugeTracer, LogTracer, PulseTracer, TableTracer,
+    CounterTracer, DictTracer, GaugeTracer, LoggerTracer, PulseTracer, TableTracer,
 };
 use std::ops::Deref;
 use std::sync::Arc;
@@ -88,10 +88,10 @@ impl Pulse {
 /// `Logger` tracer.
 #[derive(Debug, Clone)]
 pub struct Logger {
-    tracer: Arc<LogTracer>,
+    tracer: Arc<LoggerTracer>,
 }
 
-impl_tracer!(Logger<LogTracer>());
+impl_tracer!(Logger<LoggerTracer>());
 
 impl Logger {
     /// Writes a message.

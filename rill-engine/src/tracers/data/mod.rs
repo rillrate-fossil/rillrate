@@ -13,7 +13,7 @@ pub(crate) mod pulse;
 pub use pulse::PulseTracer;
 
 pub(crate) mod logger;
-pub use logger::LogTracer;
+pub use logger::LoggerTracer;
 
 pub(crate) mod table;
 pub use table::TableTracer;

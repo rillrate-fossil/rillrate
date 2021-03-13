@@ -4,11 +4,11 @@ use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
-pub struct LogMetric;
+pub struct LoggerMetric;
 
-impl Metric for LogMetric {
-    type State = LogState;
-    type Event = LogEvent;
+impl Metric for LoggerMetric {
+    type State = LoggerState;
+    type Event = LoggerEvent;
 
     fn stream_type() -> StreamType {
         StreamType::from("rillrate.logger.v0")
@@ -20,11 +20,11 @@ impl Metric for LogMetric {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogState {
-    pub frame: Frame<TimedEvent<LogEvent>>,
+pub struct LoggerState {
+    pub frame: Frame<TimedEvent<LoggerEvent>>,
 }
 
-impl LogState {
+impl LoggerState {
     pub fn new() -> Self {
         Self {
             frame: Frame::new(10),
@@ -32,10 +32,10 @@ impl LogState {
     }
 }
 
-pub type LogDelta = Vec<TimedEvent<LogEvent>>;
+pub type LoggerDelta = Vec<TimedEvent<LoggerEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogEvent {
+pub struct LoggerEvent {
     // TODO: Replace with enum
     pub msg: String,
 }

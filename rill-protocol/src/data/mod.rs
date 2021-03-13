@@ -11,7 +11,7 @@ pub mod histogram;
 pub use histogram::HistogramMetric;
 
 pub mod logger;
-pub use logger::LogMetric;
+pub use logger::LoggerMetric;
 
 pub mod pulse;
 pub use pulse::PulseMetric;
