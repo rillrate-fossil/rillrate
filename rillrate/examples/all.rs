@@ -61,6 +61,10 @@ fn main() -> Result<(), Error> {
         }
 
         let my_gauge = Gauge::create("my.gauge", 0.0, 100.0)?;
+        let my_hist = Histogram::create(
+            "my.histogram",
+            &[10.0, 50.0, 100.0, 200.0, 500.0, 1_000.0, 5_000.0],
+        )?;
 
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
@@ -68,12 +72,14 @@ fn main() -> Result<(), Error> {
             counter += 1;
             my_dict.set("state", "step 1");
             my_gauge.set(rand::thread_rng().gen_range(0.0..100.0));
+            my_hist.add(150.0);
             for x in 0..3 {
                 counter_two.inc(1.0);
                 fast_pulse.set(x as f64);
                 random_pulse.set(rand::random());
                 thread::sleep(Duration::from_millis(100));
                 fast_logger.log(format!("first loop - {}/{}", counter, x));
+                my_hist.add(30.0);
             }
             pulse.set(1.0);
             my_dict.set("state", "step 2");
@@ -83,6 +89,7 @@ fn main() -> Result<(), Error> {
                 random_pulse.set(rand::random());
                 thread::sleep(Duration::from_millis(100));
                 fast_logger.log(format!("second loop - {}/{}", counter, x));
+                my_hist.add(100.0);
             }
             my_dict.set("state", "last");
             pulse.set(10.0);
