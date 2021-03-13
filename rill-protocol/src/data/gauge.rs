@@ -45,7 +45,7 @@ impl GaugeState {
     pub fn pct(&self) -> f64 {
         let value = self.value - self.min;
         let diff = self.max - self.min;
-        value / diff
+        ((value / diff) * 100.0).round()
     }
 }
 
