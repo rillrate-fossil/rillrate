@@ -20,6 +20,9 @@ impl GaugeTracer {
         if min > max {
             std::mem::swap(&mut min, &mut max);
         }
+        if min == max {
+            max = min + 1.0;
+        }
         let state = GaugeState::new(min, max);
         let tracer = Tracer::new(state, path, None);
         Self { tracer, min, max }

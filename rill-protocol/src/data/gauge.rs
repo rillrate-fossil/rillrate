@@ -33,6 +33,7 @@ pub struct GaugeState {
 
 impl GaugeState {
     pub fn new(min: f64, max: f64) -> Self {
+        // TODO: Check min != max?
         Self {
             min,
             max,
@@ -42,13 +43,9 @@ impl GaugeState {
     }
 
     pub fn pct(&self) -> f64 {
-        let divisor = self.value - self.min;
-        if divisor == 0.0 {
-            self.min
-        } else {
-            let diff = self.max - self.min;
-            diff / divisor
-        }
+        let value = self.value - self.min;
+        let diff = self.max - self.min;
+        value / diff
     }
 }
 
