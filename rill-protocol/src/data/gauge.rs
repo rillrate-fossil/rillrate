@@ -40,6 +40,16 @@ impl GaugeState {
             value: 0.0,
         }
     }
+
+    pub fn pct(&self) -> f64 {
+        let divisor = self.value - self.min;
+        if divisor == 0.0 {
+            self.min
+        } else {
+            let diff = self.max - self.min;
+            diff / divisor
+        }
+    }
 }
 
 pub type GaugeDelta = Vec<TimedEvent<GaugeEvent>>;
