@@ -1,7 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::data::gauge::{GaugeEvent, GaugeMetric, GaugeState};
-use rill_protocol::io::provider::{Description, Path, StreamType};
+use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
 /// Tracers `Gauge` metrics that can increments only.
@@ -17,17 +17,11 @@ pub struct GaugeTracer {
 impl GaugeTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path, mut min: f64, mut max: f64) -> Self {
-        let info = format!("{} gauge", path);
-        let description = Description {
-            path,
-            info,
-            stream_type: StreamType::GaugeStream,
-        };
         if min > max {
             std::mem::swap(&mut min, &mut max);
         }
         let state = GaugeState::new(min, max);
-        let tracer = Tracer::new(state, description, None);
+        let tracer = Tracer::new(state, path, None);
         Self { tracer, min, max }
     }
 

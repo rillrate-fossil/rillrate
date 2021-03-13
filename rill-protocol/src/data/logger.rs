@@ -1,5 +1,6 @@
 use super::{Metric, TimedEvent};
 use crate::frame::Frame;
+use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
@@ -8,6 +9,10 @@ pub struct LogMetric;
 impl Metric for LogMetric {
     type State = LogState;
     type Event = LogEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.logger.v0")
+    }
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         state.frame.insert(event);

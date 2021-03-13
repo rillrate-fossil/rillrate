@@ -1,7 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::data::logger::{LogEvent, LogMetric, LogState};
-use rill_protocol::io::provider::{Description, Path, StreamType};
+use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
 /// This tracer sends text messages.
@@ -13,14 +13,8 @@ pub struct LogTracer {
 impl LogTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let info = format!("{} logger", path);
-        let description = Description {
-            path,
-            info,
-            stream_type: StreamType::LogStream,
-        };
         let state = LogState::new();
-        let tracer = Tracer::new(state, description, None);
+        let tracer = Tracer::new(state, path, None);
         Self { tracer }
     }
 

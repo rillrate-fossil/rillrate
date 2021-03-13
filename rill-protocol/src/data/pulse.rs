@@ -1,5 +1,6 @@
 use super::{Metric, TimedEvent};
 use crate::frame::Frame;
+use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
@@ -8,6 +9,10 @@ pub struct PulseMetric;
 impl Metric for PulseMetric {
     type State = PulseState;
     type Event = PulseEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.pulse.v0")
+    }
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {

@@ -80,7 +80,14 @@ impl<T: data::Metric> Clone for Tracer<T> {
 }
 
 impl<T: data::Metric> Tracer<T> {
-    pub(crate) fn new(state: T::State, description: Description, pull: Option<Duration>) -> Self {
+    pub(crate) fn new(state: T::State, path: Path, pull: Option<Duration>) -> Self {
+        let stream_type = T::stream_type();
+        let info = format!("{} - {}", path, stream_type);
+        let description = Description {
+            path,
+            info,
+            stream_type,
+        };
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {:?}", description.path);

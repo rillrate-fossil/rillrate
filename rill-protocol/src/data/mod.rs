@@ -7,7 +7,7 @@ pub mod pulse;
 pub mod table;
 
 use crate::encoding;
-use crate::io::provider::Timestamp;
+use crate::io::provider::{StreamType, Timestamp};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
@@ -15,6 +15,8 @@ use std::fmt;
 pub trait Metric: fmt::Debug + Send + 'static {
     type State: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
     type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
+
+    fn stream_type() -> StreamType;
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 

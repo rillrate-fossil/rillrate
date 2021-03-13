@@ -1,4 +1,5 @@
 use super::{Metric, TimedEvent};
+use crate::io::provider::StreamType;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -9,6 +10,10 @@ pub struct HistogramMetric;
 impl Metric for HistogramMetric {
     type State = HistogramState;
     type Event = HistogramEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.histogram.v0")
+    }
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {

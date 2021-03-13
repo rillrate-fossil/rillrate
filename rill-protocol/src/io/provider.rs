@@ -349,7 +349,7 @@ pub enum ServerToProvider {
     },
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum EntryType {
     Node,
     Container,
@@ -371,31 +371,18 @@ impl fmt::Display for EntryType {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum StreamType {
-    LogStream,
-    CounterStream,
-    GaugeStream,
-    PulseStream,
-    DictStream,
-    TableStream,
-    HistogramStream,
-    //EntryStream,
-}
+#[derive(Debug, Clone, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct StreamType(String);
 
 impl fmt::Display for StreamType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
-            Self::LogStream => "log",
-            Self::CounterStream => "counter",
-            Self::GaugeStream => "gauge",
-            Self::PulseStream => "pulse",
-            Self::DictStream => "dict",
-            Self::TableStream => "table",
-            Self::HistogramStream => "histogram",
-            //Self::EntryStream => "entry",
-        };
-        value.fmt(f)
+        self.0.fmt(f)
+    }
+}
+
+impl From<&str> for StreamType {
+    fn from(name: &str) -> Self {
+        Self(name.into())
     }
 }
 

@@ -1,6 +1,6 @@
 use super::{Metric, TimedEvent};
 use crate::io::codec::vectorize;
-use crate::io::provider::{ColId, RowId};
+use crate::io::provider::{ColId, RowId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -10,6 +10,10 @@ pub struct TableMetric;
 impl Metric for TableMetric {
     type State = TableState;
     type Event = TableEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.table.v0")
+    }
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {

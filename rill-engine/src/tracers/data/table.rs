@@ -1,7 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::data::table::{TableEvent, TableMetric, TableState};
-use rill_protocol::io::provider::{ColId, Description, Path, RowId, StreamType};
+use rill_protocol::io::provider::{ColId, Path, RowId};
 use std::time::SystemTime;
 
 /// This tracer sends text messages.
@@ -13,14 +13,8 @@ pub struct TableTracer {
 impl TableTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let info = format!("{} table", path);
-        let description = Description {
-            path,
-            info,
-            stream_type: StreamType::TableStream,
-        };
         let state = TableState::new();
-        let tracer = Tracer::new(state, description, None);
+        let tracer = Tracer::new(state, path, None);
         Self { tracer }
     }
 
