@@ -57,3 +57,28 @@ pub struct TimedEvent<T> {
     pub timestamp: Timestamp,
     pub event: T,
 }
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+pub struct Pct(f64);
+
+impl Pct {
+    pub fn new(mut value: f64) -> Self {
+        // TODO: Use `clamp` here.
+        if value < 0.0 {
+            value = 0.0;
+        } else if value > 1.0 {
+            value = 1.0;
+        }
+        Self(value)
+    }
+
+    pub fn to_cent(&self) -> f64 {
+        (self.0 * 100.0).round()
+    }
+}
+
+impl Into<f64> for Pct {
+    fn into(self) -> f64 {
+        self.0
+    }
+}

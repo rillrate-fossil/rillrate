@@ -1,4 +1,4 @@
-use super::{Metric, TimedEvent};
+use super::{Metric, Pct, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
@@ -42,10 +42,10 @@ impl GaugeState {
         }
     }
 
-    pub fn pct(&self) -> f64 {
+    pub fn pct(&self) -> Pct {
         let value = self.value - self.min;
         let diff = self.max - self.min;
-        ((value / diff) * 100.0).round()
+        Pct::new(value / diff)
     }
 }
 
