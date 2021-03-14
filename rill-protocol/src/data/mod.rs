@@ -24,6 +24,7 @@ use crate::io::provider::{StreamType, Timestamp};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
+use std::ops::Deref;
 
 pub trait Metric: fmt::Debug + Sync + Send + 'static {
     type State: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
@@ -94,8 +95,10 @@ impl Pct {
     }
 }
 
-impl Into<f64> for Pct {
-    fn into(self) -> f64 {
-        self.0
+impl Deref for Pct {
+    type Target = f64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
