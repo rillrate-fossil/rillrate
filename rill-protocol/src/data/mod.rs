@@ -62,7 +62,7 @@ pub struct TimedEvent<T> {
 pub struct Pct(f64);
 
 impl Pct {
-    pub fn new(mut value: f64) -> Self {
+    pub fn from_value(mut value: f64) -> Self {
         // TODO: Use `clamp` here.
         if value < 0.0 {
             value = 0.0;
@@ -70,6 +70,23 @@ impl Pct {
             value = 1.0;
         }
         Self(value)
+    }
+
+    pub fn from_div(value: f64, total: f64) -> Self {
+        let pct = {
+            if total == 0.0 {
+                0.0
+            } else {
+                value / total
+            }
+        };
+        Pct::from_value(pct)
+    }
+
+    pub fn from_range(value: f64, min: f64, max: f64) -> Self {
+        let value = value - min;
+        let diff = max - min;
+        Pct::from_div(value, diff)
     }
 
     pub fn to_cent(&self) -> f64 {

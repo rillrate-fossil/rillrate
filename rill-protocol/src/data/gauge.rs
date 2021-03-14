@@ -43,9 +43,7 @@ impl GaugeState {
     }
 
     pub fn pct(&self) -> Pct {
-        let value = self.value - self.min;
-        let diff = self.max - self.min;
-        Pct::new(value / diff)
+        Pct::from_range(self.value, self.min, self.max)
     }
 }
 

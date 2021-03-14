@@ -1,4 +1,4 @@
-use super::{Metric, TimedEvent};
+use super::{Metric, Pct, TimedEvent};
 use crate::io::codec::vectorize;
 use crate::io::provider::StreamType;
 use ordered_float::OrderedFloat;
@@ -73,6 +73,21 @@ impl HistogramState {
             total: Stat::default(),
         }
     }
+
+    pub fn bars(&self) -> impl Iterator<Item = Bar> + '_ {
+        let total = self.total.sum;
+        self.buckets.iter().map(move |(level, stat)| Bar {
+            level: **level,
+            count: stat.count,
+            pct: Pct::from_div(stat.sum, total),
+        })
+    }
+}
+
+pub struct Bar {
+    pub level: f64,
+    pub count: u64,
+    pub pct: Pct,
 }
 
 pub type HistogramDelta = Vec<TimedEvent<HistogramEvent>>;
