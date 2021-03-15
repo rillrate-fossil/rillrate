@@ -1,6 +1,6 @@
 [package]
 name = "rillrate"
-version = "0.22.1"
+version = "0.23.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",
@@ -22,10 +22,10 @@ async-trait = "0.1.48"
 log = "0.4.14"
 meio = "0.84.0"
 meio-connect = "0.84.0"
-rill-engine = { version = "0.22.1", path = "../rill-engine" }
-rill-export = { version = "0.22.1", path = "../rill-export" }
-rill-protocol = { version = "0.22.1", path = "../rill-protocol" }
-rill-server = { version = "0.22.1", path = "../rill-server" }
+rill-engine = { version = "0.23.0", path = "../rill-engine" }
+rill-export = { version = "0.23.0", path = "../rill-export" }
+rill-protocol = { version = "0.23.0", path = "../rill-protocol" }
+rill-server = { version = "0.23.0", path = "../rill-server" }
 serde = "1.0.124"
 tokio = { version = "1.3.0", features = ["full"] }
 #tokio-stream = { version = "0.1.3", features = ["sync"] }

@@ -1,6 +1,6 @@
 [package]
 name = "rill-client"
-version = "0.22.1"
+version = "0.23.0"
 authors = [
     "Denis Kolodin <deniskolodin@gmail.com>",
     "overfloat <rillrate@gmail.com>",
@@ -23,6 +23,6 @@ futures = "0.3.13"
 log = "0.4.14"
 meio = "0.84.0"
 meio-connect = "0.84.0"
-rill-protocol = { version = "0.22.1", path = "../rill-protocol" }
+rill-protocol = { version = "0.23.0", path = "../rill-protocol" }
 thiserror = "1.0.24"
 typed-slab = "0.1.0"
