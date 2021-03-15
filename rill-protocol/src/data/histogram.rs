@@ -77,7 +77,7 @@ impl HistogramState {
     pub fn bars(&self) -> impl Iterator<Item = Bar> + '_ {
         let total = self.total.sum;
         self.buckets.iter().map(move |(level, stat)| Bar {
-            level: **level,
+            level: *level,
             count: stat.count,
             pct: Pct::from_div(stat.sum, total),
         })
@@ -85,7 +85,7 @@ impl HistogramState {
 }
 
 pub struct Bar {
-    pub level: f64,
+    pub level: OrderedFloat<f64>,
     pub count: u64,
     pub pct: Pct,
 }
