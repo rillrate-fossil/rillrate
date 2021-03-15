@@ -2,6 +2,15 @@
 
 Dynamic tracing system that tends to be real-time.
 
+<img src="https://ui.rillrate.com/images/dashboard.png" width="400px">
+
+It's the **real full-stack Rust app** from the backend to the frontend.
+
+Consider to become a sponsor of the project and join our live webinars
+to see how we develop full-stack app using Rust only.
+
+[:heart: Sponsor](https://github.com/sponsors/rillrate)
+
 ## How to use
 
 Any supported language has a special description how to use the library.
