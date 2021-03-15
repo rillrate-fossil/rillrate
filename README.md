@@ -13,20 +13,18 @@ to see how we develop full-stack app using Rust only.
 
 ## How to use
 
-Any supported language has a special description how to use the library.
+Each supported language has its own instructions.
 
 ### Native extension
 
-This library implemented with Rust and available for other languages as native extension.
-The main reason why it's not implemented as pure modules to give you as much as possible
-speed to delivery any metric fast and try not to affect to the performance of the app.
+This library is implemented with Rust and available for other languages as native extensions.
+It is implemented this way to deliver the fastest possible performance and to try not to affect
+the performance of the app.
 
 ### Supported languages
 
-This crate is the implementation of `rillrate` tracing system that can be used
-in Rust directly or in other languages (Python, Node.js) throung special thin bindings.
-
-All the bindings/libs will be available for languages:
+This crate is the implementation of the `rillrate` tracing system. It can be used
+in Rust directly or in other languages (Python, Node.js) through thin bindings.
 
 Ready to use:
 
@@ -47,25 +45,26 @@ Scheduled:
 
 ## Dashboard
 
-It shipped with embedded node that can be used to check any metrics in-place.
+`rillrate` ships with an embedded node that can be used to check any metrics in-place.
 Just install the library and open `http://localhost:9090/` in your browser.
 
-You will get access to the fast UI: `RillRate View` dashboard that can activate
+You will get access to the `RillRate View` dashboard that can activate
 any available stream of data in your app and visualize it.
 
 ## Exporters
 
-`rillrate` can export metrics to third-party service. To use it you should activate
-necessary exporters in a config file. The list of supported systems:
+`rillrate` can export metrics to third-party services by activating them in a config file.
+
+The list of supported systems:
 
 - Prometheus
 - Graphite
 
 ### Prometheus
 
-Why we used `9090` port for standalone server? You guess correct: it contains
+Why did we use `9090` port for the inline server? You guessed it: it works as a
 `Prometheus` endpoint that can be activated with a configuration file. Just add
-to the workdir the file `rillrate.toml` that contains:
+a file called `rillrate.toml` to the working directory that contains the following:
 
 ```toml
 [server]
@@ -78,4 +77,4 @@ paths = [
 ]
 ```
 
-And you can get metrics from `http://<server-ip>:9090/metrics`.
+and access metrics from `http://<server-ip>:9090/metrics`.
