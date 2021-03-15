@@ -1,4 +1,5 @@
 use super::{Metric, Pct, TimedEvent};
+use crate::frame::Frame;
 use crate::io::codec::vectorize;
 use crate::io::provider::StreamType;
 use ordered_float::OrderedFloat;
@@ -27,6 +28,20 @@ impl Metric for HistogramMetric {
                         break;
                     }
                 }
+
+                // If sliding window is active
+                if let Some(frame) = state.frame.as_mut() {
+                    if let Some(amount) = frame.insert_pop(amount) {
+                        state.total.del(amount);
+                        let expected = OrderedFloat::from(amount);
+                        for (level, stat) in &mut state.buckets {
+                            if &expected <= level {
+                                stat.del(amount);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -49,6 +64,11 @@ impl Stat {
         self.sum += value;
         self.count += 1;
     }
+
+    fn del(&mut self, value: f64) {
+        self.sum -= value;
+        self.count -= 1;
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,10 +76,11 @@ pub struct HistogramState {
     #[serde(with = "vectorize")]
     pub buckets: BTreeMap<OrderedFloat<f64>, Stat>,
     pub total: Stat,
+    frame: Option<Frame<f64>>,
 }
 
 impl HistogramState {
-    pub fn new(levels: &[f64]) -> Self {
+    pub fn new(levels: &[f64], window: Option<u32>) -> Self {
         let mut buckets: BTreeMap<_, _> = levels
             .iter()
             .map(|level| (OrderedFloat::from(*level), Stat::default()))
@@ -69,6 +90,7 @@ impl HistogramState {
         Self {
             buckets,
             total: Stat::default(),
+            frame: window.map(|size| Frame::new(size)),
         }
     }
 

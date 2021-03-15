@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
-static DEFAULT_SIZE: usize = 20;
+static DEFAULT_SIZE: u32 = 20;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Frame<T> {
-    size: usize,
+    /// Size specified to have predictable seialization behavior.
+    size: u32,
     frame: VecDeque<T>,
 }
 
@@ -16,20 +17,29 @@ impl<T> Default for Frame<T> {
 }
 
 impl<T> Frame<T> {
-    pub fn new(size: usize) -> Self {
+    pub fn new(size: u32) -> Self {
         Self {
             size,
-            frame: VecDeque::with_capacity(size),
+            frame: VecDeque::with_capacity(size as usize),
         }
     }
 
     /// Returns a reference to the inserted element.
     pub fn insert(&mut self, item: T) -> &T {
-        if self.frame.len() > self.size {
-            self.frame.pop_front();
-        }
-        self.frame.push_back(item);
+        self.insert_pop(item);
         self.frame.back().unwrap()
+    }
+
+    pub fn insert_pop(&mut self, item: T) -> Option<T> {
+        let result = {
+            if self.frame.len() > self.size as usize {
+                self.frame.pop_front()
+            } else {
+                None
+            }
+        };
+        self.frame.push_back(item);
+        result
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
