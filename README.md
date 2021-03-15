@@ -4,10 +4,10 @@ Dynamic tracing system that tends to be real-time.
 
 <img src="https://ui.rillrate.com/images/dashboard.png" width="400px">
 
-It's the **real full-stack Rust app** from the backend to the frontend.
+`rillrate` is a **real, full-stack Rust app** from the backend to the web dashboard.
 
-Consider to become a sponsor of the project and join our live webinars
-to see how we develop full-stack app using Rust only.
+Consider becoming a sponsor of the project and joining our live
+webinars to see how we develop full-stack app using only Rust.
 
 [:heart: Sponsor](https://github.com/sponsors/rillrate)
 
@@ -29,8 +29,8 @@ in Rust directly or in other languages (Python, Node.js) through thin bindings.
 Ready to use:
 
 - Rust
-- Python
-- Node.js
+- [Python](https://github.com/rillrate/rillrate-py)
+- [Node.js](https://github.com/rillrate/rillrate-js)
 
 In progress:
 
