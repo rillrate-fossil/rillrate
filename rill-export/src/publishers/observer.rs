@@ -122,7 +122,7 @@ impl Observer {
             }
             let pair = state
                 .as_ref()
-                .map(T::to_value)
+                .map(T::get_value)
                 .and_then(std::convert::identity);
             if let Some((timestamp, value)) = pair {
                 let record = Record { timestamp, value };
@@ -153,23 +153,23 @@ impl LiteTask for Observer {
 /// Converts a state and deltas into a flow of numeric values
 /// suitable for the metrics tracing systems.
 trait Extractor: Metric {
-    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)>;
+    fn get_value(state: &Self::State) -> Option<(Timestamp, f64)>;
 }
 
 impl Extractor for CounterMetric {
-    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+    fn get_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state.timestamp.map(|ts| (ts, state.value))
     }
 }
 
 impl Extractor for GaugeMetric {
-    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+    fn get_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state.timestamp.map(|ts| (ts, state.value))
     }
 }
 
 impl Extractor for PulseMetric {
-    fn to_value(state: &Self::State) -> Option<(Timestamp, f64)> {
+    fn get_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state
             .frame
             .iter()

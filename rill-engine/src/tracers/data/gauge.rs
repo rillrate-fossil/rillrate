@@ -20,7 +20,7 @@ impl GaugeTracer {
         if min > max {
             std::mem::swap(&mut min, &mut max);
         }
-        if min == max {
+        if (min - max).abs() < f64::EPSILON {
             max = min + 1.0;
         }
         let state = GaugeState::new(min, max);

@@ -161,10 +161,10 @@ impl ProviderSession {
 
     fn send_done_marker_for(&mut self, rule: ClientRule) {
         if let ClientRule::Forward { sender, req_id } = rule {
-            let resp = ClientResponse::Done;
+            let data = ClientResponse::Done;
             let envelope = WideEnvelope {
                 direction: req_id.into(),
-                data: resp.clone(),
+                data,
             };
             sender.send(envelope);
         }

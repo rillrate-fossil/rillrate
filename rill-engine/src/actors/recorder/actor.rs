@@ -179,11 +179,13 @@ impl<T: data::Metric> ActionHandler<link::ControlStream> for Recorder<T> {
                     log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
                 }
             }
+            /*
             if self.subscribers.is_empty() {
                 // TODO: Terminate `HeartBeat`
             } else {
                 // TODO: Spawn a `HeartBeat` state extractor
             }
+            */
         } else {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
         }
