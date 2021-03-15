@@ -27,6 +27,12 @@ pub struct Broadcaster {
     recipients: HashMap<Path, Record>,
 }
 
+impl Default for Broadcaster {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Broadcaster {
     pub fn new() -> Self {
         Self {

@@ -111,11 +111,9 @@ impl RillClient {
         event: StateOrDelta,
     ) {
         for direction in direction.into_vec() {
-            if let Some(record) = self.directions.get_mut(direction) {
-                if let Record::Active { sender, .. } = record {
-                    if let Err(err) = sender.send(event.clone()).await {
-                        log::error!("Can't send data to {:?}: {}", direction, err);
-                    }
+            if let Some(Record::Active { sender, .. }) = self.directions.get_mut(direction) {
+                if let Err(err) = sender.send(event.clone()).await {
+                    log::error!("Can't send data to {:?}: {}", direction, err);
                 }
             }
         }

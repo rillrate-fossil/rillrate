@@ -65,9 +65,7 @@ impl HistogramState {
             .map(|level| (OrderedFloat::from(*level), Stat::default()))
             .collect();
         let inf_level = OrderedFloat::from(f64::INFINITY);
-        if !buckets.contains_key(&inf_level) {
-            buckets.insert(inf_level, Stat::default());
-        }
+        buckets.entry(inf_level).or_default();
         Self {
             buckets,
             total: Stat::default(),

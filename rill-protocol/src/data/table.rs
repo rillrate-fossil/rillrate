@@ -56,6 +56,7 @@ pub struct TableState {
     pub rows: BTreeMap<RowId, RowRecord>,
 }
 
+#[allow(clippy::new_without_default)]
 impl TableState {
     pub fn new() -> Self {
         Self {

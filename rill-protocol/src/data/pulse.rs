@@ -46,6 +46,7 @@ pub struct PulseState {
     value: f64,
 }
 
+#[allow(clippy::new_without_default)]
 impl PulseState {
     pub fn new() -> Self {
         Self {

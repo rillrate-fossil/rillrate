@@ -24,6 +24,7 @@ pub struct LoggerState {
     pub frame: Frame<TimedEvent<LoggerEvent>>,
 }
 
+#[allow(clippy::new_without_default)]
 impl LoggerState {
     pub fn new() -> Self {
         Self {

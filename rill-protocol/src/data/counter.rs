@@ -29,6 +29,7 @@ pub struct CounterState {
     pub value: f64,
 }
 
+#[allow(clippy::new_without_default)]
 impl CounterState {
     pub fn new() -> Self {
         Self {

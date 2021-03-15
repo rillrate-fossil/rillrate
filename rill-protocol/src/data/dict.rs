@@ -28,6 +28,7 @@ pub struct DictState {
     pub map: BTreeMap<String, String>,
 }
 
+#[allow(clippy::new_without_default)]
 impl DictState {
     pub fn new() -> Self {
         Self {
