@@ -15,7 +15,10 @@ in all details on Zoom webinars and influence the direction of the development.
 
 ## How to use
 
-Each supported language has its own instructions.
+The [documentation](https://rillrate.com/docs/basics/intro/) has Rust,
+Python and Node.js guides for embeding a rillrate service in an
+application. For exploring rillrate itself, there is a standalone
+server.
 
 ### Native extension
 
