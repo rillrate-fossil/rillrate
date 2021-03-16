@@ -6,8 +6,10 @@ Dynamic tracing system that tends to be real-time.
 
 `rillrate` is a **real, full-stack Rust app** from the backend to the web dashboard.
 
-Consider becoming a sponsor of the project and joining our live
-webinars to see how we develop full-stack app using only Rust.
+We give our sponsors the opportunity to watch how we develop the full-stack Rust application
+in all details on Zoom webinars and influence the direction of the development.
+
+> Webinars available for `Insider` tier of sponsorship.
 
 [:heart: Sponsor](https://github.com/sponsors/rillrate)
 
