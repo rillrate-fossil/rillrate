@@ -16,8 +16,11 @@ impl Metric for DictMetric {
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
-            DictEvent::SetValue { key, value } => {
+            DictEvent::Assign { key, value } => {
                 state.map.insert(key, value);
+            }
+            DictEvent::Remove { key } => {
+                state.map.remove(&key);
             }
         }
     }
@@ -41,5 +44,6 @@ pub type DictDelta = Vec<TimedEvent<DictEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DictEvent {
-    SetValue { key: String, value: String },
+    Assign { key: String, value: String },
+    Remove { key: String },
 }
