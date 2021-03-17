@@ -11,7 +11,11 @@
 
 ## Linux
 
-No issues. Just compile it with Rust compiler.
+```bash
+git clone https://github.com/rillrate/rillrate.git
+cd rillrate
+cargo build
+```
 
 ## Mac
 
