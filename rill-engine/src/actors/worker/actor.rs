@@ -251,7 +251,12 @@ impl<T: data::Metric> InstantActionHandler<state::RegisterTracer<T>> for RillWor
             let actor = Recorder::new(description.clone(), sender, msg.mode);
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
+            // Send a description that's new tracer added
+            let msg = ProviderToServer::Description {
+                list: vec![Description::clone(&description)],
+            };
             self.registered.insert(recorder.id().into(), description);
+            self.send_global(msg);
         } else {
             log::error!("Provider for {} already registered.", path);
         }

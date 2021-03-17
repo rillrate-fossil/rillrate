@@ -94,7 +94,7 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
         msg: WsIncoming<Envelope<ClientProtocol, ClientRequest>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        log::trace!("Client incoming message: {:?}", msg);
+        log::trace!("Client request: {:?}", msg);
         // TODO: Return `Error` response to the client by WS
         match msg.0.data {
             ClientRequest::ControlStream { path, active } => {
