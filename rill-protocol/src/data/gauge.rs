@@ -3,7 +3,7 @@ use crate::io::provider::{StreamType, Timestamp};
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GaugeMetric;
 
 impl Metric for GaugeMetric {

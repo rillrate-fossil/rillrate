@@ -6,7 +6,7 @@ use crate::range::Range;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PulseMetric;
 
 impl Metric for PulseMetric {

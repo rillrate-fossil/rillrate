@@ -20,20 +20,30 @@ pub mod table;
 pub use table::TableMetric;
 
 use crate::encoding;
-use crate::io::provider::{PackedDelta, PackedState, StreamType, Timestamp};
+use crate::io::provider::{PackedDelta, PackedMetric, PackedState, StreamType, Timestamp};
 use crate::range::Range;
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
 use std::ops::Deref;
 
-pub trait Metric: fmt::Debug + Sync + Send + 'static {
+pub trait Metric: DeserializeOwned + Serialize + fmt::Debug + Sync + Send + 'static {
     type State: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
     type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
 
     fn stream_type() -> StreamType;
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
+
+    fn pack_metric(&self) -> Result<PackedMetric, Error> {
+        encoding::to_vec(self)
+            .map_err(Error::from)
+            .map(PackedMetric::from)
+    }
+
+    fn unpack_metric(data: &PackedMetric) -> Result<Self, Error> {
+        encoding::from_slice(&data.0).map_err(Error::from)
+    }
 
     fn pack_delta(delta: &Delta<Self::Event>) -> Result<PackedDelta, Error> {
         encoding::to_vec(delta)

@@ -4,7 +4,7 @@ use crate::io::provider::{ColId, RowId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TableMetric;
 
 impl Metric for TableMetric {

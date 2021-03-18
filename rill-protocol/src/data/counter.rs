@@ -2,7 +2,7 @@ use super::{Metric, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CounterMetric;
 
 impl Metric for CounterMetric {
