@@ -380,7 +380,7 @@ pub struct Description {
     pub path: Path,
     pub info: String,
     pub stream_type: StreamType,
-    //pub metadata: PackedMetric,
+    pub metadata: PackedMetric,
 }
 
 #[derive(Clone, From, Into, Serialize, Deserialize)]

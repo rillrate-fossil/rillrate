@@ -1,26 +1,30 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
-use crate::tracers::tracer::{DataEnvelope, TracerMode};
+use crate::tracers::tracer::{DataEnvelope, TracerDescription, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::data;
-use rill_protocol::io::provider::{Description, ProviderProtocol, ProviderReqId, ProviderToServer};
+use rill_protocol::io::provider::{ProviderProtocol, ProviderReqId, ProviderToServer};
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
 
 pub(crate) struct Recorder<T: data::Metric> {
-    description: Arc<Description>,
+    description: Arc<TracerDescription<T>>,
     sender: RillSender,
     mode: TracerMode<T>,
     subscribers: HashSet<ProviderReqId>,
 }
 
 impl<T: data::Metric> Recorder<T> {
-    pub fn new(description: Arc<Description>, sender: RillSender, mode: TracerMode<T>) -> Self {
+    pub fn new(
+        description: Arc<TracerDescription<T>>,
+        sender: RillSender,
+        mode: TracerMode<T>,
+    ) -> Self {
         Self {
             description,
             sender,

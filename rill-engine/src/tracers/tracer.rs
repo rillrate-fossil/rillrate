@@ -1,5 +1,6 @@
 //! This module contains a generic `Tracer`'s methods.
 use crate::state::RILL_LINK;
+use anyhow::Error;
 use futures::channel::mpsc;
 use meio::Action;
 use rill_protocol::data::{self, TimedEvent};
@@ -59,13 +60,32 @@ impl<T: data::Metric> Clone for InnerMode<T> {
     }
 }
 
+#[derive(Debug)]
+pub struct TracerDescription<T> {
+    pub path: Path,
+    pub info: String,
+    pub metric: T,
+}
+
+impl<T: data::Metric> TracerDescription<T> {
+    pub fn to_description(&self) -> Result<Description, Error> {
+        let metadata = self.metric.pack_metric()?;
+        Ok(Description {
+            path: self.path.clone(),
+            info: self.info.clone(),
+            stream_type: T::stream_type(),
+            metadata,
+        })
+    }
+}
+
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
 pub struct Tracer<T: data::Metric> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
-    description: Arc<Description>,
+    description: Arc<TracerDescription<T>>,
     mode: InnerMode<T>,
 }
 
@@ -80,14 +100,10 @@ impl<T: data::Metric> Clone for Tracer<T> {
 }
 
 impl<T: data::Metric> Tracer<T> {
-    pub(crate) fn new(_metric: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
+    pub(crate) fn new(metric: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
-        let description = Description {
-            path,
-            info,
-            stream_type,
-        };
+        let description = TracerDescription { path, info, metric };
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {:?}", description.path);

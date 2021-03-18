@@ -19,7 +19,6 @@ use rill_protocol::io::provider::{
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use rill_protocol::pathfinder::{Pathfinder, Record};
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::time::Duration;
 
 /// Wrapper for WebSocket connection for sending responses (notifications) to a server.
@@ -59,7 +58,7 @@ pub struct RillWorker {
     sender: RillSender,
     recorders: Pathfinder<RecorderLink>,
     describe: bool,
-    registered: HashMap<Id, Arc<Description>>,
+    registered: HashMap<Id, Description>,
 }
 
 impl RillWorker {
@@ -246,16 +245,18 @@ impl<T: data::Metric> InstantActionHandler<state::RegisterTracer<T>> for RillWor
         log::info!("Add tracer: {:?}", path);
         let record = self.recorders.dig(path.clone());
         if record.get_link().is_none() {
+            let packed_desc = description.to_description()?;
             let sender = self.sender.clone();
             //let link = ctx.address().link();
             let actor = Recorder::new(description.clone(), sender, msg.mode);
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             // Send a description that's new tracer added
+            // TODO: Generate a message if subscriber exists
             let msg = ProviderToServer::Description {
-                list: vec![Description::clone(&description)],
+                list: vec![packed_desc.clone()],
             };
-            self.registered.insert(recorder.id().into(), description);
+            self.registered.insert(recorder.id().into(), packed_desc);
             self.send_global(msg);
         } else {
             log::error!("Provider for {} already registered.", path);

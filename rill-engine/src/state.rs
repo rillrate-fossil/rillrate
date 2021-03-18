@@ -1,12 +1,11 @@
 use crate::actors::worker::RillWorker;
-use crate::tracers::tracer::TracerMode;
+use crate::tracers::tracer::{TracerDescription, TracerMode};
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 use meio::{InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
 use rill_protocol::data;
-use rill_protocol::io::provider::Description;
 use std::sync::Arc;
 
 /// It used by tracers to register them into the state.
@@ -32,7 +31,7 @@ impl RillState {
 
     pub fn register_tracer<T>(
         &self,
-        description: Arc<Description>,
+        description: Arc<TracerDescription<T>>,
         mode: TracerMode<T>,
     ) -> Result<(), Error>
     where
@@ -52,7 +51,7 @@ impl RillState {
 }
 
 pub(crate) struct RegisterTracer<T: data::Metric> {
-    pub description: Arc<Description>,
+    pub description: Arc<TracerDescription<T>>,
     pub mode: TracerMode<T>,
 }
 
