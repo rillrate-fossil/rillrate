@@ -34,3 +34,9 @@ impl Range {
         }
     }
 }
+
+impl From<(f64, f64)> for Range {
+    fn from((min, max): (f64, f64)) -> Self {
+        Range::new(min, max)
+    }
+}

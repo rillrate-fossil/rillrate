@@ -4,6 +4,7 @@ use anyhow::Error;
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
+use rill_protocol::range::Range;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -81,7 +82,7 @@ pub struct Pulse {
     tracer: Arc<PulseTracer>,
 }
 
-impl_tracer!(Pulse<PulseTracer>());
+impl_tracer!(Pulse<PulseTracer>(range: Option<Range>, has_window: bool));
 
 impl Pulse {
     /// Increments the value by the specific delta.
