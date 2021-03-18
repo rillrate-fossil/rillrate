@@ -34,23 +34,23 @@ pub trait Metric: fmt::Debug + Sync + Send + 'static {
 
     fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
-    fn pack_delta(delta: Delta<Self::Event>) -> Result<PackedDelta, Error> {
-        encoding::to_vec(&delta)
+    fn pack_delta(delta: &Delta<Self::Event>) -> Result<PackedDelta, Error> {
+        encoding::to_vec(delta)
             .map_err(Error::from)
             .map(PackedDelta::from)
     }
 
-    fn unpack_delta(data: PackedDelta) -> Result<Delta<Self::Event>, Error> {
+    fn unpack_delta(data: &PackedDelta) -> Result<Delta<Self::Event>, Error> {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 
-    fn pack_state(state: Self::State) -> Result<PackedState, Error> {
-        encoding::to_vec(&state)
+    fn pack_state(state: &Self::State) -> Result<PackedState, Error> {
+        encoding::to_vec(state)
             .map_err(Error::from)
             .map(PackedState::from)
     }
 
-    fn unpack_state(data: PackedState) -> Result<Self::State, Error> {
+    fn unpack_state(data: &PackedState) -> Result<Self::State, Error> {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 }

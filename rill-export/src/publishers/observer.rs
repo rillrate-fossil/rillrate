@@ -108,12 +108,12 @@ impl Observer {
         while let Some(msg) = subscription.next().await {
             match msg {
                 StateOrDelta::State(new_state) => {
-                    let new_state = T::unpack_state(new_state)?;
+                    let new_state = T::unpack_state(&new_state)?;
                     state = Some(new_state);
                 }
                 StateOrDelta::Delta(delta) => {
                     if let Some(state) = state.as_mut() {
-                        let events = T::unpack_delta(delta)?;
+                        let events = T::unpack_delta(&delta)?;
                         for event in events {
                             T::apply(state, event);
                         }
