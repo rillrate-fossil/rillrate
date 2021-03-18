@@ -33,7 +33,7 @@ impl Metric for PulseMetric {
         if let Some(range) = state.range.as_ref() {
             range.clamp(&mut value);
         }
-        let point = GaugePoint { value };
+        let point = PulsePoint { value };
         let timed_event = TimedEvent {
             timestamp: event.timestamp,
             event: point,
@@ -43,14 +43,14 @@ impl Metric for PulseMetric {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaugePoint {
+pub struct PulsePoint {
     pub value: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulseState {
     pub range: Option<Range>,
-    pub frame: Frame<TimedEvent<GaugePoint>>,
+    pub frame: Frame<TimedEvent<PulsePoint>>,
     /// Intermediate counter value. Not available for changing!!!
     value: f64,
 }
@@ -79,7 +79,7 @@ impl PulseState {
     }
 }
 
-pub type GaugeDelta = Vec<TimedEvent<PulseEvent>>;
+pub type PulseDelta = Vec<TimedEvent<PulseEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PulseEvent {
