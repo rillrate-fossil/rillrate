@@ -52,7 +52,7 @@ impl ProviderSession {
 
     fn send_request(&mut self, direct_id: ProviderReqId, data: ServerToProvider) {
         let envelope = Envelope { direct_id, data };
-        log::trace!("Sending request to the server: {:?}", envelope);
+        //log::trace!("Sending request to the server: {:?}", envelope);
         self.handler.send(envelope);
     }
 
@@ -182,7 +182,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
         msg: WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        log::trace!("Provider incoming message: {:?}", msg);
+        //log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {
             ProviderToServer::Data { delta } => {
                 let resp = ClientResponse::Delta(delta);
