@@ -28,10 +28,12 @@ impl Metric for PulseMetric {
                 state.value = value;
             }
         }
+        // Use the clamped value if a range set, but don't affect the state.
+        let mut value = state.value;
         if let Some(range) = state.range.as_ref() {
-            range.clamp(&mut state.value);
+            range.clamp(&mut value);
         }
-        let point = GaugePoint { value: state.value };
+        let point = GaugePoint { value };
         let timed_event = TimedEvent {
             timestamp: event.timestamp,
             event: point,
