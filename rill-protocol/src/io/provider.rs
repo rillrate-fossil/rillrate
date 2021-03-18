@@ -366,6 +366,28 @@ pub struct Description {
     pub stream_type: StreamType,
 }
 
+#[derive(Clone, From, Into, Serialize, Deserialize)]
+pub struct PackedState(pub Vec<u8>);
+
+impl fmt::Debug for PackedState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PackedState")
+            .field("payload_size", &self.0.len())
+            .finish()
+    }
+}
+
+#[derive(Clone, From, Into, Serialize, Deserialize)]
+pub struct PackedDelta(pub Vec<u8>);
+
+impl fmt::Debug for PackedDelta {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PackedDelta")
+            .field("payload_size", &self.0.len())
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProviderToServer {
     Declare {
@@ -380,11 +402,11 @@ pub enum ProviderToServer {
     },
     /// The response to `ControlStream { active: true }` request
     State {
-        state: Vec<u8>,
+        state: PackedState,
     },
     Data {
         /// Aggregated events.
-        delta: Vec<u8>,
+        delta: PackedDelta,
     },
     EndStream,
     Error {

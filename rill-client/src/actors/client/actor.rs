@@ -12,7 +12,7 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
-use rill_protocol::io::provider::Path;
+use rill_protocol::io::provider::{PackedDelta, PackedState, Path};
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
@@ -226,6 +226,6 @@ impl InstantActionHandler<link::UnsubscribeFromPath> for RillClient {
 // TODO: Move somewwhere?
 #[derive(Debug, Clone)]
 pub enum StateOrDelta {
-    State(Vec<u8>),
-    Delta(Vec<u8>),
+    State(PackedState),
+    Delta(PackedDelta),
 }
