@@ -5,7 +5,7 @@ use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 use std::fmt;
 use std::iter::FromIterator;
 use std::str::FromStr;
@@ -268,6 +268,14 @@ impl fmt::Display for ColId {
     }
 }
 
+impl TryFrom<usize> for ColId {
+    type Error = <u64 as TryFrom<usize>>::Error;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        value.try_into().map(Self)
+    }
+}
+
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
@@ -276,6 +284,14 @@ pub struct RowId(pub u64);
 impl fmt::Display for RowId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+impl TryFrom<usize> for RowId {
+    type Error = <u64 as TryFrom<usize>>::Error;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        value.try_into().map(Self)
     }
 }
 
