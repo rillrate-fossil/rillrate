@@ -4,6 +4,7 @@ use crate::frame::Frame;
 use crate::io::provider::StreamType;
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 #[derive(Debug)]
 pub struct PulseMetric;
@@ -77,13 +78,15 @@ impl PulseState {
         self.frame.size() > 1
     }
 
+    pub fn range(&self) -> Cow<Range> {
+        self.range.as_ref().map(Cow::Borrowed).unwrap_or_else(|| {
+            // TODO: Calc min and max from Frame
+            Cow::Owned(Range::new(0.0, 100.0))
+        })
+    }
+
     pub fn pct(&self) -> Pct {
-        if let Some(range) = self.range.as_ref() {
-            Pct::from_range(self.value, range)
-        } else {
-            // TODO: If frame exists than calculate in that range
-            Pct::from_value(0.0)
-        }
+        Pct::from_range(self.value, self.range().as_ref())
     }
 }
 
