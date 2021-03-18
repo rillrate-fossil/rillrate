@@ -2,7 +2,6 @@ use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::data::pulse::{PulseEvent, PulseMetric, PulseState};
 use rill_protocol::io::provider::Path;
-use rill_protocol::range::Range;
 use std::time::SystemTime;
 
 /// Sends metrics as `pulse` that can change value to any.
@@ -13,15 +12,8 @@ pub struct PulseTracer {
 
 impl PulseTracer {
     /// Creates a new `Pulse` tracer.
-    pub fn new(path: Path, range: Option<Range>, has_window: bool) -> Self {
-        let depth = {
-            if has_window {
-                Some(100)
-            } else {
-                None
-            }
-        };
-        let state = PulseState::new(range, depth);
+    pub fn new(path: Path) -> Self {
+        let state = PulseState::new(None, Some(100));
         let tracer = Tracer::new(state, path, None);
         Self { tracer }
     }
