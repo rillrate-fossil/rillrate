@@ -4,7 +4,7 @@ use futures::StreamExt;
 use meio::LiteTask;
 use once_cell::sync::Lazy;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::data::{counter::CounterMetric, gauge::GaugeMetric, pulse::PulseMetric, Metric};
+use rill_protocol::data::{pulse::PulseMetric, Metric};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -38,9 +38,10 @@ impl SharedRecord {
     }
 }
 
+// TODO: Remove all this things...
 static ROUTINES: Lazy<RoutineMap> = Lazy::new(|| {
     let mut map = RoutineMap::new();
-    map.insert(CounterMetric);
+    map.insert(PulseMetric::Pulse);
     map
 });
 
@@ -154,18 +155,6 @@ impl LiteTask for Observer {
 /// suitable for the metrics tracing systems.
 trait Extractor: Metric {
     fn get_value(state: &Self::State) -> Option<(Timestamp, f64)>;
-}
-
-impl Extractor for CounterMetric {
-    fn get_value(state: &Self::State) -> Option<(Timestamp, f64)> {
-        state.timestamp.map(|ts| (ts, state.value))
-    }
-}
-
-impl Extractor for GaugeMetric {
-    fn get_value(state: &Self::State) -> Option<(Timestamp, f64)> {
-        state.timestamp.map(|ts| (ts, state.value))
-    }
 }
 
 impl Extractor for PulseMetric {

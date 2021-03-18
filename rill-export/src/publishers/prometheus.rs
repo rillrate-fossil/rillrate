@@ -11,7 +11,7 @@ use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
-use rill_protocol::data::{counter::CounterMetric, gauge::GaugeMetric, pulse::PulseMetric, Metric};
+use rill_protocol::data::{pulse::PulseMetric, Metric};
 use rill_protocol::io::provider::{Description, Path, PathPattern, StreamType};
 use serde::Deserialize;
 use std::collections::{
@@ -28,7 +28,6 @@ struct Record {
 #[derive(Debug, Display)]
 #[strum(serialize_all = "UPPERCASE")]
 enum PrometheusType {
-    Counter,
     Gauge,
 }
 
@@ -51,8 +50,6 @@ impl Publisher for PrometheusPublisher {
         server: &HttpServerLink,
     ) -> Self {
         let mut supported_types = HashMap::new();
-        supported_types.insert(CounterMetric::stream_type(), PrometheusType::Counter);
-        supported_types.insert(GaugeMetric::stream_type(), PrometheusType::Gauge);
         supported_types.insert(PulseMetric::stream_type(), PrometheusType::Gauge);
         Self {
             config,

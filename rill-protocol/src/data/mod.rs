@@ -1,11 +1,5 @@
-pub mod counter;
-pub use counter::CounterMetric;
-
 pub mod dict;
 pub use dict::DictMetric;
-
-pub mod gauge;
-pub use gauge::GaugeMetric;
 
 pub mod histogram;
 pub use histogram::HistogramMetric;
