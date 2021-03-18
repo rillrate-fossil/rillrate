@@ -380,6 +380,18 @@ pub struct Description {
     pub path: Path,
     pub info: String,
     pub stream_type: StreamType,
+    //pub metadata: PackedMetric,
+}
+
+#[derive(Clone, From, Into, Serialize, Deserialize)]
+pub struct PackedMetric(pub Vec<u8>);
+
+impl fmt::Debug for PackedMetric {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PackedMetric")
+            .field("size", &self.0.len())
+            .finish()
+    }
 }
 
 #[derive(Clone, From, Into, Serialize, Deserialize)]
@@ -388,7 +400,7 @@ pub struct PackedState(pub Vec<u8>);
 impl fmt::Debug for PackedState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PackedState")
-            .field("payload_size", &self.0.len())
+            .field("size", &self.0.len())
             .finish()
     }
 }
@@ -399,7 +411,7 @@ pub struct PackedDelta(pub Vec<u8>);
 impl fmt::Debug for PackedDelta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PackedDelta")
-            .field("payload_size", &self.0.len())
+            .field("size", &self.0.len())
             .finish()
     }
 }

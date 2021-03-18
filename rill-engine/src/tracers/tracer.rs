@@ -80,7 +80,7 @@ impl<T: data::Metric> Clone for Tracer<T> {
 }
 
 impl<T: data::Metric> Tracer<T> {
-    pub(crate) fn new(state: T::State, path: Path, pull: Option<Duration>) -> Self {
+    pub(crate) fn new(_metric: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
         let description = Description {

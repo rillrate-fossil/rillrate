@@ -14,9 +14,10 @@ pub struct GaugeTracer {
 impl GaugeTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path, min: f64, max: f64) -> Self {
+        let metric = PulseMetric;
         let range = Range::new(min, max);
         let state = PulseState::new(Some(range), None);
-        let tracer = Tracer::new(state, path, None);
+        let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }
     }
 
