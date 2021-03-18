@@ -20,8 +20,8 @@ anyhow = "1.0.38"
 async-trait = "0.1.48"
 #futures = "0.3.13"
 log = "0.4.14"
-meio = "0.84.0"
-meio-connect = "0.84.0"
+meio = "0.84.1"
+meio-connect = "0.84.1"
 rill-engine = { version = "0.23.1", path = "../rill-engine" }
 rill-export = { version = "0.23.1", path = "../rill-export" }
 rill-protocol = { version = "0.23.1", path = "../rill-protocol" }
