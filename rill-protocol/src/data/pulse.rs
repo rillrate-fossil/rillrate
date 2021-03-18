@@ -69,6 +69,14 @@ impl PulseState {
             value: 0.0,
         }
     }
+
+    pub fn has_range(&self) -> bool {
+        self.range.is_some()
+    }
+
+    pub fn has_window(&self) -> bool {
+        self.frame.size() > 1
+    }
 }
 
 pub type GaugeDelta = Vec<TimedEvent<PulseEvent>>;

@@ -53,4 +53,8 @@ impl<T> Frame<T> {
             None
         }
     }
+
+    pub fn size(&self) -> u32 {
+        self.size
+    }
 }
