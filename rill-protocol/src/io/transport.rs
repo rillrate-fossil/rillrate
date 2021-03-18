@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::fmt;
 use std::marker::PhantomData;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,10 +18,16 @@ pub struct WideEnvelope<T: Origin, D> {
 /// The origin of `DirectId`.
 pub trait Origin: Default + Clone {}
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct DirectId<T: Origin> {
     value: u64,
     origin: PhantomData<T>,
+}
+
+impl<T: Origin> fmt::Debug for DirectId<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("DirectId").field(&self.value).finish()
+    }
 }
 
 impl<T: Origin> From<usize> for DirectId<T> {
