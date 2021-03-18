@@ -1,6 +1,8 @@
 use super::{Metric, TimedEvent};
+// TODO: Join `Frame` and `Range` into a single module.
 use crate::frame::Frame;
 use crate::io::provider::StreamType;
+use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
@@ -26,6 +28,9 @@ impl Metric for PulseMetric {
                 state.value = value;
             }
         }
+        if let Some(range) = state.range.as_ref() {
+            range.clamp(&mut state.value);
+        }
         let point = GaugePoint { value: state.value };
         let timed_event = TimedEvent {
             timestamp: event.timestamp,
@@ -42,16 +47,22 @@ pub struct GaugePoint {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulseState {
+    pub range: Option<Range>,
     pub frame: Frame<TimedEvent<GaugePoint>>,
     value: f64,
 }
 
 #[allow(clippy::new_without_default)]
 impl PulseState {
-    pub fn new() -> Self {
+    pub fn new(range: Option<Range>, depth: Option<u32>) -> Self {
+        let mut depth = depth.unwrap_or_default();
+        if depth == 0 {
+            depth = 1;
+        }
         Self {
             // TODO: Use duration for removing obsolete values instead
-            frame: Frame::new(100),
+            range: range,
+            frame: Frame::new(depth),
             value: 0.0,
         }
     }
