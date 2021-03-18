@@ -1,4 +1,4 @@
-use super::{Metric, TimedEvent};
+use super::{Metric, Pct, TimedEvent};
 // TODO: Join `Frame` and `Range` into a single module.
 use crate::frame::Frame;
 use crate::io::provider::StreamType;
@@ -55,7 +55,6 @@ pub struct PulseState {
     value: f64,
 }
 
-#[allow(clippy::new_without_default)]
 impl PulseState {
     pub fn new(range: Option<Range>, depth: Option<u32>) -> Self {
         let mut depth = depth.unwrap_or_default();
@@ -76,6 +75,15 @@ impl PulseState {
 
     pub fn has_window(&self) -> bool {
         self.frame.size() > 1
+    }
+
+    pub fn pct(&self) -> Pct {
+        if let Some(range) = self.range.as_ref() {
+            Pct::from_range(self.value, range)
+        } else {
+            // TODO: If frame exists than calculate in that range
+            Pct::from_value(0.0)
+        }
     }
 }
 

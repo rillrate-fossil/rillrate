@@ -21,6 +21,7 @@ pub use table::TableMetric;
 
 use crate::encoding;
 use crate::io::provider::{PackedDelta, PackedState, StreamType, Timestamp};
+use crate::range::Range;
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
@@ -63,6 +64,7 @@ pub struct TimedEvent<T> {
     pub event: T,
 }
 
+// TODO: Move to the same mode with Range and Frame
 #[derive(Debug, Clone, Copy, Deserialize, Serialize)]
 pub struct Pct(f64);
 
@@ -88,9 +90,9 @@ impl Pct {
         Pct::from_value(pct)
     }
 
-    pub fn from_range(value: f64, min: f64, max: f64) -> Self {
-        let value = value - min;
-        let diff = max - min;
+    pub fn from_range(value: f64, range: &Range) -> Self {
+        let value = value - range.min();
+        let diff = range.diff();
         Pct::from_div(value, diff)
     }
 

@@ -1,5 +1,6 @@
 use super::{Metric, Pct, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
+use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
@@ -43,7 +44,7 @@ impl GaugeState {
     }
 
     pub fn pct(&self) -> Pct {
-        Pct::from_range(self.value, self.min, self.max)
+        Pct::from_range(self.value, &Range::new(self.min, self.max))
     }
 }
 
