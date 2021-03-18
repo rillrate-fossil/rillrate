@@ -13,7 +13,7 @@ pub struct CounterTracer {
 impl CounterTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path) -> Self {
-        let metric = PulseMetric;
+        let metric = PulseMetric::Counter;
         let state = PulseState::new(None, None);
         let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }

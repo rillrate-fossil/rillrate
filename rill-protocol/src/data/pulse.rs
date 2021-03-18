@@ -7,7 +7,12 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PulseMetric;
+pub enum PulseMetric {
+    // TODO: Move parameters here from `State`
+    Gauge,
+    Counter,
+    Pulse,
+}
 
 impl Metric for PulseMetric {
     type State = PulseState;
