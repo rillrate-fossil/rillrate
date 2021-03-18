@@ -45,4 +45,12 @@ impl<T> Frame<T> {
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.frame.iter()
     }
+
+    pub fn last(&self) -> Option<&T> {
+        if !self.frame.is_empty() {
+            self.frame.get(self.frame.len() - 1)
+        } else {
+            None
+        }
+    }
 }

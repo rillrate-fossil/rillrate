@@ -49,6 +49,7 @@ pub struct GaugePoint {
 pub struct PulseState {
     pub range: Option<Range>,
     pub frame: Frame<TimedEvent<GaugePoint>>,
+    /// Intermediate counter value. Not available for changing!!!
     value: f64,
 }
 
