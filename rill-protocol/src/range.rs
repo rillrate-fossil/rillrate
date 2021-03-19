@@ -1,9 +1,10 @@
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Range {
-    min: f64,
-    max: f64,
+    min: OrderedFloat<f64>,
+    max: OrderedFloat<f64>,
 }
 
 impl Range {
@@ -11,26 +12,26 @@ impl Range {
         if min > max {
             std::mem::swap(&mut min, &mut max);
         }
-        Self { min, max }
+        Self { min: OrderedFloat::from(min), max: OrderedFloat::from(max) }
     }
 
     pub fn min(&self) -> f64 {
-        self.min
+        *self.min
     }
 
     pub fn max(&self) -> f64 {
-        self.max
+        *self.max
     }
 
     pub fn diff(&self) -> f64 {
-        self.max - self.min
+        *(self.max - self.min)
     }
 
     pub fn clamp(&self, value: &mut f64) {
-        if *value < self.min {
-            *value = self.min
-        } else if *value > self.max {
-            *value = self.max
+        if *value < *self.min {
+            *value = *self.min
+        } else if *value > *self.max {
+            *value = *self.max
         }
     }
 }

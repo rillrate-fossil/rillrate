@@ -8,9 +8,10 @@ use std::borrow::Cow;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PulseMetric {
-    // TODO: Move parameters here from `State`
-    Gauge,
     Counter,
+    Gauge {
+        range: Range,
+    },
     Pulse,
 }
 
