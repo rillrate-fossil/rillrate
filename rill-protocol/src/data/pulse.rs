@@ -58,10 +58,7 @@ pub struct PulseState {
 
 impl PulseState {
     pub fn new(depth: Option<u32>) -> Self {
-        let mut depth = depth.unwrap_or_default();
-        if depth == 0 {
-            depth = 1;
-        }
+        let depth = depth.unwrap_or(128);
         Self {
             // TODO: Use duration for removing obsolete values instead
             frame: Frame::new(depth),
