@@ -40,6 +40,10 @@ impl GaugeState {
         }
     }
 
+    pub fn value(&self) -> Option<(Timestamp, f64)> {
+        self.timestamp.map(|ts| (ts, self.value))
+    }
+
     /*
     pub fn pct(&self) -> Pct {
         Pct::from_range(self.value, &Range::new(self.min, self.max))

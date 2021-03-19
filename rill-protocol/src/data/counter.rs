@@ -37,6 +37,10 @@ impl CounterState {
             value: 0.0,
         }
     }
+
+    pub fn value(&self) -> Option<(Timestamp, f64)> {
+        self.timestamp.map(|ts| (ts, self.value))
+    }
 }
 
 pub type CounterDelta = Vec<TimedEvent<CounterEvent>>;
