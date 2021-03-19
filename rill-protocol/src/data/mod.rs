@@ -1,17 +1,10 @@
+pub mod counter;
 pub mod dict;
-pub use dict::DictMetric;
-
+pub mod gauge;
 pub mod histogram;
-pub use histogram::HistogramMetric;
-
 pub mod logger;
-pub use logger::LoggerMetric;
-
 pub mod pulse;
-pub use pulse::PulseMetric;
-
 pub mod table;
-pub use table::TableMetric;
 
 use crate::encoding;
 use crate::io::provider::{PackedDelta, PackedMetric, PackedState, StreamType, Timestamp};
