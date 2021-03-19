@@ -40,8 +40,11 @@ impl GaugeState {
         }
     }
 
-    pub fn value(&self) -> Option<(Timestamp, f64)> {
-        self.timestamp.map(|ts| (ts, self.value))
+    pub fn last(&self) -> Option<TimedEvent<f64>> {
+        self.timestamp.map(|ts| TimedEvent {
+            timestamp: ts,
+            event: self.value,
+        })
     }
 
     /*
