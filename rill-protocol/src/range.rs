@@ -53,6 +53,12 @@ impl From<(f64, f64)> for Range {
 #[derive(Debug, Clone, Copy, Deserialize, Serialize)]
 pub struct Pct(f64);
 
+impl Default for Pct {
+    fn default() -> Self {
+        Self(0.0)
+    }
+}
+
 impl Pct {
     pub fn from_value(mut value: f64) -> Self {
         // TODO: Use `clamp` here.
