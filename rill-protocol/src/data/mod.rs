@@ -21,7 +21,9 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
 use std::ops::Deref;
 
-pub trait Metric: DeserializeOwned + Serialize + fmt::Debug + Sync + Send + 'static {
+pub trait Metric:
+    DeserializeOwned + Serialize + Clone + fmt::Debug + Sync + Send + 'static
+{
     type State: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
     type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
 
