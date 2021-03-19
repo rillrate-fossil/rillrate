@@ -32,10 +32,10 @@ impl Metric for PulseMetric {
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
-            PulseEvent::Increment(delta) => {
+            PulseEvent::Inc(delta) => {
                 state.value += delta;
             }
-            PulseEvent::Decrement(delta) => {
+            PulseEvent::Dec(delta) => {
                 state.value -= delta;
             }
             PulseEvent::Set(value) => {
@@ -99,7 +99,7 @@ pub type PulseDelta = Vec<TimedEvent<PulseEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PulseEvent {
-    Increment(f64),
-    Decrement(f64),
+    Inc(f64),
+    Dec(f64),
     Set(f64),
 }

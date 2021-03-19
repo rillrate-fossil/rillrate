@@ -21,13 +21,13 @@ impl PulseTracer {
 
     /// Increments the value by the specific delta.
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
-        let data = PulseEvent::Increment(delta);
+        let data = PulseEvent::Inc(delta);
         self.tracer.send(data, timestamp);
     }
 
     /// Decrements the value by the specific delta.
     pub fn dec(&self, delta: f64, timestamp: Option<SystemTime>) {
-        let data = PulseEvent::Decrement(delta);
+        let data = PulseEvent::Dec(delta);
         self.tracer.send(data, timestamp);
     }
 
