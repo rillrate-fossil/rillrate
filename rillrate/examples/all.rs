@@ -22,18 +22,18 @@ fn main() -> Result<(), Error> {
     {
         // This pulse used to check that the Prometheus exporter can read
         // data from a snapshot event if the data will never updated again.
-        let instances = Pulse::create("my.pulse.instances")?;
+        let instances = Pulse::create("my.pulse.instances", None)?;
         instances.inc(1.0);
 
         let counter_one = Counter::create("my.counter.one")?;
         let counter_two = Counter::create("my.counter.two")?;
-        let pulse = Pulse::create("my.pulse")?;
-        let fast_pulse = Pulse::create("my.pulse.fast")?;
-        let random_pulse = Pulse::create("my.pulse.random")?;
+        let pulse = Pulse::create("my.pulse", None)?;
+        let fast_pulse = Pulse::create("my.pulse.fast", None)?;
+        let random_pulse = Pulse::create("my.pulse.random", None)?;
         let logger = Logger::create("my.direct.logs.trace")?;
         let fast_logger = Logger::create("my.direct.logs.fast")?;
 
-        let mt_pulse = Pulse::create("my.pulse.multithread")?;
+        let mt_pulse = Pulse::create("my.pulse.multithread", None)?;
 
         let my_dict = Dict::create("my.dict.key-value")?;
 
