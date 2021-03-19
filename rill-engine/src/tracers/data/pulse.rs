@@ -13,7 +13,7 @@ pub struct PulseTracer {
 impl PulseTracer {
     /// Creates a new `Pulse` tracer.
     pub fn new(path: Path) -> Self {
-        let metric = PulseMetric::Pulse;
+        let metric = PulseMetric { range: None };
         let state = PulseState::new(Some(100));
         let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }

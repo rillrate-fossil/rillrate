@@ -41,7 +41,7 @@ impl SharedRecord {
 // TODO: Remove all this things...
 static ROUTINES: Lazy<RoutineMap> = Lazy::new(|| {
     let mut map = RoutineMap::new();
-    map.insert(PulseMetric::Pulse);
+    map.insert(PulseMetric { range: None });
     map
 });
 

@@ -6,20 +6,8 @@ use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum PulseMetric {
-    Counter,
-    Gauge { range: Range },
-    Pulse,
-}
-
-impl PulseMetric {
-    fn required_range(&self) -> Option<&Range> {
-        match self {
-            Self::Gauge { range } => Some(range),
-            Self::Counter => None,
-            Self::Pulse => None,
-        }
-    }
+pub struct PulseMetric {
+    pub range: Option<Range>,
 }
 
 impl Metric for PulseMetric {
@@ -44,7 +32,7 @@ impl Metric for PulseMetric {
         }
         // Use the clamped value if a range set, but don't affect the state.
         let mut value = state.value;
-        if let Some(range) = self.required_range() {
+        if let Some(range) = self.range.as_ref() {
             range.clamp(&mut value);
         }
         let point = PulsePoint { value };
