@@ -166,7 +166,7 @@ impl<T: data::Metric> Tracer<T> {
                         }
                         InnerMode::Pull { state } => match state.lock() {
                             Ok(ref mut state) => {
-                                T::apply(state, timed_event);
+                                self.description.metric.apply(state, timed_event);
                             }
                             Err(err) => {
                                 log::error!("Can't lock the mutex to apply the changes: {}", err);

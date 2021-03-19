@@ -1,5 +1,7 @@
+use crate::data::Metric;
 use crate::io::codec::RRCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
+use anyhow::Error;
 use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};
@@ -381,6 +383,12 @@ pub struct Description {
     pub info: String,
     pub stream_type: StreamType,
     pub metadata: PackedMetric,
+}
+
+impl Description {
+    pub fn try_extract_metric<T: Metric>(&self) -> Result<T, Error> {
+        T::unpack_metric(&self.metadata)
+    }
 }
 
 #[derive(Clone, From, Into, Serialize, Deserialize)]

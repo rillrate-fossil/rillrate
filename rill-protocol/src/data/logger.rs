@@ -14,7 +14,7 @@ impl Metric for LoggerMetric {
         StreamType::from("rillrate.logger.v0")
     }
 
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         state.frame.insert(event);
     }
 }

@@ -94,7 +94,7 @@ impl<T: data::Metric> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         }
         if let TracerMode::Push { state, .. } = &mut self.mode {
             for event in delta {
-                T::apply(state, event);
+                self.description.metric.apply(state, event);
             }
         }
         Ok(())

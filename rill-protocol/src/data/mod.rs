@@ -27,7 +27,7 @@ pub trait Metric: DeserializeOwned + Serialize + fmt::Debug + Sync + Send + 'sta
 
     fn stream_type() -> StreamType;
 
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
+    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>);
 
     fn pack_metric(&self) -> Result<PackedMetric, Error> {
         encoding::to_vec(self)

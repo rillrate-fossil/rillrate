@@ -15,7 +15,7 @@ impl Metric for TableMetric {
         StreamType::from("rillrate.table.v0")
     }
 
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             TableEvent::AddCol { col, alias } => {
                 let record = ColRecord { alias };

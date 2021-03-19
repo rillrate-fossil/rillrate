@@ -22,7 +22,7 @@ impl Metric for PulseMetric {
         StreamType::from("rillrate.pulse.v0")
     }
 
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             PulseEvent::Increment(delta) => {
                 state.value += delta;

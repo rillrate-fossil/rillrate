@@ -14,7 +14,7 @@ impl Metric for DictMetric {
         StreamType::from("rillrate.dict.v0")
     }
 
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             DictEvent::Assign { key, value } => {
                 state.map.insert(key, value);

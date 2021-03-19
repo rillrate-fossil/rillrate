@@ -17,7 +17,7 @@ impl Metric for HistogramMetric {
         StreamType::from("rillrate.histogram.v0")
     }
 
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             HistogramEvent::Add(amount) => {
                 state.total.add(amount);

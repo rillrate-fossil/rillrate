@@ -103,6 +103,7 @@ impl Observer {
     where
         T: Extractor,
     {
+        let metric: T = self.description.try_extract_metric()?;
         let path = self.description.path.clone();
         let mut subscription = self.client.subscribe_to_path(path).recv().await?;
         let mut state = None;
@@ -116,7 +117,7 @@ impl Observer {
                     if let Some(state) = state.as_mut() {
                         let events = T::unpack_delta(&delta)?;
                         for event in events {
-                            T::apply(state, event);
+                            metric.apply(state, event);
                         }
                     }
                 }
