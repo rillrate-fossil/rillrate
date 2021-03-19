@@ -81,7 +81,7 @@ pub struct Pulse {
     tracer: Arc<PulseTracer>,
 }
 
-impl_tracer!(Pulse<PulseTracer>());
+impl_tracer!(Pulse<PulseTracer>(depth: Option<u32>));
 
 impl Pulse {
     /// Increments the value by the specific delta.
