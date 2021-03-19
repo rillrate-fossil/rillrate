@@ -1,10 +1,12 @@
-use super::{Metric, Pct, TimedEvent};
+use super::{Metric, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct GaugeMetric;
+pub struct GaugeMetric {
+    pub range: Range,
+}
 
 impl Metric for GaugeMetric {
     type State = GaugeState;
@@ -26,26 +28,23 @@ impl Metric for GaugeMetric {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeState {
-    pub min: f64,
-    pub max: f64,
     pub timestamp: Option<Timestamp>,
     pub value: f64,
 }
 
 impl GaugeState {
-    pub fn new(min: f64, max: f64) -> Self {
-        // TODO: Check min != max?
+    pub fn new() -> Self {
         Self {
-            min,
-            max,
             timestamp: None,
             value: 0.0,
         }
     }
 
+    /*
     pub fn pct(&self) -> Pct {
         Pct::from_range(self.value, &Range::new(self.min, self.max))
     }
+    */
 }
 
 pub type GaugeDelta = Vec<TimedEvent<GaugeEvent>>;

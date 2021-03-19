@@ -1,7 +1,8 @@
-use super::{Metric, Pct, TimedEvent};
+use super::{Metric, TimedEvent};
 use crate::frame::Frame;
 use crate::io::codec::vectorize;
 use crate::io::provider::StreamType;
+use crate::range::Pct;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
