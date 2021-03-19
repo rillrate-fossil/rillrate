@@ -15,8 +15,8 @@ impl GaugeTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path, min: f64, max: f64) -> Self {
         let range = Range::new(min, max);
-        let metric = PulseMetric::Gauge { range: range.clone() };
-        let state = PulseState::new(Some(range), None);
+        let metric = PulseMetric::Gauge { range };
+        let state = PulseState::new(None);
         let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }
     }

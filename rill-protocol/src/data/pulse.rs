@@ -1,18 +1,25 @@
-use super::{Metric, Pct, TimedEvent};
+use super::{Metric, TimedEvent};
 // TODO: Join `Frame` and `Range` into a single module.
 use crate::frame::Frame;
 use crate::io::provider::StreamType;
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PulseMetric {
     Counter,
-    Gauge {
-        range: Range,
-    },
+    Gauge { range: Range },
     Pulse,
+}
+
+impl PulseMetric {
+    fn required_range(&self) -> Option<&Range> {
+        match self {
+            Self::Gauge { range } => Some(range),
+            Self::Counter => None,
+            Self::Pulse => None,
+        }
+    }
 }
 
 impl Metric for PulseMetric {
@@ -37,7 +44,7 @@ impl Metric for PulseMetric {
         }
         // Use the clamped value if a range set, but don't affect the state.
         let mut value = state.value;
-        if let Some(range) = state.range.as_ref() {
+        if let Some(range) = self.required_range() {
             range.clamp(&mut value);
         }
         let point = PulsePoint { value };
@@ -56,34 +63,25 @@ pub struct PulsePoint {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulseState {
-    pub range: Option<Range>,
     pub frame: Frame<TimedEvent<PulsePoint>>,
     /// Intermediate counter value. Not available for changing!!!
     value: f64,
 }
 
 impl PulseState {
-    pub fn new(range: Option<Range>, depth: Option<u32>) -> Self {
+    pub fn new(depth: Option<u32>) -> Self {
         let mut depth = depth.unwrap_or_default();
         if depth == 0 {
             depth = 1;
         }
         Self {
             // TODO: Use duration for removing obsolete values instead
-            range: range,
             frame: Frame::new(depth),
             value: 0.0,
         }
     }
 
-    pub fn has_range(&self) -> bool {
-        self.range.is_some()
-    }
-
-    pub fn has_window(&self) -> bool {
-        self.frame.size() > 1
-    }
-
+    /*
     pub fn range(&self) -> Cow<Range> {
         self.range.as_ref().map(Cow::Borrowed).unwrap_or_else(|| {
             // TODO: Calc min and max from Frame
@@ -94,6 +92,7 @@ impl PulseState {
     pub fn pct(&self) -> Pct {
         Pct::from_range(self.value, self.range().as_ref())
     }
+    */
 }
 
 pub type PulseDelta = Vec<TimedEvent<PulseEvent>>;

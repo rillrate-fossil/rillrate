@@ -12,7 +12,10 @@ impl Range {
         if min > max {
             std::mem::swap(&mut min, &mut max);
         }
-        Self { min: OrderedFloat::from(min), max: OrderedFloat::from(max) }
+        Self {
+            min: OrderedFloat::from(min),
+            max: OrderedFloat::from(max),
+        }
     }
 
     pub fn min(&self) -> f64 {

@@ -14,7 +14,7 @@ impl CounterTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path) -> Self {
         let metric = PulseMetric::Counter;
-        let state = PulseState::new(None, None);
+        let state = PulseState::new(None);
         let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }
     }
