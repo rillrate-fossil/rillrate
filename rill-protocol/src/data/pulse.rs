@@ -6,7 +6,7 @@ use crate::range::Range;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PulseMetric {
     // TODO: Move parameters here from `State`
     Gauge,

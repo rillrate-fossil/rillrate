@@ -3,7 +3,7 @@ use crate::frame::Frame;
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LoggerMetric;
 
 impl Metric for LoggerMetric {
