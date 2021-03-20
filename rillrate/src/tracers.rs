@@ -5,7 +5,7 @@ use anyhow::Error;
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
-use rill_protocol::io::provider::Col;
+pub use rill_protocol::io::provider::{Col, Row};
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -145,4 +145,13 @@ pub struct Table {
 
 impl_tracer!(Table<TableTracer>(columns: Vec<(Col, impl ToString)>));
 
-impl Table {}
+impl Table {
+    // Reused, because timestamp is not required for them:
+    // fn add_row
+    // fn del_row
+
+    /// Sets the cell of a table.
+    pub fn set_cell(&self, row: Row, col: Col, value: impl ToString) {
+        self.tracer.set_cell(row, col, value.to_string(), None);
+    }
+}
