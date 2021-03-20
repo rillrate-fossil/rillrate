@@ -262,15 +262,15 @@ pub enum EntryUpdate {
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
-pub struct ColId(pub u64);
+pub struct Col(pub u64);
 
-impl fmt::Display for ColId {
+impl fmt::Display for Col {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.0.fmt(f)
     }
 }
 
-impl TryFrom<usize> for ColId {
+impl TryFrom<usize> for Col {
     type Error = <u64 as TryFrom<usize>>::Error;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
@@ -281,15 +281,15 @@ impl TryFrom<usize> for ColId {
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
-pub struct RowId(pub u64);
+pub struct Row(pub u64);
 
-impl fmt::Display for RowId {
+impl fmt::Display for Row {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.0.fmt(f)
     }
 }
 
-impl TryFrom<usize> for RowId {
+impl TryFrom<usize> for Row {
     type Error = <u64 as TryFrom<usize>>::Error;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
@@ -299,25 +299,11 @@ impl TryFrom<usize> for RowId {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum TableUpdate {
-    AddCol {
-        col: ColId,
-        alias: Option<String>,
-    },
-    DelCol {
-        col: ColId,
-    },
-    AddRow {
-        row: RowId,
-        alias: Option<String>,
-    },
-    DelRow {
-        row: RowId,
-    },
-    SetCell {
-        row: RowId,
-        col: ColId,
-        value: String,
-    },
+    AddCol { col: Col, alias: Option<String> },
+    DelCol { col: Col },
+    AddRow { row: Row, alias: Option<String> },
+    DelRow { row: Row },
+    SetCell { row: Row, col: Col, value: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

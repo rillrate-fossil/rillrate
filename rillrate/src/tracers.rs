@@ -4,7 +4,7 @@ use anyhow::Error;
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
-use rill_protocol::io::provider::ColId;
+use rill_protocol::io::provider::Col;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -137,6 +137,6 @@ pub struct Table {
     tracer: Arc<TableTracer>,
 }
 
-impl_tracer!(Table<TableTracer>(columns: Vec<(ColId, Option<String>)>));
+impl_tracer!(Table<TableTracer>(columns: Vec<(Col, Option<String>)>));
 
 impl Table {}

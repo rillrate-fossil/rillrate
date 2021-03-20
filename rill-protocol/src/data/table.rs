@@ -1,13 +1,13 @@
 use super::{Metric, TimedEvent};
 use crate::io::codec::vectorize;
-use crate::io::provider::{ColId, RowId, StreamType};
+use crate::io::provider::{Col, Row, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableMetric {
     #[serde(with = "vectorize")]
-    pub columns: BTreeMap<ColId, ColRecord>,
+    pub columns: BTreeMap<Col, ColRecord>,
 }
 
 impl Metric for TableMetric {
@@ -56,7 +56,7 @@ impl Metric for TableMetric {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
     #[serde(with = "vectorize")]
-    pub rows: BTreeMap<RowId, RowRecord>,
+    pub rows: BTreeMap<Row, RowRecord>,
 }
 
 #[allow(clippy::new_without_default)]
@@ -74,25 +74,16 @@ pub type TableDelta = Vec<TimedEvent<TableEvent>>;
 pub enum TableEvent {
     /*
     AddCol {
-        col: ColId,
+        col: Col,
         alias: Option<String>,
     },
     DelCol {
-        col: ColId,
+        col: Col,
     },
     */
-    AddRow {
-        row: RowId,
-        alias: Option<String>,
-    },
-    DelRow {
-        row: RowId,
-    },
-    SetCell {
-        row: RowId,
-        col: ColId,
-        value: String,
-    },
+    AddRow { row: Row, alias: Option<String> },
+    DelRow { row: Row },
+    SetCell { row: Row, col: Col, value: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -104,5 +95,5 @@ pub struct ColRecord {
 pub struct RowRecord {
     pub alias: Option<String>,
     #[serde(with = "vectorize")]
-    pub cols: BTreeMap<ColId, String>,
+    pub cols: BTreeMap<Col, String>,
 }
