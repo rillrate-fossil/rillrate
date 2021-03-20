@@ -91,7 +91,7 @@ impl HistogramState {
         Self {
             buckets,
             total: Stat::default(),
-            frame: window.map(|size| Frame::new(size)),
+            frame: window.map(Frame::new),
         }
     }
 

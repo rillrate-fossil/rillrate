@@ -248,7 +248,7 @@ impl<T: data::Metric> InstantActionHandler<state::RegisterTracer<T>> for RillWor
             let packed_desc = description.to_description()?;
             let sender = self.sender.clone();
             //let link = ctx.address().link();
-            let actor = Recorder::new(description.clone(), sender, msg.mode);
+            let actor = Recorder::new(description, sender, msg.mode);
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             // Send a description that's new tracer added

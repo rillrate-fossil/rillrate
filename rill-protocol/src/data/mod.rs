@@ -49,7 +49,7 @@ pub trait Metric: DataFraction {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 
-    fn pack_delta(delta: &Delta<Self::Event>) -> Result<PackedDelta, Error> {
+    fn pack_delta(delta: &[TimedEvent<Self::Event>]) -> Result<PackedDelta, Error> {
         encoding::to_vec(delta)
             .map_err(Error::from)
             .map(PackedDelta::from)

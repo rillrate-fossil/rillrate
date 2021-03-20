@@ -32,6 +32,7 @@ pub struct GaugeState {
     pub value: f64,
 }
 
+#[allow(clippy::new_without_default)]
 impl GaugeState {
     pub fn new() -> Self {
         Self {
@@ -46,12 +47,6 @@ impl GaugeState {
             event: self.value,
         })
     }
-
-    /*
-    pub fn pct(&self) -> Pct {
-        Pct::from_range(self.value, &Range::new(self.min, self.max))
-    }
-    */
 }
 
 pub type GaugeDelta = Vec<TimedEvent<GaugeEvent>>;
