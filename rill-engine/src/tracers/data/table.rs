@@ -12,11 +12,11 @@ pub struct TableTracer {
 
 impl TableTracer {
     /// Create a new instance of the `Tracer`.
-    pub fn new(path: Path, columns: Vec<(Col, Option<String>)>) -> Self {
+    pub fn new(path: Path, columns: Vec<(Col, String)>) -> Self {
         let columns = columns
             .into_iter()
-            .map(|(col_id, alias)| {
-                let record = ColRecord { alias };
+            .map(|(col_id, title)| {
+                let record = ColRecord { title };
                 (col_id, record)
             })
             .collect();
@@ -26,29 +26,15 @@ impl TableTracer {
         Self { tracer }
     }
 
-    /*
-    /// Adds a new column
-    pub fn add_col(&self, id: Col, alias: Option<String>) {
-        let event = TableEvent::AddCol { col: id, alias };
-        self.tracer.send(event, None);
-    }
-
-    /// Deletes a column by id
-    pub fn del_col(&self, id: Col) {
-        let event = TableEvent::DelCol { col: id };
-        self.tracer.send(event, None);
-    }
-    */
-
     /// Adds a new row
-    pub fn add_row(&self, id: Row, alias: Option<String>) {
-        let event = TableEvent::AddRow { row: id, alias };
+    pub fn add_row(&self, row: Row) {
+        let event = TableEvent::AddRow { row };
         self.tracer.send(event, None);
     }
 
     /// Deletes a row by id
-    pub fn del_row(&self, id: Row) {
-        let event = TableEvent::DelRow { row: id };
+    pub fn del_row(&self, row: Row) {
+        let event = TableEvent::DelRow { row };
         self.tracer.send(event, None);
     }
 

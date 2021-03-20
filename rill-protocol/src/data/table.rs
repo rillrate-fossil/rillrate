@@ -20,21 +20,8 @@ impl Metric for TableMetric {
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
-            /*
-            TableEvent::AddCol { col, alias } => {
-                let record = ColRecord { alias };
-                state.columns.insert(col, record);
-            }
-            TableEvent::DelCol { col } => {
-                state.columns.remove(&col);
-                for (_row, record) in state.rows.iter_mut() {
-                    record.cols.remove(&col);
-                }
-            }
-            */
-            TableEvent::AddRow { row, alias } => {
+            TableEvent::AddRow { row } => {
                 let record = RowRecord {
-                    alias,
                     cols: BTreeMap::new(),
                 };
                 state.rows.insert(row, record);
@@ -72,28 +59,18 @@ pub type TableDelta = Vec<TimedEvent<TableEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TableEvent {
-    /*
-    AddCol {
-        col: Col,
-        alias: Option<String>,
-    },
-    DelCol {
-        col: Col,
-    },
-    */
-    AddRow { row: Row, alias: Option<String> },
+    AddRow { row: Row },
     DelRow { row: Row },
     SetCell { row: Row, col: Col, value: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ColRecord {
-    pub alias: Option<String>,
+    pub title: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RowRecord {
-    pub alias: Option<String>,
     #[serde(with = "vectorize")]
     pub cols: BTreeMap<Col, String>,
 }
