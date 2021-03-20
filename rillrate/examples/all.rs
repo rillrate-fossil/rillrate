@@ -44,15 +44,15 @@ fn main() -> Result<(), Error> {
             let tbl = my_table.clone();
             let tname = format!("thread-{}", i);
             tbl.add_row(Row(i));
-            tbl.set_cell(Row(i), Col(0), &tname, None);
+            tbl.set_cell(Row(i), Col(0), &tname);
             let mt_pulse_cloned = mt_pulse.clone();
             let running_cloned = running.clone();
             thread::Builder::new().name(tname).spawn(move || {
                 while running_cloned.load(Ordering::SeqCst) {
                     mt_pulse_cloned.set(i as f64);
-                    tbl.set_cell(i.into(), 1.into(), "wait 1", None);
+                    tbl.set_cell(Row(i), Col(1), "wait 1");
                     thread::sleep(Duration::from_millis(500));
-                    tbl.set_cell(i.into(), 1.into(), "wait 2", None);
+                    tbl.set_cell(Row(i), Col(1), "wait 2");
                     thread::sleep(Duration::from_millis(500));
                 }
             })?;
