@@ -20,19 +20,14 @@ impl DictTracer {
     }
 
     /// Set a value to key.
-    pub fn set(&self, key: impl ToString, value: impl ToString, timestamp: Option<SystemTime>) {
-        let data = DictEvent::Assign {
-            key: key.to_string(),
-            value: value.to_string(),
-        };
+    pub fn set(&self, key: String, value: String, timestamp: Option<SystemTime>) {
+        let data = DictEvent::Assign { key, value };
         self.tracer.send(data, timestamp);
     }
 
     /// Remove a key.
-    pub fn del(&self, key: impl ToString, timestamp: Option<SystemTime>) {
-        let data = DictEvent::Remove {
-            key: key.to_string(),
-        };
+    pub fn del(&self, key: String, timestamp: Option<SystemTime>) {
+        let data = DictEvent::Remove { key };
         self.tracer.send(data, timestamp);
     }
 }

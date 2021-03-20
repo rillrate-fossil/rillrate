@@ -125,9 +125,14 @@ pub struct Dict {
 impl_tracer!(Dict<DictTracer>());
 
 impl Dict {
-    /// Writes a message.
+    /// Assign a value to the key.
     pub fn set(&self, key: impl ToString, value: impl ToString) {
-        self.tracer.set(key, value, None);
+        self.tracer.set(key.to_string(), value.to_string(), None);
+    }
+
+    /// Remove value assigned to the key.
+    pub fn del(&self, key: impl ToString) {
+        self.tracer.del(key.to_string(), None);
     }
 }
 
