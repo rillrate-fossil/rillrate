@@ -7,6 +7,7 @@ mod env;
 mod supervisor;
 mod tracers;
 
+pub use protocol::io::provider::{Col, Row};
 pub use rill_engine as engine;
 pub use rill_protocol as protocol;
 pub use rill_server as server;

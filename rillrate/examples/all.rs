@@ -1,6 +1,6 @@
 use anyhow::Error;
 use rand::Rng;
-use rillrate::{Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Table};
+use rillrate::{Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -38,19 +38,13 @@ fn main() -> Result<(), Error> {
         let my_dict = Dict::create("my.dict.key-value")?;
 
         // TODO: Add and use `ToAlias` trait
-        let my_table = Table::create(
-            "my.table.one",
-            vec![
-                (0.into(), Some("Thread".into())),
-                (1.into(), Some("State".into())),
-            ],
-        )?;
+        let my_table = Table::create("my.table.one", vec![(Col(0), "Thread"), (Col(1), "State")])?;
 
         for i in 1..=5 {
             let tbl = my_table.clone();
             let tname = format!("thread-{}", i);
-            tbl.add_row(i.into(), Some(tname.clone()));
-            tbl.set_cell(i.into(), 0.into(), &tname, None);
+            tbl.add_row(Row(i));
+            tbl.set_cell(Row(i), Col(0), &tname, None);
             let mt_pulse_cloned = mt_pulse.clone();
             let running_cloned = running.clone();
             thread::Builder::new().name(tname).spawn(move || {

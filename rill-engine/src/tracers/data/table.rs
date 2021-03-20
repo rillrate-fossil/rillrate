@@ -12,11 +12,13 @@ pub struct TableTracer {
 
 impl TableTracer {
     /// Create a new instance of the `Tracer`.
-    pub fn new(path: Path, columns: Vec<(Col, String)>) -> Self {
+    pub fn new(path: Path, columns: Vec<(Col, impl ToString)>) -> Self {
         let columns = columns
             .into_iter()
             .map(|(col_id, title)| {
-                let record = ColRecord { title };
+                let record = ColRecord {
+                    title: title.to_string(),
+                };
                 (col_id, record)
             })
             .collect();

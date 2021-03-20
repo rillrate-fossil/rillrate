@@ -137,6 +137,6 @@ pub struct Table {
     tracer: Arc<TableTracer>,
 }
 
-impl_tracer!(Table<TableTracer>(columns: Vec<(Col, String)>));
+impl_tracer!(Table<TableTracer>(columns: Vec<(Col, impl ToString)>));
 
 impl Table {}
