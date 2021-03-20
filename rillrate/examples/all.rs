@@ -37,10 +37,14 @@ fn main() -> Result<(), Error> {
 
         let my_dict = Dict::create("my.dict.key-value")?;
 
-        let my_table = Table::create("my.table.one")?;
         // TODO: Add and use `ToAlias` trait
-        my_table.add_col(0.into(), Some("Thread".into()));
-        my_table.add_col(1.into(), Some("State".into()));
+        let my_table = Table::create(
+            "my.table.one",
+            vec![
+                (0.into(), Some("Thread".into())),
+                (1.into(), Some("State".into())),
+            ],
+        )?;
 
         for i in 1..=5 {
             let tbl = my_table.clone();
