@@ -1,3 +1,10 @@
+//! Data Flows consists of three types of elements:
+//! 1. `Metric` - immutable parameters of a data flow.
+//! Metric is serialized and transferred with a description.
+//! 2. `State` - mutable snapshot that contains all applied deltas and events.
+//! It sent serialized on the beggining of Push mode or periodically in Push mode.
+//! 3. `Event` - immutable separate change that has to be applied to the `State`.
+
 pub mod counter;
 pub mod dict;
 pub mod gauge;
@@ -12,11 +19,21 @@ use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
 
-pub trait Metric:
+/// Requirements for a data fraction in a data flow.
+pub trait DataFraction:
     DeserializeOwned + Serialize + Clone + fmt::Debug + Sync + Send + 'static
 {
-    type State: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
-    type Event: DeserializeOwned + Serialize + Clone + fmt::Debug + Send + 'static;
+}
+
+impl<T> DataFraction for T where
+    T: DeserializeOwned + Serialize + Clone + fmt::Debug + Sync + Send + 'static
+{
+}
+
+/// Immutable state of a data flow.
+pub trait Metric: DataFraction {
+    type State: DataFraction;
+    type Event: DataFraction;
 
     fn stream_type() -> StreamType;
 
