@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct TableMetric;
+pub struct TableMetric {
+    #[serde(with = "vectorize")]
+    pub columns: BTreeMap<ColId, ColRecord>,
+}
 
 impl Metric for TableMetric {
     type State = TableState;
@@ -17,6 +20,7 @@ impl Metric for TableMetric {
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
+            /*
             TableEvent::AddCol { col, alias } => {
                 let record = ColRecord { alias };
                 state.columns.insert(col, record);
@@ -27,6 +31,7 @@ impl Metric for TableMetric {
                     record.cols.remove(&col);
                 }
             }
+            */
             TableEvent::AddRow { row, alias } => {
                 let record = RowRecord {
                     alias,
@@ -39,7 +44,7 @@ impl Metric for TableMetric {
             }
             TableEvent::SetCell { row, col, value } => {
                 if let Some(record) = state.rows.get_mut(&row) {
-                    if state.columns.contains_key(&col) {
+                    if self.columns.contains_key(&col) {
                         record.cols.insert(col, value);
                     }
                 }
@@ -51,8 +56,6 @@ impl Metric for TableMetric {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
     #[serde(with = "vectorize")]
-    pub columns: BTreeMap<ColId, ColRecord>,
-    #[serde(with = "vectorize")]
     pub rows: BTreeMap<RowId, RowRecord>,
 }
 
@@ -60,7 +63,6 @@ pub struct TableState {
 impl TableState {
     pub fn new() -> Self {
         Self {
-            columns: BTreeMap::new(),
             rows: BTreeMap::new(),
         }
     }
@@ -70,6 +72,7 @@ pub type TableDelta = Vec<TimedEvent<TableEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TableEvent {
+    /*
     AddCol {
         col: ColId,
         alias: Option<String>,
@@ -77,6 +80,7 @@ pub enum TableEvent {
     DelCol {
         col: ColId,
     },
+    */
     AddRow {
         row: RowId,
         alias: Option<String>,
@@ -91,12 +95,12 @@ pub enum TableEvent {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ColRecord {
     pub alias: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RowRecord {
     pub alias: Option<String>,
     #[serde(with = "vectorize")]

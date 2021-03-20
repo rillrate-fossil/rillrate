@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::table::{TableEvent, TableMetric, TableState};
+use rill_protocol::data::table::{ColRecord, TableEvent, TableMetric, TableState};
 use rill_protocol::io::provider::{ColId, Path, RowId};
 use std::time::SystemTime;
 
@@ -12,13 +12,21 @@ pub struct TableTracer {
 
 impl TableTracer {
     /// Create a new instance of the `Tracer`.
-    pub fn new(path: Path) -> Self {
-        let metric = TableMetric;
+    pub fn new(path: Path, columns: Vec<(ColId, Option<String>)>) -> Self {
+        let columns = columns
+            .into_iter()
+            .map(|(col_id, alias)| {
+                let record = ColRecord { alias };
+                (col_id, record)
+            })
+            .collect();
+        let metric = TableMetric { columns };
         let state = TableState::new();
         let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }
     }
 
+    /*
     /// Adds a new column
     pub fn add_col(&self, id: ColId, alias: Option<String>) {
         let event = TableEvent::AddCol { col: id, alias };
@@ -30,6 +38,7 @@ impl TableTracer {
         let event = TableEvent::DelCol { col: id };
         self.tracer.send(event, None);
     }
+    */
 
     /// Adds a new row
     pub fn add_row(&self, id: RowId, alias: Option<String>) {
