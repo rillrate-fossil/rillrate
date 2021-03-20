@@ -1,4 +1,5 @@
-//! The module with all adapted tracers.
+//! The module with adapted and flexible tracers
+//! that allow to use many types as parameters.
 
 use anyhow::Error;
 use rill_engine::tracers::data::{
