@@ -81,7 +81,7 @@ pub struct HistogramState {
 }
 
 impl HistogramState {
-    pub fn new(levels: &[f64], window: Option<u32>) -> Self {
+    pub fn new(levels: Vec<f64>, window: Option<u32>) -> Self {
         let mut buckets: BTreeMap<_, _> = levels
             .iter()
             .map(|level| (OrderedFloat::from(*level), Stat::default()))

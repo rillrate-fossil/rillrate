@@ -68,7 +68,7 @@ pub struct Histogram {
     tracer: Arc<HistogramTracer>,
 }
 
-impl_tracer!(Histogram<HistogramTracer>(levels: &[f64]));
+impl_tracer!(Histogram<HistogramTracer>(levels: Vec<f64>));
 
 impl Histogram {
     /// Adds a value to the histogram.
