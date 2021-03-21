@@ -21,8 +21,8 @@ macro_rules! impl_tracer {
 
         impl $wrapper {
             /// Creates an instance of the tracer.
-            pub fn create(path: &str, $( $arg : $typ ),*) -> Result<Self, Error> {
-                let path = path.parse()?;
+            pub fn create(path: impl AsRef<str>, $( $arg : $typ ),*) -> Result<Self, Error> {
+                let path = path.as_ref().parse()?;
                 let tracer = $tracer::new(path, $( $arg ),*);
                 Ok(Self {
                     tracer: Arc::new(tracer),
