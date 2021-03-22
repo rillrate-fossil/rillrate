@@ -16,13 +16,13 @@ categories = ["development-tools::debugging"]
 description = "Dynamic logging and tracing system"
 
 [dependencies]
-anyhow = "1.0.38"
+anyhow = "1.0.39"
 async-trait = "0.1.48"
-derive_more = "0.99.11"
+derive_more = "0.99.13"
 futures = "0.3.13"
 log = "0.4.14"
-meio = "0.84.1"
-meio-connect = "0.84.1"
+meio = "0.84.2"
+meio-connect = "0.84.2"
 rill-protocol = { version = "0.24.0", path = "../rill-protocol" }
 thiserror = "1.0.24"
 typed-slab = "0.1.0"

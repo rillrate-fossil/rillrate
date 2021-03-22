@@ -16,13 +16,13 @@ categories = ["development-tools::debugging"]
 description = "Exporter for rill-hub"
 
 [dependencies]
-anyhow = "1.0.38"
+anyhow = "1.0.39"
 async-trait = "0.1.48"
-derive_more = "0.99.11"
+derive_more = "0.99.13"
 futures = "0.3.13"
 log = "0.4.14"
-meio = "0.84.1"
-meio-connect = "0.84.1"
+meio = "0.84.2"
+meio-connect = "0.84.2"
 once_cell = "1.7.2"
 rill-client = { version = "0.24.0", path = "../rill-client" }
 rill-protocol = { version = "0.24.0", path = "../rill-protocol" }
@@ -30,4 +30,4 @@ serde = "1.0.124"
 serde-pickle = "0.6.2"
 strum = { version = "0.20.0", features = ["derive"] }
 thiserror = "1.0.24"
-tokio = { version = "1.3.0", features = ["full"] }
+tokio = { version = "1.4.0", features = ["full"] }
