@@ -32,25 +32,25 @@ impl RillRate {
         let _scoped = meio::thread::spawn(actor)?;
         Ok(Self { _scoped })
     }
+}
 
-    /// Create and install an instance of `RillRate` into the global cell.
-    /// The provider will be alive and available until the `uninstall` method call.
-    pub fn install(app_name: impl ToString) -> Result<(), Error> {
-        let instance = Self::from_env(app_name)?;
-        // TODO: Metod like `Option::swap` instad?
-        let mut cell = INSTALLED
-            .lock()
-            .map_err(|err| Error::msg(err.to_string()))?;
-        *cell = Some(instance);
-        Ok(())
-    }
+/// Create and install an instance of `RillRate` into the global cell.
+/// The provider will be alive and available until the `uninstall` method call.
+pub fn install(app_name: impl ToString) -> Result<(), Error> {
+    let instance = RillRate::from_env(app_name)?;
+    // TODO: Metod like `Option::swap` instad?
+    let mut cell = INSTALLED
+        .lock()
+        .map_err(|err| Error::msg(err.to_string()))?;
+    *cell = Some(instance);
+    Ok(())
+}
 
-    /// Uninstalling of the installed `RillRate` instance.
-    pub fn uninstall() -> Result<(), Error> {
-        INSTALLED
-            .lock()
-            .map_err(|err| Error::msg(err.to_string()))?
-            .take();
-        Ok(())
-    }
+/// Uninstalling of the installed `RillRate` instance.
+pub fn uninstall() -> Result<(), Error> {
+    INSTALLED
+        .lock()
+        .map_err(|err| Error::msg(err.to_string()))?
+        .take();
+    Ok(())
 }
