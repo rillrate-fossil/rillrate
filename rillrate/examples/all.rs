@@ -61,7 +61,7 @@ fn main() -> Result<(), Error> {
         let my_gauge = Gauge::create("my.gauge", 0.0, 100.0)?;
         let my_hist = Histogram::create(
             "my.histogram",
-            &[10.0, 50.0, 100.0, 200.0, 500.0, 1_000.0, 5_000.0],
+            vec![10.0, 50.0, 100.0, 200.0, 500.0, 1_000.0, 5_000.0],
         )?;
 
         let mut counter = 0;
