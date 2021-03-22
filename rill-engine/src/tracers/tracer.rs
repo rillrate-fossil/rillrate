@@ -10,7 +10,7 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 
 #[derive(Debug)]
-pub enum DataEnvelope<T: data::Metric> {
+pub(crate) enum DataEnvelope<T: data::Metric> {
     Event(TimedEvent<T::Event>),
 }
 
@@ -25,8 +25,8 @@ impl<T: data::Metric> DataEnvelope<T> {
 }
 
 // TODO: Remove that aliases and use raw types receivers in recorders.
-pub type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
-pub type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
+pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
+pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
 pub(crate) enum TracerMode<T: data::Metric> {
     /// Real-time mode
@@ -61,13 +61,15 @@ impl<T: data::Metric> Clone for InnerMode<T> {
 }
 
 #[derive(Debug)]
-pub struct TracerDescription<T> {
+pub(crate) struct TracerDescription<T> {
     pub path: Path,
     pub info: String,
     pub metric: T,
 }
 
+// TODO: Change to `TryInto`?
 impl<T: data::Metric> TracerDescription<T> {
+    /// Converts `TracerDescription` into a `Description`.
     pub fn to_description(&self) -> Result<Description, Error> {
         let metadata = self.metric.pack_metric()?;
         Ok(Description {
@@ -100,6 +102,7 @@ impl<T: data::Metric> Clone for Tracer<T> {
 }
 
 impl<T: data::Metric> Tracer<T> {
+    /// Creates a new `Tracer`.
     pub fn new(metric: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
@@ -144,6 +147,7 @@ impl<T: data::Metric> Tracer<T> {
         &self.description.path
     }
 
+    /// Send an event to a `Recorder`.
     pub fn send(&self, data: T::Event, opt_system_time: Option<SystemTime>) {
         if self.is_active() {
             let ts = opt_system_time
