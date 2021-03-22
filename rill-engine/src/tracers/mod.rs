@@ -4,5 +4,4 @@
 
 pub mod data;
 pub mod meta;
-
-pub(crate) mod tracer;
+pub mod tracer;
