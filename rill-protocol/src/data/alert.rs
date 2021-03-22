@@ -1,5 +1,5 @@
-use rill_protocol::data::{Metric, TimedEvent};
-use rill_protocol::io::provider::StreamType;
+use crate::data::{Metric, TimedEvent};
+use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
