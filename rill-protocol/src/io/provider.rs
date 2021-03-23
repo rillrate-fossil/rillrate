@@ -265,6 +265,7 @@ pub enum EntryUpdate {
     Remove { name: EntryId },
 }
 
+/// Id of a column in a table.
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
@@ -284,6 +285,7 @@ impl TryFrom<usize> for Col {
     }
 }
 
+/// Id of a row in a table.
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]

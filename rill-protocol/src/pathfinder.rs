@@ -143,4 +143,8 @@ impl<T> Record<T> {
     pub fn get_link_mut(&mut self) -> Option<&mut T> {
         self.link.as_mut()
     }
+
+    pub fn has_link(&self) -> bool {
+        self.link.is_some()
+    }
 }
