@@ -42,7 +42,8 @@ impl<T: Actor> StartedBy<T> for RillEngine {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Worker, Group::Storage]);
 
-        let worker = RillWorker::new(self.config.take());
+        let config = self.config.take().unwrap();
+        let worker = RillWorker::new(config);
         ctx.spawn_actor(worker, Group::Worker);
 
         Ok(())

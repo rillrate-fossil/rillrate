@@ -40,6 +40,10 @@ impl<T: data::Metric> Recorder<T> {
 
 impl<T: data::Metric> Actor for Recorder<T> {
     type GroupBy = ();
+
+    fn name(&self) -> String {
+        format!("Recorder({})", &self.description.path)
+    }
 }
 
 #[async_trait]

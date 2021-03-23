@@ -54,6 +54,7 @@ pub enum Group {
 }
 
 pub struct RillWorker {
+    url: String,
     config: EngineConfig,
     sender: RillSender,
     recorders: Pathfinder<RecorderLink>,
@@ -62,9 +63,10 @@ pub struct RillWorker {
 }
 
 impl RillWorker {
-    pub fn new(config: Option<EngineConfig>) -> Self {
+    pub fn new(config: EngineConfig) -> Self {
         Self {
-            config: config.unwrap_or_default(),
+            url: config.node_url(),
+            config,
             sender: RillSender::default(),
             recorders: Pathfinder::default(),
             describe: false,
@@ -81,11 +83,9 @@ impl RillWorker {
 impl Actor for RillWorker {
     type GroupBy = Group;
 
-    /*
     fn name(&self) -> String {
-        format!("RillWorker({})", self.config.url())
+        format!("RillWorker({})", &self.url)
     }
-    */
 }
 
 #[async_trait]
