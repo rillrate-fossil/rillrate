@@ -28,6 +28,10 @@ pub(crate) struct RillSender {
 }
 
 impl RillSender {
+    pub fn is_connected(&self) -> bool {
+        self.sender.is_some()
+    }
+
     fn set(&mut self, sender: WsSender<WideEnvelope<ProviderProtocol, ProviderToServer>>) {
         self.sender = Some(sender);
     }
@@ -252,12 +256,14 @@ impl<T: data::Metric> InstantActionHandler<state::RegisterTracer<T>> for RillWor
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             // Send a description that's new tracer added
-            // TODO: Generate a message if subscriber exists
-            let msg = ProviderToServer::Description {
-                list: vec![packed_desc.clone()],
-            };
-            self.registered.insert(recorder.id().into(), packed_desc);
-            self.send_global(msg);
+            self.registered
+                .insert(recorder.id().into(), packed_desc.clone());
+            if self.sender.is_connected() {
+                let msg = ProviderToServer::Description {
+                    list: vec![packed_desc],
+                };
+                self.send_global(msg);
+            }
         } else {
             log::error!("Provider for {} already registered.", path);
         }
