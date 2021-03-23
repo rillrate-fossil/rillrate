@@ -5,6 +5,7 @@ use anyhow::Error;
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
+use rill_engine::tracers::meta::EntryTracer;
 pub use rill_protocol::io::provider::{Col, Row};
 use std::ops::Deref;
 use std::sync::Arc;
@@ -120,3 +121,5 @@ impl Table {
         self.tracer.set_cell(row, col, value.to_string(), None);
     }
 }
+
+impl_tracer!(MetaEntry<EntryTracer>());
