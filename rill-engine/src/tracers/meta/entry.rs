@@ -3,7 +3,7 @@ use derive_more::{Deref, DerefMut};
 use rill_protocol::io::provider::{EntryId, Path};
 use rill_protocol::metadata::entry::{EntryEvent, EntryMetric, EntryState};
 
-/// This tracer sends text messages.
+/// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct EntryTracer {
     tracer: Tracer<EntryMetric>,
@@ -18,41 +18,15 @@ impl EntryTracer {
         Self { tracer }
     }
 
-    /// Set a value to key.
-    pub fn add(&self, name: EntryId) -> ProviderEntry {
-        ProviderEntry::new(self.tracer.clone(), name)
-    }
-}
-
-pub struct ProviderEntry {
-    tracer: Tracer<EntryMetric>,
-    name: EntryId,
-}
-
-impl ProviderEntry {
-    fn new(tracer: Tracer<EntryMetric>, name: EntryId) -> Self {
-        let this = Self { tracer, name };
-        this.register();
-        this
-    }
-
-    fn register(&self) {
-        let data = EntryEvent::AddProvider {
-            name: self.name.clone(),
-        };
+    /// Add an entry
+    pub fn add(&self, name: EntryId) {
+        let data = EntryEvent::AddProvider { name };
         self.tracer.send(data, None);
     }
 
-    fn unregister(&self) {
-        let data = EntryEvent::RemoveProvider {
-            name: self.name.clone(),
-        };
+    /// Remove an entry
+    pub fn del(&self, name: EntryId) {
+        let data = EntryEvent::RemoveProvider { name };
         self.tracer.send(data, None);
-    }
-}
-
-impl Drop for ProviderEntry {
-    fn drop(&mut self) {
-        self.unregister();
     }
 }
