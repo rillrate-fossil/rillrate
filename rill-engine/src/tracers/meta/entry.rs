@@ -1,102 +1,58 @@
-use crate::tracers::tracer::{DataEnvelope, Tracer, TracerEvent, TracerState};
+use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::io::provider::{
-    Description, EntryId, EntryUpdate, Path, RillData, RillEvent, StreamType, Timestamp,
-};
-use std::collections::HashMap;
+use rill_protocol::io::provider::{EntryId, Path};
+use rill_protocol::metadata::entry::{EntryEvent, EntryMetric, EntryState};
 
-#[derive(Debug)]
-pub enum EntryRecord {
-    AddProvider { name: EntryId },
-    RemoveProvider { name: EntryId },
-}
-
-#[derive(Debug, Default)]
-pub struct EntryState {
-    map: HashMap<EntryId, Timestamp>,
-}
-
-impl TracerState for EntryState {
-    type Item = EntryRecord;
-
-    fn aggregate(
-        &mut self,
-        items: Vec<DataEnvelope<Self::Item>>,
-        _outgoing: Option<&mut Vec<RillEvent>>,
-    ) {
-        log::trace!("EntryState incoiming: {:?}", items);
-        log::error!("EntryState aggregation not implemented yet.");
-    }
-
-    fn make_snapshot(&self) -> Vec<RillEvent> {
-        self.map
-            .iter()
-            .map(|(name, ts)| {
-                let update = EntryUpdate::Add { name: name.clone() };
-                let data = RillData::EntryUpdate(update);
-                RillEvent {
-                    timestamp: ts.clone(),
-                    data,
-                }
-            })
-            .collect()
-    }
-}
-
-impl TracerEvent for EntryRecord {
-    type State = EntryState;
-}
-
-/// This tracer sends entries changes.
+/// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct EntryTracer {
-    tracer: Tracer<EntryRecord>,
+    tracer: Tracer<EntryMetric>,
 }
 
 impl EntryTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let info = format!("{} entries", path);
-        let description = Description {
-            path,
-            info,
-            stream_type: StreamType::EntryStream,
-        };
-        let tracer = Tracer::new(description);
+        let metric = EntryMetric;
+        let state = EntryState::new();
+        let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }
     }
 
-    /// Registers a new provider
-    pub fn add_provider(&self, entry_id: EntryId) -> ProviderRecord {
-        let data = EntryRecord::AddProvider {
-            name: entry_id.clone(),
+    /// Set a value to key.
+    pub fn add(&self, name: EntryId) -> ProviderEntry {
+        ProviderEntry::new(self.tracer.clone(), name)
+    }
+}
+
+pub struct ProviderEntry {
+    tracer: Tracer<EntryMetric>,
+    name: EntryId,
+}
+
+impl ProviderEntry {
+    fn new(tracer: Tracer<EntryMetric>, name: EntryId) -> Self {
+        let this = Self { tracer, name };
+        this.register();
+        this
+    }
+
+    fn register(&self) {
+        let data = EntryEvent::AddProvider {
+            name: self.name.clone(),
         };
         self.tracer.send(data, None);
-        ProviderRecord {
-            tracer: self.tracer.clone(),
-            name: Some(entry_id),
-        }
+    }
+
+    fn unregister(&self) {
+        let data = EntryEvent::RemoveProvider {
+            name: self.name.clone(),
+        };
+        self.tracer.send(data, None);
     }
 }
 
-pub struct ProviderRecord {
-    tracer: Tracer<EntryRecord>,
-    name: Option<EntryId>,
-}
-
-impl ProviderRecord {
-    fn remove_provider(&mut self) {
-        if let Some(name) = self.name.take() {
-            let data = EntryRecord::AddProvider { name };
-            self.tracer.send(data, None);
-        } else {
-            log::error!("Attempt to remove provider twice.");
-        }
-    }
-}
-
-impl Drop for ProviderRecord {
+impl Drop for ProviderEntry {
     fn drop(&mut self) {
-        self.remove_provider();
+        self.unregister();
     }
 }
