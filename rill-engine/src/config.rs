@@ -50,6 +50,8 @@ impl EngineConfig {
             || {
                 std::env::current_exe()
                     .ok()
+                    .as_ref()
+                    .and_then(|path| path.as_path().file_name())
                     .and_then(|path| path.to_str().map(EntryId::from))
                     .unwrap_or_else(|| "rillrate".into())
             },
