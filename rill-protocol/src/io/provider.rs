@@ -163,6 +163,12 @@ impl fmt::Display for Path {
     }
 }
 
+impl From<EntryId> for Path {
+    fn from(entry_id: EntryId) -> Self {
+        Self(vec![entry_id])
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum PathError {
     // Never constructed yet, because paths never fail now.
