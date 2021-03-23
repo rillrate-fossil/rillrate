@@ -1,1 +1,1 @@
-mod entry;
+pub mod entry;
