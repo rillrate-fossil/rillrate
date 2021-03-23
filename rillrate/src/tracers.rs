@@ -11,6 +11,13 @@ use std::sync::Arc;
 
 macro_rules! impl_tracer {
     ($wrapper:ident < $tracer:ident > ( $( $arg:ident : $typ:ty ),* )) => {
+
+        /// Wrapper on tracer.
+        #[derive(Debug, Clone)]
+        pub struct $wrapper {
+            tracer: Arc<$tracer>,
+        }
+
         impl Deref for $wrapper {
             type Target = $tracer;
 
@@ -32,12 +39,6 @@ macro_rules! impl_tracer {
     };
 }
 
-/// `Counter` tracer.
-#[derive(Debug, Clone)]
-pub struct Counter {
-    tracer: Arc<CounterTracer>,
-}
-
 impl_tracer!(Counter<CounterTracer>());
 
 impl Counter {
@@ -45,12 +46,6 @@ impl Counter {
     pub fn inc(&self, delta: f64) {
         self.tracer.inc(delta, None);
     }
-}
-
-/// `Gauge` tracer.
-#[derive(Debug, Clone)]
-pub struct Gauge {
-    tracer: Arc<GaugeTracer>,
 }
 
 impl_tracer!(Gauge<GaugeTracer>(min: f64, max: f64));
@@ -62,12 +57,6 @@ impl Gauge {
     }
 }
 
-/// `Histogram` tracer.
-#[derive(Debug, Clone)]
-pub struct Histogram {
-    tracer: Arc<HistogramTracer>,
-}
-
 impl_tracer!(Histogram<HistogramTracer>(levels: Vec<f64>));
 
 impl Histogram {
@@ -75,12 +64,6 @@ impl Histogram {
     pub fn add(&self, value: f64) {
         self.tracer.add(value, None);
     }
-}
-
-/// `Pulse` tracer.
-#[derive(Debug, Clone)]
-pub struct Pulse {
-    tracer: Arc<PulseTracer>,
 }
 
 impl_tracer!(Pulse<PulseTracer>(depth: Option<u32>));
@@ -102,12 +85,6 @@ impl Pulse {
     }
 }
 
-/// `Logger` tracer.
-#[derive(Debug, Clone)]
-pub struct Logger {
-    tracer: Arc<LoggerTracer>,
-}
-
 impl_tracer!(Logger<LoggerTracer>());
 
 impl Logger {
@@ -115,12 +92,6 @@ impl Logger {
     pub fn log(&self, msg: impl ToString) {
         self.tracer.log(msg.to_string(), None);
     }
-}
-
-/// `Dict` tracer.
-#[derive(Debug, Clone)]
-pub struct Dict {
-    tracer: Arc<DictTracer>,
 }
 
 impl_tracer!(Dict<DictTracer>());
@@ -135,12 +106,6 @@ impl Dict {
     pub fn del(&self, key: impl ToString) {
         self.tracer.del(key.to_string(), None);
     }
-}
-
-/// `Table` tracer.
-#[derive(Debug, Clone)]
-pub struct Table {
-    tracer: Arc<TableTracer>,
 }
 
 impl_tracer!(Table<TableTracer>(columns: Vec<(Col, impl ToString)>));
