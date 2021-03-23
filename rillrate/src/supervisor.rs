@@ -131,6 +131,9 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             });
 
         let engine_config = config.rillrate.unwrap_or_default();
+        log::info!("Remote node set.");
+        self.spawn_engine(engine_config, ctx);
+        /*
         let export_config = config.export.unwrap_or_default();
         if engine_config.is_node_specified() {
             log::info!("Remote node set.");
@@ -154,6 +157,7 @@ impl TaskEliminated<ReadConfigFile> for RillRate {
             self.spawn_engine(engine_config, ctx);
             self.spawn_exporter(export_config, public_http, ctx);
         }
+        */
         Ok(())
     }
 }
