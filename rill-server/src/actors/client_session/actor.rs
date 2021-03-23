@@ -56,7 +56,7 @@ impl Actor for ClientSession {
 impl StartedBy<Router> for ClientSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
-        ctx.spawn_task(worker, ());
+        ctx.spawn_task(worker, (), ());
 
         self.exporter
             .subscribe_to_struct_changes(ctx.address().clone())
@@ -75,10 +75,11 @@ impl InterruptedBy<Router> for ClientSession {
 }
 
 #[async_trait]
-impl TaskEliminated<WsProcessor<ClientProtocol, Self>> for ClientSession {
+impl TaskEliminated<WsProcessor<ClientProtocol, Self>, ()> for ClientSession {
     async fn handle(
         &mut self,
         _id: IdOf<WsProcessor<ClientProtocol, Self>>,
+        _tag: (),
         _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

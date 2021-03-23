@@ -81,14 +81,14 @@ impl Router {
         if let Ok(path) = std::env::var("RILLRATE_UI") {
             if path.starts_with("http") {
                 let url: Url = path.parse()?;
-                ctx.spawn_task(FetchUiPack(url), ());
+                ctx.spawn_task(FetchUiPack(url), (), ());
             } else {
                 self.assets = self.read_assets(&path).await?;
                 log::warn!("Assets overriden to: {}", path);
             }
             return Ok(());
         }
-        ctx.spawn_task(FetchUiPack(Assets::url()), ());
+        ctx.spawn_task(FetchUiPack(Assets::url()), (), ());
         Ok(())
     }
 }
@@ -388,10 +388,11 @@ impl InteractionHandler<Req<Ui>> for Router {
 }
 
 #[async_trait]
-impl TaskEliminated<FetchUiPack> for Router {
+impl TaskEliminated<FetchUiPack, ()> for Router {
     async fn handle(
         &mut self,
         _id: IdOf<FetchUiPack>,
+        _tag: (),
         result: Result<Assets, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

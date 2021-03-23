@@ -105,14 +105,14 @@ impl StartedBy<RillEngine> for RillWorker {
             .take_receiver()
             .await
             .ok_or_else(|| Error::msg("Receiver already taken"))?;
-        ctx.attach(rx, Group::UpgradeStream);
+        ctx.attach(rx, (), Group::UpgradeStream);
 
         let client = WsClient::new(
             self.config.node_url(),
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
-        ctx.spawn_task(client, Group::WsConnection);
+        ctx.spawn_task(client, (), Group::WsConnection);
 
         Ok(())
     }
@@ -225,10 +225,11 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
 }
 
 #[async_trait]
-impl TaskEliminated<WsClient<ProviderProtocol, Self>> for RillWorker {
+impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillWorker {
     async fn handle(
         &mut self,
         _id: IdOf<WsClient<ProviderProtocol, Self>>,
+        _tag: (),
         _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

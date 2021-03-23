@@ -70,7 +70,7 @@ impl<T: Actor> StartedBy<T> for RillClient {
             Some(Duration::from_secs(1)),
             ctx.address().clone(),
         );
-        ctx.spawn_task(client, Group::WsConnection);
+        ctx.spawn_task(client, (), Group::WsConnection);
 
         Ok(())
     }
@@ -157,10 +157,11 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
 }
 
 #[async_trait]
-impl TaskEliminated<WsClient<ClientProtocol, Self>> for RillClient {
+impl TaskEliminated<WsClient<ClientProtocol, Self>, ()> for RillClient {
     async fn handle(
         &mut self,
         _id: IdOf<WsClient<ClientProtocol, Self>>,
+        _tag: (),
         _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

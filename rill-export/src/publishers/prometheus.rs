@@ -121,7 +121,7 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
                             };
                             entry.insert(record);
                             let observer = Observer::new(description, self.client.clone(), event);
-                            ctx.spawn_task(observer, Group::Streams);
+                            ctx.spawn_task(observer, (), Group::Streams);
                         }
                     }
                 }
@@ -133,10 +133,11 @@ impl ActionHandler<PathNotification> for PrometheusPublisher {
 }
 
 #[async_trait]
-impl TaskEliminated<Observer> for PrometheusPublisher {
+impl TaskEliminated<Observer, ()> for PrometheusPublisher {
     async fn handle(
         &mut self,
         _id: IdOf<Observer>,
+        _tag: (),
         _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

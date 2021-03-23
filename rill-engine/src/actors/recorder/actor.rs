@@ -55,12 +55,12 @@ impl<T: data::Metric> StartedBy<RillWorker> for Recorder<T> {
                     .take()
                     .expect("tracer hasn't attached receiver")
                     .ready_chunks(32);
-                ctx.attach(rx, ());
+                ctx.attach(rx, (), ());
                 Ok(())
             }
             TracerMode::Pull { interval, .. } => {
                 let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
-                let _task = ctx.spawn_task(heartbeat, ());
+                let _task = ctx.spawn_task(heartbeat, (), ());
                 // Waiting for the subscribers to spawn a heartbeat activity
                 Ok(())
             }

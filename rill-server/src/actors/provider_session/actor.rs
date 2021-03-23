@@ -73,7 +73,7 @@ impl Actor for ProviderSession {
 impl StartedBy<Router> for ProviderSession {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let worker = self.handler.worker(ctx.address().clone());
-        ctx.spawn_task(worker, ());
+        ctx.spawn_task(worker, (), ());
         Ok(())
     }
 }
@@ -87,10 +87,11 @@ impl InterruptedBy<Router> for ProviderSession {
 }
 
 #[async_trait]
-impl TaskEliminated<WsProcessor<ProviderProtocol, Self>> for ProviderSession {
+impl TaskEliminated<WsProcessor<ProviderProtocol, Self>, ()> for ProviderSession {
     async fn handle(
         &mut self,
         _id: IdOf<WsProcessor<ProviderProtocol, Self>>,
+        _tag: (),
         _result: Result<TermReason, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

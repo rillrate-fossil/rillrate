@@ -59,7 +59,7 @@ impl StartedBy<System> for RillRate {
 
         let config_path = env::config();
         let config_task = ReadConfigFile(config_path);
-        ctx.spawn_task(config_task, Group::Tuning);
+        ctx.spawn_task(config_task, (), Group::Tuning);
 
         Ok(())
     }
@@ -109,10 +109,11 @@ impl Eliminated<RillServer> for RillRate {
 }
 
 #[async_trait]
-impl TaskEliminated<ReadConfigFile> for RillRate {
+impl TaskEliminated<ReadConfigFile, ()> for RillRate {
     async fn handle(
         &mut self,
         _id: IdOf<ReadConfigFile>,
+        _tag: (),
         result: Result<Option<Config>, TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {

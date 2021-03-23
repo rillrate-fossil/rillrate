@@ -76,9 +76,9 @@ impl StartedBy<RillExport> for GraphitePublisher {
         let interval = self.config.interval.unwrap_or(1_000);
         let duration = Duration::from_millis(interval);
         let heartbeat = HeartBeat::new(duration, ctx.address().clone());
-        ctx.spawn_task(heartbeat, Group::HeartBeat);
+        ctx.spawn_task(heartbeat, (), Group::HeartBeat);
         let connection = Connection::new(self.sender.clone());
-        ctx.spawn_task(connection, Group::Connection);
+        ctx.spawn_task(connection, (), Group::Connection);
         self.broadcaster
             .subscribe_to_struct_changes(ctx.address().clone())
             .await?;
@@ -95,10 +95,11 @@ impl InterruptedBy<RillExport> for GraphitePublisher {
 }
 
 #[async_trait]
-impl TaskEliminated<HeartBeat> for GraphitePublisher {
+impl TaskEliminated<HeartBeat, ()> for GraphitePublisher {
     async fn handle(
         &mut self,
         _id: IdOf<HeartBeat>,
+        _tag: (),
         _result: Result<(), TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
@@ -108,10 +109,11 @@ impl TaskEliminated<HeartBeat> for GraphitePublisher {
 }
 
 #[async_trait]
-impl TaskEliminated<Connection> for GraphitePublisher {
+impl TaskEliminated<Connection, ()> for GraphitePublisher {
     async fn handle(
         &mut self,
         _id: IdOf<Connection>,
+        _tag: (),
         _result: Result<(), TaskError>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
@@ -171,7 +173,7 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
                         let record = SharedRecord::new();
                         self.metrics.insert(path.clone(), record.clone());
                         let observer = Observer::new(description, self.client.clone(), record);
-                        ctx.spawn_task(observer, Group::Streams);
+                        ctx.spawn_task(observer, (), Group::Streams);
                     }
                 }
             }
@@ -182,10 +184,11 @@ impl ActionHandler<PathNotification> for GraphitePublisher {
 }
 
 #[async_trait]
-impl TaskEliminated<Observer> for GraphitePublisher {
+impl TaskEliminated<Observer, ()> for GraphitePublisher {
     async fn handle(
         &mut self,
         _id: IdOf<Observer>,
+        _tag: (),
         _result: Result<(), TaskError>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
