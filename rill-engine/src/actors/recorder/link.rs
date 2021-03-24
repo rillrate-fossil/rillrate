@@ -3,13 +3,11 @@ use crate::actors::worker::RillSender;
 use anyhow::Error;
 use meio::{Action, ActionRecipient, Address, Interaction, InteractionRecipient, InteractionTask};
 use rill_protocol::flow::data;
-use rill_protocol::io::provider::{PackedFlow, PackedState, Path, ProviderReqId};
+use rill_protocol::io::provider::{PackedFlow, PackedState, PathAction, ProviderReqId};
 
 /// COOL SOLUTION!
 trait Recipient:
-    ActionRecipient<DoPathAction>
-    + ActionRecipient<ConnectionChanged>
-    + InteractionRecipient<FetchInfo>
+    ActionRecipient<DoPathAction> + ActionRecipient<ConnectionChanged> + InteractionRecipient<FetchInfo>
 {
 }
 
@@ -60,22 +58,23 @@ impl RecorderLink {
 
 pub(super) struct DoPathAction {
     pub direct_id: ProviderReqId,
-    pub active: bool,
+    pub action: PathAction,
 }
 
 impl Action for DoPathAction {}
 
 impl RecorderLink {
-    pub async fn control_stream(
+    pub async fn do_path_action(
         &mut self,
         direct_id: ProviderReqId,
-        active: bool,
+        action: PathAction,
     ) -> Result<(), Error> {
-        let msg = DoPathAction { direct_id, active };
+        let msg = DoPathAction { direct_id, action };
         self.recipient.act(msg).await
     }
 }
 
+// TODO: Delete
 pub(crate) struct FetchInfo {
     pub with_state: bool,
 }

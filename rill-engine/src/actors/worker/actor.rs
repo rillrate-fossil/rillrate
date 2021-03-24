@@ -200,7 +200,8 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
             match envelope.data.action {
                 PathAction::ControlStream { active } => {
                     log::debug!("Switching the stream {:?} to {:?}", path, active);
-                    recorder.control_stream(direct_id, active).await?;
+                    let action = PathAction::ControlStream { active };
+                    recorder.do_path_action(direct_id, action).await?;
                 }
                 PathAction::GetFlow => {
                     let task = recorder.fetch_info(false);

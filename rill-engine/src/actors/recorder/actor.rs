@@ -8,7 +8,7 @@ use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InteractionHandler, InterruptedBy, StartedBy};
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    PackedFlow, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
+    PackedFlow, PackedState, PathAction, ProviderProtocol, ProviderReqId, ProviderToServer,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
@@ -160,42 +160,49 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
             let id = msg.direct_id;
-            log::info!(
-                "Switch stream '{}' for {:?} to {:?}",
-                self.description.path,
-                msg.direct_id,
-                msg.active
-            );
-            // TODO: Fix logs
-            #[allow(clippy::collapsible_if)]
-            if msg.active {
-                if self.subscribers.insert(id) {
-                    if let TracerMode::Push { state, .. } = &self.mode {
-                        let state = T::pack_state(state)?;
-                        let response = ProviderToServer::State { state };
-                        let direction = Direction::from(msg.direct_id);
-                        self.sender.response(direction, response);
+            match msg.action {
+                PathAction::ControlStream { active } => {
+                    log::info!(
+                        "Switch stream '{}' for {:?} to {:?}",
+                        self.description.path,
+                        id,
+                        active
+                    );
+                    // TODO: Fix logs
+                    #[allow(clippy::collapsible_if)]
+                    if active {
+                        if self.subscribers.insert(id) {
+                            if let TracerMode::Push { state, .. } = &self.mode {
+                                let state = T::pack_state(state)?;
+                                let response = ProviderToServer::State { state };
+                                let direction = Direction::from(msg.direct_id);
+                                self.sender.response(direction, response);
+                            }
+                            // TODO: Send the first state for pull as well
+                        } else {
+                            log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
+                        }
+                    } else {
+                        if self.subscribers.remove(&id) {
+                            let response = ProviderToServer::EndStream;
+                            let direction = Direction::from(msg.direct_id);
+                            self.sender.response(direction, response);
+                            // TODO: Send `EndStream`
+                        } else {
+                            log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
+                        }
                     }
-                } else {
-                    log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
+                    /*
+                    if self.subscribers.is_empty() {
+                        // TODO: Terminate `HeartBeat`
+                    } else {
+                        // TODO: Spawn a `HeartBeat` state extractor
+                    } PathAction
+                    */
                 }
-            } else {
-                if self.subscribers.remove(&id) {
-                    let response = ProviderToServer::EndStream;
-                    let direction = Direction::from(msg.direct_id);
-                    self.sender.response(direction, response);
-                    // TODO: Send `EndStream`
-                } else {
-                    log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
-                }
+                PathAction::GetSnapshot => {}
+                PathAction::GetFlow => {}
             }
-            /*
-            if self.subscribers.is_empty() {
-                // TODO: Terminate `HeartBeat`
-            } else {
-                // TODO: Spawn a `HeartBeat` state extractor
-            }
-            */
         } else {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
         }
