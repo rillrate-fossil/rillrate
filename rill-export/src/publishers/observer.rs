@@ -4,7 +4,7 @@ use futures::StreamExt;
 use meio::LiteTask;
 use once_cell::sync::Lazy;
 use rill_client::actors::client::{ClientLink, StateOrDelta};
-use rill_protocol::flow::data::{pulse::PulseMetric, Metric};
+use rill_protocol::flow::data::{pulse::PulseFlow, Flow};
 use rill_protocol::io::provider::{Description, StreamType, Timestamp};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -41,7 +41,7 @@ impl SharedRecord {
 // TODO: Remove all this things...
 static ROUTINES: Lazy<RoutineMap> = Lazy::new(|| {
     let mut map = RoutineMap::new();
-    map.insert(PulseMetric { range: None });
+    map.insert(PulseFlow { range: None });
     map
 });
 
@@ -154,11 +154,11 @@ impl LiteTask for Observer {
 
 /// Converts a state and deltas into a flow of numeric values
 /// suitable for the metrics tracing systems.
-trait Extractor: Metric {
+trait Extractor: Flow {
     fn get_value(state: &Self::State) -> Option<(Timestamp, f64)>;
 }
 
-impl Extractor for PulseMetric {
+impl Extractor for PulseFlow {
     fn get_value(state: &Self::State) -> Option<(Timestamp, f64)> {
         state
             .frame

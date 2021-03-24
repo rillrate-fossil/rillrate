@@ -1,18 +1,18 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::meta::entry::{EntryEvent, EntryMetric, EntryState};
+use rill_protocol::flow::meta::entry::{EntryEvent, EntryFlow, EntryState};
 use rill_protocol::io::provider::{EntryId, Path};
 
 /// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct EntryTracer {
-    tracer: Tracer<EntryMetric>,
+    tracer: Tracer<EntryFlow>,
 }
 
 impl EntryTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let metric = EntryMetric;
+        let metric = EntryFlow;
         let state = EntryState::new();
         let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }

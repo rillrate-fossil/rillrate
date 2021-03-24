@@ -1,4 +1,4 @@
-use super::{Metric, TimedEvent};
+use super::{Flow, TimedEvent};
 use crate::frame::Frame;
 use crate::io::codec::vectorize;
 use crate::io::provider::StreamType;
@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct HistogramMetric;
+pub struct HistogramFlow;
 
-impl Metric for HistogramMetric {
+impl Flow for HistogramFlow {
     type State = HistogramState;
     type Event = HistogramEvent;
 

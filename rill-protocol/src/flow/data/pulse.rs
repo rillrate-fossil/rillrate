@@ -1,4 +1,4 @@
-use super::{Metric, TimedEvent};
+use super::{Flow, TimedEvent};
 // TODO: Join `Frame` and `Range` into a single module.
 use crate::frame::Frame;
 use crate::io::provider::StreamType;
@@ -6,11 +6,11 @@ use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct PulseMetric {
+pub struct PulseFlow {
     pub range: Option<Range>,
 }
 
-impl Metric for PulseMetric {
+impl Flow for PulseFlow {
     type State = PulseState;
     type Event = PulseEvent;
 

@@ -36,7 +36,7 @@ impl RillState {
     ) -> Result<(), Error>
     where
         RillWorker: InstantActionHandler<RegisterTracer<T>>,
-        T: data::Metric,
+        T: data::Flow,
     {
         let msg = RegisterTracer { description, mode };
         let parcel = Parcel::pack(msg);
@@ -50,9 +50,9 @@ impl RillState {
     }
 }
 
-pub(crate) struct RegisterTracer<T: data::Metric> {
+pub(crate) struct RegisterTracer<T: data::Flow> {
     pub description: Arc<TracerDescription<T>>,
     pub mode: TracerMode<T>,
 }
 
-impl<T: data::Metric> InstantAction for RegisterTracer<T> {}
+impl<T: data::Flow> InstantAction for RegisterTracer<T> {}

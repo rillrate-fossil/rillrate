@@ -11,7 +11,7 @@ use meio_connect::hyper::{Body, Response};
 use meio_connect::server::{DirectPath, HttpServerLink, Req, WebRoute};
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_client::actors::client::ClientLink;
-use rill_protocol::flow::data::{pulse::PulseMetric, Metric};
+use rill_protocol::flow::data::{pulse::PulseFlow, Flow};
 use rill_protocol::io::provider::{Description, Path, PathPattern, StreamType};
 use serde::Deserialize;
 use std::collections::{
@@ -50,7 +50,7 @@ impl Publisher for PrometheusPublisher {
         server: &HttpServerLink,
     ) -> Self {
         let mut supported_types = HashMap::new();
-        supported_types.insert(PulseMetric::stream_type(), PrometheusType::Gauge);
+        supported_types.insert(PulseFlow::stream_type(), PrometheusType::Gauge);
         Self {
             config,
             broadcaster,
@@ -82,7 +82,7 @@ impl Actor for PrometheusPublisher {
 impl StartedBy<RillExport> for PrometheusPublisher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(vec![Group::Streams]);
-        let metrics_route = WebRoute::<RenderMetrics, _>::new(ctx.address().clone());
+        let metrics_route = WebRoute::<RenderFlows, _>::new(ctx.address().clone());
         self.server.add_route(metrics_route).await?;
         self.broadcaster
             .subscribe_to_struct_changes(ctx.address().clone())
@@ -146,9 +146,9 @@ impl TaskEliminated<Observer, ()> for PrometheusPublisher {
 }
 
 #[derive(Default, Deserialize)]
-struct RenderMetrics {}
+struct RenderFlows {}
 
-impl DirectPath for RenderMetrics {
+impl DirectPath for RenderFlows {
     type Parameter = ();
     fn paths() -> &'static [&'static str] {
         &["/metrics"]
@@ -156,10 +156,10 @@ impl DirectPath for RenderMetrics {
 }
 
 #[async_trait]
-impl InteractionHandler<Req<RenderMetrics>> for PrometheusPublisher {
+impl InteractionHandler<Req<RenderFlows>> for PrometheusPublisher {
     async fn handle(
         &mut self,
-        _: Req<RenderMetrics>,
+        _: Req<RenderFlows>,
         _ctx: &mut Context<Self>,
     ) -> Result<Response<Body>, Error> {
         let mut buffer = String::new();

@@ -1,12 +1,12 @@
-use super::{Metric, TimedEvent};
+use super::{Flow, TimedEvent};
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct DictMetric;
+pub struct DictFlow;
 
-impl Metric for DictMetric {
+impl Flow for DictFlow {
     type State = DictState;
     type Event = DictEvent;
 

@@ -1,11 +1,11 @@
-use super::{Metric, TimedEvent};
+use super::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CounterMetric;
+pub struct CounterFlow;
 
-impl Metric for CounterMetric {
+impl Flow for CounterFlow {
     type State = CounterState;
     type Event = CounterEvent;
 

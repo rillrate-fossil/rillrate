@@ -12,14 +12,14 @@ use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
 
-pub(crate) struct Recorder<T: data::Metric> {
+pub(crate) struct Recorder<T: data::Flow> {
     description: Arc<TracerDescription<T>>,
     sender: RillSender,
     mode: TracerMode<T>,
     subscribers: HashSet<ProviderReqId>,
 }
 
-impl<T: data::Metric> Recorder<T> {
+impl<T: data::Flow> Recorder<T> {
     pub fn new(
         description: Arc<TracerDescription<T>>,
         sender: RillSender,
@@ -38,7 +38,7 @@ impl<T: data::Metric> Recorder<T> {
     }
 }
 
-impl<T: data::Metric> Actor for Recorder<T> {
+impl<T: data::Flow> Actor for Recorder<T> {
     type GroupBy = ();
 
     fn name(&self) -> String {
@@ -47,7 +47,7 @@ impl<T: data::Metric> Actor for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Metric> StartedBy<RillWorker> for Recorder<T> {
+impl<T: data::Flow> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         match &mut self.mode {
             TracerMode::Push { receiver, .. } => {
@@ -69,7 +69,7 @@ impl<T: data::Metric> StartedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Metric> InterruptedBy<RillWorker> for Recorder<T> {
+impl<T: data::Flow> InterruptedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
         Ok(())
@@ -77,7 +77,7 @@ impl<T: data::Metric> InterruptedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Metric> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
+impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,
@@ -114,7 +114,7 @@ impl<T: data::Metric> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Metric> OnTick for Recorder<T> {
+impl<T: data::Flow> OnTick for Recorder<T> {
     async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             match &self.mode {
@@ -150,7 +150,7 @@ impl<T: data::Metric> OnTick for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Metric> ActionHandler<link::ControlStream> for Recorder<T> {
+impl<T: data::Flow> ActionHandler<link::ControlStream> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ControlStream,
@@ -202,7 +202,7 @@ impl<T: data::Metric> ActionHandler<link::ControlStream> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Metric> ActionHandler<link::ConnectionChanged> for Recorder<T> {
+impl<T: data::Flow> ActionHandler<link::ConnectionChanged> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ConnectionChanged,

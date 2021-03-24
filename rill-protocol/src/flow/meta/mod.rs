@@ -2,6 +2,6 @@ pub mod entry;
 
 use crate::io::provider::EntryId;
 
-pub trait MetaMetric: Default {
+pub trait MetaFlow: Default {
     fn location() -> EntryId;
 }

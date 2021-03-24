@@ -1,11 +1,11 @@
-use crate::flow::data::{Metric, TimedEvent};
+use crate::flow::data::{Flow, TimedEvent};
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct AlertMetric;
+pub struct AlertFlow;
 
-impl Metric for AlertMetric {
+impl Flow for AlertFlow {
     type State = AlertState;
     type Event = AlertEvent;
 

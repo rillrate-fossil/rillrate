@@ -10,13 +10,13 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 
 #[derive(Debug)]
-pub(crate) enum DataEnvelope<T: data::Metric> {
+pub(crate) enum DataEnvelope<T: data::Flow> {
     Event(TimedEvent<T::Event>),
 }
 
-impl<T: data::Metric> Action for DataEnvelope<T> {}
+impl<T: data::Flow> Action for DataEnvelope<T> {}
 
-impl<T: data::Metric> DataEnvelope<T> {
+impl<T: data::Flow> DataEnvelope<T> {
     pub fn into_inner(self) -> TimedEvent<T::Event> {
         match self {
             Self::Event(event) => event,
@@ -28,7 +28,7 @@ impl<T: data::Metric> DataEnvelope<T> {
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
-pub(crate) enum TracerMode<T: data::Metric> {
+pub(crate) enum TracerMode<T: data::Flow> {
     /// Real-time mode
     Push {
         state: T::State,
@@ -41,13 +41,13 @@ pub(crate) enum TracerMode<T: data::Metric> {
 }
 
 #[derive(Debug)]
-enum InnerMode<T: data::Metric> {
+enum InnerMode<T: data::Flow> {
     Push { sender: DataSender<T> },
     Pull { state: Arc<Mutex<T::State>> },
 }
 
-// TODO: Or require `Clone` for the `Metric` to derive this
-impl<T: data::Metric> Clone for InnerMode<T> {
+// TODO: Or require `Clone` for the `Flow` to derive this
+impl<T: data::Flow> Clone for InnerMode<T> {
     fn clone(&self) -> Self {
         match self {
             Self::Push { sender } => Self::Push {
@@ -68,7 +68,7 @@ pub(crate) struct TracerDescription<T> {
 }
 
 // TODO: Change to `TryInto`?
-impl<T: data::Metric> TracerDescription<T> {
+impl<T: data::Flow> TracerDescription<T> {
     /// Converts `TracerDescription` into a `Description`.
     pub fn to_description(&self) -> Result<Description, Error> {
         let metadata = self.metric.pack_metric()?;
@@ -84,14 +84,14 @@ impl<T: data::Metric> TracerDescription<T> {
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
-pub struct Tracer<T: data::Metric> {
+pub struct Tracer<T: data::Flow> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     description: Arc<TracerDescription<T>>,
     mode: InnerMode<T>,
 }
 
-impl<T: data::Metric> Clone for Tracer<T> {
+impl<T: data::Flow> Clone for Tracer<T> {
     fn clone(&self) -> Self {
         Self {
             active: self.active.clone(),
@@ -101,7 +101,7 @@ impl<T: data::Metric> Clone for Tracer<T> {
     }
 }
 
-impl<T: data::Metric> Tracer<T> {
+impl<T: data::Flow> Tracer<T> {
     /// Creates a new `Tracer`.
     pub fn new(metric: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let stream_type = T::stream_type();
@@ -186,7 +186,7 @@ impl<T: data::Metric> Tracer<T> {
     }
 }
 
-impl<T: data::Metric> Tracer<T> {
+impl<T: data::Flow> Tracer<T> {
     /// Returns `true` is the `Tracer` has to send data.
     pub fn is_active(&self) -> bool {
         *self.active.borrow()

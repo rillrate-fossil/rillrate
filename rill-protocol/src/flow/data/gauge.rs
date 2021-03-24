@@ -1,14 +1,14 @@
-use super::{Metric, TimedEvent};
+use super::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct GaugeMetric {
+pub struct GaugeFlow {
     pub range: Range,
 }
 
-impl Metric for GaugeMetric {
+impl Flow for GaugeFlow {
     type State = GaugeState;
     type Event = GaugeEvent;
 

@@ -1,12 +1,12 @@
-use super::{Metric, TimedEvent};
+use super::{Flow, TimedEvent};
 use crate::frame::Frame;
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LoggerMetric;
+pub struct LoggerFlow;
 
-impl Metric for LoggerMetric {
+impl Flow for LoggerFlow {
     type State = LoggerState;
     type Event = LoggerEvent;
 

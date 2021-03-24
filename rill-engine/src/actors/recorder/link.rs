@@ -12,7 +12,7 @@ pub(crate) struct RecorderLink {
     connection_recipient: Box<dyn ActionRecipient<ConnectionChanged>>,
 }
 
-impl<T: data::Metric> From<Address<Recorder<T>>> for RecorderLink {
+impl<T: data::Flow> From<Address<Recorder<T>>> for RecorderLink {
     fn from(address: Address<Recorder<T>>) -> Self {
         Self {
             control_recipient: address.clone().into(),

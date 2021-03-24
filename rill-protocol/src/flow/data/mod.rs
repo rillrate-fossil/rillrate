@@ -1,6 +1,6 @@
 //! Data Flows consists of three types of elements:
-//! 1. `Metric` - immutable parameters of a data flow.
-//! Metric is serialized and transferred with a description.
+//! 1. `Flow` - immutable parameters of a data flow.
+//! Flow is serialized and transferred with a description.
 //! 2. `State` - mutable snapshot that contains all applied deltas and events.
 //! It sent serialized on the beggining of Push mode or periodically in Push mode.
 //! 3. `Event` - immutable separate change that has to be applied to the `State`.
@@ -15,7 +15,7 @@ pub mod pulse;
 pub mod table;
 
 use crate::encoding;
-use crate::io::provider::{PackedDelta, PackedMetric, PackedState, StreamType, Timestamp};
+use crate::io::provider::{PackedDelta, PackedFlow, PackedState, StreamType, Timestamp};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
@@ -32,7 +32,7 @@ impl<T> DataFraction for T where
 }
 
 /// Immutable state of a data flow.
-pub trait Metric: DataFraction {
+pub trait Flow: DataFraction {
     type State: DataFraction;
     type Event: DataFraction;
 
@@ -40,13 +40,13 @@ pub trait Metric: DataFraction {
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>);
 
-    fn pack_metric(&self) -> Result<PackedMetric, Error> {
+    fn pack_metric(&self) -> Result<PackedFlow, Error> {
         encoding::to_vec(self)
             .map_err(Error::from)
-            .map(PackedMetric::from)
+            .map(PackedFlow::from)
     }
 
-    fn unpack_metric(data: &PackedMetric) -> Result<Self, Error> {
+    fn unpack_metric(data: &PackedFlow) -> Result<Self, Error> {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 

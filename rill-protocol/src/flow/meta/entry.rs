@@ -1,19 +1,19 @@
-use super::MetaMetric;
-use crate::flow::data::{Metric, TimedEvent};
+use super::MetaFlow;
+use crate::flow::data::{Flow, TimedEvent};
 use crate::io::provider::{EntryId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct EntryMetric;
+pub struct EntryFlow;
 
-impl MetaMetric for EntryMetric {
+impl MetaFlow for EntryFlow {
     fn location() -> EntryId {
         "meta:entries".into()
     }
 }
 
-impl Metric for EntryMetric {
+impl Flow for EntryFlow {
     type State = EntryState;
     type Event = EntryEvent;
 

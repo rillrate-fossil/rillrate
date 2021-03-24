@@ -1,4 +1,4 @@
-use crate::flow::data::Metric;
+use crate::flow::data::Flow;
 use crate::io::codec::RRCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use anyhow::Error;
@@ -373,21 +373,21 @@ pub struct Description {
     pub path: Path,
     pub info: String,
     pub stream_type: StreamType,
-    pub metadata: PackedMetric,
+    pub metadata: PackedFlow,
 }
 
 impl Description {
-    pub fn try_extract_metric<T: Metric>(&self) -> Result<T, Error> {
+    pub fn try_extract_metric<T: Flow>(&self) -> Result<T, Error> {
         T::unpack_metric(&self.metadata)
     }
 }
 
 #[derive(Clone, From, Into, Serialize, Deserialize)]
-pub struct PackedMetric(pub Vec<u8>);
+pub struct PackedFlow(pub Vec<u8>);
 
-impl fmt::Debug for PackedMetric {
+impl fmt::Debug for PackedFlow {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PackedMetric")
+        f.debug_struct("PackedFlow")
             .field("size", &self.0.len())
             .finish()
     }

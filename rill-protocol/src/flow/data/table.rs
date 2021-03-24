@@ -1,16 +1,16 @@
-use super::{Metric, TimedEvent};
+use super::{Flow, TimedEvent};
 use crate::io::codec::vectorize;
 use crate::io::provider::{Col, Row, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct TableMetric {
+pub struct TableFlow {
     #[serde(with = "vectorize")]
     pub columns: BTreeMap<Col, ColRecord>,
 }
 
-impl Metric for TableMetric {
+impl Flow for TableFlow {
     type State = TableState;
     type Event = TableEvent;
 
