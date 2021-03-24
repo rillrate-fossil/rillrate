@@ -45,6 +45,10 @@ pub enum Group {
 
 impl Actor for RillRate {
     type GroupBy = Group;
+
+    fn name(&self) -> String {
+        format!("RillRate")
+    }
 }
 
 #[async_trait]
