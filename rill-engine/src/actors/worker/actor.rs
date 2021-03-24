@@ -65,6 +65,7 @@ pub struct RillWorker {
     recorders: Pathfinder<RecorderLink>,
     describe: bool,
     registered: HashMap<Id, Description>,
+    path_flow: PathTracer,
 }
 
 impl RillWorker {
@@ -76,6 +77,7 @@ impl RillWorker {
             recorders: Pathfinder::default(),
             describe: false,
             registered: HashMap::new(),
+            path_flow: PathTracer::new(),
         }
     }
 
@@ -260,6 +262,8 @@ impl<T: data::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorke
             // Send a description that's new tracer added
             self.registered
                 .insert(recorder.id().into(), packed_desc.clone());
+            self.path_flow.add(path);
+            // TODO: Remove that notification below
             if self.sender.is_connected() {
                 let msg = ProviderToServer::Description {
                     list: vec![packed_desc],
@@ -284,7 +288,9 @@ impl<T: data::Flow> Eliminated<Recorder<T>> for RillWorker {
         if let Some(desc) = self.registered.remove(&id) {
             let path = &desc.path;
             let link = self.recorders.find_mut(&path).and_then(Record::take_link);
-            if link.is_none() {
+            if link.is_some() {
+                self.path_flow.del(path.to_owned());
+            } else {
                 log::error!("Recorder {:?} was registered without a link (lost).", id);
             }
         } else {
