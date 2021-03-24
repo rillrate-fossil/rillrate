@@ -3,7 +3,7 @@ use crate::io::provider::{EntryId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct EntryMetric;
 
 impl Metric for EntryMetric {
@@ -16,11 +16,11 @@ impl Metric for EntryMetric {
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
-            EntryEvent::AddProvider { name } => {
-                state.providers.insert(name, ());
+            EntryEvent::AddEntry { name } => {
+                state.entries.insert(name, ());
             }
-            EntryEvent::RemoveProvider { name } => {
-                state.providers.remove(&name);
+            EntryEvent::RemoveEntry { name } => {
+                state.entries.remove(&name);
             }
         }
     }
@@ -28,14 +28,14 @@ impl Metric for EntryMetric {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntryState {
-    pub providers: BTreeMap<EntryId, ()>,
+    pub entries: BTreeMap<EntryId, ()>,
 }
 
 #[allow(clippy::new_without_default)]
 impl EntryState {
     pub fn new() -> Self {
         Self {
-            providers: BTreeMap::new(),
+            entries: BTreeMap::new(),
         }
     }
 }
@@ -44,6 +44,6 @@ pub type EntryDelta = Vec<TimedEvent<EntryEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum EntryEvent {
-    AddProvider { name: EntryId },
-    RemoveProvider { name: EntryId },
+    AddEntry { name: EntryId },
+    RemoveEntry { name: EntryId },
 }

@@ -20,13 +20,13 @@ impl EntryTracer {
 
     /// Add an entry
     pub fn add(&self, name: EntryId) {
-        let data = EntryEvent::AddProvider { name };
+        let data = EntryEvent::AddEntry { name };
         self.tracer.send(data, None);
     }
 
     /// Remove an entry
     pub fn del(&self, name: EntryId) {
-        let data = EntryEvent::RemoveProvider { name };
+        let data = EntryEvent::RemoveEntry { name };
         self.tracer.send(data, None);
     }
 }
