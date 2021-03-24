@@ -4,7 +4,7 @@ use rill_protocol::flow::meta::{
     path::{PathEvent, PathFlow, PathState},
     MetaFlow,
 };
-use rill_protocol::io::provider::Path;
+use rill_protocol::io::provider::{Description, Path};
 
 /// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]
@@ -23,14 +23,14 @@ impl PathTracer {
     }
 
     /// Add an path
-    pub fn add(&self, name: Path) {
-        let data = PathEvent::AddPath { name };
+    pub fn add(&self, path: Path, description: Description) {
+        let data = PathEvent::AddPath { path, description };
         self.tracer.send(data, None);
     }
 
     /// Remove an path
-    pub fn del(&self, name: Path) {
-        let data = PathEvent::RemovePath { name };
+    pub fn del(&self, path: Path) {
+        let data = PathEvent::RemovePath { path };
         self.tracer.send(data, None);
     }
 }

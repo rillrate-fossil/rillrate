@@ -4,7 +4,7 @@ use rill_protocol::flow::meta::{
     entry::{EntryEvent, EntryFlow, EntryState},
     MetaFlow,
 };
-use rill_protocol::io::provider::{EntryId, Path};
+use rill_protocol::io::provider::EntryId;
 
 /// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]
