@@ -95,6 +95,7 @@ impl Path {
         Self(vec![entry_id.into()])
     }
 
+    /*
     pub fn root() -> Self {
         Self(Vec::new())
     }
@@ -111,6 +112,7 @@ impl Path {
         cloned.0.push(entry_id.into());
         cloned
     }
+    */
 
     /*
     pub fn concat(&self, other: &[EntryId]) -> Path {
@@ -139,6 +141,24 @@ impl Path {
 impl<'a> FromIterator<&'a EntryId> for Path {
     fn from_iter<I: IntoIterator<Item = &'a EntryId>>(iter: I) -> Self {
         Self(iter.into_iter().cloned().collect())
+    }
+}
+
+impl Extend<EntryId> for Path {
+    fn extend<T>(&mut self, iter: T)
+    where
+        T: IntoIterator<Item = EntryId>,
+    {
+        self.0.extend(iter);
+    }
+}
+
+impl IntoIterator for Path {
+    type Item = EntryId;
+    type IntoIter = std::vec::IntoIter<EntryId>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
