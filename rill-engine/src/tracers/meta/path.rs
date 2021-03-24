@@ -1,6 +1,9 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::meta::path::{PathEvent, PathFlow, PathState};
+use rill_protocol::flow::meta::{
+    path::{PathEvent, PathFlow, PathState},
+    MetaFlow,
+};
 use rill_protocol::io::provider::Path;
 
 /// This tracer that informs about entries.
@@ -11,7 +14,8 @@ pub struct PathTracer {
 
 impl PathTracer {
     /// Create a new instance of the `Tracer`.
-    pub fn new(path: Path) -> Self {
+    pub fn new() -> Self {
+        let path = PathFlow::location();
         let metric = PathFlow;
         let state = PathState::new();
         let tracer = Tracer::new(metric, state, path, None);
