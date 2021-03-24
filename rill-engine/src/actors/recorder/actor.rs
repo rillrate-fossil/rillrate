@@ -5,9 +5,11 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
-use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
+use meio::{ActionHandler, Actor, Consumer, Context, InteractionHandler, InterruptedBy, StartedBy};
 use rill_protocol::flow::data;
-use rill_protocol::io::provider::{ProviderProtocol, ProviderReqId, ProviderToServer};
+use rill_protocol::io::provider::{
+    PackedFlow, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
+};
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
@@ -219,5 +221,16 @@ impl<T: data::Flow> ActionHandler<link::ConnectionChanged> for Recorder<T> {
             }
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: data::Flow> InteractionHandler<link::FetchInfo> for Recorder<T> {
+    async fn handle(
+        &mut self,
+        msg: link::FetchInfo,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(PackedFlow, Option<PackedState>), Error> {
+        todo!()
     }
 }

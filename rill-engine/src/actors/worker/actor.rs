@@ -203,27 +203,28 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
                     self.sender.response(direct_id.into(), msg);
                 }
             }
-            /*
-            ServerToProvider::Describe { active } => {
-                // TODO: Check or use `Direction` here?
-                let dont_send_empty = !self.registered.is_empty();
-                let not_described_yet = !self.describe;
-                if active && not_described_yet && dont_send_empty {
-                    // Send all exist paths
-                    let list = self
-                        .registered
-                        .values()
-                        .map(|desc| Description::clone(desc))
-                        .collect();
-                    let msg = ProviderToServer::Description { list };
-                    self.send_global(msg);
-                }
-                self.describe = active;
-            }
-            */
-            req => {
-                log::error!("TODO: Request {:?} is not implemented yet.", req);
-            }
+            ServerToProvider::GetFlow { path } => {}
+            ServerToProvider::GetSnapshot { path } => {} /*
+                                                         ServerToProvider::Describe { active } => {
+                                                             // TODO: Check or use `Direction` here?
+                                                             let dont_send_empty = !self.registered.is_empty();
+                                                             let not_described_yet = !self.describe;
+                                                             if active && not_described_yet && dont_send_empty {
+                                                                 // Send all exist paths
+                                                                 let list = self
+                                                                     .registered
+                                                                     .values()
+                                                                     .map(|desc| Description::clone(desc))
+                                                                     .collect();
+                                                                 let msg = ProviderToServer::Description { list };
+                                                                 self.send_global(msg);
+                                                             }
+                                                             self.describe = active;
+                                                         }
+                                                         req => {
+                                                             log::error!("TODO: Request {:?} is not implemented yet.", req);
+                                                         }
+                                                         */
         }
         Ok(())
     }

@@ -346,6 +346,7 @@ pub enum ServerToProvider {
     // because the `Path` is not needed to stop the stream.
     ControlStream { path: Path, active: bool },
     GetSnapshot { path: Path },
+    GetFlow { path: Path },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -447,6 +448,9 @@ pub enum ProviderToServer {
     },
     */
     /// The response to `ControlStream { active: true }` request
+    Flow {
+        flow: PackedFlow,
+    },
     State {
         state: PackedState,
     },

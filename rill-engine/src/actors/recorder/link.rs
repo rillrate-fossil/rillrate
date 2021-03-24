@@ -1,22 +1,34 @@
 use super::Recorder;
 use crate::actors::worker::RillSender;
 use anyhow::Error;
-use meio::{Action, ActionRecipient, Address};
+use meio::{Action, ActionRecipient, Address, Interaction, InteractionRecipient, InteractionTask};
 use rill_protocol::flow::data;
-use rill_protocol::io::provider::ProviderReqId;
+use rill_protocol::io::provider::{PackedFlow, PackedState, Path, ProviderReqId};
+
+/// COOL SOLUTION!
+trait Recipient:
+    ActionRecipient<ControlStream>
+    + ActionRecipient<ConnectionChanged>
+    + InteractionRecipient<FetchInfo>
+{
+}
+
+impl<T> Recipient for T where
+    T: ActionRecipient<ControlStream>
+        + ActionRecipient<ConnectionChanged>
+        + InteractionRecipient<FetchInfo>
+{
+}
 
 #[derive(Debug)]
 pub(crate) struct RecorderLink {
-    // TODO: Join them with `DoubleActionRecipient`
-    control_recipient: Box<dyn ActionRecipient<ControlStream>>,
-    connection_recipient: Box<dyn ActionRecipient<ConnectionChanged>>,
+    recipient: Box<dyn Recipient>,
 }
 
 impl<T: data::Flow> From<Address<Recorder<T>>> for RecorderLink {
     fn from(address: Address<Recorder<T>>) -> Self {
         Self {
-            control_recipient: address.clone().into(),
-            connection_recipient: address.into(),
+            recipient: Box::new(address),
         }
     }
 }
@@ -32,16 +44,17 @@ pub(super) enum ConnectionChanged {
 impl Action for ConnectionChanged {}
 
 impl RecorderLink {
+    // TODO: What is it? Remove?
     pub async fn connected(&mut self, sender: RillSender) -> Result<(), Error> {
         let msg = ConnectionChanged::Connected { sender };
-        self.connection_recipient.act(msg).await
+        self.recipient.act(msg).await
     }
 }
 
 impl RecorderLink {
     pub async fn disconnected(&mut self) -> Result<(), Error> {
         let msg = ConnectionChanged::Disconnected;
-        self.connection_recipient.act(msg).await
+        self.recipient.act(msg).await
     }
 }
 
@@ -59,6 +72,22 @@ impl RecorderLink {
         active: bool,
     ) -> Result<(), Error> {
         let msg = ControlStream { direct_id, active };
-        self.control_recipient.act(msg).await
+        self.recipient.act(msg).await
+    }
+}
+
+pub(crate) struct FetchInfo {
+    pub path: Path,
+    pub with_state: bool,
+}
+
+impl Interaction for FetchInfo {
+    type Output = (PackedFlow, Option<PackedState>);
+}
+
+impl RecorderLink {
+    pub async fn fetch_info(&mut self, path: Path, with_state: bool) -> InteractionTask<FetchInfo> {
+        let msg = FetchInfo { path, with_state };
+        self.recipient.interact(msg)
     }
 }
