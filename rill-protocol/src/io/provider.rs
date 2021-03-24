@@ -316,9 +316,6 @@ pub enum TableUpdate {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerToProvider {
-    ListOf {
-        path: Path,
-    },
     /// Turns on notifications about every added path
     Describe {
         active: bool,
