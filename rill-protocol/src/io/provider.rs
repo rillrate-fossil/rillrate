@@ -434,10 +434,10 @@ impl fmt::Debug for PackedDelta {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProviderToServer {
-    /*
     Declare {
         entry_id: EntryId,
     },
+    /*
     Description {
         list: Vec<Description>,
     },

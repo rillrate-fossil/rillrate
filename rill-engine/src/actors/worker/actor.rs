@@ -152,11 +152,9 @@ impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillWorker {
                     }
                 }
 
-                /*
                 let entry_id = self.config.provider_name();
                 let msg = ProviderToServer::Declare { entry_id };
                 self.send_global(msg);
-                */
             }
             WsClientStatus::Failed { reason } => {
                 log::error!("Connection failed: {}", reason);
