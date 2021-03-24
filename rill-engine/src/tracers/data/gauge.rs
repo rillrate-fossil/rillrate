@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::gauge::{GaugeEvent, GaugeMetric, GaugeState};
+use rill_protocol::flow::data::gauge::{GaugeEvent, GaugeMetric, GaugeState};
 use rill_protocol::io::provider::Path;
 use rill_protocol::range::Range;
 use std::time::SystemTime;

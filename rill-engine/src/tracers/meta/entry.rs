@@ -1,7 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
+use rill_protocol::flow::meta::entry::{EntryEvent, EntryMetric, EntryState};
 use rill_protocol::io::provider::{EntryId, Path};
-use rill_protocol::metadata::entry::{EntryEvent, EntryMetric, EntryState};
 
 /// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]

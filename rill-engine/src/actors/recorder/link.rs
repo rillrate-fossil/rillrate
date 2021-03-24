@@ -2,7 +2,7 @@ use super::Recorder;
 use crate::actors::worker::RillSender;
 use anyhow::Error;
 use meio::{Action, ActionRecipient, Address};
-use rill_protocol::data;
+use rill_protocol::flow::data;
 use rill_protocol::io::provider::ProviderReqId;
 
 #[derive(Debug)]

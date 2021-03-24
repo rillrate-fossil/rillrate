@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::data::logger::{LoggerEvent, LoggerMetric, LoggerState};
+use rill_protocol::flow::data::logger::{LoggerEvent, LoggerMetric, LoggerState};
 use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 

@@ -1,5 +1,5 @@
 use super::MetaMetric;
-use crate::data::{Metric, TimedEvent};
+use crate::flow::data::{Metric, TimedEvent};
 use crate::io::provider::{EntryId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::data;
+use rill_protocol::flow::data;
 use rill_protocol::io::provider::{ProviderProtocol, ProviderReqId, ProviderToServer};
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;

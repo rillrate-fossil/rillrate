@@ -12,7 +12,7 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::data;
+use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };

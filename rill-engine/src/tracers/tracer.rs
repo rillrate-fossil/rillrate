@@ -3,7 +3,7 @@ use crate::state::RILL_LINK;
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::data::{self, TimedEvent};
+use rill_protocol::flow::data::{self, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, Timestamp};
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};

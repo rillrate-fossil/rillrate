@@ -5,7 +5,7 @@ use futures::channel::mpsc;
 use futures::lock::Mutex;
 use meio::{InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
-use rill_protocol::data;
+use rill_protocol::flow::data;
 use std::sync::Arc;
 
 /// It used by tracers to register them into the state.
