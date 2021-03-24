@@ -41,9 +41,7 @@ impl<T: data::Flow> Recorder<T> {
 
     async fn pack_state(&self) -> Result<PackedState, Error> {
         match &self.mode {
-            TracerMode::Push { state, .. } => {
-                T::pack_state(state)
-            }
+            TracerMode::Push { state, .. } => T::pack_state(state),
             TracerMode::Pull { state, .. } => {
                 if let Some(state) = Weak::upgrade(state) {
                     let state = state
@@ -56,6 +54,13 @@ impl<T: data::Flow> Recorder<T> {
                 }
             }
         }
+    }
+
+    async fn send_state(&mut self, direction: Direction<ProviderProtocol>) -> Result<(), Error> {
+        let state = self.pack_state().await?;
+        let response = ProviderToServer::State { state };
+        self.sender.response(direction, response);
+        Ok(())
     }
 }
 
@@ -142,12 +147,8 @@ impl<T: data::Flow> OnTick for Recorder<T> {
                 TracerMode::Pull { .. } => {
                     // TODO: Use channel to track recorder lifetime.
                     // TODO: Or Weak reference
-                    let state = self.pack_state().await?;
-                    let response = ProviderToServer::State {
-                        state,
-                    };
                     let direction = self.get_direction();
-                    self.sender.response(direction, response);
+                    self.send_state(direction);
                 }
                 TracerMode::Push { .. } => {
                     log::error!("Pulling tick received for the push mode.");
@@ -184,10 +185,7 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
                     #[allow(clippy::collapsible_if)]
                     if active {
                         if self.subscribers.insert(id) {
-                            let state = self.pack_state().await?;
-                            let response = ProviderToServer::State { state };
-                            let direction = Direction::from(msg.direct_id);
-                            self.sender.response(direction, response);
+                            self.send_state(id.into());
                         } else {
                             log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
                         }
@@ -210,13 +208,10 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
                     */
                 }
                 PathAction::GetSnapshot => {
-                    // TODO: Dry!
-                    let state = self.pack_state().await?;
-                    let response = ProviderToServer::State { state };
-                    let direction = Direction::from(msg.direct_id);
-                    self.sender.response(direction, response);
+                    self.send_state(id.into());
                 }
                 PathAction::GetFlow => {
+                    // TODO: Send PackedFlow here
                 }
             }
         } else {
