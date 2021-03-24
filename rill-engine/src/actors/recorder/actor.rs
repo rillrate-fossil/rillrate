@@ -38,6 +38,25 @@ impl<T: data::Flow> Recorder<T> {
     fn get_direction(&self) -> Direction<ProviderProtocol> {
         Direction::from(&self.subscribers)
     }
+
+    async fn pack_state(&self) -> Result<PackedState, Error> {
+        match &self.mode {
+            TracerMode::Push { state, .. } => {
+                T::pack_state(state)
+            }
+            TracerMode::Pull { state, .. } => {
+                if let Some(state) = Weak::upgrade(state) {
+                    let state = state
+                        .lock()
+                        .map_err(|_| Error::msg("Can't lock state to send a state."))?
+                        .clone();
+                    T::pack_state(&state)
+                } else {
+                    Err(Error::msg("Can't upgrade weak reference to the state."))
+                }
+            }
+        }
+    }
 }
 
 impl<T: data::Flow> Actor for Recorder<T> {
@@ -120,22 +139,15 @@ impl<T: data::Flow> OnTick for Recorder<T> {
     async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             match &self.mode {
-                TracerMode::Pull { state, .. } => {
-                    if let Some(state) = Weak::upgrade(state) {
-                        let state = state
-                            .lock()
-                            .map_err(|_| Error::msg("Can't lock state to send a state."))?
-                            .clone();
-                        let response = ProviderToServer::State {
-                            state: T::pack_state(&state)?,
-                        };
-                        let direction = self.get_direction();
-                        self.sender.response(direction, response);
-                    } else {
-                        // TODO: Consider to use a `channel` to get informed if the stream was
-                        // closed.
-                        ctx.shutdown();
-                    }
+                TracerMode::Pull { .. } => {
+                    // TODO: Use channel to track recorder lifetime.
+                    // TODO: Or Weak reference
+                    let state = self.pack_state().await?;
+                    let response = ProviderToServer::State {
+                        state,
+                    };
+                    let direction = self.get_direction();
+                    self.sender.response(direction, response);
                 }
                 TracerMode::Push { .. } => {
                     log::error!("Pulling tick received for the push mode.");
@@ -172,13 +184,10 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
                     #[allow(clippy::collapsible_if)]
                     if active {
                         if self.subscribers.insert(id) {
-                            if let TracerMode::Push { state, .. } = &self.mode {
-                                let state = T::pack_state(state)?;
-                                let response = ProviderToServer::State { state };
-                                let direction = Direction::from(msg.direct_id);
-                                self.sender.response(direction, response);
-                            }
-                            // TODO: Send the first state for pull as well
+                            let state = self.pack_state().await?;
+                            let response = ProviderToServer::State { state };
+                            let direction = Direction::from(msg.direct_id);
+                            self.sender.response(direction, response);
                         } else {
                             log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
                         }
@@ -200,8 +209,15 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
                     } PathAction
                     */
                 }
-                PathAction::GetSnapshot => {}
-                PathAction::GetFlow => {}
+                PathAction::GetSnapshot => {
+                    // TODO: Dry!
+                    let state = self.pack_state().await?;
+                    let response = ProviderToServer::State { state };
+                    let direction = Direction::from(msg.direct_id);
+                    self.sender.response(direction, response);
+                }
+                PathAction::GetFlow => {
+                }
             }
         } else {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
