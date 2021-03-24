@@ -77,7 +77,6 @@ impl RecorderLink {
 }
 
 pub(crate) struct FetchInfo {
-    pub path: Path,
     pub with_state: bool,
 }
 
@@ -86,8 +85,8 @@ impl Interaction for FetchInfo {
 }
 
 impl RecorderLink {
-    pub async fn fetch_info(&mut self, path: Path, with_state: bool) -> InteractionTask<FetchInfo> {
-        let msg = FetchInfo { path, with_state };
+    pub fn fetch_info(&mut self, with_state: bool) -> InteractionTask<FetchInfo> {
+        let msg = FetchInfo { with_state };
         self.recipient.interact(msg)
     }
 }

@@ -1,5 +1,5 @@
 use crate::actors::engine::RillEngine;
-use crate::actors::recorder::{Recorder, RecorderLink};
+use crate::actors::recorder::{link as recorder_link, Recorder, RecorderLink};
 use crate::config::EngineConfig;
 use crate::state;
 use crate::tracers::meta::PathTracer;
@@ -7,7 +7,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
     ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler,
-    InterruptedBy, Parcel, StartedBy, TaskEliminated, TaskError,
+    InteractionDone, InterruptedBy, Parcel, StartedBy, Tag, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -15,7 +15,8 @@ use meio_connect::{
 };
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    Description, PathAction, ProviderProtocol, ProviderToServer, ServerToProvider,
+    Description, PackedFlow, PackedState, PathAction, ProviderProtocol, ProviderReqId,
+    ProviderToServer, ServerToProvider,
 };
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use rill_protocol::pathfinder::{Pathfinder, Record};
@@ -54,6 +55,8 @@ impl RillSender {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
     WsConnection,
+    /// Interactions
+    ActiveRequests,
     UpgradeStream,
     Recorders,
 }
@@ -98,7 +101,9 @@ impl Actor for RillWorker {
 #[async_trait]
 impl StartedBy<RillEngine> for RillWorker {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        // TODO: Replace with strum iter
         ctx.termination_sequence(vec![
+            Group::ActiveRequests,
             Group::WsConnection,
             Group::UpgradeStream,
             Group::Recorders,
@@ -181,31 +186,39 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
     async fn handle(
         &mut self,
         msg: WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let envelope = msg.0;
         log::trace!("Incoming request: {:?}", envelope);
         let direct_id = envelope.direct_id;
         let path = envelope.data.path;
-        match envelope.data.action {
-            PathAction::ControlStream { active } => {
-                log::debug!("Switching the stream {:?} to {:?}", path, active);
-                let recorder_link = self
-                    .recorders
-                    .find_mut(&path)
-                    .and_then(Record::get_link_mut);
-                if let Some(recorder) = recorder_link {
+        let recorder_link = self
+            .recorders
+            .find_mut(&path)
+            .and_then(Record::get_link_mut);
+        if let Some(recorder) = recorder_link {
+            match envelope.data.action {
+                PathAction::ControlStream { active } => {
+                    log::debug!("Switching the stream {:?} to {:?}", path, active);
                     recorder.control_stream(direct_id, active).await?;
-                } else {
-                    log::warn!("Path not found: {:?}", path);
-                    let msg = ProviderToServer::Error {
-                        reason: format!("path {} not found", path),
-                    };
-                    self.sender.response(direct_id.into(), msg);
+                }
+                PathAction::GetFlow => {
+                    let task = recorder.fetch_info(false);
+                    let tag = ReqTag(direct_id);
+                    ctx.track_interaction(task, tag, Group::ActiveRequests);
+                }
+                PathAction::GetSnapshot => {
+                    let task = recorder.fetch_info(true);
+                    let tag = ReqTag(direct_id);
+                    ctx.track_interaction(task, tag, Group::ActiveRequests);
                 }
             }
-            PathAction::GetFlow => {}
-            PathAction::GetSnapshot => {}
+        } else {
+            log::warn!("Path not found: {:?}", path);
+            let msg = ProviderToServer::Error {
+                reason: format!("path {} not found", path),
+            };
+            self.sender.response(direct_id.into(), msg);
         }
         Ok(())
     }
@@ -294,6 +307,25 @@ impl Consumer<Parcel<Self>> for RillWorker {
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
+        Ok(())
+    }
+}
+
+struct ReqTag(ProviderReqId);
+
+impl Tag for ReqTag {}
+
+#[async_trait]
+impl InteractionDone<recorder_link::FetchInfo, ReqTag> for RillWorker {
+    async fn handle(
+        &mut self,
+        tag: ReqTag,
+        (flow, state): (PackedFlow, Option<PackedState>),
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        if let Some(state) = state {
+        } else {
+        }
         Ok(())
     }
 }
