@@ -2,6 +2,7 @@ use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::config::EngineConfig;
 use crate::state;
+use crate::tracers::meta::PathTracer;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{

@@ -1,6 +1,6 @@
 use super::MetaFlow;
 use crate::flow::data::{Flow, TimedEvent};
-use crate::io::provider::{EntryId, StreamType};
+use crate::io::provider::{EntryId, Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -8,8 +8,8 @@ use std::collections::BTreeMap;
 pub struct EntryFlow;
 
 impl MetaFlow for EntryFlow {
-    fn location() -> EntryId {
-        "meta:entries".into()
+    fn location() -> Path {
+        Path::single("meta:entries")
     }
 }
 
