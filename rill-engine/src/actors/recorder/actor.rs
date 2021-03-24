@@ -121,9 +121,17 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
             let direction = self.get_direction();
             self.sender.response(direction, response);
         }
-        if let TracerMode::Push { state, .. } = &mut self.mode {
-            for event in delta {
-                self.description.metric.apply(state, event);
+        match &mut self.mode {
+            TracerMode::Push { state, .. } => {
+                for event in delta {
+                    self.description.metric.apply(state, event);
+                }
+            }
+            TracerMode::Pull { .. } => {
+                log::error!(
+                    "Delta received for Pull mode for: {}",
+                    self.description.path
+                );
             }
         }
         Ok(())
@@ -150,7 +158,10 @@ impl<T: data::Flow> OnTick for Recorder<T> {
                     self.send_state(direction).await?;
                 }
                 TracerMode::Push { .. } => {
-                    log::error!("Pulling tick received for the push mode.");
+                    log::error!(
+                        "Pulling tick received for the push mode for: {}",
+                        self.description.path
+                    );
                 }
             }
         }
