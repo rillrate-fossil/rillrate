@@ -197,23 +197,8 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
             .find_mut(&path)
             .and_then(Record::get_link_mut);
         if let Some(recorder) = recorder_link {
-            match envelope.data.action {
-                PathAction::ControlStream { active } => {
-                    log::debug!("Switching the stream {:?} to {:?}", path, active);
-                    let action = PathAction::ControlStream { active };
-                    recorder.do_path_action(direct_id, action).await?;
-                }
-                PathAction::GetFlow => {
-                    let task = recorder.fetch_info(false);
-                    let tag = ReqTag(direct_id);
-                    ctx.track_interaction(task, tag, Group::ActiveRequests);
-                }
-                PathAction::GetSnapshot => {
-                    let task = recorder.fetch_info(true);
-                    let tag = ReqTag(direct_id);
-                    ctx.track_interaction(task, tag, Group::ActiveRequests);
-                }
-            }
+            let action = envelope.data.action;
+            recorder.do_path_action(direct_id, action).await?;
         } else {
             log::warn!("Path not found: {:?}", path);
             let msg = ProviderToServer::Error {
@@ -308,25 +293,6 @@ impl Consumer<Parcel<Self>> for RillWorker {
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.shutdown();
-        Ok(())
-    }
-}
-
-struct ReqTag(ProviderReqId);
-
-impl Tag for ReqTag {}
-
-#[async_trait]
-impl InteractionDone<recorder_link::FetchInfo, ReqTag> for RillWorker {
-    async fn handle(
-        &mut self,
-        tag: ReqTag,
-        (flow, state): (PackedFlow, Option<PackedState>),
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        if let Some(state) = state {
-        } else {
-        }
         Ok(())
     }
 }

@@ -46,8 +46,7 @@ impl<T: data::Flow> Recorder<T> {
                 if let Some(state) = Weak::upgrade(state) {
                     let state = state
                         .lock()
-                        .map_err(|_| Error::msg("Can't lock state to send a state."))?
-                        .clone();
+                        .map_err(|_| Error::msg("Can't lock state to send a state."))?;
                     T::pack_state(&state)
                 } else {
                     Err(Error::msg("Can't upgrade weak reference to the state."))
@@ -148,7 +147,7 @@ impl<T: data::Flow> OnTick for Recorder<T> {
                     // TODO: Use channel to track recorder lifetime.
                     // TODO: Or Weak reference
                     let direction = self.get_direction();
-                    self.send_state(direction);
+                    self.send_state(direction).await?;
                 }
                 TracerMode::Push { .. } => {
                     log::error!("Pulling tick received for the push mode.");
@@ -185,7 +184,7 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
                     #[allow(clippy::collapsible_if)]
                     if active {
                         if self.subscribers.insert(id) {
-                            self.send_state(id.into());
+                            self.send_state(id.into()).await?;
                         } else {
                             log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
                         }
@@ -208,7 +207,7 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
                     */
                 }
                 PathAction::GetSnapshot => {
-                    self.send_state(id.into());
+                    self.send_state(id.into()).await?;
                 }
                 PathAction::GetFlow => {
                     // TODO: Send PackedFlow here
@@ -239,16 +238,5 @@ impl<T: data::Flow> ActionHandler<link::ConnectionChanged> for Recorder<T> {
             }
         }
         Ok(())
-    }
-}
-
-#[async_trait]
-impl<T: data::Flow> InteractionHandler<link::FetchInfo> for Recorder<T> {
-    async fn handle(
-        &mut self,
-        msg: link::FetchInfo,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(PackedFlow, Option<PackedState>), Error> {
-        todo!()
     }
 }

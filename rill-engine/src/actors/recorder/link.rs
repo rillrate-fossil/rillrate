@@ -6,17 +6,9 @@ use rill_protocol::flow::data;
 use rill_protocol::io::provider::{PackedFlow, PackedState, PathAction, ProviderReqId};
 
 /// COOL SOLUTION!
-trait Recipient:
-    ActionRecipient<DoPathAction> + ActionRecipient<ConnectionChanged> + InteractionRecipient<FetchInfo>
-{
-}
+trait Recipient: ActionRecipient<DoPathAction> + ActionRecipient<ConnectionChanged> {}
 
-impl<T> Recipient for T where
-    T: ActionRecipient<DoPathAction>
-        + ActionRecipient<ConnectionChanged>
-        + InteractionRecipient<FetchInfo>
-{
-}
+impl<T> Recipient for T where T: ActionRecipient<DoPathAction> + ActionRecipient<ConnectionChanged> {}
 
 #[derive(Debug)]
 pub(crate) struct RecorderLink {
@@ -71,21 +63,5 @@ impl RecorderLink {
     ) -> Result<(), Error> {
         let msg = DoPathAction { direct_id, action };
         self.recipient.act(msg).await
-    }
-}
-
-// TODO: Delete
-pub(crate) struct FetchInfo {
-    pub with_state: bool,
-}
-
-impl Interaction for FetchInfo {
-    type Output = (PackedFlow, Option<PackedState>);
-}
-
-impl RecorderLink {
-    pub fn fetch_info(&mut self, with_state: bool) -> InteractionTask<FetchInfo> {
-        let msg = FetchInfo { with_state };
-        self.recipient.interact(msg)
     }
 }
