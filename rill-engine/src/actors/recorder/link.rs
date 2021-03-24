@@ -7,14 +7,14 @@ use rill_protocol::io::provider::{PackedFlow, PackedState, Path, ProviderReqId};
 
 /// COOL SOLUTION!
 trait Recipient:
-    ActionRecipient<ControlStream>
+    ActionRecipient<DoPathAction>
     + ActionRecipient<ConnectionChanged>
     + InteractionRecipient<FetchInfo>
 {
 }
 
 impl<T> Recipient for T where
-    T: ActionRecipient<ControlStream>
+    T: ActionRecipient<DoPathAction>
         + ActionRecipient<ConnectionChanged>
         + InteractionRecipient<FetchInfo>
 {
@@ -58,12 +58,12 @@ impl RecorderLink {
     }
 }
 
-pub(super) struct ControlStream {
+pub(super) struct DoPathAction {
     pub direct_id: ProviderReqId,
     pub active: bool,
 }
 
-impl Action for ControlStream {}
+impl Action for DoPathAction {}
 
 impl RecorderLink {
     pub async fn control_stream(
@@ -71,7 +71,7 @@ impl RecorderLink {
         direct_id: ProviderReqId,
         active: bool,
     ) -> Result<(), Error> {
-        let msg = ControlStream { direct_id, active };
+        let msg = DoPathAction { direct_id, active };
         self.recipient.act(msg).await
     }
 }

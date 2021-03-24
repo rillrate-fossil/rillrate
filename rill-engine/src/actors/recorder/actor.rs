@@ -152,10 +152,10 @@ impl<T: data::Flow> OnTick for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> ActionHandler<link::ControlStream> for Recorder<T> {
+impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
     async fn handle(
         &mut self,
-        msg: link::ControlStream,
+        msg: link::DoPathAction,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
