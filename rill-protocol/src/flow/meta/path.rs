@@ -1,5 +1,6 @@
 use super::MetaFlow;
 use crate::flow::data::{Flow, TimedEvent};
+use crate::io::codec::vectorize;
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -35,6 +36,7 @@ impl Flow for PathFlow {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathState {
+    #[serde(with = "vectorize")]
     pub entries: BTreeMap<Path, ()>,
 }
 
