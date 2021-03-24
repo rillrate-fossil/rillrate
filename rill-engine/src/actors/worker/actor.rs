@@ -15,7 +15,7 @@ use meio_connect::{
 };
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    Description, ProviderProtocol, ProviderToServer, ServerToProvider,
+    Description, PathAction, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use rill_protocol::pathfinder::{Pathfinder, Record};
@@ -186,8 +186,9 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
         let envelope = msg.0;
         log::trace!("Incoming request: {:?}", envelope);
         let direct_id = envelope.direct_id;
-        match envelope.data {
-            ServerToProvider::ControlStream { path, active } => {
+        let path = envelope.data.path;
+        match envelope.data.action {
+            PathAction::ControlStream { active } => {
                 log::debug!("Switching the stream {:?} to {:?}", path, active);
                 let recorder_link = self
                     .recorders
@@ -203,28 +204,8 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
                     self.sender.response(direct_id.into(), msg);
                 }
             }
-            ServerToProvider::GetFlow { path } => {}
-            ServerToProvider::GetSnapshot { path } => {} /*
-                                                         ServerToProvider::Describe { active } => {
-                                                             // TODO: Check or use `Direction` here?
-                                                             let dont_send_empty = !self.registered.is_empty();
-                                                             let not_described_yet = !self.describe;
-                                                             if active && not_described_yet && dont_send_empty {
-                                                                 // Send all exist paths
-                                                                 let list = self
-                                                                     .registered
-                                                                     .values()
-                                                                     .map(|desc| Description::clone(desc))
-                                                                     .collect();
-                                                                 let msg = ProviderToServer::Description { list };
-                                                                 self.send_global(msg);
-                                                             }
-                                                             self.describe = active;
-                                                         }
-                                                         req => {
-                                                             log::error!("TODO: Request {:?} is not implemented yet.", req);
-                                                         }
-                                                         */
+            PathAction::GetFlow => {}
+            PathAction::GetSnapshot => {}
         }
         Ok(())
     }

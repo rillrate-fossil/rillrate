@@ -335,18 +335,16 @@ pub enum TableUpdate {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ServerToProvider {
-    /*
-    /// Turns on notifications about every added path
-    Describe {
-        active: bool,
-    },
-    */
-    // TODO: Add `StartStream { path }` and `StopStream`,
-    // because the `Path` is not needed to stop the stream.
-    ControlStream { path: Path, active: bool },
-    GetSnapshot { path: Path },
-    GetFlow { path: Path },
+pub struct ServerToProvider {
+    pub path: Path,
+    pub action: PathAction,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PathAction {
+    ControlStream { active: bool },
+    GetSnapshot,
+    GetFlow,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
