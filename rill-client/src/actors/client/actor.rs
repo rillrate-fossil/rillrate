@@ -118,6 +118,13 @@ impl RillClient {
             }
         }
     }
+
+    fn remove_flows(&mut self, direction: Direction<ClientProtocol>) {
+        let ids = direction.into_vec();
+        for direct_id in ids {
+            self.directions.remove(direct_id);
+        }
+    }
 }
 
 #[async_trait]
@@ -146,10 +153,11 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
                 self.distribute_event(msg.0.direction, event).await;
             }
             ClientResponse::Done => {
-                let directions = msg.0.direction.into_vec();
-                for direction in directions {
-                    self.directions.remove(direction);
-                }
+                self.remove_flows(msg.0.direction);
+            }
+            ClientResponse::Error(reason) => {
+                log::error!("Stream failed: {}", reason);
+                self.remove_flows(msg.0.direction);
             }
         }
         Ok(())

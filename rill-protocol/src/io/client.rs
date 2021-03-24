@@ -34,4 +34,5 @@ pub enum ClientResponse {
     Delta(PackedDelta),
     /// Stream closed/finished.
     Done,
+    Error(String),
 }
