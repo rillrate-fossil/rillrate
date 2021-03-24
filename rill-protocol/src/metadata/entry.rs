@@ -1,3 +1,4 @@
+use super::MetaMetric;
 use crate::data::{Metric, TimedEvent};
 use crate::io::provider::{EntryId, StreamType};
 use serde::{Deserialize, Serialize};
@@ -5,6 +6,12 @@ use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct EntryMetric;
+
+impl MetaMetric for EntryMetric {
+    fn location() -> EntryId {
+        "meta:entries".into()
+    }
+}
 
 impl Metric for EntryMetric {
     type State = EntryState;
