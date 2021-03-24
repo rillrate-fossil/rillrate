@@ -202,6 +202,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
                     }
                 }
             }
+            /*
             ProviderToServer::Declare { entry_id } => {
                 ctx.not_terminating()?;
                 if self.registered.is_none() {
@@ -227,6 +228,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
                     }
                 }
             }
+            */
             other => {
                 log::warn!("Message {:?} not supported yet.", other);
             }

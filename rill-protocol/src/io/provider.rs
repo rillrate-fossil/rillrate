@@ -336,19 +336,16 @@ pub enum TableUpdate {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerToProvider {
+    /*
     /// Turns on notifications about every added path
     Describe {
         active: bool,
     },
+    */
     // TODO: Add `StartStream { path }` and `StopStream`,
     // because the `Path` is not needed to stop the stream.
-    ControlStream {
-        path: Path,
-        active: bool,
-    },
-    GetSnapshot {
-        path: Path,
-    },
+    ControlStream { path: Path, active: bool },
+    GetSnapshot { path: Path },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -437,6 +434,7 @@ impl fmt::Debug for PackedDelta {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProviderToServer {
+    /*
     Declare {
         entry_id: EntryId,
     },
@@ -447,6 +445,7 @@ pub enum ProviderToServer {
     Entries {
         entries: HashMap<EntryId, EntryType>,
     },
+    */
     /// The response to `ControlStream { active: true }` request
     State {
         state: PackedState,

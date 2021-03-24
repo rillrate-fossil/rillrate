@@ -152,9 +152,11 @@ impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillWorker {
                     }
                 }
 
+                /*
                 let entry_id = self.config.provider_name();
                 let msg = ProviderToServer::Declare { entry_id };
                 self.send_global(msg);
+                */
             }
             WsClientStatus::Failed { reason } => {
                 log::error!("Connection failed: {}", reason);
@@ -203,6 +205,7 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
                     self.sender.response(direct_id.into(), msg);
                 }
             }
+            /*
             ServerToProvider::Describe { active } => {
                 // TODO: Check or use `Direction` here?
                 let dont_send_empty = !self.registered.is_empty();
@@ -219,6 +222,7 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
                 }
                 self.describe = active;
             }
+            */
             req => {
                 log::error!("TODO: Request {:?} is not implemented yet.", req);
             }
