@@ -337,11 +337,11 @@ pub enum TableUpdate {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerToProvider {
     pub path: Path,
-    pub action: PathAction,
+    pub action: RecorderAction,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum PathAction {
+pub enum RecorderAction {
     ControlStream { active: bool },
     GetSnapshot,
     GetFlow,

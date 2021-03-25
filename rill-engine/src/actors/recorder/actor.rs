@@ -8,7 +8,7 @@ use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InteractionHandler, InterruptedBy, StartedBy};
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    PackedFlow, PackedState, PathAction, ProviderProtocol, ProviderReqId, ProviderToServer,
+    PackedFlow, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
@@ -175,16 +175,16 @@ impl<T: data::Flow> OnTick for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
+impl<T: data::Flow> ActionHandler<link::DoRecorderAction> for Recorder<T> {
     async fn handle(
         &mut self,
-        msg: link::DoPathAction,
+        msg: link::DoRecorderAction,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
             let id = msg.direct_id;
             match msg.action {
-                PathAction::ControlStream { active } => {
+                RecorderAction::ControlStream { active } => {
                     log::info!(
                         "Switch stream '{}' for {:?} to {:?}",
                         self.description.path,
@@ -214,13 +214,13 @@ impl<T: data::Flow> ActionHandler<link::DoPathAction> for Recorder<T> {
                         // TODO: Terminate `HeartBeat`
                     } else {
                         // TODO: Spawn a `HeartBeat` state extractor
-                    } PathAction
+                    } RecorderAction
                     */
                 }
-                PathAction::GetSnapshot => {
+                RecorderAction::GetSnapshot => {
                     self.send_state(id.into()).await?;
                 }
-                PathAction::GetFlow => {
+                RecorderAction::GetFlow => {
                     // TODO: Send PackedFlow here
                 }
             }

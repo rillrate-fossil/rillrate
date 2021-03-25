@@ -15,8 +15,8 @@ use meio_connect::{
 };
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    Description, PackedFlow, PackedState, PathAction, ProviderProtocol, ProviderReqId,
-    ProviderToServer, ServerToProvider,
+    Description, PackedFlow, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
+    RecorderAction, ServerToProvider,
 };
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use rill_protocol::pathfinder::{Pathfinder, Record};
