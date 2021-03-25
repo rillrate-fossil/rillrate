@@ -42,9 +42,7 @@ impl<T: data::Flow> Recorder<T> {
 
     fn send_flow(&mut self, direction: Direction<ProviderProtocol>) -> Result<(), Error> {
         let description = self.description.to_description()?;
-        let response = ProviderToServer::Flow {
-            description,
-        };
+        let response = ProviderToServer::Flow { description };
         self.sender.response(direction, response);
         Ok(())
     }
@@ -111,7 +109,7 @@ impl<T: data::Flow> StartedBy<RillWorker> for Recorder<T> {
 #[async_trait]
 impl<T: data::Flow> InterruptedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+        self.graceful_shutdown(ctx);
         Ok(())
     }
 }
@@ -152,24 +150,31 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.graceful_shutdown(ctx);
+        Ok(())
+    }
+}
+
+impl<T: data::Flow> Recorder<T> {
+    fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
         // No more events will be received after this point.
         self.send_end(self.all_subscribers());
         self.subscribers.clear();
         ctx.shutdown();
-        Ok(())
     }
 }
 
 #[async_trait]
 impl<T: data::Flow> OnTick for Recorder<T> {
-    async fn tick(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             match &self.mode {
                 TracerMode::Pull { .. } => {
-                    // TODO: Use channel to track recorder lifetime.
-                    // TODO: Or Weak reference
                     let direction = self.all_subscribers();
-                    self.send_state(direction).await?;
+                    if let Err(_err) = self.send_state(direction).await {
+                        // Stop the actor if the data can't be pulled.
+                        self.graceful_shutdown(ctx);
+                    }
                 }
                 TracerMode::Push { .. } => {
                     log::error!(
@@ -182,8 +187,9 @@ impl<T: data::Flow> OnTick for Recorder<T> {
         Ok(())
     }
 
-    async fn done(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
+    async fn done(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        // This can happen only if the `InterruptedBy` handler called and
+        // all shutdown routine (sending `End` responses) was already performed.
         Ok(())
     }
 }
