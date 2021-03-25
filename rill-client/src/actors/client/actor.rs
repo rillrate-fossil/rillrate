@@ -139,11 +139,6 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
             ClientResponse::Declare(entry_id) => {
                 self.broadcaster.session_attached(entry_id).await?;
             }
-            ClientResponse::Paths(descriptions) => {
-                for desc in descriptions {
-                    self.broadcaster.path_declared(desc).await?;
-                }
-            }
             ClientResponse::State(state) => {
                 let event = StateOrDelta::State(state);
                 self.distribute_event(msg.0.direction, event).await;

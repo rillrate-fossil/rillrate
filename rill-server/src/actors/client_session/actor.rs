@@ -118,15 +118,7 @@ impl ActionHandler<PathNotification> for ClientSession {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match msg {
-            PathNotification::Paths { descriptions } => {
-                let response = ClientResponse::Paths(descriptions);
-                let envelope = WideEnvelope {
-                    direction: Direction::broadcast(),
-                    data: response,
-                };
-                self.handler.send(envelope);
-                Ok(())
-            }
+            PathNotification::Paths { .. } => Ok(()),
             PathNotification::Name { name } => {
                 // Get the provider when it connected and declared.
                 let sender = self.handler.sender();
