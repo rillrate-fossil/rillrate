@@ -384,7 +384,7 @@ pub enum ProviderToServer {
     */
     /// The response to `ControlStream { active: true }` request
     Flow {
-        flow: PackedFlow,
+        description: Description,
     },
     State {
         state: PackedState,

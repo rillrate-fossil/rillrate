@@ -35,8 +35,18 @@ impl<T: data::Flow> Recorder<T> {
         }
     }
 
-    fn get_direction(&self) -> Direction<ProviderProtocol> {
+    /// `Direction` to all subscribers.
+    fn all_subscribers(&self) -> Direction<ProviderProtocol> {
         Direction::from(&self.subscribers)
+    }
+
+    fn send_flow(&mut self, direction: Direction<ProviderProtocol>) -> Result<(), Error> {
+        let description = self.description.to_description()?;
+        let response = ProviderToServer::Flow {
+            description,
+        };
+        self.sender.response(direction, response);
+        Ok(())
     }
 
     async fn pack_state(&self) -> Result<PackedState, Error> {
@@ -60,6 +70,11 @@ impl<T: data::Flow> Recorder<T> {
         let response = ProviderToServer::State { state };
         self.sender.response(direction, response);
         Ok(())
+    }
+
+    fn send_end(&mut self, direction: Direction<ProviderProtocol>) {
+        let response = ProviderToServer::EndStream;
+        self.sender.response(direction, response);
     }
 }
 
@@ -115,10 +130,9 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         }
         if !self.subscribers.is_empty() {
             let response = ProviderToServer::Data {
-                // TODO: Use a reference here? (no clone?)
                 delta: T::pack_delta(&delta)?,
             };
-            let direction = self.get_direction();
+            let direction = self.all_subscribers();
             self.sender.response(direction, response);
         }
         match &mut self.mode {
@@ -138,10 +152,10 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        // TODO: Send `EndStream` to all subscribers
-        // TODO: Remove all subscribers
+        // No more events will be received after this point.
+        self.send_end(self.all_subscribers());
+        self.subscribers.clear();
         ctx.shutdown();
-        // TODO: Maybe send an instant `StopList` event and avoid shutdown for a while
         Ok(())
     }
 }
@@ -154,7 +168,7 @@ impl<T: data::Flow> OnTick for Recorder<T> {
                 TracerMode::Pull { .. } => {
                     // TODO: Use channel to track recorder lifetime.
                     // TODO: Or Weak reference
-                    let direction = self.get_direction();
+                    let direction = self.all_subscribers();
                     self.send_state(direction).await?;
                 }
                 TracerMode::Push { .. } => {
@@ -201,10 +215,7 @@ impl<T: data::Flow> ActionHandler<link::DoRecorderAction> for Recorder<T> {
                         }
                     } else {
                         if self.subscribers.remove(&id) {
-                            let response = ProviderToServer::EndStream;
-                            let direction = Direction::from(msg.direct_id);
-                            self.sender.response(direction, response);
-                            // TODO: Send `EndStream`
+                            self.send_end(id.into());
                         } else {
                             log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
                         }
@@ -221,7 +232,7 @@ impl<T: data::Flow> ActionHandler<link::DoRecorderAction> for Recorder<T> {
                     self.send_state(id.into()).await?;
                 }
                 RecorderAction::GetFlow => {
-                    // TODO: Send PackedFlow here
+                    self.send_flow(id.into())?;
                 }
             }
         } else {
