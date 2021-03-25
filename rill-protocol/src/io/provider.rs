@@ -7,7 +7,7 @@ use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryInto;
 use std::fmt;
 use std::iter::FromIterator;
 use std::str::FromStr;
@@ -283,55 +283,6 @@ pub struct DictUpdate {
 pub enum EntryUpdate {
     Add { name: EntryId },
     Remove { name: EntryId },
-}
-
-/// Id of a column in a table.
-#[derive(
-    Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
-)]
-pub struct Col(pub u64);
-
-impl fmt::Display for Col {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl TryFrom<usize> for Col {
-    type Error = <u64 as TryFrom<usize>>::Error;
-
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        value.try_into().map(Self)
-    }
-}
-
-/// Id of a row in a table.
-#[derive(
-    Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
-)]
-pub struct Row(pub u64);
-
-impl fmt::Display for Row {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl TryFrom<usize> for Row {
-    type Error = <u64 as TryFrom<usize>>::Error;
-
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        value.try_into().map(Self)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum TableUpdate {
-    AddCol { col: Col, alias: Option<String> },
-    DelCol { col: Col },
-    AddRow { row: Row, alias: Option<String> },
-    DelRow { row: Row },
-    SetCell { row: Row, col: Col, value: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

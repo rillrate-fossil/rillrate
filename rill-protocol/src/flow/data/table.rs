@@ -1,8 +1,51 @@
 use super::{Flow, TimedEvent};
 use crate::io::codec::vectorize;
-use crate::io::provider::{Col, Row, StreamType};
+use crate::io::provider::StreamType;
+use derive_more::{From, Into};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::convert::{TryFrom, TryInto};
+use std::fmt;
+
+/// Id of a column in a table.
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
+)]
+pub struct Col(pub u64);
+
+impl fmt::Display for Col {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl TryFrom<usize> for Col {
+    type Error = <u64 as TryFrom<usize>>::Error;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        value.try_into().map(Self)
+    }
+}
+
+/// Id of a row in a table.
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
+)]
+pub struct Row(pub u64);
+
+impl fmt::Display for Row {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl TryFrom<usize> for Row {
+    type Error = <u64 as TryFrom<usize>>::Error;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        value.try_into().map(Self)
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableFlow {

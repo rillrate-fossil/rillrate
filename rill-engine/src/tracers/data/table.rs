@@ -1,7 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::data::table::{ColRecord, TableEvent, TableFlow, TableState};
-use rill_protocol::io::provider::{Col, Path, Row};
+use rill_protocol::flow::data::table::{Col, ColRecord, Row, TableEvent, TableFlow, TableState};
+use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
 /// This tracer sends text messages.

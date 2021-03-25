@@ -5,7 +5,7 @@ use anyhow::Error;
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
-pub use rill_protocol::io::provider::{Col, Row};
+pub use rill_protocol::flow::data::table::{Col, Row};
 use std::ops::Deref;
 use std::sync::Arc;
 
