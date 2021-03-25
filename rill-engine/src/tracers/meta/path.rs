@@ -14,6 +14,7 @@ pub struct PathTracer {
 
 impl PathTracer {
     /// Create a new instance of the `Tracer`.
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let path = PathFlow::location();
         let metric = PathFlow;

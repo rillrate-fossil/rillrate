@@ -14,6 +14,7 @@ pub struct EntryTracer {
 
 impl EntryTracer {
     /// Create a new instance of the `Tracer`.
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let path = EntryFlow::location();
         let metric = EntryFlow;
