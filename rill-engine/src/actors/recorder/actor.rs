@@ -74,6 +74,13 @@ impl<T: data::Flow> Recorder<T> {
         let response = ProviderToServer::EndStream;
         self.sender.response(direction, response);
     }
+
+    fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        // No more events will be received after this point.
+        self.send_end(self.all_subscribers());
+        self.subscribers.clear();
+        ctx.shutdown();
+    }
 }
 
 impl<T: data::Flow> Actor for Recorder<T> {
@@ -152,15 +159,6 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx);
         Ok(())
-    }
-}
-
-impl<T: data::Flow> Recorder<T> {
-    fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        // No more events will be received after this point.
-        self.send_end(self.all_subscribers());
-        self.subscribers.clear();
-        ctx.shutdown();
     }
 }
 
