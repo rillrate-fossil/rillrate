@@ -5,10 +5,10 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
-use meio::{ActionHandler, Actor, Consumer, Context, InteractionHandler, InterruptedBy, StartedBy};
+use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    PackedFlow, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
+    PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
@@ -148,7 +148,7 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 
 #[async_trait]
 impl<T: data::Flow> OnTick for Recorder<T> {
-    async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn tick(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             match &self.mode {
                 TracerMode::Pull { .. } => {

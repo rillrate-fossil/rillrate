@@ -1,5 +1,4 @@
 use super::link;
-use crate::actors::client_session::PROVIDER;
 use crate::actors::router::Router;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -181,7 +180,7 @@ impl ActionHandler<WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>>
     async fn handle(
         &mut self,
         msg: WsIncoming<WideEnvelope<ProviderProtocol, ProviderToServer>>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         //log::trace!("Provider incoming message: {:?}", msg);
         match msg.0.data {

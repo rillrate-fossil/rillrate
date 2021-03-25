@@ -1,5 +1,5 @@
 use crate::actors::engine::RillEngine;
-use crate::actors::recorder::{link as recorder_link, Recorder, RecorderLink};
+use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::config::EngineConfig;
 use crate::state;
 use crate::tracers::meta::PathTracer;
@@ -7,7 +7,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
     ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler,
-    InteractionDone, InterruptedBy, Parcel, StartedBy, Tag, TaskEliminated, TaskError,
+    InterruptedBy, Parcel, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -15,8 +15,7 @@ use meio_connect::{
 };
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    Description, PackedFlow, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
-    RecorderAction, ServerToProvider,
+    Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
 use rill_protocol::pathfinder::{Pathfinder, Record};
@@ -30,9 +29,11 @@ pub(crate) struct RillSender {
 }
 
 impl RillSender {
+    /*
     pub fn is_connected(&self) -> bool {
         self.sender.is_some()
     }
+    */
 
     fn set(&mut self, sender: WsSender<WideEnvelope<ProviderProtocol, ProviderToServer>>) {
         self.sender = Some(sender);
@@ -66,7 +67,6 @@ pub struct RillWorker {
     config: EngineConfig,
     sender: RillSender,
     recorders: Pathfinder<RecorderLink>,
-    describe: bool,
     registered: HashMap<Id, Description>,
     path_flow: PathTracer,
 }
@@ -78,7 +78,6 @@ impl RillWorker {
             config,
             sender: RillSender::default(),
             recorders: Pathfinder::default(),
-            describe: false,
             registered: HashMap::new(),
             path_flow: PathTracer::new(),
         }
@@ -186,7 +185,7 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
     async fn handle(
         &mut self,
         msg: WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let envelope = msg.0;
         log::trace!("Incoming request: {:?}", envelope);

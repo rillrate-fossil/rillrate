@@ -1,9 +1,9 @@
 use super::Recorder;
 use crate::actors::worker::RillSender;
 use anyhow::Error;
-use meio::{Action, ActionRecipient, Address, Interaction, InteractionRecipient, InteractionTask};
+use meio::{Action, ActionRecipient, Address};
 use rill_protocol::flow::data;
-use rill_protocol::io::provider::{PackedFlow, PackedState, ProviderReqId, RecorderAction};
+use rill_protocol::io::provider::{ProviderReqId, RecorderAction};
 
 /// COOL SOLUTION!
 trait Recipient: ActionRecipient<DoRecorderAction> + ActionRecipient<ConnectionChanged> {}

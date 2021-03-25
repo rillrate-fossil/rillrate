@@ -6,7 +6,6 @@ use derive_more::{Deref, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::borrow::Borrow;
-use std::collections::HashMap;
 use std::convert::TryInto;
 use std::fmt;
 use std::iter::FromIterator;
@@ -271,19 +270,6 @@ pub type ServerRequest = Envelope<ProviderProtocol, ServerToProvider>;
 
 pub type ProviderResponse = WideEnvelope<ProviderProtocol, ProviderToServer>;
 */
-
-// TODO: Rename to `DictDelta`
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct DictUpdate {
-    // TODO: Use `DictAction {Add, Del}` as a value
-    pub map: HashMap<String, String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum EntryUpdate {
-    Add { name: EntryId },
-    Remove { name: EntryId },
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerToProvider {

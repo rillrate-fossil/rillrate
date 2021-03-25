@@ -5,10 +5,8 @@ use async_trait::async_trait;
 use meio::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System, TaskEliminated, TaskError,
 };
-use meio_connect::server::HttpServerLink;
 use rill_engine::{EngineConfig, RillEngine};
-use rill_export::{ExportConfig, RillExport};
-use rill_server::{RillServer, ServerLink};
+use rill_server::RillServer;
 
 pub struct RillRate {}
 
@@ -22,16 +20,6 @@ impl RillRate {
     fn spawn_engine(&mut self, config: EngineConfig, ctx: &mut Context<Self>) {
         let actor = RillEngine::new(config);
         ctx.spawn_actor(actor, Group::Provider);
-    }
-
-    fn spawn_exporter(
-        &mut self,
-        config: ExportConfig,
-        server: HttpServerLink,
-        ctx: &mut Context<Self>,
-    ) {
-        let actor = RillExport::new(config, server);
-        ctx.spawn_actor(actor, Group::Exporter);
     }
 }
 
@@ -89,17 +77,7 @@ impl Eliminated<RillEngine> for RillRate {
     }
 }
 
-#[async_trait]
-impl Eliminated<RillExport> for RillRate {
-    async fn handle(
-        &mut self,
-        _id: IdOf<RillExport>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        Ok(())
-    }
-}
-
+// TODO: Remove
 #[async_trait]
 impl Eliminated<RillServer> for RillRate {
     async fn handle(
