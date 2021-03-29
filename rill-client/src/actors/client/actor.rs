@@ -13,7 +13,7 @@ use meio_connect::{
 };
 use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
 use rill_protocol::io::provider::{PackedDelta, PackedState, Path};
-use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
+use rill_protocol::io::transport::Envelope;
 use std::time::Duration;
 use typed_slab::TypedSlab;
 
@@ -105,33 +105,24 @@ impl InstantActionHandler<WsClientStatus<ClientProtocol>> for RillClient {
 }
 
 impl RillClient {
-    async fn distribute_event(
-        &mut self,
-        direction: Direction<ClientProtocol>,
-        event: StateOrDelta,
-    ) {
-        for direction in direction.into_vec() {
-            if let Some(Record::Active { sender, .. }) = self.directions.get_mut(direction) {
-                if let Err(err) = sender.send(event.clone()).await {
-                    log::error!("Can't send data to {:?}: {}", direction, err);
-                }
+    async fn distribute_event(&mut self, direction: ClientReqId, event: StateOrDelta) {
+        if let Some(Record::Active { sender, .. }) = self.directions.get_mut(direction) {
+            if let Err(err) = sender.send(event.clone()).await {
+                log::error!("Can't send data to {:?}: {}", direction, err);
             }
         }
     }
 
-    fn remove_flows(&mut self, direction: Direction<ClientProtocol>) {
-        let ids = direction.into_vec();
-        for direct_id in ids {
-            self.directions.remove(direct_id);
-        }
+    fn end_flows(&mut self, direct_id: ClientReqId) {
+        self.directions.remove(direct_id);
     }
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for RillClient {
+impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientResponse>>> for RillClient {
     async fn handle(
         &mut self,
-        msg: WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>,
+        msg: WsIncoming<Envelope<ClientProtocol, ClientResponse>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
@@ -141,18 +132,18 @@ impl ActionHandler<WsIncoming<WideEnvelope<ClientProtocol, ClientResponse>>> for
             }
             ClientResponse::State(state) => {
                 let event = StateOrDelta::State(state);
-                self.distribute_event(msg.0.direction, event).await;
+                self.distribute_event(msg.0.direct_id, event).await;
             }
             ClientResponse::Delta(delta) => {
                 let event = StateOrDelta::Delta(delta);
-                self.distribute_event(msg.0.direction, event).await;
+                self.distribute_event(msg.0.direct_id, event).await;
             }
             ClientResponse::Done => {
-                self.remove_flows(msg.0.direction);
+                self.end_flows(msg.0.direct_id);
             }
             ClientResponse::Error(reason) => {
                 log::error!("Stream failed: {}", reason);
-                self.remove_flows(msg.0.direction);
+                self.end_flows(msg.0.direct_id);
             }
         }
         Ok(())

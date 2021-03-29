@@ -16,6 +16,7 @@ pub struct ProviderLink {
     address: Address<ProviderSession>,
 }
 
+/*
 impl ProviderLink {
     pub fn bind(&self, sender: ClientSender) -> BindedProviderLink {
         BindedProviderLink {
@@ -25,6 +26,7 @@ impl ProviderLink {
         }
     }
 }
+*/
 
 #[derive(Debug, From)]
 pub struct BindedProviderLink {

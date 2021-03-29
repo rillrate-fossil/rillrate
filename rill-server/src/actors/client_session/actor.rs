@@ -1,4 +1,4 @@
-use crate::actors::provider_session::{BindedProviderLink, ProviderLink};
+use crate::actors::provider_session::BindedProviderLink;
 use crate::actors::router::Router;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -9,13 +9,11 @@ use meio_connect::{
     server::{WsHandler, WsProcessor},
     TermReason, WsIncoming,
 };
-use once_cell::sync::Lazy;
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
-use rill_protocol::io::client::{ClientProtocol, ClientRequest, ClientResponse};
-use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
-use tokio::sync::Mutex;
+use rill_protocol::io::client::{ClientProtocol, ClientRequest};
+use rill_protocol::io::transport::Envelope;
 
-pub static PROVIDER: Lazy<Mutex<Option<ProviderLink>>> = Lazy::new(|| Mutex::new(None));
+//pub static PROVIDER: Lazy<Mutex<Option<ProviderLink>>> = Lazy::new(|| Mutex::new(None));
 
 pub struct ClientSession {
     handler: WsHandler<ClientProtocol>,
@@ -119,7 +117,9 @@ impl ActionHandler<PathNotification> for ClientSession {
     ) -> Result<(), Error> {
         match msg {
             PathNotification::Paths { .. } => Ok(()),
-            PathNotification::Name { name } => {
+            PathNotification::Name { .. } => {
+                // Don't broadcast paths
+                /*
                 // Get the provider when it connected and declared.
                 let sender = self.handler.sender();
                 self.provider = PROVIDER.lock().await.as_ref().map(|link| link.bind(sender));
@@ -130,6 +130,7 @@ impl ActionHandler<PathNotification> for ClientSession {
                     data: response,
                 };
                 self.handler.send(envelope);
+                */
                 Ok(())
             }
         }
