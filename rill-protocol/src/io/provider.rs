@@ -279,9 +279,9 @@ pub struct ServerToProvider {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RecorderAction {
-    ControlStream { active: bool },
-    GetSnapshot,
     GetFlow,
+    GetSnapshot,
+    ControlStream { active: bool },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -373,15 +373,6 @@ pub enum ProviderToServer {
     Declare {
         entry_id: EntryId,
     },
-    /*
-    Description {
-        list: Vec<Description>,
-    },
-    // TODO: Consider renaming to ListReady
-    Entries {
-        entries: HashMap<EntryId, EntryType>,
-    },
-    */
     /// The response to `ControlStream { active: true }` request
     Flow {
         description: Description,

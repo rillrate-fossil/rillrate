@@ -1,5 +1,5 @@
 use crate::io::codec::RRCodec;
-use crate::io::provider::{EntryId, PackedDelta, PackedState, Path};
+use crate::io::provider::{EntryId, PackedDelta, PackedFlow, PackedState, Path};
 use crate::io::transport::{DirectId, Envelope, Origin};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
@@ -21,11 +21,13 @@ impl Origin for ClientProtocol {}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientRequest {
     ControlStream { path: Path, active: bool },
+    GetFlow,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientResponse {
     Declare(EntryId),
+    Flow(PackedFlow),
     State(PackedState),
     Delta(PackedDelta),
     /// Stream closed/finished.

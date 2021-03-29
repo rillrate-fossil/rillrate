@@ -130,6 +130,9 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientResponse>>> for Ril
             ClientResponse::Declare(entry_id) => {
                 self.broadcaster.session_attached(entry_id).await?;
             }
+            ClientResponse::Flow(_flow) => {
+                todo!();
+            }
             ClientResponse::State(state) => {
                 let event = StateOrDelta::State(state);
                 self.distribute_event(msg.0.direct_id, event).await;
