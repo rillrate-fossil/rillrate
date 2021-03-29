@@ -103,7 +103,7 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
                     self.provider()?.unsubscribe(path, msg.0.direct_id).await?;
                 }
             }
-            ClientRequest::GetFlow => {
+            ClientRequest::GetFlow { .. } => {
                 todo!()
             }
         }

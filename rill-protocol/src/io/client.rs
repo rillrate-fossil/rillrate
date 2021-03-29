@@ -21,7 +21,8 @@ impl Origin for ClientProtocol {}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientRequest {
     ControlStream { path: Path, active: bool },
-    GetFlow,
+    // TODO: Use `RecorderAction` here instead
+    GetFlow { path: Path },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
