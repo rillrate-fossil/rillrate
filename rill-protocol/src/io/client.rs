@@ -1,5 +1,5 @@
 use crate::io::codec::RRCodec;
-use crate::io::provider::{EntryId, PackedDelta, PackedFlow, PackedState, Path};
+use crate::io::provider::{Description, EntryId, PackedDelta, PackedState, Path};
 use crate::io::transport::{DirectId, Envelope, Origin};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ pub enum ClientRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientResponse {
     Declare(EntryId),
-    Flow(PackedFlow),
+    Flow(Description),
     State(PackedState),
     Delta(PackedDelta),
     /// Stream closed/finished.
