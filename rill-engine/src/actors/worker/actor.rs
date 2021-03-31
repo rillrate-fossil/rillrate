@@ -245,15 +245,6 @@ impl<T: data::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorke
             self.registered
                 .insert(recorder.id().into(), packed_desc.clone());
             self.path_flow.add(path, packed_desc);
-            // TODO: Remove that notification below
-            /*
-            if self.sender.is_connected() {
-                let msg = ProviderToServer::Description {
-                    list: vec![packed_desc],
-                };
-                self.send_global(msg);
-            }
-            */
         } else {
             log::error!("Provider for {} already registered.", path);
         }
