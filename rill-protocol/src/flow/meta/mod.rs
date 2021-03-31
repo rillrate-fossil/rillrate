@@ -1,6 +1,6 @@
 pub mod entry;
 pub mod path;
-pub mod readyboard;
+pub mod ready_board;
 
 use crate::io::provider::Path;
 
