@@ -10,7 +10,11 @@ use std::time::Duration;
 
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
-    let _rillrate = RillRate::from_env("all-example")?;
+    let mut rillrate = RillRate::from_env("all-example")?;
+    rillrate.add_board(
+        "All Pulses".into(),
+        vec!["my.pulse.fast".parse()?, "my.pulse.random".parse()?],
+    );
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));

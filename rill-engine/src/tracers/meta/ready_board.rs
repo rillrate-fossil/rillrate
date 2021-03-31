@@ -5,6 +5,7 @@ use rill_protocol::flow::meta::{
     MetaFlow,
 };
 use rill_protocol::io::provider::Path;
+use std::collections::HashSet;
 
 /// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]
@@ -24,7 +25,7 @@ impl ReadyBoardTracer {
     }
 
     /// Add a board
-    pub fn add_board(&self, name: String, paths: Vec<Path>) {
+    pub fn add_board(&self, name: String, paths: HashSet<Path>) {
         let data = ReadyBoardEvent::AddBoard { name, paths };
         self.tracer.send(data, None);
     }

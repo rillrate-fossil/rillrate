@@ -3,7 +3,7 @@ use crate::flow::data::{Flow, TimedEvent};
 use crate::io::codec::vectorize;
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ReadyBoardFlow;
@@ -36,7 +36,7 @@ pub struct ReadyBoardState {
     // Vectorizing is not necessary here, but useful
     // if key type will be changed to another type.
     #[serde(with = "vectorize")]
-    pub entries: BTreeMap<String, Vec<Path>>,
+    pub entries: BTreeMap<String, HashSet<Path>>,
 }
 
 #[allow(clippy::new_without_default)]
@@ -52,5 +52,5 @@ pub type ReadyBoardDelta = Vec<TimedEvent<ReadyBoardEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReadyBoardEvent {
-    AddBoard { name: String, paths: Vec<Path> },
+    AddBoard { name: String, paths: HashSet<Path> },
 }
