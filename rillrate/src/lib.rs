@@ -13,8 +13,10 @@ pub use rill_server as server;
 pub use tracers::*;
 
 use anyhow::Error;
+use engine::tracers::meta::ReadyBoardTracer;
 use meio::thread::ScopedRuntime;
 use once_cell::sync::Lazy;
+use protocol::io::provider::Path;
 use std::sync::Mutex;
 
 static INSTALLED: Lazy<Mutex<Option<RillRate>>> = Lazy::new(|| Mutex::new(None));
@@ -22,6 +24,7 @@ static INSTALLED: Lazy<Mutex<Option<RillRate>>> = Lazy::new(|| Mutex::new(None))
 /// The tracer.
 pub struct RillRate {
     _scoped: ScopedRuntime,
+    ready_board_flow: ReadyBoardTracer,
 }
 
 impl RillRate {
@@ -30,7 +33,16 @@ impl RillRate {
         use supervisor::RillRate;
         let actor = RillRate::new(app_name.to_string());
         let _scoped = meio::thread::spawn(actor)?;
-        Ok(Self { _scoped })
+        let ready_board_flow = ReadyBoardTracer::new();
+        Ok(Self {
+            _scoped,
+            ready_board_flow,
+        })
+    }
+
+    /// Adds ReadyBoard to the provider.
+    pub fn add_board(&mut self, name: String, paths: Vec<Path>) {
+        self.ready_board_flow.add_board(name, paths);
     }
 }
 

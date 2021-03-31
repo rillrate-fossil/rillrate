@@ -2,7 +2,7 @@ use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::config::EngineConfig;
 use crate::state;
-use crate::tracers::meta::{PathTracer, ReadyBoardTracer};
+use crate::tracers::meta::PathTracer;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -69,7 +69,6 @@ pub struct RillWorker {
     recorders: Pathfinder<RecorderLink>,
     registered: HashMap<Id, Description>,
     path_flow: PathTracer,
-    ready_board_flow: ReadyBoardTracer,
 }
 
 impl RillWorker {
@@ -81,7 +80,6 @@ impl RillWorker {
             recorders: Pathfinder::default(),
             registered: HashMap::new(),
             path_flow: PathTracer::new(),
-            ready_board_flow: ReadyBoardTracer::new(),
         }
     }
 
