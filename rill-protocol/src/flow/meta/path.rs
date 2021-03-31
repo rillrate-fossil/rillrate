@@ -19,7 +19,7 @@ impl Flow for PathFlow {
     type Event = PathEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.path.v0")
+        StreamType::from("rillrate.meta.path.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {

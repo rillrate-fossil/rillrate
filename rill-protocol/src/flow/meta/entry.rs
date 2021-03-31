@@ -18,7 +18,7 @@ impl Flow for EntryFlow {
     type Event = EntryEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.entry.v0")
+        StreamType::from("rillrate.meta.entry.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
