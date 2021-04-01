@@ -13,11 +13,11 @@ use meio_connect::{
 };
 use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
 use rill_protocol::io::provider::{FlowControl, PackedDelta, PackedState, Path, RecorderRequest};
-use rill_protocol::io::transport::Envelope;
+use rill_protocol::io::transport::{Envelope, ServiceEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
 
-type Connection = WsSender<Envelope<ClientProtocol, ClientRequest>>;
+type Connection = WsSender<ServiceEnvelope<ClientProtocol, ClientRequest, ()>>;
 
 enum Record {
     Active {
@@ -119,34 +119,42 @@ impl RillClient {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientResponse>>> for RillClient {
+impl ActionHandler<WsIncoming<ServiceEnvelope<ClientProtocol, ClientResponse, ()>>> for RillClient {
     async fn handle(
         &mut self,
-        msg: WsIncoming<Envelope<ClientProtocol, ClientResponse>>,
+        msg: WsIncoming<ServiceEnvelope<ClientProtocol, ClientResponse, ()>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
-        match msg.0.data {
-            ClientResponse::Declare(entry_id) => {
-                self.broadcaster.session_attached(entry_id).await?;
+        match msg.0 {
+            ServiceEnvelope::Envelope(envelope) => {
+                let direct_id = envelope.direct_id;
+                match envelope.data {
+                    ClientResponse::Declare(entry_id) => {
+                        self.broadcaster.session_attached(entry_id).await?;
+                    }
+                    ClientResponse::Flow(_flow) => {
+                        todo!();
+                    }
+                    ClientResponse::State(state) => {
+                        let event = StateOrDelta::State(state);
+                        self.distribute_event(direct_id, event).await;
+                    }
+                    ClientResponse::Delta(delta) => {
+                        let event = StateOrDelta::Delta(delta);
+                        self.distribute_event(direct_id, event).await;
+                    }
+                    ClientResponse::Done => {
+                        self.end_flows(direct_id);
+                    }
+                    ClientResponse::Error(reason) => {
+                        log::error!("Stream failed: {}", reason);
+                        self.end_flows(direct_id);
+                    }
+                }
             }
-            ClientResponse::Flow(_flow) => {
-                todo!();
-            }
-            ClientResponse::State(state) => {
-                let event = StateOrDelta::State(state);
-                self.distribute_event(msg.0.direct_id, event).await;
-            }
-            ClientResponse::Delta(delta) => {
-                let event = StateOrDelta::Delta(delta);
-                self.distribute_event(msg.0.direct_id, event).await;
-            }
-            ClientResponse::Done => {
-                self.end_flows(msg.0.direct_id);
-            }
-            ClientResponse::Error(reason) => {
-                log::error!("Stream failed: {}", reason);
-                self.end_flows(msg.0.direct_id);
+            ServiceEnvelope::Service(_) => {
+                log::error!("Service message is not supported yet.");
             }
         }
         Ok(())
@@ -188,7 +196,8 @@ impl InteractionHandler<link::SubscribeToPath> for RillClient {
             request,
         };
         let envelope = Envelope { direct_id, data };
-        self.sender()?.send(envelope);
+        let service_envelope = ServiceEnvelope::Envelope(envelope);
+        self.sender()?.send(service_envelope);
         let subscrtiption = link::Subscription::new(direct_id, rx, ctx.address().clone());
         Ok(subscrtiption)
     }
@@ -211,7 +220,8 @@ impl InstantActionHandler<link::UnsubscribeFromPath> for RillClient {
                 let request = RecorderRequest::ControlStream(control);
                 let data = ClientRequest { path, request };
                 let envelope = Envelope { direct_id, data };
-                self.sender()?.send(envelope);
+                let service_envelope = ServiceEnvelope::Envelope(envelope);
+                self.sender()?.send(service_envelope);
             } else {
                 log::error!("Attempt to unsubscribe twice for {:?}", direct_id);
             }

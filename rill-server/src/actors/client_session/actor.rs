@@ -12,7 +12,7 @@ use meio_connect::{
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_protocol::io::client::{ClientProtocol, ClientRequest};
 use rill_protocol::io::provider::{FlowControl, RecorderRequest};
-use rill_protocol::io::transport::Envelope;
+use rill_protocol::io::transport::ServiceEnvelope;
 
 //pub static PROVIDER: Lazy<Mutex<Option<ProviderLink>>> = Lazy::new(|| Mutex::new(None));
 
@@ -88,26 +88,36 @@ impl TaskEliminated<WsProcessor<ClientProtocol, Self>, ()> for ClientSession {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for ClientSession {
+impl ActionHandler<WsIncoming<ServiceEnvelope<ClientProtocol, ClientRequest, ()>>>
+    for ClientSession
+{
     async fn handle(
         &mut self,
-        msg: WsIncoming<Envelope<ClientProtocol, ClientRequest>>,
+        msg: WsIncoming<ServiceEnvelope<ClientProtocol, ClientRequest, ()>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client request: {:?}", msg);
         // TODO: Return `Error` response to the client by WS
-        let path = msg.0.data.path;
-        match msg.0.data.request {
-            RecorderRequest::ControlStream(control) => match control {
-                FlowControl::StartStream => {
-                    self.provider()?.subscribe(path, msg.0.direct_id).await?;
+        match msg.0 {
+            ServiceEnvelope::Envelope(envelope) => {
+                let path = envelope.data.path;
+                let direct_id = envelope.direct_id;
+                match envelope.data.request {
+                    RecorderRequest::ControlStream(control) => match control {
+                        FlowControl::StartStream => {
+                            self.provider()?.subscribe(path, direct_id).await?;
+                        }
+                        FlowControl::StopStream => {
+                            self.provider()?.unsubscribe(path, direct_id).await?;
+                        }
+                    },
+                    _ => {
+                        todo!()
+                    }
                 }
-                FlowControl::StopStream => {
-                    self.provider()?.unsubscribe(path, msg.0.direct_id).await?;
-                }
-            },
-            _ => {
-                todo!()
+            }
+            ServiceEnvelope::Service(_service) => {
+                log::error!("Serivce requests are not supported.");
             }
         }
         Ok(())

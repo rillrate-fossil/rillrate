@@ -1,6 +1,6 @@
 use crate::io::codec::RRCodec;
 use crate::io::provider::{Description, EntryId, PackedDelta, PackedState, Path, RecorderRequest};
-use crate::io::transport::{DirectId, Envelope, Origin};
+use crate::io::transport::{DirectId, Origin, ServiceEnvelope};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
 
@@ -10,9 +10,8 @@ pub type ClientReqId = DirectId<ClientProtocol>;
 pub struct ClientProtocol;
 
 impl Protocol for ClientProtocol {
-    type ToServer = Envelope<Self, ClientRequest>;
-    // TODO: Consider to disallow broadcasts and change to ordinary `Envelope`
-    type ToClient = Envelope<Self, ClientResponse>;
+    type ToServer = ServiceEnvelope<Self, ClientRequest, ()>;
+    type ToClient = ServiceEnvelope<Self, ClientResponse, ()>;
     type Codec = RRCodec;
 }
 
