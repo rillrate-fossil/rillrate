@@ -277,11 +277,17 @@ pub struct ServerToProvider {
     pub action: RecorderAction,
 }
 
+// TODO: Swap names: `RecorderAction` - `RecorderRequest`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RecorderAction {
+    Request(RecorderRequest),
+    ControlStream(FlowControl),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RecorderRequest {
     GetFlow,
     GetSnapshot,
-    ControlStream(FlowControl),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

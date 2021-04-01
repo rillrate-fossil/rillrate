@@ -9,6 +9,7 @@ use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
     FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
+    RecorderRequest,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
@@ -236,12 +237,14 @@ impl<T: data::Flow> ActionHandler<link::DoRecorderAction> for Recorder<T> {
                     } RecorderAction
                     */
                 }
-                RecorderAction::GetSnapshot => {
-                    self.send_state(id.into()).await?;
-                }
-                RecorderAction::GetFlow => {
-                    self.send_flow(id.into())?;
-                }
+                RecorderAction::Request(request) => match request {
+                    RecorderRequest::GetSnapshot => {
+                        self.send_state(id.into()).await?;
+                    }
+                    RecorderRequest::GetFlow => {
+                        self.send_flow(id.into())?;
+                    }
+                },
             }
         } else {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
