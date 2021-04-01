@@ -1,9 +1,12 @@
-pub struct ExponentialMovingAverage {
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct Ema {
     ema: f64,
     k: f64,
 }
 
-impl ExponentialMovingAverage {
+impl Ema {
     pub fn new(initial: f64, period: u32) -> Self {
         let k = 2.0 / (period as f64 + 1.0);
         Self { ema: initial, k }

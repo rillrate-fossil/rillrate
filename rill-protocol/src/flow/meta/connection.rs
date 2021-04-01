@@ -1,7 +1,10 @@
 use super::MetaFlow;
 use crate::flow::data::{Flow, TimedEvent};
+use crate::indicators::ema::Ema;
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
+
+const PERIOD: u32 = 10;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ConnectionFlow;
@@ -23,7 +26,13 @@ impl Flow for ConnectionFlow {
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             ConnectionEvent::AddRoundTrip { ms } => {
-                state.round_trip = Some(ms);
+                let value = ms as f64;
+                if let Some(round_trip) = state.round_trip.as_mut() {
+                    round_trip.update(value);
+                } else {
+                    let ema = Ema::new(value, PERIOD);
+                    state.round_trip = Some(ema);
+                }
             }
         }
     }
@@ -31,7 +40,7 @@ impl Flow for ConnectionFlow {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConnectionState {
-    round_trip: Option<u32>,
+    round_trip: Option<Ema>,
 }
 
 #[allow(clippy::new_without_default)]
@@ -40,8 +49,8 @@ impl ConnectionState {
         Self { round_trip: None }
     }
 
-    pub fn latency(&self) -> Option<u32> {
-        self.round_trip.clone().map(|ms| ms / 2)
+    pub fn latency(&self) -> Option<f64> {
+        self.round_trip.as_ref().map(Ema::value).map(|ms| ms / 2.0)
     }
 }
 
