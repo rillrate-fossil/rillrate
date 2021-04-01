@@ -39,6 +39,10 @@ impl ConnectionState {
     pub fn new() -> Self {
         Self { round_trip: None }
     }
+
+    pub fn latency(&self) -> Option<u32> {
+        self.round_trip.clone().map(|ms| ms / 2)
+    }
 }
 
 pub type PathDelta = Vec<TimedEvent<ConnectionEvent>>;
