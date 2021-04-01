@@ -237,7 +237,7 @@ impl<T: data::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     }
                     */
                 }
-                RecorderRequest::Request(action) => match action {
+                RecorderRequest::Action(action) => match action {
                     RecorderAction::GetSnapshot => {
                         self.send_state(id.into()).await?;
                     }

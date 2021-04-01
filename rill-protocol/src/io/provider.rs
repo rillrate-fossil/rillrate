@@ -279,7 +279,7 @@ pub struct ServerToProvider {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RecorderRequest {
-    Request(RecorderAction),
+    Action(RecorderAction),
     ControlStream(FlowControl),
 }
 
