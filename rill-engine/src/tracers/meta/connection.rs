@@ -23,7 +23,7 @@ impl ConnectionTracer {
     }
 
     /// Add a round trip value
-    pub fn add_board(&self, ms: u32) {
+    pub fn add_round_trip(&self, ms: u32) {
         let data = ConnectionEvent::AddRoundTrip { ms };
         self.tracer.send(data, None);
     }
