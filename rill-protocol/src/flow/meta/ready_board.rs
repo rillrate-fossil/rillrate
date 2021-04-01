@@ -7,6 +7,7 @@ use std::collections::{BTreeMap, HashSet};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Board {
+    pub description: Option<String>,
     pub paths: HashSet<Path>,
 }
 

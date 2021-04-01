@@ -41,9 +41,9 @@ impl RillRate {
     }
 
     /// Adds ReadyBoard to the provider.
-    pub fn add_board(&mut self, name: String, paths: Vec<Path>) {
+    pub fn add_board(&mut self, name: String, paths: Vec<Path>, description: Option<String>) {
         self.ready_board_flow
-            .add_board(name, paths.into_iter().collect());
+            .add_board(name, paths.into_iter().collect(), description);
     }
 }
 

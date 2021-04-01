@@ -25,8 +25,8 @@ impl ReadyBoardTracer {
     }
 
     /// Add a board
-    pub fn add_board(&self, name: String, paths: HashSet<Path>) {
-        let board = Board { paths };
+    pub fn add_board(&self, name: String, paths: HashSet<Path>, description: Option<String>) {
+        let board = Board { paths, description };
         let data = ReadyBoardEvent::AddBoard { name, board };
         self.tracer.send(data, None);
     }
