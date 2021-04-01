@@ -1,7 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::flow::meta::{
-    ready_board::{ReadyBoardEvent, ReadyBoardFlow, ReadyBoardState},
+    ready_board::{Board, ReadyBoardEvent, ReadyBoardFlow, ReadyBoardState},
     MetaFlow,
 };
 use rill_protocol::io::provider::Path;
@@ -26,7 +26,8 @@ impl ReadyBoardTracer {
 
     /// Add a board
     pub fn add_board(&self, name: String, paths: HashSet<Path>) {
-        let data = ReadyBoardEvent::AddBoard { name, paths };
+        let board = Board { paths };
+        let data = ReadyBoardEvent::AddBoard { name, board };
         self.tracer.send(data, None);
     }
 }

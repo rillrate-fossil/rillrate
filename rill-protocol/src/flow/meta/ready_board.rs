@@ -5,6 +5,11 @@ use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Board {
+    pub paths: HashSet<Path>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ReadyBoardFlow;
 
@@ -24,8 +29,8 @@ impl Flow for ReadyBoardFlow {
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
-            ReadyBoardEvent::AddBoard { name, paths } => {
-                state.entries.insert(name, paths);
+            ReadyBoardEvent::AddBoard { name, board } => {
+                state.entries.insert(name, board);
             }
         }
     }
@@ -36,7 +41,7 @@ pub struct ReadyBoardState {
     // Vectorizing is not necessary here, but useful
     // if key type will be changed to another type.
     #[serde(with = "vectorize")]
-    pub entries: BTreeMap<String, HashSet<Path>>,
+    pub entries: BTreeMap<String, Board>,
 }
 
 #[allow(clippy::new_without_default)]
@@ -52,5 +57,5 @@ pub type ReadyBoardDelta = Vec<TimedEvent<ReadyBoardEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReadyBoardEvent {
-    AddBoard { name: String, paths: HashSet<Path> },
+    AddBoard { name: String, board: Board },
 }
