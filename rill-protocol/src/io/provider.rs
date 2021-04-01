@@ -281,7 +281,13 @@ pub struct ServerToProvider {
 pub enum RecorderAction {
     GetFlow,
     GetSnapshot,
-    ControlStream { active: bool },
+    ControlStream(FlowControl),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FlowControl {
+    StartStream,
+    StopStream,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

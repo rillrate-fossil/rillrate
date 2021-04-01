@@ -8,7 +8,7 @@ use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::flow::data;
 use rill_protocol::io::provider::{
-    PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
+    FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
@@ -202,26 +202,30 @@ impl<T: data::Flow> ActionHandler<link::DoRecorderAction> for Recorder<T> {
         if !ctx.is_terminating() {
             let id = msg.direct_id;
             match msg.action {
-                RecorderAction::ControlStream { active } => {
+                RecorderAction::ControlStream(control) => {
                     log::info!(
                         "Switch stream '{}' for {:?} to {:?}",
                         self.description.path,
                         id,
-                        active
+                        control,
                     );
-                    // TODO: Fix logs
-                    #[allow(clippy::collapsible_if)]
-                    if active {
-                        if self.subscribers.insert(id) {
-                            self.send_state(id.into()).await?;
-                        } else {
-                            log::warn!("Attempt to subscribe twice for <path> with id: {:?}", id);
+                    match control {
+                        FlowControl::StartStream => {
+                            if self.subscribers.insert(id) {
+                                self.send_state(id.into()).await?;
+                            } else {
+                                log::warn!(
+                                    "Attempt to subscribe twice for <path> with id: {:?}",
+                                    id
+                                );
+                            }
                         }
-                    } else {
-                        if self.subscribers.remove(&id) {
-                            self.send_end(id.into());
-                        } else {
-                            log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
+                        FlowControl::StopStream => {
+                            if self.subscribers.remove(&id) {
+                                self.send_end(id.into());
+                            } else {
+                                log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
+                            }
                         }
                     }
                     /*
