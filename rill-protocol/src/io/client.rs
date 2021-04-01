@@ -35,7 +35,11 @@ pub enum ClientResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ClientServiceRequest {}
+pub enum ClientServiceRequest {
+    Ping,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ClientServiceResponse {}
+pub enum ClientServiceResponse {
+    Pong,
+}
