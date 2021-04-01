@@ -4,6 +4,7 @@ use rill_protocol::flow::meta::{
     connection::{ConnectionEvent, ConnectionFlow, ConnectionState},
     MetaFlow,
 };
+use rill_protocol::io::provider::{EntryId, Path};
 
 /// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]
@@ -13,9 +14,9 @@ pub struct ConnectionTracer {
 
 impl ConnectionTracer {
     /// Create a new instance of the `Tracer`.
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        let path = ConnectionFlow::location();
+    pub fn new(uid: EntryId) -> Self {
+        let mut path = Path::single(uid);
+        path.extend(ConnectionFlow::location());
         let metric = ConnectionFlow;
         let state = ConnectionState::new();
         let tracer = Tracer::new(metric, state, path, None);
