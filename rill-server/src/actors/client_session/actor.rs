@@ -10,7 +10,7 @@ use meio_connect::{
     TermReason, WsIncoming,
 };
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
-use rill_protocol::io::client::{ClientProtocol, ClientRequest};
+use rill_protocol::io::client::{ClientProtocol, ClientRequest, ClientServiceResponse};
 use rill_protocol::io::provider::{FlowControl, RecorderRequest};
 use rill_protocol::io::transport::ServiceEnvelope;
 
@@ -88,12 +88,13 @@ impl TaskEliminated<WsProcessor<ClientProtocol, Self>, ()> for ClientSession {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<ServiceEnvelope<ClientProtocol, ClientRequest, ()>>>
+impl
+    ActionHandler<WsIncoming<ServiceEnvelope<ClientProtocol, ClientRequest, ClientServiceResponse>>>
     for ClientSession
 {
     async fn handle(
         &mut self,
-        msg: WsIncoming<ServiceEnvelope<ClientProtocol, ClientRequest, ()>>,
+        msg: WsIncoming<ServiceEnvelope<ClientProtocol, ClientRequest, ClientServiceResponse>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Client request: {:?}", msg);

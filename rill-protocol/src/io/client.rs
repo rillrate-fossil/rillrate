@@ -10,8 +10,8 @@ pub type ClientReqId = DirectId<ClientProtocol>;
 pub struct ClientProtocol;
 
 impl Protocol for ClientProtocol {
-    type ToServer = ServiceEnvelope<Self, ClientRequest, ()>;
-    type ToClient = ServiceEnvelope<Self, ClientResponse, ()>;
+    type ToServer = ServiceEnvelope<Self, ClientRequest, ClientServiceResponse>;
+    type ToClient = ServiceEnvelope<Self, ClientResponse, ClientServiceRequest>;
     type Codec = RRCodec;
 }
 
@@ -33,3 +33,9 @@ pub enum ClientResponse {
     Done,
     Error(String),
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ClientServiceRequest {}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ClientServiceResponse {}

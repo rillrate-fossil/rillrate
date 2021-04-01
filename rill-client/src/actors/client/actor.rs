@@ -11,13 +11,16 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
+use rill_protocol::io::client::{
+    ClientProtocol, ClientReqId, ClientRequest, ClientResponse, ClientServiceRequest,
+    ClientServiceResponse,
+};
 use rill_protocol::io::provider::{FlowControl, PackedDelta, PackedState, Path, RecorderRequest};
 use rill_protocol::io::transport::{Envelope, ServiceEnvelope};
 use std::time::Duration;
 use typed_slab::TypedSlab;
 
-type Connection = WsSender<ServiceEnvelope<ClientProtocol, ClientRequest, ()>>;
+type Connection = WsSender<ServiceEnvelope<ClientProtocol, ClientRequest, ClientServiceResponse>>;
 
 enum Record {
     Active {
@@ -119,10 +122,13 @@ impl RillClient {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<ServiceEnvelope<ClientProtocol, ClientResponse, ()>>> for RillClient {
+impl
+    ActionHandler<WsIncoming<ServiceEnvelope<ClientProtocol, ClientResponse, ClientServiceRequest>>>
+    for RillClient
+{
     async fn handle(
         &mut self,
-        msg: WsIncoming<ServiceEnvelope<ClientProtocol, ClientResponse, ()>>,
+        msg: WsIncoming<ServiceEnvelope<ClientProtocol, ClientResponse, ClientServiceRequest>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
