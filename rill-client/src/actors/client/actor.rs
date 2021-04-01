@@ -12,7 +12,7 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::io::client::{ClientProtocol, ClientReqId, ClientRequest, ClientResponse};
-use rill_protocol::io::provider::{PackedDelta, PackedState, Path};
+use rill_protocol::io::provider::{PackedDelta, PackedState, Path, RecorderAction};
 use rill_protocol::io::transport::Envelope;
 use std::time::Duration;
 use typed_slab::TypedSlab;
@@ -181,9 +181,10 @@ impl InteractionHandler<link::SubscribeToPath> for RillClient {
             sender: tx,
         };
         let direct_id = self.directions.insert(record);
-        let data = ClientRequest::ControlStream {
+        let action = RecorderAction::ControlStream { active: true };
+        let data = ClientRequest {
             path: msg.path,
-            active: true,
+            action,
         };
         let envelope = Envelope { direct_id, data };
         self.sender()?.send(envelope);
@@ -205,10 +206,8 @@ impl InstantActionHandler<link::UnsubscribeFromPath> for RillClient {
             let mut new_record = Record::AwaitingEnd;
             std::mem::swap(record, &mut new_record);
             if let Record::Active { path, .. } = new_record {
-                let data = ClientRequest::ControlStream {
-                    path,
-                    active: false,
-                };
+                let action = RecorderAction::ControlStream { active: false };
+                let data = ClientRequest { path, action };
                 let envelope = Envelope { direct_id, data };
                 self.sender()?.send(envelope);
             } else {
