@@ -14,6 +14,7 @@ fn main() -> Result<(), Error> {
     rillrate.add_board(
         "All Pulses".into(),
         vec!["my.pulse.fast".parse()?, "my.pulse.random".parse()?],
+        Some("Show all pulses available in the example.".into()),
     );
 
     // TODO: DRY it
