@@ -3,6 +3,13 @@ use std::collections::HashSet;
 use std::fmt;
 use std::marker::PhantomData;
 
+/// An `Envelope` with service-layer messages
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ServiceEnvelope<T: Origin, D, S> {
+    Service(S),
+    Envelope(Envelope<T, D>),
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Envelope<T: Origin, D> {
     pub direct_id: DirectId<T>,
