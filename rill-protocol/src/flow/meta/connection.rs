@@ -1,6 +1,6 @@
 use super::MetaFlow;
+use crate::calc::Ema;
 use crate::flow::data::{Flow, TimedEvent};
-use crate::indicators::ema::Ema;
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 

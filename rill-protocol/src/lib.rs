@@ -1,7 +1,7 @@
+pub mod calc;
 pub mod config;
 pub mod flow;
 pub mod frame;
-pub mod indicators;
 pub mod io;
 pub mod pathfinder;
 pub mod range;
