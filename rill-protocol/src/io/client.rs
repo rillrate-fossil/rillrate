@@ -1,5 +1,5 @@
 use crate::io::codec::RRCodec;
-use crate::io::provider::{Description, EntryId, PackedDelta, PackedState, Path, RecorderAction};
+use crate::io::provider::{Description, EntryId, PackedDelta, PackedState, Path, RecorderRequest};
 use crate::io::transport::{DirectId, Envelope, Origin};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
@@ -21,7 +21,7 @@ impl Origin for ClientProtocol {}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientRequest {
     pub path: Path,
-    pub action: RecorderAction,
+    pub request: RecorderRequest,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

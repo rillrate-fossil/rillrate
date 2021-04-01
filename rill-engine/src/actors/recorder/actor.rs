@@ -194,16 +194,16 @@ impl<T: data::Flow> OnTick for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> ActionHandler<link::DoRecorderAction> for Recorder<T> {
+impl<T: data::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
     async fn handle(
         &mut self,
-        msg: link::DoRecorderAction,
+        msg: link::DoRecorderRequest,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
             let id = msg.direct_id;
-            match msg.action {
-                RecorderAction::ControlStream(control) => {
+            match msg.request {
+                RecorderRequest::ControlStream(control) => {
                     log::info!(
                         "Switch stream '{}' for {:?} to {:?}",
                         self.description.path,
@@ -234,14 +234,14 @@ impl<T: data::Flow> ActionHandler<link::DoRecorderAction> for Recorder<T> {
                         // TODO: Terminate `HeartBeat`
                     } else {
                         // TODO: Spawn a `HeartBeat` state extractor
-                    } RecorderAction
+                    }
                     */
                 }
-                RecorderAction::Request(request) => match request {
-                    RecorderRequest::GetSnapshot => {
+                RecorderRequest::Request(action) => match action {
+                    RecorderAction::GetSnapshot => {
                         self.send_state(id.into()).await?;
                     }
-                    RecorderRequest::GetFlow => {
+                    RecorderAction::GetFlow => {
                         self.send_flow(id.into())?;
                     }
                 },

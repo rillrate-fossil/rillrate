@@ -196,8 +196,8 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
             .find_mut(&path)
             .and_then(Record::get_link_mut);
         if let Some(recorder) = recorder_link {
-            let action = envelope.data.action;
-            recorder.do_path_action(direct_id, action).await?;
+            let request = envelope.data.request;
+            recorder.do_path_request(direct_id, request).await?;
         } else {
             log::warn!("Path not found: {:?}", path);
             let msg = ProviderToServer::Error {

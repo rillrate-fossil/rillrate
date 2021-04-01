@@ -3,13 +3,13 @@ use crate::actors::worker::RillSender;
 use anyhow::Error;
 use meio::{Action, ActionRecipient, Address};
 use rill_protocol::flow::data;
-use rill_protocol::io::provider::{ProviderReqId, RecorderAction};
+use rill_protocol::io::provider::{ProviderReqId, RecorderRequest};
 
 /// COOL SOLUTION!
-trait Recipient: ActionRecipient<DoRecorderAction> + ActionRecipient<ConnectionChanged> {}
+trait Recipient: ActionRecipient<DoRecorderRequest> + ActionRecipient<ConnectionChanged> {}
 
 impl<T> Recipient for T where
-    T: ActionRecipient<DoRecorderAction> + ActionRecipient<ConnectionChanged>
+    T: ActionRecipient<DoRecorderRequest> + ActionRecipient<ConnectionChanged>
 {
 }
 
@@ -51,20 +51,20 @@ impl RecorderLink {
     }
 }
 
-pub(super) struct DoRecorderAction {
+pub(super) struct DoRecorderRequest {
     pub direct_id: ProviderReqId,
-    pub action: RecorderAction,
+    pub request: RecorderRequest,
 }
 
-impl Action for DoRecorderAction {}
+impl Action for DoRecorderRequest {}
 
 impl RecorderLink {
-    pub async fn do_path_action(
+    pub async fn do_path_request(
         &mut self,
         direct_id: ProviderReqId,
-        action: RecorderAction,
+        request: RecorderRequest,
     ) -> Result<(), Error> {
-        let msg = DoRecorderAction { direct_id, action };
+        let msg = DoRecorderRequest { direct_id, request };
         self.recipient.act(msg).await
     }
 }

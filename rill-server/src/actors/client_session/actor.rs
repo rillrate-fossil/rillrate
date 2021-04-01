@@ -11,7 +11,7 @@ use meio_connect::{
 };
 use rill_client::actors::broadcaster::{BroadcasterLinkForClient, PathNotification};
 use rill_protocol::io::client::{ClientProtocol, ClientRequest};
-use rill_protocol::io::provider::{FlowControl, RecorderAction};
+use rill_protocol::io::provider::{FlowControl, RecorderRequest};
 use rill_protocol::io::transport::Envelope;
 
 //pub static PROVIDER: Lazy<Mutex<Option<ProviderLink>>> = Lazy::new(|| Mutex::new(None));
@@ -97,8 +97,8 @@ impl ActionHandler<WsIncoming<Envelope<ClientProtocol, ClientRequest>>> for Clie
         log::trace!("Client request: {:?}", msg);
         // TODO: Return `Error` response to the client by WS
         let path = msg.0.data.path;
-        match msg.0.data.action {
-            RecorderAction::ControlStream(control) => match control {
+        match msg.0.data.request {
+            RecorderRequest::ControlStream(control) => match control {
                 FlowControl::StartStream => {
                     self.provider()?.subscribe(path, msg.0.direct_id).await?;
                 }

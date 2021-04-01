@@ -13,7 +13,7 @@ use meio_connect::{
 use rill_client::actors::broadcaster::BroadcasterLinkForProvider;
 use rill_protocol::io::client::{ClientReqId, ClientResponse};
 use rill_protocol::io::provider::{
-    EntryId, FlowControl, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
+    EntryId, FlowControl, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderRequest,
     ServerToProvider,
 };
 use rill_protocol::io::transport::{Direction, Envelope, WideEnvelope};
@@ -252,10 +252,10 @@ impl InteractionHandler<link::SubscribeToPath> for ProviderSession {
         let direct_id = self.directions.insert(rule);
 
         let control = FlowControl::StartStream;
-        let action = RecorderAction::ControlStream(control);
+        let request = RecorderRequest::ControlStream(control);
         let request = ServerToProvider {
             path: msg.path,
-            action,
+            request,
         };
         self.send_request(direct_id, request);
 
@@ -281,10 +281,10 @@ impl ActionHandler<link::UnsubscribeFromPath> for ProviderSession {
             self.send_done_marker_for(term_rule);
 
             let control = FlowControl::StopStream;
-            let action = RecorderAction::ControlStream(control);
+            let request = RecorderRequest::ControlStream(control);
             let request = ServerToProvider {
                 path: msg.path,
-                action,
+                request,
             };
 
             self.send_request(provider_req_id, request);

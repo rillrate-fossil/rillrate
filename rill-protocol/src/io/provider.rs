@@ -274,18 +274,17 @@ pub type ProviderResponse = WideEnvelope<ProviderProtocol, ProviderToServer>;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerToProvider {
     pub path: Path,
-    pub action: RecorderAction,
-}
-
-// TODO: Swap names: `RecorderAction` - `RecorderRequest`
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum RecorderAction {
-    Request(RecorderRequest),
-    ControlStream(FlowControl),
+    pub request: RecorderRequest,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RecorderRequest {
+    Request(RecorderAction),
+    ControlStream(FlowControl),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RecorderAction {
     GetFlow,
     GetSnapshot,
 }
