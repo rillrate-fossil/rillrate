@@ -10,7 +10,7 @@ impl Flow for CounterFlow {
     type Event = CounterEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.counter.v0")
+        StreamType::from("rillrate.data.counter.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {

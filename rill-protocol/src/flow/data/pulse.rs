@@ -15,7 +15,7 @@ impl Flow for PulseFlow {
     type Event = PulseEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.pulse.v0")
+        StreamType::from("rillrate.data.pulse.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {

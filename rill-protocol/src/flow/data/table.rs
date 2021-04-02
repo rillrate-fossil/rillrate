@@ -58,7 +58,7 @@ impl Flow for TableFlow {
     type Event = TableEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.table.v0")
+        StreamType::from("rillrate.data.table.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {

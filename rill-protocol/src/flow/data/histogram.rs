@@ -15,7 +15,7 @@ impl Flow for HistogramFlow {
     type Event = HistogramEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.histogram.v0")
+        StreamType::from("rillrate.data.histogram.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {

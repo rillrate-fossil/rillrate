@@ -11,7 +11,7 @@ impl Flow for LoggerFlow {
     type Event = LoggerEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.logger.v0")
+        StreamType::from("rillrate.data.logger.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {

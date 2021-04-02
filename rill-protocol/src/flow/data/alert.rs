@@ -10,7 +10,7 @@ impl Flow for AlertFlow {
     type Event = AlertEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.alert.v0")
+        StreamType::from("rillrate.data.alert.v0")
     }
 
     fn apply(&self, _state: &mut Self::State, _event: TimedEvent<Self::Event>) {}

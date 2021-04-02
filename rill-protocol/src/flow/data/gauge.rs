@@ -13,7 +13,7 @@ impl Flow for GaugeFlow {
     type Event = GaugeEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.gauge.v0")
+        StreamType::from("rillrate.data.gauge.v0")
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
