@@ -8,11 +8,7 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct PathFlow;
 
-impl MetaFlow for PathFlow {
-    fn location() -> Path {
-        Path::single("meta:paths")
-    }
-}
+impl MetaFlow for PathFlow {}
 
 impl Flow for PathFlow {
     type State = PathState;

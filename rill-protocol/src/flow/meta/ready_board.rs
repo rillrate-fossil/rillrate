@@ -14,11 +14,7 @@ pub struct Board {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ReadyBoardFlow;
 
-impl MetaFlow for ReadyBoardFlow {
-    fn location() -> Path {
-        Path::single("meta:readyboards")
-    }
-}
+impl MetaFlow for ReadyBoardFlow {}
 
 impl Flow for ReadyBoardFlow {
     type State = ReadyBoardState;

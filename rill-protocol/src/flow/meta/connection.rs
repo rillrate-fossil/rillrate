@@ -1,7 +1,7 @@
 use super::MetaFlow;
 use crate::calc::Ema;
 use crate::flow::data::{Flow, TimedEvent};
-use crate::io::provider::{Path, StreamType};
+use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 const PERIOD: u32 = 10;
@@ -9,11 +9,7 @@ const PERIOD: u32 = 10;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ConnectionFlow;
 
-impl MetaFlow for ConnectionFlow {
-    fn location() -> Path {
-        Path::single("meta:connection")
-    }
-}
+impl MetaFlow for ConnectionFlow {}
 
 impl Flow for ConnectionFlow {
     type State = ConnectionState;

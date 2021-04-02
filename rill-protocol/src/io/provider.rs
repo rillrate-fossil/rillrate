@@ -2,7 +2,7 @@ use crate::flow::data::Flow;
 use crate::io::codec::RRCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use anyhow::Error;
-use derive_more::{Deref, From, FromStr, Index, Into};
+use derive_more::{Deref, DerefMut, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::borrow::Borrow;
@@ -75,6 +75,7 @@ impl Into<Path> for PathPattern {
     Debug,
     Clone,
     Deref,
+    DerefMut,
     From,
     Into,
     Index,
