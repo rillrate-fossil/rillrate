@@ -1,9 +1,12 @@
+use super::MetaFlow;
 use crate::flow::data::{Flow, TimedEvent};
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct AlertFlow;
+
+impl MetaFlow for AlertFlow {}
 
 impl Flow for AlertFlow {
     type State = AlertState;
