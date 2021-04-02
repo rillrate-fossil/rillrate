@@ -1,8 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::meta::{
-    ready_board::{Board, ReadyBoardEvent, ReadyBoardFlow, ReadyBoardState},
-    MetaFlow,
+use rill_protocol::flow::meta::ready_board::{
+    Board, ReadyBoardEvent, ReadyBoardFlow, ReadyBoardState,
 };
 use rill_protocol::io::provider::Path;
 use std::collections::HashSet;
@@ -15,9 +14,7 @@ pub struct ReadyBoardTracer {
 
 impl ReadyBoardTracer {
     /// Create a new instance of the `Tracer`.
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        let path = ReadyBoardFlow::location();
+    pub fn new(path: Path) -> Self {
         let metric = ReadyBoardFlow;
         let state = ReadyBoardState::new();
         let tracer = Tracer::new(metric, state, path, None);

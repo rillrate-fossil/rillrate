@@ -1,10 +1,7 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::meta::{
-    connection::{ConnectionEvent, ConnectionFlow, ConnectionState},
-    MetaFlow,
-};
-use rill_protocol::io::provider::{EntryId, Path};
+use rill_protocol::flow::meta::connection::{ConnectionEvent, ConnectionFlow, ConnectionState};
+use rill_protocol::io::provider::Path;
 
 /// This tracer that informs about entries.
 #[derive(Debug, Deref, DerefMut, Clone)]
@@ -14,9 +11,7 @@ pub struct ConnectionTracer {
 
 impl ConnectionTracer {
     /// Create a new instance of the `Tracer`.
-    pub fn new(uid: EntryId) -> Self {
-        let mut path = Path::single(uid);
-        path.extend(ConnectionFlow::location());
+    pub fn new(path: Path) -> Self {
         let metric = ConnectionFlow;
         let state = ConnectionState::new();
         let tracer = Tracer::new(metric, state, path, None);

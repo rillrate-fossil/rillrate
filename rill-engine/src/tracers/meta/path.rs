@@ -1,9 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::meta::{
-    path::{PathEvent, PathFlow, PathState},
-    MetaFlow,
-};
+use rill_protocol::flow::meta::path::{PathEvent, PathFlow, PathState};
 use rill_protocol::io::provider::{Description, Path};
 
 /// This tracer that informs about entries.
@@ -14,9 +11,7 @@ pub struct PathTracer {
 
 impl PathTracer {
     /// Create a new instance of the `Tracer`.
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        let path = PathFlow::location();
+    pub fn new(path: Path) -> Self {
         let metric = PathFlow;
         let state = PathState::new();
         let tracer = Tracer::new(metric, state, path, None);
