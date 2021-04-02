@@ -14,6 +14,10 @@ impl Location {
         path.push(entry_id);
         path
     }
+
+    pub fn root(&self) -> Path {
+        Path::single(self.element)
+    }
 }
 
 pub fn server() -> Path {

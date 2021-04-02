@@ -13,7 +13,7 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::flow::data;
+use rill_protocol::flow::{data, locations};
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
@@ -73,13 +73,14 @@ pub struct RillWorker {
 
 impl RillWorker {
     pub fn new(config: EngineConfig) -> Self {
+        let paths = locations::PATHS.root();
         Self {
             url: config.node_url(),
             config,
             sender: RillSender::default(),
             recorders: Pathfinder::default(),
             registered: HashMap::new(),
-            path_flow: PathTracer::new(),
+            path_flow: PathTracer::new(paths),
         }
     }
 
