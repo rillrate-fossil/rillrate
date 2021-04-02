@@ -1,6 +1,6 @@
 use anyhow::Error;
 use rand::Rng;
-use rillrate::{Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table};
+use rillrate::{Alert, Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -69,8 +69,13 @@ fn main() -> Result<(), Error> {
             vec![10.0, 50.0, 100.0, 200.0, 500.0, 1_000.0, 5_000.0],
         )?;
 
+        let alert = Alert::create("my.alerts")?;
+
         let mut counter = 0;
         while running.load(Ordering::SeqCst) {
+            if counter % 10 == 0 {
+                alert.alert(format!("Counter is {}", counter));
+            }
             mt_pulse.set(0.0);
             counter += 1;
             my_dict.set("state", "step 1");
