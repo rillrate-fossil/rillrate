@@ -5,7 +5,6 @@
 //! It sent serialized on the beggining of Push mode or periodically in Push mode.
 //! 3. `Event` - immutable separate change that has to be applied to the `State`.
 
-pub mod alert;
 pub mod counter;
 pub mod dict;
 pub mod gauge;

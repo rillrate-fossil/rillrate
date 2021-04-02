@@ -1,5 +1,8 @@
 //! Meta tracers for service needs.
 
+pub(crate) mod alert;
+pub use alert::AlertTracer;
+
 pub(crate) mod connection;
 pub use connection::ConnectionTracer;
 

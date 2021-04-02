@@ -1,8 +1,5 @@
 //! Contains implementations of data tracers.
 
-pub(crate) mod alert;
-pub use alert::AlertTracer;
-
 pub(crate) mod counter;
 pub use counter::CounterTracer;
 

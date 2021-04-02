@@ -3,9 +3,9 @@
 
 use anyhow::Error;
 use rill_engine::tracers::data::{
-    AlertTracer, CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer,
-    PulseTracer, TableTracer,
+    CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
+use rill_engine::tracers::meta::AlertTracer;
 pub use rill_protocol::flow::data::table::{Col, Row};
 use std::ops::Deref;
 use std::sync::Arc;
