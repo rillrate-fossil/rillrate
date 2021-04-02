@@ -3,7 +3,8 @@
 
 use anyhow::Error;
 use rill_engine::tracers::data::{
-    CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
+    AlertTracer, CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer,
+    PulseTracer, TableTracer,
 };
 pub use rill_protocol::flow::data::table::{Col, Row};
 use std::ops::Deref;
@@ -118,5 +119,14 @@ impl Table {
     /// Sets the cell of a table.
     pub fn set_cell(&self, row: Row, col: Col, value: impl ToString) {
         self.tracer.set_cell(row, col, value.to_string(), None);
+    }
+}
+
+impl_tracer!(Alert<AlertTracer>());
+
+impl Alert {
+    /// Send an alert to a listener.
+    pub fn alert(&self, key: impl ToString) {
+        self.tracer.alert(key.to_string(), None);
     }
 }
