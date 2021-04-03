@@ -109,7 +109,7 @@ impl<T: data::Flow> Tracer<T> {
         let description = TracerDescription { path, info, metric };
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
-        log::trace!("Creating Tracer with path: {:?}", description.path);
+        log::trace!("Creating Tracer with path: {}", description.path);
         let description = Arc::new(description);
         let inner_mode;
         let mode;
