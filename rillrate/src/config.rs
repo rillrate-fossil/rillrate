@@ -2,7 +2,6 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::LiteTask;
 use rill_engine::config::EngineConfig;
-use rill_server::config::ServerConfig;
 use serde::Deserialize;
 use std::path::PathBuf;
 use tokio::fs::File;
@@ -13,15 +12,11 @@ const DEF_CONFIG: &str = "rillrate.toml";
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub rillrate: Option<EngineConfig>,
-    pub server: Option<ServerConfig>,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self {
-            rillrate: None,
-            server: None,
-        }
+        Self { rillrate: None }
     }
 }
 

@@ -6,7 +6,6 @@ use meio::{
     Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy, System, TaskEliminated, TaskError,
 };
 use rill_engine::{EngineConfig, RillEngine};
-use rill_server::RillServer;
 
 pub struct RillRate {}
 
@@ -70,19 +69,6 @@ impl Eliminated<RillEngine> for RillRate {
     async fn handle(
         &mut self,
         _id: IdOf<RillEngine>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        ctx.shutdown();
-        Ok(())
-    }
-}
-
-// TODO: Remove
-#[async_trait]
-impl Eliminated<RillServer> for RillRate {
-    async fn handle(
-        &mut self,
-        _id: IdOf<RillServer>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.shutdown();
