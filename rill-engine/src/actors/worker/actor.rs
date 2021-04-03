@@ -233,7 +233,7 @@ impl<T: data::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorke
     ) -> Result<(), Error> {
         let description = msg.description;
         let path = description.path.clone();
-        log::info!("Add tracer: {:?}", path);
+        log::info!("Add tracer: {}", path);
         let record = self.recorders.dig(path.clone());
         if record.get_link().is_none() {
             let packed_desc = description.to_description()?;
