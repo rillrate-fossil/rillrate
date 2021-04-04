@@ -333,7 +333,7 @@ impl From<&str> for StreamType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Description {
     pub path: Path,
     pub info: String,
@@ -347,7 +347,7 @@ impl Description {
     }
 }
 
-#[derive(Clone, From, Into, Serialize, Deserialize)]
+#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PackedFlow(pub Vec<u8>);
 
 impl fmt::Debug for PackedFlow {
@@ -358,7 +358,7 @@ impl fmt::Debug for PackedFlow {
     }
 }
 
-#[derive(Clone, From, Into, Serialize, Deserialize)]
+#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PackedState(pub Vec<u8>);
 
 impl fmt::Debug for PackedState {
@@ -369,7 +369,7 @@ impl fmt::Debug for PackedState {
     }
 }
 
-#[derive(Clone, From, Into, Serialize, Deserialize)]
+#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PackedDelta(pub Vec<u8>);
 
 impl fmt::Debug for PackedDelta {
