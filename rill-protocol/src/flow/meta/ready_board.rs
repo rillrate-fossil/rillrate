@@ -1,6 +1,5 @@
 use super::MetaFlow;
 use crate::flow::data::{Flow, TimedEvent};
-use crate::io::codec::vectorize;
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};

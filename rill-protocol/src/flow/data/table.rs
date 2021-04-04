@@ -1,5 +1,4 @@
 use super::{Flow, TimedEvent};
-use crate::io::codec::vectorize;
 use crate::io::provider::StreamType;
 use derive_more::{From, Into};
 use serde::{Deserialize, Serialize};
