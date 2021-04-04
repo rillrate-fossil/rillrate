@@ -17,6 +17,16 @@ fn main() -> Result<(), Error> {
         Some("Show all pulses available in the example.".into()),
     );
 
+    rillrate.add_board(
+        "Counters with Alert".into(),
+        vec![
+            "my.counter.one".parse()?,
+            "my.counter.two".parse()?,
+            "my.alerts".parse()?,
+        ],
+        Some("Show all counters and alerts.".into()),
+    );
+
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
