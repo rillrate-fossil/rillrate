@@ -50,6 +50,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
 enum InnerMode<T: core::Flow> {
     Push { sender: DataSender<T> },
     Pull { state: Arc<Mutex<T::State>> },
+    Watched { receiver: watch::Receiver<T::State> },
 }
 
 // TODO: Or require `Clone` for the `Flow` to derive this
@@ -61,6 +62,9 @@ impl<T: core::Flow> Clone for InnerMode<T> {
             },
             Self::Pull { state } => Self::Pull {
                 state: state.clone(),
+            },
+            Self::Watched { receiver } => Self::Watched {
+                receiver: receiver.clone(),
             },
         }
     }
@@ -179,13 +183,27 @@ impl<T: core::Flow> Tracer<T> {
                                 self.description.flow.apply(state, timed_event);
                             }
                             Err(err) => {
-                                log::error!("Can't lock the mutex to apply the changes: {}", err);
+                                log::error!(
+                                    "Can't lock the mutex to apply the changes for {}: {}",
+                                    self.path(),
+                                    err
+                                );
                             }
                         },
+                        InnerMode::Watched { .. } => {
+                            log::error!(
+                                "Sending is not supported in watched mode for {}",
+                                self.path()
+                            );
+                        }
                     }
                 }
                 Err(err) => {
-                    log::error!("Can't make a timestamp from provided system time: {}", err);
+                    log::error!(
+                        "Can't make a timestamp from provided system time for {}: {}",
+                        self.path(),
+                        err
+                    );
                 }
             }
         }
