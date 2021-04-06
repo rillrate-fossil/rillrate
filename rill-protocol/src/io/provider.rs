@@ -342,8 +342,8 @@ pub struct Description {
 }
 
 impl Description {
-    pub fn try_extract_metric<T: Flow>(&self) -> Result<T, Error> {
-        T::unpack_metric(&self.metadata)
+    pub fn try_extract_flow<T: Flow>(&self) -> Result<T, Error> {
+        T::unpack_flow(&self.metadata)
     }
 }
 

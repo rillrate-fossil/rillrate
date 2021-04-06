@@ -40,13 +40,13 @@ pub trait Flow: DataFraction {
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>);
 
-    fn pack_metric(&self) -> Result<PackedFlow, Error> {
+    fn pack_flow(&self) -> Result<PackedFlow, Error> {
         encoding::to_vec(self)
             .map_err(Error::from)
             .map(PackedFlow::from)
     }
 
-    fn unpack_metric(data: &PackedFlow) -> Result<Self, Error> {
+    fn unpack_flow(data: &PackedFlow) -> Result<Self, Error> {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 

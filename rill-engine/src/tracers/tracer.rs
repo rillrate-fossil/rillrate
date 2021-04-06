@@ -64,14 +64,14 @@ impl<T: data::Flow> Clone for InnerMode<T> {
 pub(crate) struct TracerDescription<T> {
     pub path: Path,
     pub info: String,
-    pub metric: T,
+    pub flow: T,
 }
 
 // TODO: Change to `TryInto`?
 impl<T: data::Flow> TracerDescription<T> {
     /// Converts `TracerDescription` into a `Description`.
     pub fn to_description(&self) -> Result<Description, Error> {
-        let metadata = self.metric.pack_metric()?;
+        let metadata = self.flow.pack_flow()?;
         Ok(Description {
             path: self.path.clone(),
             info: self.info.clone(),
@@ -103,10 +103,10 @@ impl<T: data::Flow> Clone for Tracer<T> {
 
 impl<T: data::Flow> Tracer<T> {
     /// Creates a new `Tracer`.
-    pub fn new(metric: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
+    pub fn new(flow: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
-        let description = TracerDescription { path, info, metric };
+        let description = TracerDescription { path, info, flow };
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {}", description.path);
@@ -170,7 +170,7 @@ impl<T: data::Flow> Tracer<T> {
                         }
                         InnerMode::Pull { state } => match state.lock() {
                             Ok(ref mut state) => {
-                                self.description.metric.apply(state, timed_event);
+                                self.description.flow.apply(state, timed_event);
                             }
                             Err(err) => {
                                 log::error!("Can't lock the mutex to apply the changes: {}", err);

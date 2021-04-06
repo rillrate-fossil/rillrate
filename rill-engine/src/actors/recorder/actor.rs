@@ -144,7 +144,7 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         match &mut self.mode {
             TracerMode::Push { state, .. } => {
                 for event in delta {
-                    self.description.metric.apply(state, event);
+                    self.description.flow.apply(state, event);
                 }
             }
             TracerMode::Pull { .. } => {
