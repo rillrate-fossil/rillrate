@@ -6,6 +6,7 @@ mod actors;
 pub mod config;
 mod state;
 pub mod tracers;
+pub mod watchers;
 
 metacrate::meta!();
 
