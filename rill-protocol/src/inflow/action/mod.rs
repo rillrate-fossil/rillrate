@@ -1,3 +1,5 @@
+pub mod click;
+
 use crate::encoding;
 use crate::flow::data::DataFraction;
 use crate::io::provider::{PackedEvent, StreamType};
