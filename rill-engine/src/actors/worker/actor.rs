@@ -13,7 +13,8 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::flow::{data, locations};
+use rill_protocol::flow::{self, data};
+use rill_protocol::inflow::action;
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
@@ -73,7 +74,7 @@ pub struct RillWorker {
 
 impl RillWorker {
     pub fn new(config: EngineConfig) -> Self {
-        let paths = locations::PATHS.root();
+        let paths = flow::locations::PATHS.root();
         Self {
             url: config.node_url(),
             config,
@@ -225,6 +226,18 @@ impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillWorker {
 }
 
 #[async_trait]
+impl Consumer<Parcel<Self>> for RillWorker {
+    async fn handle(&mut self, parcel: Parcel<Self>, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.address().unpack_parcel(parcel)
+    }
+
+    async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
 impl<T: data::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
     async fn handle(
         &mut self,
@@ -277,13 +290,12 @@ impl<T: data::Flow> Eliminated<Recorder<T>> for RillWorker {
 }
 
 #[async_trait]
-impl Consumer<Parcel<Self>> for RillWorker {
-    async fn handle(&mut self, parcel: Parcel<Self>, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.address().unpack_parcel(parcel)
-    }
-
-    async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
-        Ok(())
+impl<T: action::Inflow> InstantActionHandler<state::RegisterWatcher<T>> for RillWorker {
+    async fn handle(
+        &mut self,
+        msg: state::RegisterWatcher<T>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        todo!()
     }
 }
