@@ -184,7 +184,7 @@ impl<T: core::Flow> Tracer<T> {
                             }
                             Err(err) => {
                                 log::error!(
-                                    "Can't lock the mutex to apply the changes for {}: {}",
+                                    "Can't lock the mutex to apply the changes of {}: {}",
                                     self.path(),
                                     err
                                 );
@@ -192,7 +192,7 @@ impl<T: core::Flow> Tracer<T> {
                         },
                         InnerMode::Watched { .. } => {
                             log::error!(
-                                "Sending is not supported in watched mode for {}",
+                                "Sending is not supported in watched mode of {}",
                                 self.path()
                             );
                         }
@@ -200,11 +200,29 @@ impl<T: core::Flow> Tracer<T> {
                 }
                 Err(err) => {
                     log::error!(
-                        "Can't make a timestamp from provided system time for {}: {}",
+                        "Can't make a timestamp from provided system time of {}: {}",
                         self.path(),
                         err
                     );
                 }
+            }
+        }
+    }
+
+    /// Receive a state.
+    pub async fn recv(&mut self) -> Result<T::State, Error> {
+        match &mut self.mode {
+            InnerMode::Watched { receiver } => {
+                receiver.changed().await?;
+                Ok(receiver.borrow().clone())
+            }
+            InnerMode::Push { .. } => {
+                log::error!("Can't receive state in push mode of {}", self.path(),);
+                Err(Error::msg("Tracer::recv is not supported in push mode."))
+            }
+            InnerMode::Pull { .. } => {
+                log::error!("Can't receive state in pull mode of {}", self.path(),);
+                Err(Error::msg("Tracer::recv is not supported in pull mode."))
             }
         }
     }
