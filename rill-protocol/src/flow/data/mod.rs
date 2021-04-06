@@ -19,6 +19,7 @@ use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
 
+// TODO: Move to the separate module
 /// Requirements for a data fraction in a data flow.
 pub trait DataFraction:
     DeserializeOwned + Serialize + Clone + fmt::Debug + Sync + Send + 'static

@@ -380,6 +380,18 @@ impl fmt::Debug for PackedDelta {
     }
 }
 
+// TODO: Dry!
+#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PackedEvent(pub Vec<u8>);
+
+impl fmt::Debug for PackedEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PackedEvent")
+            .field("size", &self.0.len())
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProviderToServer {
     Declare {
