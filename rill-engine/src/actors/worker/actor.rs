@@ -299,6 +299,11 @@ impl<T: action::Inflow> InstantActionHandler<state::RegisterWatcher<T>> for Rill
         let description = msg.description;
         let path = description.path.clone();
         log::info!("Add watcher: {}", path);
+        let record = self.recorders.dig(path.clone());
+        if record.get_link().is_none() {
+        } else {
+            log::error!("Watcher for {} already registered.", path);
+        }
         todo!()
     }
 }
