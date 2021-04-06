@@ -1,13 +1,11 @@
 use crate::actors::worker::RillWorker;
 use crate::tracers::tracer::{TracerDescription, TracerMode};
-use crate::watchers::watcher::{WatcherDescription, WatcherMode};
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 use meio::{InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
 use rill_protocol::flow::data;
-use rill_protocol::inflow::action;
 use std::sync::Arc;
 
 /// It used by tracers to register them into the state.
@@ -58,30 +56,5 @@ impl RillState {
         self.sender
             .unbounded_send(parcel)
             .map_err(|_| Error::msg("Can't register a tracer."))
-    }
-}
-
-pub(crate) struct RegisterWatcher<T: action::Inflow> {
-    pub description: Arc<WatcherDescription<T>>,
-    pub mode: WatcherMode<T>,
-}
-
-impl<T: action::Inflow> InstantAction for RegisterWatcher<T> {}
-
-impl RillState {
-    pub fn register_watcher<T>(
-        &self,
-        description: Arc<WatcherDescription<T>>,
-        mode: WatcherMode<T>,
-    ) -> Result<(), Error>
-    where
-        RillWorker: InstantActionHandler<RegisterWatcher<T>>,
-        T: action::Inflow,
-    {
-        let msg = RegisterWatcher { description, mode };
-        let parcel = Parcel::pack(msg);
-        self.sender
-            .unbounded_send(parcel)
-            .map_err(|_| Error::msg("Can't register a watcher."))
     }
 }

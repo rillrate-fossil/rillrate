@@ -14,7 +14,6 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::flow::{self, data};
-use rill_protocol::inflow::action;
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
@@ -286,24 +285,5 @@ impl<T: data::Flow> Eliminated<Recorder<T>> for RillWorker {
             log::error!("Recorder {:?} wasn't registered.", id);
         }
         Ok(())
-    }
-}
-
-#[async_trait]
-impl<T: action::Inflow> InstantActionHandler<state::RegisterWatcher<T>> for RillWorker {
-    async fn handle(
-        &mut self,
-        msg: state::RegisterWatcher<T>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let description = msg.description;
-        let path = description.path.clone();
-        log::info!("Add watcher: {}", path);
-        let record = self.recorders.dig(path.clone());
-        if record.get_link().is_none() {
-        } else {
-            log::error!("Watcher for {} already registered.", path);
-        }
-        todo!()
     }
 }
