@@ -296,6 +296,9 @@ impl<T: action::Inflow> InstantActionHandler<state::RegisterWatcher<T>> for Rill
         msg: state::RegisterWatcher<T>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let description = msg.description;
+        let path = description.path.clone();
+        log::info!("Add watcher: {}", path);
         todo!()
     }
 }

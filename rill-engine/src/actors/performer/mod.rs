@@ -1,2 +1,5 @@
 mod actor;
-pub use actor::Performer;
+pub(crate) use actor::Performer;
+
+mod link;
+pub(crate) use link::PerformerLink;
