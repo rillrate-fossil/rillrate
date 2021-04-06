@@ -34,9 +34,15 @@ pub(crate) enum TracerMode<T: core::Flow> {
         state: T::State,
         receiver: Option<DataReceiver<T>>,
     },
+    /// Pulling for intensive streams with high-load activities
     Pull {
         state: Weak<Mutex<T::State>>,
         interval: Duration,
+    },
+    /// Used for controls
+    Watched {
+        sender: watch::Sender<T::State>,
+        receiver: watch::Receiver<T::State>,
     },
 }
 

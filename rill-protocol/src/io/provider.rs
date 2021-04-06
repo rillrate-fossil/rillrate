@@ -288,6 +288,7 @@ pub enum RecorderRequest {
 pub enum RecorderAction {
     GetFlow,
     GetSnapshot,
+    DoEvent(PackedEvent),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

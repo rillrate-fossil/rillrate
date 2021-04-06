@@ -1,5 +1,7 @@
 use crate::encoding;
-use crate::io::provider::{PackedDelta, PackedFlow, PackedState, StreamType, Timestamp};
+use crate::io::provider::{
+    PackedDelta, PackedEvent, PackedFlow, PackedState, StreamType, Timestamp,
+};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
@@ -35,6 +37,16 @@ pub trait Flow: DataFraction {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 
+    fn pack_state(state: &Self::State) -> Result<PackedState, Error> {
+        encoding::to_vec(state)
+            .map_err(Error::from)
+            .map(PackedState::from)
+    }
+
+    fn unpack_state(data: &PackedState) -> Result<Self::State, Error> {
+        encoding::from_slice(&data.0).map_err(Error::from)
+    }
+
     fn pack_delta(delta: &[TimedEvent<Self::Event>]) -> Result<PackedDelta, Error> {
         encoding::to_vec(delta)
             .map_err(Error::from)
@@ -45,13 +57,13 @@ pub trait Flow: DataFraction {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 
-    fn pack_state(state: &Self::State) -> Result<PackedState, Error> {
-        encoding::to_vec(state)
+    fn pack_event(event: &Self::Event) -> Result<PackedEvent, Error> {
+        encoding::to_vec(event)
             .map_err(Error::from)
-            .map(PackedState::from)
+            .map(PackedEvent::from)
     }
 
-    fn unpack_state(data: &PackedState) -> Result<Self::State, Error> {
+    fn unpack_event(data: &PackedEvent) -> Result<Self::Event, Error> {
         encoding::from_slice(&data.0).map_err(Error::from)
     }
 }

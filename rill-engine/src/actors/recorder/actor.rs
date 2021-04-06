@@ -61,6 +61,7 @@ impl<T: core::Flow> Recorder<T> {
                     Err(Error::msg("Can't upgrade weak reference to the state."))
                 }
             }
+            TracerMode::Watched { receiver, .. } => T::pack_state(&receiver.borrow()),
         }
     }
 
@@ -110,6 +111,10 @@ impl<T: core::Flow> StartedBy<RillWorker> for Recorder<T> {
                 // Waiting for the subscribers to spawn a heartbeat activity
                 Ok(())
             }
+            TracerMode::Watched { .. } => {
+                // Do nothing, just wait for the client's event requests
+                Ok(())
+            }
         }
     }
 }
@@ -148,8 +153,11 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
                 }
             }
             TracerMode::Pull { .. } => {
+                log::error!("Delta received in pull mode for: {}", self.description.path);
+            }
+            TracerMode::Watched { .. } => {
                 log::error!(
-                    "Delta received for Pull mode for: {}",
+                    "Delta received in watched mode for: {}",
                     self.description.path
                 );
             }
@@ -177,7 +185,13 @@ impl<T: core::Flow> OnTick for Recorder<T> {
                 }
                 TracerMode::Push { .. } => {
                     log::error!(
-                        "Pulling tick received for the push mode for: {}",
+                        "Pulling tick received in the push mode for: {}",
+                        self.description.path
+                    );
+                }
+                TracerMode::Watched { .. } => {
+                    log::error!(
+                        "Pulling tick received in the watched mode for: {}",
                         self.description.path
                     );
                 }
@@ -243,6 +257,12 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     }
                     RecorderAction::GetFlow => {
                         self.send_flow(id.into())?;
+                    }
+                    RecorderAction::DoEvent(data) => {
+                        let event = T::unpack_event(&data)?;
+                        // TODO: Apply to the shared state mode
+                        //self.description.flow.apply(state, event);
+                        // TODO: Send `Delta` to all subscribers
                     }
                 },
             }
