@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::flow::data;
+use rill_protocol::flow::core;
 use rill_protocol::io::provider::{
     FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
     RecorderRequest,
@@ -15,14 +15,14 @@ use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
 
-pub(crate) struct Recorder<T: data::Flow> {
+pub(crate) struct Recorder<T: core::Flow> {
     description: Arc<TracerDescription<T>>,
     sender: RillSender,
     mode: TracerMode<T>,
     subscribers: HashSet<ProviderReqId>,
 }
 
-impl<T: data::Flow> Recorder<T> {
+impl<T: core::Flow> Recorder<T> {
     pub fn new(
         description: Arc<TracerDescription<T>>,
         sender: RillSender,
@@ -84,7 +84,7 @@ impl<T: data::Flow> Recorder<T> {
     }
 }
 
-impl<T: data::Flow> Actor for Recorder<T> {
+impl<T: core::Flow> Actor for Recorder<T> {
     type GroupBy = ();
 
     fn name(&self) -> String {
@@ -93,7 +93,7 @@ impl<T: data::Flow> Actor for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> StartedBy<RillWorker> for Recorder<T> {
+impl<T: core::Flow> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         match &mut self.mode {
             TracerMode::Push { receiver, .. } => {
@@ -115,7 +115,7 @@ impl<T: data::Flow> StartedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> InterruptedBy<RillWorker> for Recorder<T> {
+impl<T: core::Flow> InterruptedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx);
         Ok(())
@@ -123,7 +123,7 @@ impl<T: data::Flow> InterruptedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
+impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,
@@ -164,7 +164,7 @@ impl<T: data::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> OnTick for Recorder<T> {
+impl<T: core::Flow> OnTick for Recorder<T> {
     async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             match &self.mode {
@@ -194,7 +194,7 @@ impl<T: data::Flow> OnTick for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
+impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::DoRecorderRequest,
@@ -254,7 +254,7 @@ impl<T: data::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: data::Flow> ActionHandler<link::ConnectionChanged> for Recorder<T> {
+impl<T: core::Flow> ActionHandler<link::ConnectionChanged> for Recorder<T> {
     async fn handle(
         &mut self,
         msg: link::ConnectionChanged,

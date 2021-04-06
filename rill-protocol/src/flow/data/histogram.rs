@@ -1,4 +1,4 @@
-use super::{Flow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::frame::Frame;
 use crate::io::provider::StreamType;
 use crate::range::Pct;

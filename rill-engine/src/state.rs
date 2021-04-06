@@ -5,7 +5,7 @@ use futures::channel::mpsc;
 use futures::lock::Mutex;
 use meio::{InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
-use rill_protocol::flow::data;
+use rill_protocol::flow::core;
 use std::sync::Arc;
 
 /// It used by tracers to register them into the state.
@@ -34,12 +34,12 @@ impl RillState {
     }
 }
 
-pub(crate) struct RegisterTracer<T: data::Flow> {
+pub(crate) struct RegisterTracer<T: core::Flow> {
     pub description: Arc<TracerDescription<T>>,
     pub mode: TracerMode<T>,
 }
 
-impl<T: data::Flow> InstantAction for RegisterTracer<T> {}
+impl<T: core::Flow> InstantAction for RegisterTracer<T> {}
 
 impl RillState {
     pub fn register_tracer<T>(
@@ -49,7 +49,7 @@ impl RillState {
     ) -> Result<(), Error>
     where
         RillWorker: InstantActionHandler<RegisterTracer<T>>,
-        T: data::Flow,
+        T: core::Flow,
     {
         let msg = RegisterTracer { description, mode };
         let parcel = Parcel::pack(msg);

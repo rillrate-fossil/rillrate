@@ -1,4 +1,4 @@
-use super::{Flow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent};
 // TODO: Join `Frame` and `Range` into a single module.
 use crate::frame::Frame;
 use crate::io::provider::StreamType;

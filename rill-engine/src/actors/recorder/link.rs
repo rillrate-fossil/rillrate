@@ -2,7 +2,7 @@ use super::Recorder;
 use crate::actors::worker::RillSender;
 use anyhow::Error;
 use meio::{Action, ActionRecipient, Address};
-use rill_protocol::flow::data;
+use rill_protocol::flow::core;
 use rill_protocol::io::provider::{ProviderReqId, RecorderRequest};
 
 /// COOL SOLUTION!
@@ -18,7 +18,7 @@ pub(crate) struct RecorderLink {
     recipient: Box<dyn Recipient>,
 }
 
-impl<T: data::Flow> From<Address<Recorder<T>>> for RecorderLink {
+impl<T: core::Flow> From<Address<Recorder<T>>> for RecorderLink {
     fn from(address: Address<Recorder<T>>) -> Self {
         Self {
             recipient: Box::new(address),

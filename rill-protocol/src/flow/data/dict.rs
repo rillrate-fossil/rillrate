@@ -1,4 +1,4 @@
-use super::{Flow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

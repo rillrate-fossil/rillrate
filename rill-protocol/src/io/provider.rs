@@ -1,4 +1,4 @@
-use crate::flow::data::Flow;
+use crate::flow::core::Flow;
 use crate::io::codec::RRCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use anyhow::Error;

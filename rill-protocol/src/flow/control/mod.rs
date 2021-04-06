@@ -1,4 +1,4 @@
-use crate::flow::data::{Flow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 

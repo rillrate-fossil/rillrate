@@ -1,5 +1,4 @@
-use super::MetaFlow;
-use crate::flow::data::{Flow, TimedEvent};
+use crate::flow::core::{Flow, MetaFlow, TimedEvent};
 use crate::io::provider::{EntryId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

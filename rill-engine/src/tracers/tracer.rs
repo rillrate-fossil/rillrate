@@ -3,20 +3,20 @@ use crate::state::RILL_LINK;
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::flow::data::{self, TimedEvent};
+use rill_protocol::flow::core::{self, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, Timestamp};
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
 use tokio::sync::watch;
 
 #[derive(Debug)]
-pub(crate) enum DataEnvelope<T: data::Flow> {
+pub(crate) enum DataEnvelope<T: core::Flow> {
     Event(TimedEvent<T::Event>),
 }
 
-impl<T: data::Flow> Action for DataEnvelope<T> {}
+impl<T: core::Flow> Action for DataEnvelope<T> {}
 
-impl<T: data::Flow> DataEnvelope<T> {
+impl<T: core::Flow> DataEnvelope<T> {
     pub fn into_inner(self) -> TimedEvent<T::Event> {
         match self {
             Self::Event(event) => event,
@@ -28,7 +28,7 @@ impl<T: data::Flow> DataEnvelope<T> {
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
-pub(crate) enum TracerMode<T: data::Flow> {
+pub(crate) enum TracerMode<T: core::Flow> {
     /// Real-time mode
     Push {
         state: T::State,
@@ -41,13 +41,13 @@ pub(crate) enum TracerMode<T: data::Flow> {
 }
 
 #[derive(Debug)]
-enum InnerMode<T: data::Flow> {
+enum InnerMode<T: core::Flow> {
     Push { sender: DataSender<T> },
     Pull { state: Arc<Mutex<T::State>> },
 }
 
 // TODO: Or require `Clone` for the `Flow` to derive this
-impl<T: data::Flow> Clone for InnerMode<T> {
+impl<T: core::Flow> Clone for InnerMode<T> {
     fn clone(&self) -> Self {
         match self {
             Self::Push { sender } => Self::Push {
@@ -68,7 +68,7 @@ pub(crate) struct TracerDescription<T> {
 }
 
 // TODO: Change to `TryInto`?
-impl<T: data::Flow> TracerDescription<T> {
+impl<T: core::Flow> TracerDescription<T> {
     /// Converts `TracerDescription` into a `Description`.
     pub fn to_description(&self) -> Result<Description, Error> {
         let metadata = self.flow.pack_flow()?;
@@ -84,14 +84,14 @@ impl<T: data::Flow> TracerDescription<T> {
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
-pub struct Tracer<T: data::Flow> {
+pub struct Tracer<T: core::Flow> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
     description: Arc<TracerDescription<T>>,
     mode: InnerMode<T>,
 }
 
-impl<T: data::Flow> Clone for Tracer<T> {
+impl<T: core::Flow> Clone for Tracer<T> {
     fn clone(&self) -> Self {
         Self {
             active: self.active.clone(),
@@ -101,7 +101,7 @@ impl<T: data::Flow> Clone for Tracer<T> {
     }
 }
 
-impl<T: data::Flow> Tracer<T> {
+impl<T: core::Flow> Tracer<T> {
     /// Creates a new `Tracer`.
     pub fn new(flow: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let stream_type = T::stream_type();
@@ -186,7 +186,7 @@ impl<T: data::Flow> Tracer<T> {
     }
 }
 
-impl<T: data::Flow> Tracer<T> {
+impl<T: core::Flow> Tracer<T> {
     /// Returns `true` is the `Tracer` has to send data.
     pub fn is_active(&self) -> bool {
         *self.active.borrow()

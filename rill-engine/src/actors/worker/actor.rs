@@ -13,7 +13,7 @@ use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
-use rill_protocol::flow::{self, data};
+use rill_protocol::flow::{self, core};
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
@@ -237,7 +237,7 @@ impl Consumer<Parcel<Self>> for RillWorker {
 }
 
 #[async_trait]
-impl<T: data::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
+impl<T: core::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
     async fn handle(
         &mut self,
         msg: state::RegisterTracer<T>,
@@ -266,7 +266,7 @@ impl<T: data::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorke
 }
 
 #[async_trait]
-impl<T: data::Flow> Eliminated<Recorder<T>> for RillWorker {
+impl<T: core::Flow> Eliminated<Recorder<T>> for RillWorker {
     async fn handle(
         &mut self,
         id: IdOf<Recorder<T>>,
