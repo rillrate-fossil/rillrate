@@ -16,29 +16,42 @@ impl Flow for ToggleFlow {
     }
 
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        let ToggleEvent::Set(new_value) = event.event;
-        state.value = new_value;
+        state.active = event.event.active;
         state.last_toggle = Some(event.timestamp);
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToggleState {
-    pub value: bool,
+    pub active: bool,
     pub last_toggle: Option<Timestamp>,
 }
 
 #[allow(clippy::new_without_default)]
 impl ToggleState {
-    pub fn new(value: bool) -> Self {
+    pub fn new(active: bool) -> Self {
         Self {
-            value,
+            active,
             last_toggle: None,
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ToggleEvent {
-    Set(bool),
+pub struct ToggleEvent {
+    pub active: bool,
+}
+
+impl ToggleEvent {
+    pub fn new(active: bool) -> Self {
+        Self { active }
+    }
+
+    pub fn on() -> Self {
+        Self { active: true }
+    }
+
+    pub fn off() -> Self {
+        Self { active: false }
+    }
 }
