@@ -121,4 +121,4 @@ impl Alert {
     }
 }
 
-impl_tracer!(Click<ClickWatcher>());
+impl_tracer!(Click<ClickWatcher>(caption: String));

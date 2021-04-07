@@ -3,7 +3,9 @@ use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ClickFlow;
+pub struct ClickFlow {
+    pub caption: String,
+}
 
 impl Flow for ClickFlow {
     type State = ClickState;
