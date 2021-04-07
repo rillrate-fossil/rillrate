@@ -1,4 +1,5 @@
 use crate::tracers::tracer::Tracer;
+use anyhow::Error;
 use rill_protocol::flow::control::click::{ClickEvent, ClickFlow, ClickState};
 use rill_protocol::io::provider::Path;
 
@@ -14,5 +15,9 @@ impl ClickWatcher {
         let state = ClickState::new();
         let tracer = Tracer::new(metric, state, path, None);
         Self { tracer }
+    }
+
+    pub async fn watch_click(&mut self) -> Result<(), Error> {
+        self.tracer.recv().await.map(drop)
     }
 }
