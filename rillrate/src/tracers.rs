@@ -3,7 +3,7 @@
 
 use anyhow::Error;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::control::{ClickWatcher, ToggleWatcher};
+use rill_engine::tracers::control::{ClickWatcher, SelectorWatcher, ToggleWatcher};
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
@@ -124,3 +124,5 @@ impl Alert {
 impl_tracer!(Click<ClickWatcher>(caption: String));
 
 impl_tracer!(Toggle<ToggleWatcher>(caption: String, active: bool));
+
+impl_tracer!(Selector<SelectorWatcher>(label: String, options: Vec<String>, selected: String));
