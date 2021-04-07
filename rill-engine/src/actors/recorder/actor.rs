@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::flow::core;
+use rill_protocol::flow::core::{self, TimedEvent};
 use rill_protocol::io::provider::{
     FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
     RecorderRequest,
@@ -127,6 +127,19 @@ impl<T: core::Flow> InterruptedBy<RillWorker> for Recorder<T> {
     }
 }
 
+impl<T: core::Flow> Recorder<T> {
+    fn send_delta(&mut self, delta: &[TimedEvent<T::Event>]) -> Result<(), Error> {
+        if !self.subscribers.is_empty() {
+            let response = ProviderToServer::Data {
+                delta: T::pack_delta(&delta)?,
+            };
+            let direction = self.all_subscribers();
+            self.sender.response(direction, response);
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn handle(
@@ -139,13 +152,9 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
             let event = envelope.into_inner();
             delta.push(event);
         }
-        if !self.subscribers.is_empty() {
-            let response = ProviderToServer::Data {
-                delta: T::pack_delta(&delta)?,
-            };
-            let direction = self.all_subscribers();
-            self.sender.response(direction, response);
-        }
+
+        self.send_delta(&delta)?;
+
         match &mut self.mode {
             TracerMode::Push { state, .. } => {
                 for event in delta {
@@ -264,25 +273,19 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                             TracerMode::Watched { state, sender } => {
                                 // TODO: Track errors and send them back to the client
                                 let ts = time_to_ts(None)?;
-                                let timed_event = core::TimedEvent {
+                                let timed_event = TimedEvent {
                                     timestamp: ts,
                                     event: event,
                                 };
                                 self.description.flow.apply(state, timed_event.clone());
-                                if let Err(err) = sender.send(timed_event) {
+                                if let Err(err) = sender.send(timed_event.clone()) {
                                     log::error!(
                                         "No event listeners in {} watcher: {}",
                                         self.description.path,
                                         err,
                                     );
                                 }
-                                // TODO: Send event to all subscribers...
-                                /*
-                                let direction = self.all_subscribers();
-                                if let Err(_err) = self.send_state(direction).await {
-                                    log::error!("Can't send state of {} when inflow event received", self.description.path);
-                                }
-                                */
+                                self.send_delta(&[timed_event])?;
                             }
                             TracerMode::Push { .. } => {
                                 log::error!(
