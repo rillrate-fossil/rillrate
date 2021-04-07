@@ -42,7 +42,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
     /// Used for controls
     Watched {
         state: T::State,
-        sender: broadcast::Sender<T::Event>,
+        sender: broadcast::Sender<TimedEvent<T::Event>>,
     },
 }
 
@@ -55,8 +55,8 @@ enum InnerMode<T: core::Flow> {
         state: Arc<Mutex<T::State>>,
     },
     Watched {
-        sender: Arc<broadcast::Sender<T::Event>>,
-        receiver: broadcast::Receiver<T::Event>,
+        sender: Arc<broadcast::Sender<TimedEvent<T::Event>>>,
+        receiver: broadcast::Receiver<TimedEvent<T::Event>>,
     },
 }
 
@@ -168,10 +168,7 @@ impl<T: core::Flow> Tracer<T> {
     /// Send an event to a `Recorder`.
     pub fn send(&self, data: T::Event, opt_system_time: Option<SystemTime>) {
         if self.is_active() {
-            let ts = opt_system_time
-                .unwrap_or_else(SystemTime::now)
-                .duration_since(SystemTime::UNIX_EPOCH)
-                .map(Timestamp::from);
+            let ts = time_to_ts(opt_system_time);
             match ts {
                 Ok(timestamp) => {
                     let timed_event = TimedEvent {
@@ -218,7 +215,7 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Receive a state.
-    pub async fn recv(&mut self) -> Result<T::Event, Error> {
+    pub async fn recv(&mut self) -> Result<TimedEvent<T::Event>, Error> {
         match &mut self.mode {
             InnerMode::Watched { receiver, .. } => receiver.recv().await.map_err(Error::from),
             InnerMode::Push { .. } => {
@@ -258,4 +255,13 @@ impl<T: core::Flow> Tracer<T> {
         Ok(())
     }
     */
+}
+
+// TODO: How to avoid errors here?
+pub(crate) fn time_to_ts(opt_system_time: Option<SystemTime>) -> Result<Timestamp, Error> {
+    opt_system_time
+        .unwrap_or_else(SystemTime::now)
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .map(Timestamp::from)
+        .map_err(Error::from)
 }

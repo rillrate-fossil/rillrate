@@ -1,6 +1,6 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
-use crate::tracers::tracer::{DataEnvelope, TracerDescription, TracerMode};
+use crate::tracers::tracer::{time_to_ts, DataEnvelope, TracerDescription, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -260,9 +260,43 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     }
                     RecorderAction::DoEvent(data) => {
                         let event = T::unpack_event(&data)?;
-                        // TODO: Apply to the shared state mode
-                        //self.description.flow.apply(state, event);
-                        // TODO: Send `Delta` to all subscribers
+                        match &mut self.mode {
+                            TracerMode::Watched { state, sender } => {
+                                // TODO: Track errors and send them back to the client
+                                let ts = time_to_ts(None)?;
+                                let timed_event = core::TimedEvent {
+                                    timestamp: ts,
+                                    event: event,
+                                };
+                                self.description.flow.apply(state, timed_event.clone());
+                                if let Err(err) = sender.send(timed_event) {
+                                    log::error!(
+                                        "No event listeners in {} watcher: {}",
+                                        self.description.path,
+                                        err,
+                                    );
+                                }
+                                // TODO: Send event to all subscribers...
+                                /*
+                                let direction = self.all_subscribers();
+                                if let Err(_err) = self.send_state(direction).await {
+                                    log::error!("Can't send state of {} when inflow event received", self.description.path);
+                                }
+                                */
+                            }
+                            TracerMode::Push { .. } => {
+                                log::error!(
+                                    "Do event request in the push mode of {}",
+                                    self.description.path
+                                );
+                            }
+                            TracerMode::Pull { .. } => {
+                                log::error!(
+                                    "Do event request in the pull mode of {}",
+                                    self.description.path
+                                );
+                            }
+                        }
                     }
                 },
             }
