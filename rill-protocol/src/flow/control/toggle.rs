@@ -35,6 +35,10 @@ impl ToggleState {
             last_toggle: None,
         }
     }
+
+    pub fn toggle_event(&self) -> ToggleEvent {
+        ToggleEvent::new(!self.active)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
