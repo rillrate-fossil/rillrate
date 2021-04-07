@@ -123,7 +123,6 @@ impl<T: core::Flow> Clone for Tracer<T> {
 }
 
 impl<T: core::Flow> Tracer<T> {
-    // TODO: Rename to `new_tracer`
     /// Creates a new `Tracer`.
     pub fn new_tracer(flow: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let inner_mode;
@@ -143,11 +142,24 @@ impl<T: core::Flow> Tracer<T> {
             };
             inner_mode = InnerMode::Push { sender: tx };
         }
-        Self::make_new(flow, path, inner_mode, mode)
+        Self::new(flow, path, inner_mode, mode)
     }
 
-    // TODO: Rename to `new`
-    fn make_new(flow: T, path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
+    /// Creates a new watched `Tracer`
+    pub fn new_watcher(flow: T, state: T::State, path: Path) -> Self {
+        let (tx, rx) = broadcast::channel(16);
+        let mode = TracerMode::Watched {
+            state,
+            sender: tx.clone(),
+        };
+        let inner_mode = InnerMode::Watched {
+            sender: Arc::new(tx),
+            receiver: rx,
+        };
+        Self::new(flow, path, inner_mode, mode)
+    }
+
+    fn new(flow: T, path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
         let description = TracerDescription { path, info, flow };
@@ -167,20 +179,6 @@ impl<T: core::Flow> Tracer<T> {
             );
         }
         this
-    }
-
-    /// Creates a new watched `Tracer`
-    pub fn new_watcher(flow: T, state: T::State, path: Path) -> Self {
-        let (tx, rx) = broadcast::channel(16);
-        let mode = TracerMode::Watched {
-            state,
-            sender: tx.clone(),
-        };
-        let inner_mode = InnerMode::Watched {
-            sender: Arc::new(tx),
-            receiver: rx,
-        };
-        Self::make_new(flow, path, inner_mode, mode)
     }
 
     /// Returns a reference to a `Path` of the `Tracer`.
