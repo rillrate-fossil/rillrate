@@ -1,12 +1,12 @@
 use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SelectorFlow {
     pub label: String,
-    pub options: BTreeSet<String>,
+    /// It's `Vec` to keep the order.
+    pub options: Vec<String>,
 }
 
 impl Flow for SelectorFlow {

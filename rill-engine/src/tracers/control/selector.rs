@@ -13,7 +13,6 @@ pub struct SelectorWatcher {
 impl SelectorWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path, label: String, options: Vec<String>, selected: String) -> Self {
-        let options = options.into_iter().collect();
         let flow = SelectorFlow { label, options };
         let state = SelectorState::new(selected);
         let tracer = Tracer::new_watcher(flow, state, path);
