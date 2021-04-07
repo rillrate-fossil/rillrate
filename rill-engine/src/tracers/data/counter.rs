@@ -13,9 +13,9 @@ pub struct CounterTracer {
 impl CounterTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path) -> Self {
-        let metric = CounterFlow;
+        let flow = CounterFlow;
         let state = CounterState::new();
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 

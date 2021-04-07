@@ -12,9 +12,9 @@ pub struct ConnectionTracer {
 impl ConnectionTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let metric = ConnectionFlow;
+        let flow = ConnectionFlow;
         let state = ConnectionState::new();
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 

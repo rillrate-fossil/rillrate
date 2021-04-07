@@ -125,7 +125,7 @@ impl<T: core::Flow> Clone for Tracer<T> {
 impl<T: core::Flow> Tracer<T> {
     // TODO: Rename to `new_tracer`
     /// Creates a new `Tracer`.
-    pub fn new(flow: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
+    pub fn new_tracer(flow: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
         let inner_mode;
         let mode;
         if let Some(interval) = pull {

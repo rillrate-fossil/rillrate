@@ -13,9 +13,9 @@ pub struct ClickWatcher {
 impl ClickWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path) -> Self {
-        let metric = ClickFlow;
+        let flow = ClickFlow;
         let state = ClickState::new();
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_watcher(flow, state, path);
         Self { tracer }
     }
 

@@ -22,9 +22,9 @@ impl TableTracer {
                 (col_id, record)
             })
             .collect();
-        let metric = TableFlow { columns };
+        let flow = TableFlow { columns };
         let state = TableState::new();
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 

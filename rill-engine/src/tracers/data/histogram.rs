@@ -13,9 +13,9 @@ pub struct HistogramTracer {
 impl HistogramTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path, levels: Vec<f64>) -> Self {
-        let metric = HistogramFlow;
+        let flow = HistogramFlow;
         let state = HistogramState::new(levels, None);
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 

@@ -12,9 +12,9 @@ pub struct EntryTracer {
 impl EntryTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let metric = EntryFlow;
+        let flow = EntryFlow;
         let state = EntryState::new();
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 

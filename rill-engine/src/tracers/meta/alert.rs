@@ -13,9 +13,9 @@ pub struct AlertTracer {
 impl AlertTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let metric = AlertFlow;
+        let flow = AlertFlow;
         let state = AlertState::new();
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 

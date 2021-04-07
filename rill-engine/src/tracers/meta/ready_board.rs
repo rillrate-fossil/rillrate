@@ -15,9 +15,9 @@ pub struct ReadyBoardTracer {
 impl ReadyBoardTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let metric = ReadyBoardFlow;
+        let flow = ReadyBoardFlow;
         let state = ReadyBoardState::new();
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 

@@ -13,9 +13,9 @@ pub struct PulseTracer {
 impl PulseTracer {
     /// Creates a new `Pulse` tracer.
     pub fn new(path: Path, depth: Option<u32>) -> Self {
-        let metric = PulseFlow { range: None };
+        let flow = PulseFlow { range: None };
         let state = PulseState::new(depth);
-        let tracer = Tracer::new(metric, state, path, None);
+        let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }
 
