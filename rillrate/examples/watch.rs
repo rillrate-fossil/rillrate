@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::{Click, Counter, RillRate, Toggle};
+use rillrate::{Click, Counter, RillRate, Selector, Toggle};
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -8,6 +8,13 @@ async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let _rillrate = RillRate::from_env("watch-click-example")?;
     tokio::spawn(counter());
+
+    let _selector = Selector::create(
+        "selector",
+        "Select Me!".into(),
+        vec!["One".into(), "Two".into(), "Three".into()],
+        "One".into(),
+    )?;
 
     let _manytoggle = Toggle::create("toggle", "Toggle Me!".into(), false)?;
 
