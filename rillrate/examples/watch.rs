@@ -8,7 +8,7 @@ async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let _rillrate = RillRate::from_env("watch-click-example")?;
     tokio::spawn(counter());
-    let mut shutdown = Click::create("shutdown")?;
+    let mut shutdown = Click::create("shutdown", "Shutdown".into())?;
     shutdown.watch_click().await?;
     Ok(())
 }
