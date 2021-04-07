@@ -7,7 +7,7 @@ use rill_protocol::flow::core::{self, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, Timestamp};
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
-use tokio::sync::watch;
+use tokio::sync::{broadcast, watch};
 
 #[derive(Debug)]
 pub(crate) enum DataEnvelope<T: core::Flow> {
@@ -41,16 +41,23 @@ pub(crate) enum TracerMode<T: core::Flow> {
     },
     /// Used for controls
     Watched {
-        sender: watch::Sender<T::State>,
-        receiver: watch::Receiver<T::State>,
+        state: T::State,
+        sender: broadcast::Sender<T::Event>,
     },
 }
 
 #[derive(Debug)]
 enum InnerMode<T: core::Flow> {
-    Push { sender: DataSender<T> },
-    Pull { state: Arc<Mutex<T::State>> },
-    Watched { receiver: watch::Receiver<T::State> },
+    Push {
+        sender: DataSender<T>,
+    },
+    Pull {
+        state: Arc<Mutex<T::State>>,
+    },
+    Watched {
+        sender: Arc<broadcast::Sender<T::Event>>,
+        receiver: broadcast::Receiver<T::Event>,
+    },
 }
 
 // TODO: Or require `Clone` for the `Flow` to derive this
@@ -63,8 +70,9 @@ impl<T: core::Flow> Clone for InnerMode<T> {
             Self::Pull { state } => Self::Pull {
                 state: state.clone(),
             },
-            Self::Watched { receiver } => Self::Watched {
-                receiver: receiver.clone(),
+            Self::Watched { sender, .. } => Self::Watched {
+                sender: sender.clone(),
+                receiver: sender.subscribe(),
             },
         }
     }
@@ -210,12 +218,9 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Receive a state.
-    pub async fn recv(&mut self) -> Result<T::State, Error> {
+    pub async fn recv(&mut self) -> Result<T::Event, Error> {
         match &mut self.mode {
-            InnerMode::Watched { receiver } => {
-                receiver.changed().await?;
-                Ok(receiver.borrow().clone())
-            }
+            InnerMode::Watched { receiver, .. } => receiver.recv().await.map_err(Error::from),
             InnerMode::Push { .. } => {
                 log::error!("Can't receive state in push mode of {}", self.path(),);
                 Err(Error::msg("Tracer::recv is not supported in push mode."))

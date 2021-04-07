@@ -61,7 +61,7 @@ impl<T: core::Flow> Recorder<T> {
                     Err(Error::msg("Can't upgrade weak reference to the state."))
                 }
             }
-            TracerMode::Watched { receiver, .. } => T::pack_state(&receiver.borrow()),
+            TracerMode::Watched { state, .. } => T::pack_state(state),
         }
     }
 
