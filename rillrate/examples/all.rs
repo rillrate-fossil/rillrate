@@ -1,6 +1,8 @@
 use anyhow::Error;
 use rand::Rng;
-use rillrate::{Alert, Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table};
+use rillrate::{
+    Alert, Click, Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table,
+};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -27,7 +29,7 @@ fn main() -> Result<(), Error> {
         Some("Show all counters and alerts.".into()),
     );
 
-    let click = Click::new("control.shutdown");
+    let _click = Click::create("control.click", "Button".into())?;
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));
