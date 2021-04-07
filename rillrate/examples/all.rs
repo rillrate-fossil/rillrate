@@ -27,6 +27,8 @@ fn main() -> Result<(), Error> {
         Some("Show all counters and alerts.".into()),
     );
 
+    let click = Click::new("control.shutdown");
+
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();

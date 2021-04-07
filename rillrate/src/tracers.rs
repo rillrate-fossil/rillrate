@@ -2,29 +2,21 @@
 //! that allow to use many types as parameters.
 
 use anyhow::Error;
+use derive_more::{Deref, DerefMut};
+use rill_engine::tracers::control::ClickWatcher;
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
 use rill_engine::tracers::meta::AlertTracer;
 pub use rill_protocol::flow::data::table::{Col, Row};
-use std::ops::Deref;
-use std::sync::Arc;
 
 macro_rules! impl_tracer {
     ($wrapper:ident < $tracer:ident > ( $( $arg:ident : $typ:ty ),* )) => {
 
         /// Wrapper on tracer.
-        #[derive(Debug, Clone)]
+        #[derive(Debug, Clone, Deref, DerefMut)]
         pub struct $wrapper {
-            tracer: Arc<$tracer>,
-        }
-
-        impl Deref for $wrapper {
-            type Target = $tracer;
-
-            fn deref(&self) -> &Self::Target {
-                self.tracer.deref()
-            }
+            tracer: $tracer,
         }
 
         impl $wrapper {
@@ -32,9 +24,7 @@ macro_rules! impl_tracer {
             pub fn create(path: impl AsRef<str>, $( $arg : $typ ),*) -> Result<Self, Error> {
                 let path = path.as_ref().parse()?;
                 let tracer = $tracer::new(path, $( $arg ),*);
-                Ok(Self {
-                    tracer: Arc::new(tracer),
-                })
+                Ok(Self { tracer })
             }
         }
     };
@@ -130,3 +120,5 @@ impl Alert {
         self.tracer.alert(key.to_string(), None);
     }
 }
+
+impl_tracer!(Click<ClickWatcher>());
