@@ -42,6 +42,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
     /// Used for controls
     Watched {
         state: T::State,
+        /// For sending events to a `Tracer` instances
         sender: broadcast::Sender<TimedEvent<T::Event>>,
     },
 }
@@ -55,7 +56,9 @@ enum InnerMode<T: core::Flow> {
         state: Arc<Mutex<T::State>>,
     },
     Watched {
+        /// Kept for generating new `Receiver`s
         sender: Arc<broadcast::Sender<TimedEvent<T::Event>>>,
+        /// To receive incoming events from a client
         receiver: broadcast::Receiver<TimedEvent<T::Event>>,
     },
 }
@@ -166,8 +169,18 @@ impl<T: core::Flow> Tracer<T> {
         this
     }
 
+    /// Creates a new watched `Tracer`
     pub fn new_watcher(flow: T, state: T::State, path: Path) -> Self {
-        todo!()
+        let (tx, rx) = broadcast::channel(16);
+        let mode = TracerMode::Watched {
+            state,
+            sender: tx.clone(),
+        };
+        let inner_mode = InnerMode::Watched {
+            sender: Arc::new(tx),
+            receiver: rx,
+        };
+        Self::make_new(flow, path, inner_mode, mode)
     }
 
     /// Returns a reference to a `Path` of the `Tracer`.
