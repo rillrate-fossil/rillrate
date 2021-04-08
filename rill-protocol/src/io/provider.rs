@@ -95,6 +95,12 @@ impl Path {
         Self(vec![entry_id.into()])
     }
 
+    pub fn is_meta(&self) -> bool {
+        self.0
+            .iter()
+            .any(|entry_id| entry_id.as_ref().contains("meta:"))
+    }
+
     /*
     pub fn root() -> Self {
         Self(Vec::new())
