@@ -5,10 +5,8 @@ use crate::io::provider::StreamType;
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct PulseFlow {
-    pub range: Option<Range>,
-}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct PulseFlow;
 
 impl Flow for PulseFlow {
     type State = PulseState;
@@ -32,7 +30,7 @@ impl Flow for PulseFlow {
         }
         // Use the clamped value if a range set, but don't affect the state.
         let mut value = state.value;
-        if let Some(range) = self.range.as_ref() {
+        if let Some(range) = state.range.as_ref() {
             range.clamp(&mut value);
         }
         let point = PulsePoint { value };
@@ -51,15 +49,17 @@ pub struct PulsePoint {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulseState {
+    pub range: Option<Range>,
     pub frame: Frame<TimedEvent<PulsePoint>>,
     /// Intermediate counter value. Not available for changing!!!
     value: f64,
 }
 
 impl PulseState {
-    pub fn new(depth: Option<u32>) -> Self {
+    pub fn new(range: Option<Range>, depth: Option<u32>) -> Self {
         let depth = depth.unwrap_or(128);
         Self {
+            range,
             // TODO: Use duration for removing obsolete values instead
             frame: Frame::new(depth),
             value: 0.0,

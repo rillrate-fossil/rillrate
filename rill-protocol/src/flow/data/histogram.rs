@@ -6,7 +6,7 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct HistogramFlow;
 
 impl Flow for HistogramFlow {

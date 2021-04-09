@@ -3,7 +3,7 @@ use crate::frame::Frame;
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct LoggerFlow;
 
 impl Flow for LoggerFlow {
