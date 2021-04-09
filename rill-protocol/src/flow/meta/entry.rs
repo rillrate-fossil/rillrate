@@ -14,7 +14,7 @@ impl Flow for EntryFlow {
         StreamType::from("rillrate.meta.entry.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             EntryEvent::AddEntry { name } => {
                 state.entries.insert(name, ());

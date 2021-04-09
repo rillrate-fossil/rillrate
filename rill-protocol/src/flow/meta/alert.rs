@@ -13,7 +13,7 @@ impl Flow for AlertFlow {
         StreamType::from("rillrate.data.alert.v0")
     }
 
-    fn apply(&self, _state: &mut Self::State, _event: TimedEvent<Self::Event>) {}
+    fn apply(_state: &mut Self::State, _event: TimedEvent<Self::Event>) {}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

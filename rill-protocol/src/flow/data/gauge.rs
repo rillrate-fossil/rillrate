@@ -14,7 +14,7 @@ impl Flow for GaugeFlow {
         StreamType::from("rillrate.data.gauge.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             GaugeEvent::Set(delta) => {
                 state.timestamp = Some(event.timestamp);

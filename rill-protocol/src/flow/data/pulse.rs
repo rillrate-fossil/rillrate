@@ -16,7 +16,7 @@ impl Flow for PulseFlow {
         StreamType::from("rillrate.data.pulse.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             PulseEvent::Inc(delta) => {
                 state.value += delta;

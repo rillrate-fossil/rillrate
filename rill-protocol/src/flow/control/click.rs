@@ -13,7 +13,7 @@ impl Flow for ClickFlow {
         StreamType::from("rillrate.flow.control.click.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         state.last_click = Some(event.timestamp);
     }
 }

@@ -57,7 +57,7 @@ impl Flow for TableFlow {
         StreamType::from("rillrate.data.table.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             TableEvent::AddRow { row } => {
                 let record = RowRecord {

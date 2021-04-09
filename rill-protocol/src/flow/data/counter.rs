@@ -13,7 +13,7 @@ impl Flow for CounterFlow {
         StreamType::from("rillrate.flow.data.counter.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             CounterEvent::Inc(delta) => {
                 state.timestamp = Some(event.timestamp);

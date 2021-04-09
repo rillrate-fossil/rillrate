@@ -158,7 +158,7 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         match &mut self.mode {
             TracerMode::Push { state, .. } => {
                 for event in delta {
-                    self.description.flow.apply(state, event);
+                    T::apply(state, event);
                 }
             }
             TracerMode::Pull { .. } => {
@@ -277,7 +277,7 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                                     timestamp: ts,
                                     event: event,
                                 };
-                                self.description.flow.apply(state, timed_event.clone());
+                                T::apply(state, timed_event.clone());
                                 if let Err(err) = sender.send(timed_event.clone()) {
                                     log::error!(
                                         "No event listeners in {} watcher: {}",

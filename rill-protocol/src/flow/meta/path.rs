@@ -14,7 +14,7 @@ impl Flow for PathFlow {
         StreamType::from("rillrate.meta.path.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             PathEvent::AddPath { path, description } => {
                 state.entries.insert(path, description);

@@ -17,7 +17,7 @@ impl Flow for HistogramFlow {
         StreamType::from("rillrate.data.histogram.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             HistogramEvent::Add(amount) => {
                 state.total.add(amount);

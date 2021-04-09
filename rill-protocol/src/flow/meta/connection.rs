@@ -16,7 +16,7 @@ impl Flow for ConnectionFlow {
         StreamType::from("rillrate.meta.connection.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             ConnectionEvent::AddRoundTrip { ms } => {
                 let value = ms as f64;

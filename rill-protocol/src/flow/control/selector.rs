@@ -13,7 +13,7 @@ impl Flow for SelectorFlow {
         StreamType::from("rillrate.flow.control.selector.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         let new_value = event.event.select;
         if state.options.contains(&new_value) {
             state.selected = new_value;

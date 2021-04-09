@@ -25,7 +25,7 @@ pub trait Flow: DataFraction {
 
     fn stream_type() -> StreamType;
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>);
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
 
     fn pack_flow(&self) -> Result<PackedFlow, Error> {
         encoding::pack(self)

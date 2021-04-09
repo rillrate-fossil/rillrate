@@ -14,7 +14,7 @@ impl Flow for DictFlow {
         StreamType::from("rillrate.data.dict.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         match event.event {
             DictEvent::Assign { key, value } => {
                 state.map.insert(key, value);

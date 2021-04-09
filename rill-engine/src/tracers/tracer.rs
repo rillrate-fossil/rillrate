@@ -206,7 +206,7 @@ impl<T: core::Flow> Tracer<T> {
                         }
                         InnerMode::Pull { state } => match state.lock() {
                             Ok(ref mut state) => {
-                                self.description.flow.apply(state, timed_event);
+                                T::apply(state, timed_event);
                             }
                             Err(err) => {
                                 log::error!(

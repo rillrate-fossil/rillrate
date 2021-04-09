@@ -13,7 +13,7 @@ impl Flow for ToggleFlow {
         StreamType::from("rillrate.flow.control.toggle.v0")
     }
 
-    fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>) {
+    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
         state.active = event.event.active;
         state.last_toggle = Some(event.timestamp);
     }
