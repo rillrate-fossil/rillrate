@@ -5,43 +5,6 @@ use crate::io::provider::StreamType;
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct PulseFlow;
-
-impl Flow for PulseFlow {
-    type State = PulseState;
-    type Event = PulseEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.data.pulse.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            PulseEvent::Inc(delta) => {
-                state.value += delta;
-            }
-            PulseEvent::Dec(delta) => {
-                state.value -= delta;
-            }
-            PulseEvent::Set(value) => {
-                state.value = value;
-            }
-        }
-        // Use the clamped value if a range set, but don't affect the state.
-        let mut value = state.value;
-        if let Some(range) = state.range.as_ref() {
-            range.clamp(&mut value);
-        }
-        let point = PulsePoint { value };
-        let timed_event = TimedEvent {
-            timestamp: event.timestamp,
-            event: point,
-        };
-        state.frame.insert(timed_event);
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulsePoint {
     pub value: f64,
@@ -81,6 +44,39 @@ impl PulseState {
         Pct::from_range(self.value, self.range().as_ref())
     }
     */
+}
+
+impl Flow for PulseState {
+    type Event = PulseEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.data.pulse.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            PulseEvent::Inc(delta) => {
+                self.value += delta;
+            }
+            PulseEvent::Dec(delta) => {
+                self.value -= delta;
+            }
+            PulseEvent::Set(value) => {
+                self.value = value;
+            }
+        }
+        // Use the clamped value if a range set, but don't affect the state.
+        let mut value = self.value;
+        if let Some(range) = self.range.as_ref() {
+            range.clamp(&mut value);
+        }
+        let point = PulsePoint { value };
+        let timed_event = TimedEvent {
+            timestamp: event.timestamp,
+            event: point,
+        };
+        self.frame.insert(timed_event);
+    }
 }
 
 pub type PulseDelta = Vec<TimedEvent<PulseEvent>>;

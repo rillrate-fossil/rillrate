@@ -6,47 +6,6 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct HistogramFlow;
-
-impl Flow for HistogramFlow {
-    type State = HistogramState;
-    type Event = HistogramEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.data.histogram.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            HistogramEvent::Add(amount) => {
-                state.total.add(amount);
-                let expected = OrderedFloat::from(amount);
-                for (level, stat) in &mut state.buckets {
-                    if &expected <= level {
-                        stat.add(amount);
-                        break;
-                    }
-                }
-
-                // If sliding window is active
-                if let Some(frame) = state.frame.as_mut() {
-                    if let Some(amount) = frame.insert_pop(amount) {
-                        state.total.del(amount);
-                        let expected = OrderedFloat::from(amount);
-                        for (level, stat) in &mut state.buckets {
-                            if &expected <= level {
-                                stat.del(amount);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stat {
     pub sum: f64,
@@ -101,6 +60,43 @@ impl HistogramState {
             count: stat.count,
             pct: Pct::from_div(stat.sum, total),
         })
+    }
+}
+
+impl Flow for HistogramState {
+    type Event = HistogramEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.data.histogram.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            HistogramEvent::Add(amount) => {
+                self.total.add(amount);
+                let expected = OrderedFloat::from(amount);
+                for (level, stat) in &mut self.buckets {
+                    if &expected <= level {
+                        stat.add(amount);
+                        break;
+                    }
+                }
+
+                // If sliding window is active
+                if let Some(frame) = self.frame.as_mut() {
+                    if let Some(amount) = frame.insert_pop(amount) {
+                        self.total.del(amount);
+                        let expected = OrderedFloat::from(amount);
+                        for (level, stat) in &mut self.buckets {
+                            if &expected <= level {
+                                stat.del(amount);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

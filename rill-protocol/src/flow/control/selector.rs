@@ -2,28 +2,6 @@ use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct SelectorFlow;
-
-impl Flow for SelectorFlow {
-    type State = SelectorState;
-    type Event = SelectorEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.flow.control.selector.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        let new_value = event.event.select;
-        if state.options.contains(&new_value) {
-            state.selected = new_value;
-        } else {
-            log::error!("No option {} in the selector: {}.", new_value, state.label);
-        }
-        state.updated = Some(event.timestamp);
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SelectorState {
     // IMMUTABLE
@@ -45,6 +23,24 @@ impl SelectorState {
             selected,
             updated: None,
         }
+    }
+}
+
+impl Flow for SelectorState {
+    type Event = SelectorEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.flow.control.selector.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        let new_value = event.event.select;
+        if self.options.contains(&new_value) {
+            self.selected = new_value;
+        } else {
+            log::error!("No option {} in the selector: {}.", new_value, self.label);
+        }
+        self.updated = Some(event.timestamp);
     }
 }
 

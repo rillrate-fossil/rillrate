@@ -3,27 +3,6 @@ use crate::io::provider::{StreamType, Timestamp};
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct GaugeFlow;
-
-impl Flow for GaugeFlow {
-    type State = GaugeState;
-    type Event = GaugeEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.data.gauge.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            GaugeEvent::Set(delta) => {
-                state.timestamp = Some(event.timestamp);
-                state.value = delta;
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeState {
     // IMMUTABLE:
@@ -48,6 +27,23 @@ impl GaugeState {
             timestamp: ts,
             event: self.value,
         })
+    }
+}
+
+impl Flow for GaugeState {
+    type Event = GaugeEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.data.gauge.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            GaugeEvent::Set(delta) => {
+                self.timestamp = Some(event.timestamp);
+                self.value = delta;
+            }
+        }
     }
 }
 

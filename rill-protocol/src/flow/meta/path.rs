@@ -3,29 +3,6 @@ use crate::io::provider::{Description, Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct PathFlow;
-
-impl Flow for PathFlow {
-    type State = PathState;
-    type Event = PathEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.meta.path.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            PathEvent::AddPath { path, description } => {
-                state.entries.insert(path, description);
-            }
-            PathEvent::RemovePath { path } => {
-                state.entries.remove(&path);
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathState {
     #[serde(with = "vectorize")]
@@ -37,6 +14,25 @@ impl PathState {
     pub fn new() -> Self {
         Self {
             entries: BTreeMap::new(),
+        }
+    }
+}
+
+impl Flow for PathState {
+    type Event = PathEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.meta.path.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            PathEvent::AddPath { path, description } => {
+                self.entries.insert(path, description);
+            }
+            PathEvent::RemovePath { path } => {
+                self.entries.remove(&path);
+            }
         }
     }
 }

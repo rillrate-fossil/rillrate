@@ -3,29 +3,6 @@ use crate::io::provider::{EntryId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct EntryFlow;
-
-impl Flow for EntryFlow {
-    type State = EntryState;
-    type Event = EntryEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.meta.entry.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            EntryEvent::AddEntry { name } => {
-                state.entries.insert(name, ());
-            }
-            EntryEvent::RemoveEntry { name } => {
-                state.entries.remove(&name);
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntryState {
     pub entries: BTreeMap<EntryId, ()>,
@@ -36,6 +13,25 @@ impl EntryState {
     pub fn new() -> Self {
         Self {
             entries: BTreeMap::new(),
+        }
+    }
+}
+
+impl Flow for EntryState {
+    type Event = EntryEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.meta.entry.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            EntryEvent::AddEntry { name } => {
+                self.entries.insert(name, ());
+            }
+            EntryEvent::RemoveEntry { name } => {
+                self.entries.remove(&name);
+            }
         }
     }
 }

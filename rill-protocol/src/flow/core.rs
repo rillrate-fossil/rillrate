@@ -1,7 +1,5 @@
 use crate::encoding;
-use crate::io::provider::{
-    PackedDelta, PackedEvent, PackedFlow, PackedState, StreamType, Timestamp,
-};
+use crate::io::provider::{PackedDelta, PackedEvent, PackedState, StreamType, Timestamp};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
@@ -20,26 +18,17 @@ impl<T> DataFraction for T where
 
 /// Immutable state of a data flow.
 pub trait Flow: DataFraction {
-    type State: DataFraction;
     type Event: DataFraction;
 
     fn stream_type() -> StreamType;
 
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>);
+    fn apply(&mut self, event: TimedEvent<Self::Event>);
 
-    fn pack_flow(&self) -> Result<PackedFlow, Error> {
+    fn pack_state(&self) -> Result<PackedState, Error> {
         encoding::pack(self)
     }
 
-    fn unpack_flow(data: &PackedFlow) -> Result<Self, Error> {
-        encoding::unpack(data)
-    }
-
-    fn pack_state(state: &Self::State) -> Result<PackedState, Error> {
-        encoding::pack(state)
-    }
-
-    fn unpack_state(data: &PackedState) -> Result<Self::State, Error> {
+    fn unpack_state(data: &PackedState) -> Result<Self, Error> {
         encoding::unpack(data)
     }
 

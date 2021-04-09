@@ -3,29 +3,6 @@ use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct DictFlow;
-
-impl Flow for DictFlow {
-    type State = DictState;
-    type Event = DictEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.data.dict.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            DictEvent::Assign { key, value } => {
-                state.map.insert(key, value);
-            }
-            DictEvent::Remove { key } => {
-                state.map.remove(&key);
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictState {
     pub map: BTreeMap<String, String>,
@@ -36,6 +13,25 @@ impl DictState {
     pub fn new() -> Self {
         Self {
             map: BTreeMap::new(),
+        }
+    }
+}
+
+impl Flow for DictState {
+    type Event = DictEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.data.dict.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            DictEvent::Assign { key, value } => {
+                self.map.insert(key, value);
+            }
+            DictEvent::Remove { key } => {
+                self.map.remove(&key);
+            }
         }
     }
 }

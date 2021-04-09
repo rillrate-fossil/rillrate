@@ -2,27 +2,6 @@ use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct CounterFlow;
-
-impl Flow for CounterFlow {
-    type State = CounterState;
-    type Event = CounterEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.flow.data.counter.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            CounterEvent::Inc(delta) => {
-                state.timestamp = Some(event.timestamp);
-                state.value += delta;
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CounterState {
     pub timestamp: Option<Timestamp>,
@@ -43,6 +22,23 @@ impl CounterState {
             timestamp: ts,
             event: self.value,
         })
+    }
+}
+
+impl Flow for CounterState {
+    type Event = CounterEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.flow.data.counter.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            CounterEvent::Inc(delta) => {
+                self.timestamp = Some(event.timestamp);
+                self.value += delta;
+            }
+        }
     }
 }
 

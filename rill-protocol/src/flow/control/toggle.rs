@@ -2,23 +2,6 @@ use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct ToggleFlow;
-
-impl Flow for ToggleFlow {
-    type State = ToggleState;
-    type Event = ToggleEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.flow.control.toggle.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        state.active = event.event.active;
-        state.last_toggle = Some(event.timestamp);
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToggleState {
     // IMMUTABLE
@@ -41,6 +24,19 @@ impl ToggleState {
 
     pub fn toggle_event(&self) -> ToggleEvent {
         ToggleEvent::new(!self.active)
+    }
+}
+
+impl Flow for ToggleState {
+    type Event = ToggleEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.flow.control.toggle.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        self.active = event.event.active;
+        self.last_toggle = Some(event.timestamp);
     }
 }
 

@@ -366,7 +366,6 @@ macro_rules! packed {
     };
 }
 
-packed!(PackedFlow);
 packed!(PackedState);
 packed!(PackedDelta);
 packed!(PackedEvent);

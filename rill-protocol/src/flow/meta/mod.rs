@@ -1,14 +1,14 @@
 pub mod alert;
-pub use alert::AlertFlow;
+pub use alert::AlertState;
 
 pub mod connection;
-pub use connection::ConnectionFlow;
+pub use connection::ConnectionState;
 
 pub mod entry;
-pub use entry::EntryFlow;
+pub use entry::EntryState;
 
 pub mod path;
-pub use path::PathFlow;
+pub use path::PathState;
 
 pub mod ready_board;
-pub use ready_board::ReadyBoardFlow;
+pub use ready_board::ReadyBoardState;

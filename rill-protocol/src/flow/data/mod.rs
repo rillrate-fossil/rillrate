@@ -6,22 +6,22 @@
 //! 3. `Event` - immutable separate change that has to be applied to the `State`.
 
 pub mod counter;
-pub use counter::CounterFlow;
+pub use counter::CounterState;
 
 pub mod dict;
-pub use dict::DictFlow;
+pub use dict::DictState;
 
 pub mod gauge;
-pub use gauge::GaugeFlow;
+pub use gauge::GaugeState;
 
 pub mod histogram;
-pub use histogram::HistogramFlow;
+pub use histogram::HistogramState;
 
 pub mod logger;
-pub use logger::LoggerFlow;
+pub use logger::LoggerState;
 
 pub mod pulse;
-pub use pulse::PulseFlow;
+pub use pulse::PulseState;
 
 pub mod table;
-pub use table::TableFlow;
+pub use table::TableState;

@@ -2,20 +2,6 @@ use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct AlertFlow;
-
-impl Flow for AlertFlow {
-    type State = AlertState;
-    type Event = AlertEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.data.alert.v0")
-    }
-
-    fn apply(_state: &mut Self::State, _event: TimedEvent<Self::Event>) {}
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AlertState {}
 
@@ -24,6 +10,16 @@ impl AlertState {
     pub fn new() -> Self {
         Self {}
     }
+}
+
+impl Flow for AlertState {
+    type Event = AlertEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.data.alert.v0")
+    }
+
+    fn apply(&mut self, _event: TimedEvent<Self::Event>) {}
 }
 
 pub type AlertDelta = Vec<TimedEvent<AlertEvent>>;

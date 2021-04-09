@@ -9,26 +9,6 @@ pub struct Board {
     pub paths: HashSet<Path>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct ReadyBoardFlow;
-
-impl Flow for ReadyBoardFlow {
-    type State = ReadyBoardState;
-    type Event = ReadyBoardEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.meta.readyboard.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            ReadyBoardEvent::AddBoard { name, board } => {
-                state.entries.insert(name, board);
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReadyBoardState {
     // Vectorizing is not necessary here, but useful
@@ -42,6 +22,22 @@ impl ReadyBoardState {
     pub fn new() -> Self {
         Self {
             entries: BTreeMap::new(),
+        }
+    }
+}
+
+impl Flow for ReadyBoardState {
+    type Event = ReadyBoardEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.meta.readyboard.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            ReadyBoardEvent::AddBoard { name, board } => {
+                self.entries.insert(name, board);
+            }
         }
     }
 }

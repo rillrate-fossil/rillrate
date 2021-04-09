@@ -1,8 +1,8 @@
 pub mod click;
-pub use click::ClickFlow;
+pub use click::ClickState;
 
 pub mod selector;
-pub use selector::SelectorFlow;
+pub use selector::SelectorState;
 
 pub mod toggle;
-pub use toggle::ToggleFlow;
+pub use toggle::ToggleState;

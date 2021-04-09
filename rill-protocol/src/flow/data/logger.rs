@@ -3,22 +3,6 @@ use crate::frame::Frame;
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct LoggerFlow;
-
-impl Flow for LoggerFlow {
-    type State = LoggerState;
-    type Event = LoggerEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.data.logger.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        state.frame.insert(event);
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoggerState {
     pub frame: Frame<TimedEvent<LoggerEvent>>,
@@ -30,6 +14,18 @@ impl LoggerState {
         Self {
             frame: Frame::new(10),
         }
+    }
+}
+
+impl Flow for LoggerState {
+    type Event = LoggerEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.data.logger.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        self.frame.insert(event);
     }
 }
 

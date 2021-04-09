@@ -46,39 +46,6 @@ impl TryFrom<usize> for Row {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct TableFlow;
-
-impl Flow for TableFlow {
-    type State = TableState;
-    type Event = TableEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from("rillrate.data.table.v0")
-    }
-
-    fn apply(state: &mut Self::State, event: TimedEvent<Self::Event>) {
-        match event.event {
-            TableEvent::AddRow { row } => {
-                let record = RowRecord {
-                    cols: BTreeMap::new(),
-                };
-                state.rows.insert(row, record);
-            }
-            TableEvent::DelRow { row } => {
-                state.rows.remove(&row);
-            }
-            TableEvent::SetCell { row, col, value } => {
-                if let Some(record) = state.rows.get_mut(&row) {
-                    if state.columns.contains_key(&col) {
-                        record.cols.insert(col, value);
-                    }
-                }
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
     // IMMUTABLE:
@@ -95,6 +62,35 @@ impl TableState {
         Self {
             columns,
             rows: BTreeMap::new(),
+        }
+    }
+}
+
+impl Flow for TableState {
+    type Event = TableEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.data.table.v0")
+    }
+
+    fn apply(&mut self, event: TimedEvent<Self::Event>) {
+        match event.event {
+            TableEvent::AddRow { row } => {
+                let record = RowRecord {
+                    cols: BTreeMap::new(),
+                };
+                self.rows.insert(row, record);
+            }
+            TableEvent::DelRow { row } => {
+                self.rows.remove(&row);
+            }
+            TableEvent::SetCell { row, col, value } => {
+                if let Some(record) = self.rows.get_mut(&row) {
+                    if self.columns.contains_key(&col) {
+                        record.cols.insert(col, value);
+                    }
+                }
+            }
         }
     }
 }
