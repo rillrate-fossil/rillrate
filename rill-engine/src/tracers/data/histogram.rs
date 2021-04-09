@@ -1,21 +1,20 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::data::histogram::{HistogramEvent, HistogramFlow, HistogramState};
+use rill_protocol::flow::data::histogram::{HistogramEvent, HistogramState};
 use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
 /// Tracers `Histogram` metrics.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct HistogramTracer {
-    tracer: Tracer<HistogramFlow>,
+    tracer: Tracer<HistogramState>,
 }
 
 impl HistogramTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path, levels: Vec<f64>) -> Self {
-        let flow = HistogramFlow;
         let state = HistogramState::new(levels, None);
-        let tracer = Tracer::new_tracer(flow, state, path, None);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 

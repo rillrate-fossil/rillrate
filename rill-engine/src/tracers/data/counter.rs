@@ -1,21 +1,20 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::data::counter::{CounterEvent, CounterFlow, CounterState};
+use rill_protocol::flow::data::counter::{CounterEvent, CounterState};
 use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
 /// Tracers `Counter` metrics that can increments only.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct CounterTracer {
-    tracer: Tracer<CounterFlow>,
+    tracer: Tracer<CounterState>,
 }
 
 impl CounterTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path) -> Self {
-        let flow = CounterFlow;
         let state = CounterState::new();
-        let tracer = Tracer::new_tracer(flow, state, path, None);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 

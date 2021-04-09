@@ -1,6 +1,6 @@
 use super::link;
 use crate::actors::worker::{RillSender, RillWorker};
-use crate::tracers::tracer::{time_to_ts, DataEnvelope, TracerDescription, TracerMode};
+use crate::tracers::tracer::{time_to_ts, DataEnvelope, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -8,26 +8,22 @@ use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::flow::core::{self, TimedEvent};
 use rill_protocol::io::provider::{
-    FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer, RecorderAction,
-    RecorderRequest,
+    Description, FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
+    RecorderAction, RecorderRequest,
 };
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
 
 pub(crate) struct Recorder<T: core::Flow> {
-    description: Arc<TracerDescription<T>>,
+    description: Arc<Description>,
     sender: RillSender,
     mode: TracerMode<T>,
     subscribers: HashSet<ProviderReqId>,
 }
 
 impl<T: core::Flow> Recorder<T> {
-    pub fn new(
-        description: Arc<TracerDescription<T>>,
-        sender: RillSender,
-        mode: TracerMode<T>,
-    ) -> Self {
+    pub fn new(description: Arc<Description>, sender: RillSender, mode: TracerMode<T>) -> Self {
         Self {
             description,
             sender,
@@ -42,7 +38,7 @@ impl<T: core::Flow> Recorder<T> {
     }
 
     fn send_flow(&mut self, direction: Direction<ProviderProtocol>) -> Result<(), Error> {
-        let description = self.description.to_description()?;
+        let description = Description::clone(&self.description);
         let response = ProviderToServer::Flow { description };
         self.sender.response(direction, response);
         Ok(())

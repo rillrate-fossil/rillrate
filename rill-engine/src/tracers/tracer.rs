@@ -31,17 +31,17 @@ pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 pub(crate) enum TracerMode<T: core::Flow> {
     /// Real-time mode
     Push {
-        state: T::State,
+        state: T,
         receiver: Option<DataReceiver<T>>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
-        state: Weak<Mutex<T::State>>,
+        state: Weak<Mutex<T>>,
         interval: Duration,
     },
     /// Used for controls
     Watched {
-        state: T::State,
+        state: T,
         /// For sending events to a `Tracer` instances
         sender: broadcast::Sender<TimedEvent<T::Event>>,
     },
@@ -53,7 +53,7 @@ enum InnerMode<T: core::Flow> {
         sender: DataSender<T>,
     },
     Pull {
-        state: Arc<Mutex<T::State>>,
+        state: Arc<Mutex<T>>,
     },
     Watched {
         /// Kept for generating new `Receiver`s
@@ -81,33 +81,13 @@ impl<T: core::Flow> Clone for InnerMode<T> {
     }
 }
 
-// TODO: Remove it and use ordinary description object or `Arc` to it
-#[derive(Debug)]
-pub(crate) struct TracerDescription<T> {
-    pub path: Path,
-    pub info: String,
-    pub flow: T,
-}
-
-// TODO: Change to `TryInto`?
-impl<T: core::Flow> TracerDescription<T> {
-    /// Converts `TracerDescription` into a `Description`.
-    pub fn to_description(&self) -> Result<Description, Error> {
-        Ok(Description {
-            path: self.path.clone(),
-            info: self.info.clone(),
-            stream_type: T::stream_type(),
-        })
-    }
-}
-
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
 pub struct Tracer<T: core::Flow> {
     /// The receiver that used to activate/deactivate streams.
     active: watch::Receiver<bool>,
-    description: Arc<TracerDescription<T>>,
+    description: Arc<Description>,
     mode: InnerMode<T>,
 }
 
@@ -123,7 +103,7 @@ impl<T: core::Flow> Clone for Tracer<T> {
 
 impl<T: core::Flow> Tracer<T> {
     /// Creates a new `Tracer`.
-    pub fn new_tracer(flow: T, state: T::State, path: Path, pull: Option<Duration>) -> Self {
+    pub fn new_tracer(state: T, path: Path, pull: Option<Duration>) -> Self {
         let inner_mode;
         let mode;
         if let Some(interval) = pull {
@@ -141,11 +121,11 @@ impl<T: core::Flow> Tracer<T> {
             };
             inner_mode = InnerMode::Push { sender: tx };
         }
-        Self::new(flow, path, inner_mode, mode)
+        Self::new(path, inner_mode, mode)
     }
 
     /// Creates a new watched `Tracer`
-    pub fn new_watcher(flow: T, state: T::State, path: Path) -> Self {
+    pub fn new_watcher(state: T, path: Path) -> Self {
         let (tx, rx) = broadcast::channel(16);
         let mode = TracerMode::Watched {
             state,
@@ -155,13 +135,17 @@ impl<T: core::Flow> Tracer<T> {
             sender: Arc::new(tx),
             receiver: rx,
         };
-        Self::new(flow, path, inner_mode, mode)
+        Self::new(path, inner_mode, mode)
     }
 
-    fn new(flow: T, path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
+    fn new(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
-        let description = TracerDescription { path, info, flow };
+        let description = Description {
+            path,
+            info,
+            stream_type,
+        };
         // TODO: Remove this active watch channel?
         let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {}", description.path);

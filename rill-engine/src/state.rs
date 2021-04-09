@@ -1,11 +1,12 @@
 use crate::actors::worker::RillWorker;
-use crate::tracers::tracer::{TracerDescription, TracerMode};
+use crate::tracers::tracer::TracerMode;
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
 use meio::{InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
 use rill_protocol::flow::core;
+use rill_protocol::io::provider::Description;
 use std::sync::Arc;
 
 /// It used by tracers to register them into the state.
@@ -35,7 +36,7 @@ impl RillState {
 }
 
 pub(crate) struct RegisterTracer<T: core::Flow> {
-    pub description: Arc<TracerDescription<T>>,
+    pub description: Arc<Description>,
     pub mode: TracerMode<T>,
 }
 
@@ -44,7 +45,7 @@ impl<T: core::Flow> InstantAction for RegisterTracer<T> {}
 impl RillState {
     pub fn register_tracer<T>(
         &self,
-        description: Arc<TracerDescription<T>>,
+        description: Arc<Description>,
         mode: TracerMode<T>,
     ) -> Result<(), Error>
     where

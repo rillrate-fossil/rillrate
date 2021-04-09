@@ -1,21 +1,20 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::data::pulse::{PulseEvent, PulseFlow, PulseState};
+use rill_protocol::flow::data::pulse::{PulseEvent, PulseState};
 use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
 /// Sends metrics as `pulse` that can change value to any.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PulseTracer {
-    tracer: Tracer<PulseFlow>,
+    tracer: Tracer<PulseState>,
 }
 
 impl PulseTracer {
     /// Creates a new `Pulse` tracer.
     pub fn new(path: Path, depth: Option<u32>) -> Self {
-        let flow = PulseFlow;
         let state = PulseState::new(None, depth);
-        let tracer = Tracer::new_tracer(flow, state, path, None);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 

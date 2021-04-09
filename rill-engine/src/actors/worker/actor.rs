@@ -248,7 +248,7 @@ impl<T: core::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorke
         log::info!("Add tracer: {}", path);
         let record = self.recorders.dig(path.clone());
         if record.get_link().is_none() {
-            let packed_desc = description.to_description()?;
+            let packed_desc = Description::clone(&description);
             let sender = self.sender.clone();
             //let link = ctx.address().link();
             let actor = Recorder::new(description, sender, msg.mode);

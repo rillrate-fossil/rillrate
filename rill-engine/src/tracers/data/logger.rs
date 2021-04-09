@@ -1,21 +1,20 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::data::logger::{LoggerEvent, LoggerFlow, LoggerState};
+use rill_protocol::flow::data::logger::{LoggerEvent, LoggerState};
 use rill_protocol::io::provider::Path;
 use std::time::SystemTime;
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct LoggerTracer {
-    tracer: Tracer<LoggerFlow>,
+    tracer: Tracer<LoggerState>,
 }
 
 impl LoggerTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
-        let flow = LoggerFlow;
         let state = LoggerState::new();
-        let tracer = Tracer::new_tracer(flow, state, path, None);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 
