@@ -3,10 +3,8 @@ use crate::io::provider::{StreamType, Timestamp};
 use crate::range::Range;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct GaugeFlow {
-    pub range: Range,
-}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct GaugeFlow;
 
 impl Flow for GaugeFlow {
     type State = GaugeState;
@@ -28,14 +26,15 @@ impl Flow for GaugeFlow {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeState {
+    pub range: Range,
     pub timestamp: Option<Timestamp>,
     pub value: f64,
 }
 
-#[allow(clippy::new_without_default)]
 impl GaugeState {
-    pub fn new() -> Self {
+    pub fn new(range: Range) -> Self {
         Self {
+            range,
             timestamp: None,
             value: 0.0,
         }
