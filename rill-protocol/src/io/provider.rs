@@ -372,78 +372,13 @@ macro_rules! packed {
                 self.0.as_ref()
             }
         }
-
     };
 }
 
-#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
-pub struct PackedFlow(pub Vec<u8>);
-
-impl fmt::Debug for PackedFlow {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PackedFlow")
-            .field("size", &self.0.len())
-            .finish()
-    }
-}
-
-impl AsRef<[u8]> for PackedFlow {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref()
-    }
-}
-
-#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
-pub struct PackedState(pub Vec<u8>);
-
-impl fmt::Debug for PackedState {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PackedState")
-            .field("size", &self.0.len())
-            .finish()
-    }
-}
-
-impl AsRef<[u8]> for PackedState {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref()
-    }
-}
-
-#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
-pub struct PackedDelta(pub Vec<u8>);
-
-impl fmt::Debug for PackedDelta {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PackedDelta")
-            .field("size", &self.0.len())
-            .finish()
-    }
-}
-
-impl AsRef<[u8]> for PackedDelta {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref()
-    }
-}
-
-// TODO: Dry!
-#[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
-pub struct PackedEvent(pub Vec<u8>);
-
-impl fmt::Debug for PackedEvent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PackedEvent")
-            .field("size", &self.0.len())
-            .finish()
-    }
-}
-
-impl AsRef<[u8]> for PackedEvent {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref()
-    }
-}
+packed!(PackedFlow);
+packed!(PackedState);
+packed!(PackedDelta);
+packed!(PackedEvent);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProviderToServer {
