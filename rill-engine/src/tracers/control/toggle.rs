@@ -13,8 +13,8 @@ pub struct ToggleWatcher {
 impl ToggleWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path, caption: String, active: bool) -> Self {
-        let flow = ToggleFlow { caption };
-        let state = ToggleState::new(active);
+        let flow = ToggleFlow;
+        let state = ToggleState::new(caption, active);
         let tracer = Tracer::new_watcher(flow, state, path);
         Self { tracer }
     }

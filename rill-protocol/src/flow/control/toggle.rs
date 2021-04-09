@@ -2,10 +2,8 @@ use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ToggleFlow {
-    pub caption: String,
-}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct ToggleFlow;
 
 impl Flow for ToggleFlow {
     type State = ToggleState;
@@ -23,14 +21,19 @@ impl Flow for ToggleFlow {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToggleState {
+    // IMMUTABLE
+    pub caption: String,
+
+    // MUTABLE
     pub active: bool,
     pub last_toggle: Option<Timestamp>,
 }
 
 #[allow(clippy::new_without_default)]
 impl ToggleState {
-    pub fn new(active: bool) -> Self {
+    pub fn new(caption: String, active: bool) -> Self {
         Self {
+            caption,
             active,
             last_toggle: None,
         }

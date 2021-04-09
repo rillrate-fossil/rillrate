@@ -3,7 +3,7 @@ use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct DictFlow;
 
 impl Flow for DictFlow {

@@ -26,7 +26,10 @@ impl Flow for GaugeFlow {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeState {
+    // IMMUTABLE:
     pub range: Range,
+
+    // MUTABLE:
     pub timestamp: Option<Timestamp>,
     pub value: f64,
 }

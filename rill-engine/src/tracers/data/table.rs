@@ -22,8 +22,8 @@ impl TableTracer {
                 (col_id, record)
             })
             .collect();
-        let flow = TableFlow { columns };
-        let state = TableState::new();
+        let flow = TableFlow;
+        let state = TableState::new(columns);
         let tracer = Tracer::new_tracer(flow, state, path, None);
         Self { tracer }
     }

@@ -46,11 +46,8 @@ impl TryFrom<usize> for Row {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct TableFlow {
-    #[serde(with = "vectorize")]
-    pub columns: BTreeMap<Col, ColRecord>,
-}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct TableFlow;
 
 impl Flow for TableFlow {
     type State = TableState;
@@ -73,7 +70,7 @@ impl Flow for TableFlow {
             }
             TableEvent::SetCell { row, col, value } => {
                 if let Some(record) = state.rows.get_mut(&row) {
-                    if self.columns.contains_key(&col) {
+                    if state.columns.contains_key(&col) {
                         record.cols.insert(col, value);
                     }
                 }
@@ -84,14 +81,19 @@ impl Flow for TableFlow {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
+    // IMMUTABLE:
+    #[serde(with = "vectorize")]
+    pub columns: BTreeMap<Col, ColRecord>,
+
+    // MUTABLE:
     #[serde(with = "vectorize")]
     pub rows: BTreeMap<Row, RowRecord>,
 }
 
-#[allow(clippy::new_without_default)]
 impl TableState {
-    pub fn new() -> Self {
+    pub fn new(columns: BTreeMap<Col, ColRecord>) -> Self {
         Self {
+            columns,
             rows: BTreeMap::new(),
         }
     }

@@ -49,7 +49,10 @@ pub struct PulsePoint {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulseState {
+    // IMMUTABLE:
     pub range: Option<Range>,
+
+    // MUTABLE:
     pub frame: Frame<TimedEvent<PulsePoint>>,
     /// Intermediate counter value. Not available for changing!!!
     value: f64,
