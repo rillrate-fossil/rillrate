@@ -365,6 +365,12 @@ impl fmt::Debug for PackedFlow {
     }
 }
 
+impl AsRef<[u8]> for PackedFlow {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 #[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PackedState(pub Vec<u8>);
 
@@ -373,6 +379,12 @@ impl fmt::Debug for PackedState {
         f.debug_struct("PackedState")
             .field("size", &self.0.len())
             .finish()
+    }
+}
+
+impl AsRef<[u8]> for PackedState {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
     }
 }
 
@@ -387,6 +399,12 @@ impl fmt::Debug for PackedDelta {
     }
 }
 
+impl AsRef<[u8]> for PackedDelta {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 // TODO: Dry!
 #[derive(Clone, From, Into, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PackedEvent(pub Vec<u8>);
@@ -396,6 +414,12 @@ impl fmt::Debug for PackedEvent {
         f.debug_struct("PackedEvent")
             .field("size", &self.0.len())
             .finish()
+    }
+}
+
+impl AsRef<[u8]> for PackedEvent {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
     }
 }
 

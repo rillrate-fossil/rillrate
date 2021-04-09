@@ -28,43 +28,35 @@ pub trait Flow: DataFraction {
     fn apply(&self, state: &mut Self::State, event: TimedEvent<Self::Event>);
 
     fn pack_flow(&self) -> Result<PackedFlow, Error> {
-        encoding::to_vec(self)
-            .map_err(Error::from)
-            .map(PackedFlow::from)
+        encoding::pack(self)
     }
 
     fn unpack_flow(data: &PackedFlow) -> Result<Self, Error> {
-        encoding::from_slice(&data.0).map_err(Error::from)
+        encoding::unpack(data)
     }
 
     fn pack_state(state: &Self::State) -> Result<PackedState, Error> {
-        encoding::to_vec(state)
-            .map_err(Error::from)
-            .map(PackedState::from)
+        encoding::pack(state)
     }
 
     fn unpack_state(data: &PackedState) -> Result<Self::State, Error> {
-        encoding::from_slice(&data.0).map_err(Error::from)
+        encoding::unpack(data)
     }
 
     fn pack_delta(delta: &[TimedEvent<Self::Event>]) -> Result<PackedDelta, Error> {
-        encoding::to_vec(delta)
-            .map_err(Error::from)
-            .map(PackedDelta::from)
+        encoding::pack(delta)
     }
 
     fn unpack_delta(data: &PackedDelta) -> Result<Delta<Self::Event>, Error> {
-        encoding::from_slice(&data.0).map_err(Error::from)
+        encoding::unpack(data)
     }
 
     fn pack_event(event: &Self::Event) -> Result<PackedEvent, Error> {
-        encoding::to_vec(event)
-            .map_err(Error::from)
-            .map(PackedEvent::from)
+        encoding::pack(event)
     }
 
     fn unpack_event(data: &PackedEvent) -> Result<Self::Event, Error> {
-        encoding::from_slice(&data.0).map_err(Error::from)
+        encoding::unpack(data)
     }
 }
 

@@ -18,3 +18,19 @@ where
     flexbuffers::to_vec(value).map_err(Error::from)
     //serde_json::to_vec(value).map_err(Error::from)
 }
+
+pub fn pack<T: ?Sized, P: From<Vec<u8>>>(value: &T) -> Result<P, Error>
+where
+    T: Serialize,
+{
+    flexbuffers::to_vec(value).map_err(Error::from).map(P::from)
+}
+
+pub fn unpack<T, P>(v: T) -> Result<P, Error>
+where
+    T: AsRef<[u8]>,
+    P: for<'a> Deserialize<'a>,
+{
+    let data = v.as_ref();
+    flexbuffers::from_slice(data).map_err(Error::from)
+}
