@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, MetaFlow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
@@ -11,8 +11,6 @@ pub struct Board {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ReadyBoardFlow;
-
-impl MetaFlow for ReadyBoardFlow {}
 
 impl Flow for ReadyBoardFlow {
     type State = ReadyBoardState;

@@ -67,7 +67,3 @@ pub struct TimedEvent<T> {
     pub timestamp: Timestamp,
     pub event: T,
 }
-
-/// `MetaFlow`s are flows that don't require getting a `Flow` object
-/// to bootstrap a `State`.
-pub trait MetaFlow: Default {}

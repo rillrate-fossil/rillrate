@@ -1,12 +1,10 @@
-use crate::flow::core::{Flow, MetaFlow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{EntryId, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct EntryFlow;
-
-impl MetaFlow for EntryFlow {}
 
 impl Flow for EntryFlow {
     type State = EntryState;

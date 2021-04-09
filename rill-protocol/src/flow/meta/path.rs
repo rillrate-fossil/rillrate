@@ -1,12 +1,10 @@
-use crate::flow::core::{Flow, MetaFlow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{Description, Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct PathFlow;
-
-impl MetaFlow for PathFlow {}
 
 impl Flow for PathFlow {
     type State = PathState;
