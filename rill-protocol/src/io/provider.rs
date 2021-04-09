@@ -1,7 +1,5 @@
-use crate::flow::core::Flow;
 use crate::io::codec::RRCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
-use anyhow::Error;
 use derive_more::{Deref, DerefMut, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};
@@ -345,13 +343,6 @@ pub struct Description {
     pub path: Path,
     pub info: String,
     pub stream_type: StreamType,
-    pub metadata: PackedFlow,
-}
-
-impl Description {
-    pub fn try_extract_flow<T: Flow>(&self) -> Result<T, Error> {
-        T::unpack_flow(&self.metadata)
-    }
 }
 
 macro_rules! packed {

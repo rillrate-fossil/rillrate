@@ -81,6 +81,7 @@ impl<T: core::Flow> Clone for InnerMode<T> {
     }
 }
 
+// TODO: Remove it and use ordinary description object or `Arc` to it
 #[derive(Debug)]
 pub(crate) struct TracerDescription<T> {
     pub path: Path,
@@ -92,12 +93,10 @@ pub(crate) struct TracerDescription<T> {
 impl<T: core::Flow> TracerDescription<T> {
     /// Converts `TracerDescription` into a `Description`.
     pub fn to_description(&self) -> Result<Description, Error> {
-        let metadata = self.flow.pack_flow()?;
         Ok(Description {
             path: self.path.clone(),
             info: self.info.clone(),
             stream_type: T::stream_type(),
-            metadata,
         })
     }
 }
