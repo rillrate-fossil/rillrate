@@ -2,10 +2,8 @@ use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ClickFlow {
-    pub caption: String,
-}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct ClickFlow;
 
 impl Flow for ClickFlow {
     type State = ClickState;
@@ -22,13 +20,16 @@ impl Flow for ClickFlow {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClickState {
+    pub caption: String,
     pub last_click: Option<Timestamp>,
 }
 
-#[allow(clippy::new_without_default)]
 impl ClickState {
-    pub fn new() -> Self {
-        Self { last_click: None }
+    pub fn new(caption: String) -> Self {
+        Self {
+            caption,
+            last_click: None,
+        }
     }
 }
 
