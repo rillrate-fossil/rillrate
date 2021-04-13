@@ -4,8 +4,14 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum EntryType {
+    Provider,
+    Server,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntryState {
-    pub entries: BTreeMap<EntryId, ()>,
+    pub entries: BTreeMap<EntryId, EntryType>,
 }
 
 #[allow(clippy::new_without_default)]
@@ -26,8 +32,8 @@ impl Flow for EntryState {
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
         match event.event {
-            EntryEvent::AddEntry { name } => {
-                self.entries.insert(name, ());
+            EntryEvent::AddEntry { name, entry_type } => {
+                self.entries.insert(name, entry_type);
             }
             EntryEvent::RemoveEntry { name } => {
                 self.entries.remove(&name);
@@ -40,6 +46,11 @@ pub type EntryDelta = Vec<TimedEvent<EntryEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum EntryEvent {
-    AddEntry { name: EntryId },
-    RemoveEntry { name: EntryId },
+    AddEntry {
+        name: EntryId,
+        entry_type: EntryType,
+    },
+    RemoveEntry {
+        name: EntryId,
+    },
 }
