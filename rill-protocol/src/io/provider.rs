@@ -47,6 +47,12 @@ impl fmt::Display for EntryId {
     }
 }
 
+impl EntryId {
+    pub fn is_alias(&self) -> bool {
+        self.0.starts_with("@")
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PathPattern {
     pub path: Path,
