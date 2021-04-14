@@ -1,8 +1,7 @@
 use anyhow::Error;
 use rand::Rng;
-use rillrate::{
-    Alert, Click, Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table,
-};
+use rillrate::{Alert, Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table};
+use rillrate::{Click, Selector, Toggle};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -30,6 +29,13 @@ fn main() -> Result<(), Error> {
     );
 
     let _click = Click::create("control.click", "Button".into())?;
+    let _selector = Selector::create(
+        "control.selector",
+        "Selector".into(),
+        vec!["One".into(), "Two".into()],
+        "One".into(),
+    )?;
+    let _toggle = Toggle::create("control.toggle", "Toggle".into(), false)?;
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));
