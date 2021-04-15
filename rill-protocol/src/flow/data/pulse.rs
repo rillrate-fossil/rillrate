@@ -75,7 +75,7 @@ impl Flow for PulseState {
             timestamp: event.timestamp,
             event: point,
         };
-        self.frame.insert(timed_event);
+        self.frame.insert_pop(timed_event);
     }
 }
 

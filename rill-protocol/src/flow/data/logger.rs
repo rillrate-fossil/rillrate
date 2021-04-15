@@ -25,7 +25,7 @@ impl Flow for LoggerState {
     }
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        self.frame.insert(event);
+        self.frame.insert_pop(event);
     }
 }
 

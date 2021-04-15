@@ -24,11 +24,13 @@ impl<T> Frame<T> {
         }
     }
 
+    /*
     /// Returns a reference to the inserted element.
     pub fn insert(&mut self, item: T) -> &T {
         self.insert_pop(item);
         self.frame.back().unwrap()
     }
+    */
 
     pub fn insert_pop(&mut self, item: T) -> Option<T> {
         let result = {
