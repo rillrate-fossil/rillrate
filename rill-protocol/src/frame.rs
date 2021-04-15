@@ -1,12 +1,14 @@
+use derive_more::Deref;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
 static DEFAULT_SIZE: u32 = 20;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Deref)]
 pub struct Frame<T> {
     /// Size specified to have predictable seialization behavior.
     size: u32,
+    #[deref]
     frame: VecDeque<T>,
 }
 
@@ -42,18 +44,6 @@ impl<T> Frame<T> {
         };
         self.frame.push_back(item);
         result
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
-        self.frame.iter()
-    }
-
-    pub fn last(&self) -> Option<&T> {
-        if !self.frame.is_empty() {
-            self.frame.get(self.frame.len() - 1)
-        } else {
-            None
-        }
     }
 
     pub fn size(&self) -> u32 {
