@@ -37,11 +37,10 @@ impl<T: core::Flow> Recorder<T> {
         Direction::from(&self.subscribers)
     }
 
-    fn send_flow(&mut self, direction: Direction<ProviderProtocol>) -> Result<(), Error> {
+    fn send_flow(&mut self, direction: Direction<ProviderProtocol>) {
         let description = Description::clone(&self.description);
         let response = ProviderToServer::Flow { description };
         self.sender.response(direction, response);
-        Ok(())
     }
 
     async fn pack_state(&self) -> Result<PackedState, Error> {
@@ -261,18 +260,15 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                         self.send_state(id.into()).await?;
                     }
                     RecorderAction::GetFlow => {
-                        self.send_flow(id.into())?;
+                        self.send_flow(id.into());
                     }
                     RecorderAction::DoEvent(data) => {
                         let event = T::unpack_event(&data)?;
                         match &mut self.mode {
                             TracerMode::Watched { state, sender } => {
                                 // TODO: Track errors and send them back to the client
-                                let ts = time_to_ts(None)?;
-                                let timed_event = TimedEvent {
-                                    timestamp: ts,
-                                    event: event,
-                                };
+                                let timestamp = time_to_ts(None)?;
+                                let timed_event = TimedEvent { timestamp, event };
                                 T::apply(state, timed_event.clone());
                                 if let Err(err) = sender.send(timed_event.clone()) {
                                     log::error!(

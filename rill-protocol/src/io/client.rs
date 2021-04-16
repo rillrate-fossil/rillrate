@@ -1,4 +1,4 @@
-use crate::io::codec::RRCodec;
+use crate::io::codec::BinaryCodec;
 use crate::io::provider::{Description, EntryId, PackedDelta, PackedState, Path, RecorderRequest};
 use crate::io::transport::{DirectId, Origin, ServiceEnvelope};
 use meio_protocol::Protocol;
@@ -12,7 +12,7 @@ pub struct ClientProtocol;
 impl Protocol for ClientProtocol {
     type ToServer = ServiceEnvelope<Self, ClientRequest, ClientServiceResponse>;
     type ToClient = ServiceEnvelope<Self, ClientResponse, ClientServiceRequest>;
-    type Codec = RRCodec;
+    type Codec = BinaryCodec;
 }
 
 impl Origin for ClientProtocol {}

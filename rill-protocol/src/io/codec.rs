@@ -2,9 +2,9 @@ use crate::encoding;
 use anyhow::Error;
 use meio_protocol::{ProtocolCodec, ProtocolData};
 
-pub struct RRCodec;
+pub struct BinaryCodec;
 
-impl ProtocolCodec for RRCodec {
+impl ProtocolCodec for BinaryCodec {
     fn decode<T: ProtocolData>(data: &[u8]) -> Result<T, Error> {
         encoding::from_slice(data).map_err(Error::from)
     }

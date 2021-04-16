@@ -1,4 +1,4 @@
-use crate::io::codec::RRCodec;
+use crate::io::codec::BinaryCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
 use derive_more::{Deref, DerefMut, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
@@ -63,9 +63,9 @@ impl<'de> Deserialize<'de> for PathPattern {
     }
 }
 
-impl Into<Path> for PathPattern {
-    fn into(self) -> Path {
-        self.path
+impl From<PathPattern> for Path {
+    fn from(pattern: PathPattern) -> Path {
+        pattern.path
     }
 }
 
@@ -265,7 +265,7 @@ pub struct ProviderProtocol;
 impl Protocol for ProviderProtocol {
     type ToServer = WideEnvelope<Self, ProviderToServer>;
     type ToClient = Envelope<Self, ServerToProvider>;
-    type Codec = RRCodec;
+    type Codec = BinaryCodec;
 }
 
 impl Origin for ProviderProtocol {}

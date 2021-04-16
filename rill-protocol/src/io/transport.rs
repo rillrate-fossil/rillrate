@@ -47,10 +47,10 @@ impl<T: Origin> From<usize> for DirectId<T> {
     }
 }
 
-impl<T: Origin> Into<usize> for DirectId<T> {
-    fn into(self) -> usize {
+impl<T: Origin> From<DirectId<T>> for usize {
+    fn from(this: DirectId<T>) -> usize {
         // TODO: TryInto
-        self.value as usize
+        this.value as usize
     }
 }
 
