@@ -2,6 +2,7 @@ use crate::encoding;
 use crate::io::provider::{PackedDelta, PackedEvent, PackedState, StreamType, Timestamp};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::fmt;
 
 // TODO: Move to the separate module
@@ -56,3 +57,23 @@ pub struct TimedEvent<T> {
     pub timestamp: Timestamp,
     pub event: T,
 }
+
+impl<T> Ord for TimedEvent<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.timestamp.cmp(&other.timestamp)
+    }
+}
+
+impl<T> PartialOrd for TimedEvent<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T> PartialEq for TimedEvent<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.timestamp == other.timestamp
+    }
+}
+
+impl<T> Eq for TimedEvent<T> {}
