@@ -20,7 +20,7 @@ anyhow = "1.0.40"
 derive_more = "0.99.13"
 flexbuffers = "0.2.2"
 log = "0.4.14"
-meio-protocol = "0.86.0"
+meio-protocol = "0.86.1"
 metacrate = "0.1.2"
 once_cell = "1.7.2"
 ordered-float = { version = "2.1.1", features = ["serde"] }
