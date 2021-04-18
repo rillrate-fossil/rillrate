@@ -29,6 +29,16 @@ pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
 pub(crate) enum TracerMode<T: core::Flow> {
+    /* TODO: THE Idea to implement storage:
+     *
+     * Routed recorder shares the state and listens requests to forward them
+     * and return responses.
+     *
+     * Routed {
+     *   initial_state: T, - aka lazy state / bootstrap state
+     *   interactor: Address<?> or spawned routine, - to send requests there to update individual states
+     * },
+     */
     /// Real-time mode
     Push {
         state: T,
