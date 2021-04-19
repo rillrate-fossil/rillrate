@@ -61,6 +61,12 @@ pub struct TimedEvent<T> {
     pub event: T,
 }
 
+impl<T> TimedEvent<T> {
+    pub fn into_inner(self) -> T {
+        self.event
+    }
+}
+
 impl<T> Ord for TimedEvent<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.timestamp.cmp(&other.timestamp)
