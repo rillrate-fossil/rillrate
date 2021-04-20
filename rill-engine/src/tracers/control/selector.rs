@@ -13,7 +13,7 @@ impl SelectorWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path, label: String, options: Vec<String>, selected: String) -> Self {
         let state = SelectorState::new(label, options, selected);
-        let tracer = Tracer::new_watcher(state, path);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 

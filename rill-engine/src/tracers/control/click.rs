@@ -13,7 +13,7 @@ impl ClickWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path, caption: String) -> Self {
         let state = ClickState::new(caption);
-        let tracer = Tracer::new_watcher(state, path);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 

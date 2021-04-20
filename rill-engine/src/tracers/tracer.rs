@@ -147,6 +147,7 @@ impl<T: core::Flow> Tracer<T> {
         Self::new(path, inner_mode, mode)
     }
 
+    /*
     /// Creates a new watched `Tracer`
     ///
     /// WARNING! Some control messages can be lost in case it the watcher
@@ -165,6 +166,7 @@ impl<T: core::Flow> Tracer<T> {
         };
         Self::new(path, inner_mode, mode)
     }
+    */
 
     fn new(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
         let stream_type = T::stream_type();

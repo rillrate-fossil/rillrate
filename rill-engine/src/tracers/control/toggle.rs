@@ -13,7 +13,7 @@ impl ToggleWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path, caption: String, active: bool) -> Self {
         let state = ToggleState::new(caption, active);
-        let tracer = Tracer::new_watcher(state, path);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 

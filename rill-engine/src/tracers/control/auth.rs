@@ -13,7 +13,7 @@ impl AuthWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path) -> Self {
         let state = AuthState::new();
-        let tracer = Tracer::new_watcher(state, path);
+        let tracer = Tracer::new_tracer(state, path, None);
         Self { tracer }
     }
 
