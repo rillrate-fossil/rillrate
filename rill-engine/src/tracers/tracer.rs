@@ -252,10 +252,10 @@ impl<T: core::Flow> Tracer<T> {
     /// Subscribe to the stream of the watcher.
     pub fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
         match &mut self.mode {
-            InnerMode::Watched { control_sender } => Ok(control_sender.subscribe()),
-            InnerMode::Push { .. } => {
-                log::error!("Can't receive state in push mode of {}", self.path(),);
-                Err(Error::msg("Tracer::recv is not supported in push mode."))
+            InnerMode::Push { control_sender, .. } => Ok(control_sender.subscribe()),
+            InnerMode::Watched { .. } => {
+                log::error!("Can't receive state in watched mode of {}", self.path(),);
+                Err(Error::msg("Tracer::recv is not supported in watched mode."))
             }
             InnerMode::Pull { .. } => {
                 log::error!("Can't receive state in pull mode of {}", self.path(),);
