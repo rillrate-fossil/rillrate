@@ -46,6 +46,8 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Push {
         state: T,
         receiver: Option<DataReceiver<T>>,
+        /// For sending events to a `Tracer` instances
+        control_sender: broadcast::Sender<T::Event>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
@@ -64,6 +66,8 @@ pub(crate) enum TracerMode<T: core::Flow> {
 enum InnerMode<T: core::Flow> {
     Push {
         sender: DataSender<T>,
+        /// Kept for generating new `Receiver`s
+        control_sender: Arc<broadcast::Sender<T::Event>>,
     },
     Pull {
         state: Arc<Mutex<T>>,
@@ -78,8 +82,12 @@ enum InnerMode<T: core::Flow> {
 impl<T: core::Flow> Clone for InnerMode<T> {
     fn clone(&self) -> Self {
         match self {
-            Self::Push { sender } => Self::Push {
+            Self::Push {
+                sender,
+                control_sender,
+            } => Self::Push {
                 sender: sender.clone(),
+                control_sender: control_sender.clone(),
             },
             Self::Pull { state } => Self::Pull {
                 state: state.clone(),
@@ -125,11 +133,16 @@ impl<T: core::Flow> Tracer<T> {
             inner_mode = InnerMode::Pull { state };
         } else {
             let (tx, rx) = mpsc::unbounded();
+            let (control_tx, _control_rx) = broadcast::channel(16);
             mode = TracerMode::Push {
                 state,
                 receiver: Some(rx),
+                control_sender: control_tx.clone(),
             };
-            inner_mode = InnerMode::Push { sender: tx };
+            inner_mode = InnerMode::Push {
+                sender: tx,
+                control_sender: Arc::new(control_tx),
+            };
         }
         Self::new(path, inner_mode, mode)
     }
@@ -195,7 +208,7 @@ impl<T: core::Flow> Tracer<T> {
                         event: data,
                     };
                     match &self.mode {
-                        InnerMode::Push { sender } => {
+                        InnerMode::Push { sender, .. } => {
                             let envelope = DataEnvelope::Event(timed_event);
                             // And will never send an event
                             if let Err(err) = sender.unbounded_send(envelope) {
