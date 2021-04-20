@@ -265,10 +265,13 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     RecorderAction::DoEvent(data) => {
                         let event = T::unpack_event(&data)?;
                         match &mut self.mode {
-                            TracerMode::Watched { state, sender } => {
+                            TracerMode::Watched {
+                                state,
+                                control_sender,
+                            } => {
                                 // TODO: Track errors and send them back to the client
                                 let timestamp = time_to_ts(None)?;
-                                if let Err(err) = sender.send(event.clone()) {
+                                if let Err(err) = control_sender.send(event.clone()) {
                                     log::error!(
                                         "No event listeners in {} watcher: {}",
                                         self.description.path,

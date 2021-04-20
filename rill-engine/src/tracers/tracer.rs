@@ -56,7 +56,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Watched {
         state: T,
         /// For sending events to a `Tracer` instances
-        sender: broadcast::Sender<T::Event>,
+        control_sender: broadcast::Sender<T::Event>,
     },
 }
 
@@ -70,7 +70,7 @@ enum InnerMode<T: core::Flow> {
     },
     Watched {
         /// Kept for generating new `Receiver`s
-        sender: Arc<broadcast::Sender<T::Event>>,
+        control_sender: Arc<broadcast::Sender<T::Event>>,
     },
 }
 
@@ -84,8 +84,8 @@ impl<T: core::Flow> Clone for InnerMode<T> {
             Self::Pull { state } => Self::Pull {
                 state: state.clone(),
             },
-            Self::Watched { sender, .. } => Self::Watched {
-                sender: sender.clone(),
+            Self::Watched { control_sender, .. } => Self::Watched {
+                control_sender: control_sender.clone(),
             },
         }
     }
@@ -145,10 +145,10 @@ impl<T: core::Flow> Tracer<T> {
         let (tx, _rx) = broadcast::channel(16);
         let mode = TracerMode::Watched {
             state,
-            sender: tx.clone(),
+            control_sender: tx.clone(),
         };
         let inner_mode = InnerMode::Watched {
-            sender: Arc::new(tx),
+            control_sender: Arc::new(tx),
         };
         Self::new(path, inner_mode, mode)
     }
@@ -237,7 +237,7 @@ impl<T: core::Flow> Tracer<T> {
     /// Subscribe to the stream of the watcher.
     pub fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
         match &mut self.mode {
-            InnerMode::Watched { sender } => Ok(sender.subscribe()),
+            InnerMode::Watched { control_sender } => Ok(control_sender.subscribe()),
             InnerMode::Push { .. } => {
                 log::error!("Can't receive state in push mode of {}", self.path(),);
                 Err(Error::msg("Tracer::recv is not supported in push mode."))
