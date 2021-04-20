@@ -54,12 +54,6 @@ pub(crate) enum TracerMode<T: core::Flow> {
         state: Weak<Mutex<T>>,
         interval: Duration,
     },
-    /// Used for controls
-    Watched {
-        state: T,
-        /// For sending events to a `Tracer` instances
-        control_sender: broadcast::Sender<T::Event>,
-    },
 }
 
 #[derive(Debug)]
@@ -71,10 +65,6 @@ enum InnerMode<T: core::Flow> {
     },
     Pull {
         state: Arc<Mutex<T>>,
-    },
-    Watched {
-        /// Kept for generating new `Receiver`s
-        control_sender: Arc<broadcast::Sender<T::Event>>,
     },
 }
 
@@ -91,9 +81,6 @@ impl<T: core::Flow> Clone for InnerMode<T> {
             },
             Self::Pull { state } => Self::Pull {
                 state: state.clone(),
-            },
-            Self::Watched { control_sender, .. } => Self::Watched {
-                control_sender: control_sender.clone(),
             },
         }
     }
@@ -229,12 +216,6 @@ impl<T: core::Flow> Tracer<T> {
                                 );
                             }
                         },
-                        InnerMode::Watched { .. } => {
-                            log::error!(
-                                "Sending is not supported in watched mode of {}",
-                                self.path()
-                            );
-                        }
                     }
                 }
                 Err(err) => {
@@ -253,10 +234,6 @@ impl<T: core::Flow> Tracer<T> {
     pub fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
         match &mut self.mode {
             InnerMode::Push { control_sender, .. } => Ok(control_sender.subscribe()),
-            InnerMode::Watched { .. } => {
-                log::error!("Can't receive state in watched mode of {}", self.path(),);
-                Err(Error::msg("Tracer::recv is not supported in watched mode."))
-            }
             InnerMode::Pull { .. } => {
                 log::error!("Can't receive state in pull mode of {}", self.path(),);
                 Err(Error::msg("Tracer::recv is not supported in pull mode."))

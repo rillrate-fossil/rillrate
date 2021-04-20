@@ -56,7 +56,6 @@ impl<T: core::Flow> Recorder<T> {
                     Err(Error::msg("Can't upgrade weak reference to the state."))
                 }
             }
-            TracerMode::Watched { state, .. } => T::pack_state(state),
         }
     }
 
@@ -104,10 +103,6 @@ impl<T: core::Flow> StartedBy<RillWorker> for Recorder<T> {
                 let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
                 let _task = ctx.spawn_task(heartbeat, (), ());
                 // Waiting for the subscribers to spawn a heartbeat activity
-                Ok(())
-            }
-            TracerMode::Watched { .. } => {
-                // Do nothing, just wait for the client's event requests
                 Ok(())
             }
         }
@@ -159,12 +154,6 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
             TracerMode::Pull { .. } => {
                 log::error!("Delta received in pull mode for: {}", self.description.path);
             }
-            TracerMode::Watched { .. } => {
-                log::error!(
-                    "Delta received in watched mode for: {}",
-                    self.description.path
-                );
-            }
         }
         Ok(())
     }
@@ -190,12 +179,6 @@ impl<T: core::Flow> OnTick for Recorder<T> {
                 TracerMode::Push { .. } => {
                     log::error!(
                         "Pulling tick received in the push mode for: {}",
-                        self.description.path
-                    );
-                }
-                TracerMode::Watched { .. } => {
-                    log::error!(
-                        "Pulling tick received in the watched mode for: {}",
                         self.description.path
                     );
                 }
@@ -265,15 +248,6 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     RecorderAction::DoEvent(data) => {
                         let event = T::unpack_event(&data)?;
                         match &mut self.mode {
-                            TracerMode::Watched {
-                                state,
-                                control_sender,
-                            } => {
-                                log::error!(
-                                    "Do event request in the watched (anymore) mode of {}",
-                                    self.description.path
-                                );
-                            }
                             TracerMode::Push {
                                 state,
                                 control_sender,
