@@ -28,6 +28,7 @@ impl<T: core::Flow> DataEnvelope<T> {
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
+/// Watches for the control events.
 pub type Watcher<T> = broadcast::Receiver<T>;
 
 pub(crate) enum TracerMode<T: core::Flow> {
@@ -139,7 +140,9 @@ impl<T: core::Flow> Tracer<T> {
     /// is not subscribed yet when first messages received.
     // TODO: Fix the problem above ^
     pub fn new_watcher(state: T, path: Path) -> Self {
-        let (tx, rx) = broadcast::channel(16);
+        // TODO: Consider to return a `Receiver` from this method
+        // and don't allow to subscribe again.
+        let (tx, _rx) = broadcast::channel(16);
         let mode = TracerMode::Watched {
             state,
             sender: tx.clone(),
@@ -230,6 +233,8 @@ impl<T: core::Flow> Tracer<T> {
         }
     }
 
+    // TODO: Remove it completely and return `Receiver` from a constructor.
+    /// Subscribe to the stream of the watcher.
     pub async fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
         match &mut self.mode {
             InnerMode::Watched { sender } => Ok(sender.subscribe()),

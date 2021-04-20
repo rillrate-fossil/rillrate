@@ -1,5 +1,4 @@
 use crate::tracers::tracer::Tracer;
-use anyhow::Error;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::flow::control::click::ClickState;
 use rill_protocol::io::provider::Path;

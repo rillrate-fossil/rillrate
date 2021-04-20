@@ -1,8 +1,6 @@
 use crate::tracers::tracer::Tracer;
-use anyhow::Error;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::auth::{AuthEvent, AuthState};
-use rill_protocol::flow::core::TimedEvent;
+use rill_protocol::flow::control::auth::AuthState;
 use rill_protocol::io::provider::Path;
 
 /// Receives auths from a user.
