@@ -269,6 +269,16 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                                 state,
                                 control_sender,
                             } => {
+                                log::error!(
+                                    "Do event request in the watched (anymore) mode of {}",
+                                    self.description.path
+                                );
+                            }
+                            TracerMode::Push {
+                                state,
+                                control_sender,
+                                ..
+                            } => {
                                 // TODO: Track errors and send them back to the client
                                 let timestamp = time_to_ts(None)?;
                                 if let Err(err) = control_sender.send(event.clone()) {
@@ -281,12 +291,6 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                                 let timed_event = TimedEvent { timestamp, event };
                                 T::apply(state, timed_event.clone());
                                 self.send_delta(&[timed_event])?;
-                            }
-                            TracerMode::Push { .. } => {
-                                log::error!(
-                                    "Do event request in the push mode of {}",
-                                    self.description.path
-                                );
                             }
                             TracerMode::Pull { .. } => {
                                 log::error!(
