@@ -8,6 +8,7 @@ pub enum InnerState {
     LoggingIn,
     Authorized,
     LoggingOut,
+    WrongCredentials,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,6 +51,9 @@ impl Flow for AuthState {
             AuthEvent::Authorized(false) => {
                 self.auth_state = InnerState::Unauthorized;
             }
+            AuthEvent::Failed => {
+                self.auth_state = InnerState::WrongCredentials;
+            }
         }
         self.last_change = Some(event.timestamp);
     }
@@ -63,4 +67,5 @@ pub enum AuthEvent {
 
     // TODO: Split to `UpdateEvent`
     Authorized(bool),
+    Failed,
 }

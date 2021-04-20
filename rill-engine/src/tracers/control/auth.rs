@@ -18,8 +18,20 @@ impl AuthWatcher {
     }
 
     /// Set state to authorized.
-    pub fn authorized(&self, value: bool) {
-        let data = AuthEvent::Authorized(value);
+    pub fn login(&self) {
+        let data = AuthEvent::Authorized(true);
+        self.tracer.send(data, None);
+    }
+
+    /// Set state to failed.
+    pub fn failed(&self) {
+        let data = AuthEvent::Failed;
+        self.tracer.send(data, None);
+    }
+
+    /// Set state to unauthorized.
+    pub fn logout(&self) {
+        let data = AuthEvent::Authorized(false);
         self.tracer.send(data, None);
     }
 
