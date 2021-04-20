@@ -1,6 +1,3 @@
-pub mod auth;
-pub use auth::AuthState;
-
 pub mod click;
 pub use click::ClickState;
 

@@ -1,8 +1,5 @@
 //! Module contains watchers.
 
-pub(crate) mod auth;
-pub use auth::AuthWatcher;
-
 pub(crate) mod click;
 pub use click::ClickWatcher;
 
