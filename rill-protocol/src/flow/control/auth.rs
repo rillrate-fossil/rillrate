@@ -3,7 +3,7 @@ use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum AuthState {
+pub enum InnerState {
     Unauthorized,
     LoggingIn,
     Authorized,
@@ -11,22 +11,22 @@ pub enum AuthState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignInState {
-    pub auth_state: AuthState,
+pub struct AuthState {
+    pub auth_state: InnerState,
     pub last_change: Option<Timestamp>,
 }
 
-impl SignInState {
+impl AuthState {
     pub fn new() -> Self {
         Self {
-            auth_state: AuthState::Unauthorized,
+            auth_state: InnerState::Unauthorized,
             last_change: None,
         }
     }
 }
 
-impl Flow for SignInState {
-    type Event = SignInEvent;
+impl Flow for AuthState {
+    type Event = AuthEvent;
 
     fn stream_type() -> StreamType {
         StreamType::from("rillrate.flow.control.signin.v0")
@@ -34,17 +34,17 @@ impl Flow for SignInState {
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
         match event.event {
-            SignInEvent::TrySignIn { .. } => {
-                self.auth_state = AuthState::LoggingIn;
+            AuthEvent::TrySignIn { .. } => {
+                self.auth_state = InnerState::LoggingIn;
             }
-            SignInEvent::TrySignOut => {
-                self.auth_state = AuthState::LoggingOut;
+            AuthEvent::TrySignOut => {
+                self.auth_state = InnerState::LoggingOut;
             }
-            SignInEvent::Authorized => {
-                self.auth_state = AuthState::Authorized;
+            AuthEvent::Authorized => {
+                self.auth_state = InnerState::Authorized;
             }
-            SignInEvent::Unauthorized => {
-                self.auth_state = AuthState::Unauthorized;
+            AuthEvent::Unauthorized => {
+                self.auth_state = InnerState::Unauthorized;
             }
         }
         self.last_change = Some(event.timestamp);
@@ -52,7 +52,7 @@ impl Flow for SignInState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SignInEvent {
+pub enum AuthEvent {
     // TODO: Split to `ControlEvent`
     TrySignIn { username: String, password: String },
     TrySignOut,

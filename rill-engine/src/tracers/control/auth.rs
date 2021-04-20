@@ -1,25 +1,25 @@
 use crate::tracers::tracer::Tracer;
 use anyhow::Error;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::sign_in::SignInState;
+use rill_protocol::flow::control::auth::AuthState;
 use rill_protocol::io::provider::Path;
 
-/// Receives sign_ins from a user.
+/// Receives auths from a user.
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct SignInWatcher {
-    tracer: Tracer<SignInState>,
+pub struct AuthWatcher {
+    tracer: Tracer<AuthState>,
 }
 
-impl SignInWatcher {
+impl AuthWatcher {
     /// Create a new instance of the `Watcher`.
     pub fn new(path: Path) -> Self {
-        let state = SignInState::new();
+        let state = AuthState::new();
         let tracer = Tracer::new_watcher(state, path);
         Self { tracer }
     }
 
-    /// Wait for the sign_in event.
-    pub async fn watch_sign_in(&mut self) -> Result<(), Error> {
+    /// Wait for the auth event.
+    pub async fn watch_auth(&mut self) -> Result<(), Error> {
         self.tracer.recv().await.map(drop)
     }
 }
