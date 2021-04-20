@@ -40,10 +40,10 @@ impl Flow for AuthState {
             AuthEvent::TrySignOut => {
                 self.auth_state = InnerState::LoggingOut;
             }
-            AuthEvent::Authorized => {
+            AuthEvent::Authorized(true) => {
                 self.auth_state = InnerState::Authorized;
             }
-            AuthEvent::Unauthorized => {
+            AuthEvent::Authorized(false) => {
                 self.auth_state = InnerState::Unauthorized;
             }
         }
@@ -58,6 +58,5 @@ pub enum AuthEvent {
     TrySignOut,
 
     // TODO: Split to `UpdateEvent`
-    Authorized,
-    Unauthorized,
+    Authorized(bool),
 }

@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::auth::AuthState;
+use rill_protocol::flow::control::auth::{AuthEvent, AuthState};
 use rill_protocol::io::provider::Path;
 
 /// Receives auths from a user.
@@ -15,6 +15,12 @@ impl AuthWatcher {
         let state = AuthState::new();
         let tracer = Tracer::new_watcher(state, path);
         Self { tracer }
+    }
+
+    /// Set state to authorized.
+    pub fn authorized(&self, value: bool) {
+        let data = AuthEvent::Authorized(value);
+        self.tracer.send(data, None);
     }
 
     /*
