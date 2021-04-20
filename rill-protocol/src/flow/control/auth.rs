@@ -23,6 +23,10 @@ impl AuthState {
             last_change: None,
         }
     }
+
+    pub fn is_authorized(&self) -> bool {
+        matches!(self.auth_state, InnerState::Authorized)
+    }
 }
 
 impl Flow for AuthState {
