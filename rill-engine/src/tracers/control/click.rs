@@ -18,8 +18,10 @@ impl ClickWatcher {
         Self { tracer }
     }
 
+    /*
     /// Wait for the click event.
-    pub async fn watch_click(&mut self) -> Result<(), Error> {
-        self.tracer.recv().await.map(drop)
+    pub fn clicks(&mut self) -> Result<Watcher<ClickEvent>, Error> {
+        self.tracer.subscribe()
     }
+    */
 }

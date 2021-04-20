@@ -18,6 +18,7 @@ impl SelectorWatcher {
         Self { tracer }
     }
 
+    /*
     /// Wait for the select event.
     pub async fn watch_select(&mut self) -> Result<String, Error> {
         // TODO: Use cloneable values of type `K` and keep them in an `Arc`
@@ -26,4 +27,5 @@ impl SelectorWatcher {
             .await
             .map(|timed_event| timed_event.event.select)
     }
+    */
 }

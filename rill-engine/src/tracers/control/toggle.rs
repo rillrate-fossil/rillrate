@@ -18,6 +18,7 @@ impl ToggleWatcher {
         Self { tracer }
     }
 
+    /*
     /// Wait for the toggle event.
     pub async fn watch_toggle(&mut self) -> Result<bool, Error> {
         self.tracer
@@ -25,4 +26,5 @@ impl ToggleWatcher {
             .await
             .map(|timed_event| timed_event.event.active)
     }
+    */
 }

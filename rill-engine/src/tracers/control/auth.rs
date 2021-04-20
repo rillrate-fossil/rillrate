@@ -19,8 +19,10 @@ impl AuthWatcher {
         Self { tracer }
     }
 
+    /*
     /// Wait for the auth event.
     pub async fn watch_auth(&mut self) -> Result<AuthEvent, Error> {
         self.tracer.recv().await.map(TimedEvent::into_inner)
     }
+    */
 }

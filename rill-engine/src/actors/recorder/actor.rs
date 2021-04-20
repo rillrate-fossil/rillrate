@@ -268,18 +268,15 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                             TracerMode::Watched { state, sender } => {
                                 // TODO: Track errors and send them back to the client
                                 let timestamp = time_to_ts(None)?;
-                                let timed_event = TimedEvent { timestamp, event };
-                                // It's important to apply state first, because it
-                                // can be also updated using tracers that watches
-                                // to the notifications (control actions, like logins).
-                                T::apply(state, timed_event.clone());
-                                if let Err(err) = sender.send(timed_event.clone()) {
+                                if let Err(err) = sender.send(event.clone()) {
                                     log::error!(
                                         "No event listeners in {} watcher: {}",
                                         self.description.path,
                                         err,
                                     );
                                 }
+                                let timed_event = TimedEvent { timestamp, event };
+                                T::apply(state, timed_event.clone());
                                 self.send_delta(&[timed_event])?;
                             }
                             TracerMode::Push { .. } => {

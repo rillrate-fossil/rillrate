@@ -28,6 +28,8 @@ impl<T: core::Flow> DataEnvelope<T> {
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
 
+pub type Watcher<T> = broadcast::Receiver<T>;
+
 pub(crate) enum TracerMode<T: core::Flow> {
     /* TODO: THE Idea to implement storage:
      *
@@ -53,7 +55,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Watched {
         state: T,
         /// For sending events to a `Tracer` instances
-        sender: broadcast::Sender<TimedEvent<T::Event>>,
+        sender: broadcast::Sender<T::Event>,
     },
 }
 
@@ -67,9 +69,7 @@ enum InnerMode<T: core::Flow> {
     },
     Watched {
         /// Kept for generating new `Receiver`s
-        sender: Arc<broadcast::Sender<TimedEvent<T::Event>>>,
-        /// To receive incoming events from a client
-        receiver: broadcast::Receiver<TimedEvent<T::Event>>,
+        sender: Arc<broadcast::Sender<T::Event>>,
     },
 }
 
@@ -85,7 +85,6 @@ impl<T: core::Flow> Clone for InnerMode<T> {
             },
             Self::Watched { sender, .. } => Self::Watched {
                 sender: sender.clone(),
-                receiver: sender.subscribe(),
             },
         }
     }
@@ -135,6 +134,10 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Creates a new watched `Tracer`
+    ///
+    /// WARNING! Some control messages can be lost in case it the watcher
+    /// is not subscribed yet when first messages received.
+    // TODO: Fix the problem above ^
     pub fn new_watcher(state: T, path: Path) -> Self {
         let (tx, rx) = broadcast::channel(16);
         let mode = TracerMode::Watched {
@@ -143,7 +146,6 @@ impl<T: core::Flow> Tracer<T> {
         };
         let inner_mode = InnerMode::Watched {
             sender: Arc::new(tx),
-            receiver: rx,
         };
         Self::new(path, inner_mode, mode)
     }
@@ -228,10 +230,9 @@ impl<T: core::Flow> Tracer<T> {
         }
     }
 
-    /// Receive a state.
-    pub async fn recv(&mut self) -> Result<TimedEvent<T::Event>, Error> {
+    pub async fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
         match &mut self.mode {
-            InnerMode::Watched { receiver, .. } => receiver.recv().await.map_err(Error::from),
+            InnerMode::Watched { sender } => Ok(sender.subscribe()),
             InnerMode::Push { .. } => {
                 log::error!("Can't receive state in push mode of {}", self.path(),);
                 Err(Error::msg("Tracer::recv is not supported in push mode."))
@@ -242,6 +243,25 @@ impl<T: core::Flow> Tracer<T> {
             }
         }
     }
+
+    /*
+    /// Receive a state.
+    pub async fn recv(&mut self) -> Result<TimedEvent<T::Event>, Error> {
+        match &mut self.mode {
+            InnerMode::Watched { receiver: Some(receiver), .. } => {
+                receiver.recv().await.map_err(Error::from)
+            },
+            InnerMode::Push { .. } => {
+                log::error!("Can't receive state in push mode of {}", self.path(),);
+                Err(Error::msg("Tracer::recv is not supported in push mode."))
+            }
+            InnerMode::Pull { .. } => {
+                log::error!("Can't receive state in pull mode of {}", self.path(),);
+                Err(Error::msg("Tracer::recv is not supported in pull mode."))
+            }
+        }
+    }
+    */
 }
 
 impl<T: core::Flow> Tracer<T> {
