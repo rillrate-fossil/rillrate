@@ -40,6 +40,12 @@ impl Flow for SignInState {
             SignInEvent::TrySignOut => {
                 self.auth_state = AuthState::LoggingOut;
             }
+            SignInEvent::Authorized => {
+                self.auth_state = AuthState::Authorized;
+            }
+            SignInEvent::Unauthorized => {
+                self.auth_state = AuthState::Unauthorized;
+            }
         }
         self.last_change = Some(event.timestamp);
     }
@@ -47,9 +53,11 @@ impl Flow for SignInState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SignInEvent {
-    TrySignIn {
-        username: String,
-        password: String,
-    },
+    // TODO: Split to `ControlEvent`
+    TrySignIn { username: String, password: String },
     TrySignOut,
+
+    // TODO: Split to `UpdateEvent`
+    Authorized,
+    Unauthorized,
 }
