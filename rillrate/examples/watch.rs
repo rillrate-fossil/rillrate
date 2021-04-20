@@ -21,7 +21,7 @@ async fn main() -> Result<(), Error> {
     let _manyclick = Click::create("button", "Click Me!".into())?;
     let mut shutdown = Click::create("shutdown", "Shutdown".into())?;
 
-    shutdown.watch_click().await?;
+    shutdown.subscribe()?.recv().await?;
 
     Ok(())
 }

@@ -235,7 +235,7 @@ impl<T: core::Flow> Tracer<T> {
 
     // TODO: Remove it completely and return `Receiver` from a constructor.
     /// Subscribe to the stream of the watcher.
-    pub async fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
+    pub fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
         match &mut self.mode {
             InnerMode::Watched { sender } => Ok(sender.subscribe()),
             InnerMode::Push { .. } => {
