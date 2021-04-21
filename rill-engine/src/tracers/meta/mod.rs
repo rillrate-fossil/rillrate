@@ -3,9 +3,6 @@
 pub(crate) mod alert;
 pub use alert::AlertTracer;
 
-pub(crate) mod connection;
-pub use connection::ConnectionTracer;
-
 pub(crate) mod entry;
 pub use entry::EntryTracer;
 

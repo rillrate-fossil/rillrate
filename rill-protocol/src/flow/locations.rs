@@ -30,7 +30,6 @@ pub fn client() -> Path {
 
 pub const ALERTS: Location = Location::new("meta:alerts");
 
-pub const AUTH: Location = Location::new("meta:auth");
 pub const CONNECTION: Location = Location::new("meta:connection");
 
 pub const ENTRIES: Location = Location::new("meta:entries");

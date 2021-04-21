@@ -1,9 +1,6 @@
 pub mod alert;
 pub use alert::AlertState;
 
-pub mod connection;
-pub use connection::ConnectionState;
-
 pub mod entry;
 pub use entry::EntryState;
 
