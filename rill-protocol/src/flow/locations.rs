@@ -29,6 +29,5 @@ pub fn client() -> Path {
 }
 
 pub const ALERTS: Location = Location::new("meta:alerts");
-pub const ENTRIES: Location = Location::new("meta:entries");
 pub const PATHS: Location = Location::new("meta:paths");
 pub const READY_BOARDS: Location = Location::new("meta:readyboards");

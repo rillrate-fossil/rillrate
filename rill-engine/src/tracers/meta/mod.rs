@@ -3,9 +3,6 @@
 pub(crate) mod alert;
 pub use alert::AlertTracer;
 
-pub(crate) mod entry;
-pub use entry::EntryTracer;
-
 pub(crate) mod path;
 pub use path::PathTracer;
 
