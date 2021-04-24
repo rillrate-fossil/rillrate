@@ -37,9 +37,21 @@ pub enum ClientResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientServiceRequest {
     Ping,
+    AccessLevel(AccessLevel),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientServiceResponse {
     Pong,
+}
+
+/// `AccessLevel` notifies about specific stages of a session:
+/// - session created (ready for pings)
+/// - client can sign in or sign up
+/// - client can work will all accessible flows
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AccessLevel {
+    SessionCreated,
+    ReadyToAuth,
+    ReadyToWork,
 }
