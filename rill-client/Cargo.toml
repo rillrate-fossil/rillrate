@@ -17,7 +17,7 @@ description = "Dynamic logging and tracing system"
 
 [dependencies]
 anyhow = "1.0.40"
-async-trait = "0.1.49"
+async-trait = "0.1.50"
 derive_more = "0.99.13"
 futures = "0.3.14"
 log = "0.4.14"
