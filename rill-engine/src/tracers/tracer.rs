@@ -109,8 +109,17 @@ impl<T: core::Flow> Clone for Tracer<T> {
 impl<T: core::Flow> Tracer<T> {
     /// Creates a new `Tracer`.
     pub fn new_tracer(state: T, path: Path, pull: Option<Duration>) -> Self {
+        Self::new_tracer_subscribed(state, path, pull).0
+    }
+
+    fn new_tracer_subscribed(
+        state: T,
+        path: Path,
+        pull: Option<Duration>,
+    ) -> (Self, Option<broadcast::Receiver<T::Event>>) {
         let inner_mode;
         let mode;
+        let subscriber;
         if let Some(interval) = pull {
             let state = Arc::new(Mutex::new(state));
             mode = TracerMode::Pull {
@@ -118,9 +127,10 @@ impl<T: core::Flow> Tracer<T> {
                 interval,
             };
             inner_mode = InnerMode::Pull { state };
+            subscriber = None;
         } else {
             let (tx, rx) = mpsc::unbounded();
-            let (control_tx, _control_rx) = broadcast::channel(16);
+            let (control_tx, control_rx) = broadcast::channel(16);
             mode = TracerMode::Push {
                 state,
                 receiver: Some(rx),
@@ -130,8 +140,9 @@ impl<T: core::Flow> Tracer<T> {
                 sender: tx,
                 control_sender: Arc::new(control_tx),
             };
+            subscriber = Some(control_rx);
         }
-        Self::new(path, inner_mode, mode)
+        (Self::new(path, inner_mode, mode), subscriber)
     }
 
     /*
