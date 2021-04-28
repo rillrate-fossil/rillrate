@@ -22,8 +22,8 @@ impl ToggleState {
         }
     }
 
-    pub fn toggle_event(&self) -> ToggleEvent {
-        ToggleEvent::new(!self.active)
+    pub fn toggle_action(&self) -> ToggleAction {
+        ToggleAction::new(!self.active)
     }
 }
 
@@ -46,6 +46,20 @@ pub struct ToggleAction {
     pub set_active: bool,
 }
 
+impl ToggleAction {
+    pub fn new(set_active: bool) -> Self {
+        Self { set_active }
+    }
+
+    pub fn on() -> Self {
+        Self { set_active: true }
+    }
+
+    pub fn off() -> Self {
+        Self { set_active: false }
+    }
+}
+
 impl ToEvent<ToggleEvent> for ToggleAction {
     fn to_event(&self) -> Option<ToggleEvent> {
         Some(ToggleEvent {
@@ -57,18 +71,4 @@ impl ToEvent<ToggleEvent> for ToggleAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToggleEvent {
     pub active: bool,
-}
-
-impl ToggleEvent {
-    pub fn new(active: bool) -> Self {
-        Self { active }
-    }
-
-    pub fn on() -> Self {
-        Self { active: true }
-    }
-
-    pub fn off() -> Self {
-        Self { active: false }
-    }
 }
