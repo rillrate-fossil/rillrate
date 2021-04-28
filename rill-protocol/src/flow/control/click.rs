@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent, ToEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +18,7 @@ impl ClickState {
 }
 
 impl Flow for ClickState {
-    type Action = ();
+    type Action = ClickAction;
     type Event = ClickEvent;
 
     fn stream_type() -> StreamType {
@@ -27,6 +27,15 @@ impl Flow for ClickState {
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
         self.last_click = Some(event.timestamp);
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClickAction;
+
+impl ToEvent<ClickEvent> for ClickAction {
+    fn to_event(&self) -> Option<ClickEvent> {
+        Some(ClickEvent)
     }
 }
 

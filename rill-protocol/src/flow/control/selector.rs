@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, TimedEvent};
+use crate::flow::core::{Flow, TimedEvent, ToEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
@@ -27,7 +27,7 @@ impl SelectorState {
 }
 
 impl Flow for SelectorState {
-    type Action = ();
+    type Action = SelectorAction;
     type Event = SelectorEvent;
 
     fn stream_type() -> StreamType {
@@ -35,7 +35,7 @@ impl Flow for SelectorState {
     }
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        let new_value = event.event.select;
+        let new_value = event.event.selected;
         if self.options.contains(&new_value) {
             self.selected = new_value;
         } else {
@@ -46,12 +46,25 @@ impl Flow for SelectorState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SelectorEvent {
+pub struct SelectorAction {
     pub select: String,
 }
 
-impl SelectorEvent {
+impl SelectorAction {
     pub fn select(value: String) -> Self {
         Self { select: value }
     }
+}
+
+impl ToEvent<SelectorEvent> for SelectorAction {
+    fn to_event(&self) -> Option<SelectorEvent> {
+        Some(SelectorEvent {
+            selected: self.select.clone(),
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectorEvent {
+    pub selected: String,
 }
