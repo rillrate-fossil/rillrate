@@ -19,9 +19,10 @@ impl<T> DataFraction for T where
 
 /// Immutable state of a data flow.
 pub trait Flow: DataFraction {
-    // TODO: Consider to split `Event` into pair:
-    // `UpdateEvent` - that sent from a server to a client
-    // `ControlEvent` - that send from a client to a server
+    /// `ControlEvent` - that send from a client to a server
+    type Action: DataFraction;
+
+    /// `UpdateEvent` - that sent from a server to a client
     type Event: DataFraction;
 
     fn stream_type() -> StreamType;

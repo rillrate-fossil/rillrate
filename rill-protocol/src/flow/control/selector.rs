@@ -27,6 +27,7 @@ impl SelectorState {
 }
 
 impl Flow for SelectorState {
+    type Action = ();
     type Event = SelectorEvent;
 
     fn stream_type() -> StreamType {

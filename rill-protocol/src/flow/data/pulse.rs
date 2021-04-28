@@ -47,6 +47,7 @@ impl PulseState {
 }
 
 impl Flow for PulseState {
+    type Action = ();
     type Event = PulseEvent;
 
     fn stream_type() -> StreamType {

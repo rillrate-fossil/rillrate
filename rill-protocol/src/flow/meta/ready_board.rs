@@ -27,6 +27,7 @@ impl ReadyBoardState {
 }
 
 impl Flow for ReadyBoardState {
+    type Action = ();
     type Event = ReadyBoardEvent;
 
     fn stream_type() -> StreamType {

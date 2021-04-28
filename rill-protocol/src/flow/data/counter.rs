@@ -26,6 +26,7 @@ impl CounterState {
 }
 
 impl Flow for CounterState {
+    type Action = ();
     type Event = CounterEvent;
 
     fn stream_type() -> StreamType {

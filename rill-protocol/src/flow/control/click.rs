@@ -18,6 +18,7 @@ impl ClickState {
 }
 
 impl Flow for ClickState {
+    type Action = ();
     type Event = ClickEvent;
 
     fn stream_type() -> StreamType {

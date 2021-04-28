@@ -64,6 +64,7 @@ impl HistogramState {
 }
 
 impl Flow for HistogramState {
+    type Action = ();
     type Event = HistogramEvent;
 
     fn stream_type() -> StreamType {

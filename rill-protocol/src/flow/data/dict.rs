@@ -18,6 +18,7 @@ impl DictState {
 }
 
 impl Flow for DictState {
+    type Action = ();
     type Event = DictEvent;
 
     fn stream_type() -> StreamType {

@@ -19,6 +19,7 @@ impl PathState {
 }
 
 impl Flow for PathState {
+    type Action = ();
     type Event = PathEvent;
 
     fn stream_type() -> StreamType {

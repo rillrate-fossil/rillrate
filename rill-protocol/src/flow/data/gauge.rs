@@ -31,6 +31,7 @@ impl GaugeState {
 }
 
 impl Flow for GaugeState {
+    type Action = ();
     type Event = GaugeEvent;
 
     fn stream_type() -> StreamType {

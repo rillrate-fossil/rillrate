@@ -13,6 +13,7 @@ impl AlertState {
 }
 
 impl Flow for AlertState {
+    type Action = ();
     type Event = AlertEvent;
 
     fn stream_type() -> StreamType {

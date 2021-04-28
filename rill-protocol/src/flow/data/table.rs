@@ -67,6 +67,7 @@ impl TableState {
 }
 
 impl Flow for TableState {
+    type Action = ();
     type Event = TableEvent;
 
     fn stream_type() -> StreamType {

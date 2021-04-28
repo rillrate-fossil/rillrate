@@ -28,6 +28,7 @@ impl ToggleState {
 }
 
 impl Flow for ToggleState {
+    type Action = ();
     type Event = ToggleEvent;
 
     fn stream_type() -> StreamType {

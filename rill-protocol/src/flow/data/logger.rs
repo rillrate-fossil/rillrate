@@ -18,6 +18,7 @@ impl LoggerState {
 }
 
 impl Flow for LoggerState {
+    type Action = ();
     type Event = LoggerEvent;
 
     fn stream_type() -> StreamType {
