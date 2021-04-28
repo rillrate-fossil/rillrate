@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::flow::core::{self, TimedEvent};
+use rill_protocol::flow::core::{self, TimedEvent, ToEvent};
 use rill_protocol::io::provider::{
     Description, FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
     RecorderAction, RecorderRequest,
@@ -245,8 +245,8 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     RecorderAction::GetFlow => {
                         self.send_flow(id.into());
                     }
-                    RecorderAction::DoEvent(data) => {
-                        let event = T::unpack_event(&data)?;
+                    RecorderAction::DoAction(data) => {
+                        let action = T::unpack_action(&data)?;
                         match &mut self.mode {
                             TracerMode::Push {
                                 state,
@@ -254,21 +254,24 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                                 ..
                             } => {
                                 // TODO: Track errors and send them back to the client
+                                let opt_event = action.to_event();
                                 let timestamp = time_to_ts(None)?;
-                                if let Err(err) = control_sender.send(event.clone()) {
+                                if let Err(err) = control_sender.send(action) {
                                     log::error!(
-                                        "No event listeners in {} watcher: {}",
+                                        "No action listeners in {} watcher: {}",
                                         self.description.path,
                                         err,
                                     );
                                 }
-                                let timed_event = TimedEvent { timestamp, event };
-                                T::apply(state, timed_event.clone());
-                                self.send_delta(&[timed_event])?;
+                                if let Some(event) = opt_event {
+                                    let timed_event = TimedEvent { timestamp, event };
+                                    T::apply(state, timed_event.clone());
+                                    self.send_delta(&[timed_event])?;
+                                }
                             }
                             TracerMode::Pull { .. } => {
                                 log::error!(
-                                    "Do event request in the pull mode of {}",
+                                    "Do action request in the pull mode of {}",
                                     self.description.path
                                 );
                             }

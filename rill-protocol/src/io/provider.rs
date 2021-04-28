@@ -292,7 +292,7 @@ pub enum RecorderRequest {
 pub enum RecorderAction {
     GetFlow,
     GetSnapshot,
-    DoEvent(PackedEvent),
+    DoAction(PackedAction),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -367,8 +367,8 @@ macro_rules! packed {
 }
 
 packed!(PackedState);
-packed!(PackedDelta);
-packed!(PackedEvent);
+packed!(PackedDelta); // `PackedEvents`
+packed!(PackedAction);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProviderToServer {

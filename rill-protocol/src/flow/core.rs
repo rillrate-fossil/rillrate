@@ -1,5 +1,5 @@
 use crate::encoding;
-use crate::io::provider::{PackedDelta, PackedEvent, PackedState, StreamType, Timestamp};
+use crate::io::provider::{PackedAction, PackedDelta, PackedState, StreamType, Timestamp};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -17,10 +17,21 @@ impl<T> DataFraction for T where
 {
 }
 
+/// Generates a notification `Flow::Event` from `Flow::Action` reference.
+pub trait ToEvent<E> {
+    fn to_event(&self) -> Option<E>;
+}
+
+impl<E> ToEvent<E> for () {
+    fn to_event(&self) -> Option<E> {
+        None
+    }
+}
+
 /// Immutable state of a data flow.
 pub trait Flow: DataFraction {
     /// `ControlEvent` - that send from a client to a server
-    type Action: DataFraction;
+    type Action: DataFraction + ToEvent<Self::Event>;
 
     /// `UpdateEvent` - that sent from a server to a client
     type Event: DataFraction;
@@ -45,11 +56,11 @@ pub trait Flow: DataFraction {
         encoding::unpack(data)
     }
 
-    fn pack_event(event: &Self::Event) -> Result<PackedEvent, Error> {
-        encoding::pack(event)
+    fn pack_action(action: &Self::Action) -> Result<PackedAction, Error> {
+        encoding::pack(action)
     }
 
-    fn unpack_event(data: &PackedEvent) -> Result<Self::Event, Error> {
+    fn unpack_action(data: &PackedAction) -> Result<Self::Action, Error> {
         encoding::unpack(data)
     }
 }

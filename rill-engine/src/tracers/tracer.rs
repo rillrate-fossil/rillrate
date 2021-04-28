@@ -47,7 +47,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
         state: T,
         receiver: Option<DataReceiver<T>>,
         /// For sending events to a `Tracer` instances
-        control_sender: broadcast::Sender<T::Event>,
+        control_sender: broadcast::Sender<T::Action>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
@@ -61,7 +61,7 @@ enum InnerMode<T: core::Flow> {
     Push {
         sender: DataSender<T>,
         /// Kept for generating new `Receiver`s
-        control_sender: Arc<broadcast::Sender<T::Event>>,
+        control_sender: Arc<broadcast::Sender<T::Action>>,
     },
     Pull {
         state: Arc<Mutex<T>>,
@@ -116,7 +116,7 @@ impl<T: core::Flow> Tracer<T> {
         state: T,
         path: Path,
         pull: Option<Duration>,
-    ) -> (Self, Option<broadcast::Receiver<T::Event>>) {
+    ) -> (Self, Option<broadcast::Receiver<T::Action>>) {
         let inner_mode;
         let mode;
         let subscriber;
@@ -144,27 +144,6 @@ impl<T: core::Flow> Tracer<T> {
         }
         (Self::new(path, inner_mode, mode), subscriber)
     }
-
-    /*
-    /// Creates a new watched `Tracer`
-    ///
-    /// WARNING! Some control messages can be lost in case it the watcher
-    /// is not subscribed yet when first messages received.
-    // TODO: Fix the problem above ^
-    pub fn new_watcher(state: T, path: Path) -> Self {
-        // TODO: Consider to return a `Receiver` from this method
-        // and don't allow to subscribe again.
-        let (tx, _rx) = broadcast::channel(16);
-        let mode = TracerMode::Watched {
-            state,
-            control_sender: tx.clone(),
-        };
-        let inner_mode = InnerMode::Watched {
-            control_sender: Arc::new(tx),
-        };
-        Self::new(path, inner_mode, mode)
-    }
-    */
 
     fn new(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
         let stream_type = T::stream_type();
@@ -240,9 +219,8 @@ impl<T: core::Flow> Tracer<T> {
         }
     }
 
-    // TODO: Remove it completely and return `Receiver` from a constructor.
     /// Subscribe to the stream of the watcher.
-    pub fn subscribe(&mut self) -> Result<Watcher<T::Event>, Error> {
+    pub fn subscribe(&mut self) -> Result<Watcher<T::Action>, Error> {
         match &mut self.mode {
             InnerMode::Push { control_sender, .. } => Ok(control_sender.subscribe()),
             InnerMode::Pull { .. } => {
@@ -251,25 +229,6 @@ impl<T: core::Flow> Tracer<T> {
             }
         }
     }
-
-    /*
-    /// Receive a state.
-    pub async fn recv(&mut self) -> Result<TimedEvent<T::Event>, Error> {
-        match &mut self.mode {
-            InnerMode::Watched { receiver: Some(receiver), .. } => {
-                receiver.recv().await.map_err(Error::from)
-            },
-            InnerMode::Push { .. } => {
-                log::error!("Can't receive state in push mode of {}", self.path(),);
-                Err(Error::msg("Tracer::recv is not supported in push mode."))
-            }
-            InnerMode::Pull { .. } => {
-                log::error!("Can't receive state in pull mode of {}", self.path(),);
-                Err(Error::msg("Tracer::recv is not supported in pull mode."))
-            }
-        }
-    }
-    */
 }
 
 impl<T: core::Flow> Tracer<T> {
