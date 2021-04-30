@@ -27,7 +27,3 @@ pub fn server() -> Path {
 pub fn client() -> Path {
     Path::single("@self")
 }
-
-pub const ALERTS: Location = Location::new("meta:alerts");
-pub const PATHS: Location = Location::new("meta:paths");
-pub const READY_BOARDS: Location = Location::new("meta:readyboards");

@@ -1,6 +1,9 @@
 use crate::flow::core::{Flow, TimedEvent};
+use crate::flow::locations::Location;
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
+
+pub const ALERTS: Location = Location::new("meta:alerts");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AlertState {}

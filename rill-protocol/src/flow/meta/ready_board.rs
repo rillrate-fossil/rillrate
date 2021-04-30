@@ -1,7 +1,10 @@
 use crate::flow::core::{Flow, TimedEvent};
+use crate::flow::locations::Location;
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
+
+pub const READY_BOARDS: Location = Location::new("meta:readyboards");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Board {

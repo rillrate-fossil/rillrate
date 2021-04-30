@@ -1,7 +1,10 @@
 use crate::flow::core::{Flow, TimedEvent};
+use crate::flow::locations::Location;
 use crate::io::provider::{Description, Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+
+pub const PATHS: Location = Location::new("meta:paths");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathState {

@@ -15,7 +15,7 @@ use anyhow::Error;
 use engine::tracers::meta::ReadyBoardTracer;
 use meio::thread::ScopedRuntime;
 use once_cell::sync::Lazy;
-use protocol::flow::locations;
+use protocol::flow::meta::ready_board::READY_BOARDS;
 use protocol::io::provider::Path;
 use std::sync::Mutex;
 
@@ -33,7 +33,7 @@ impl RillRate {
         use supervisor::RillRate;
         let actor = RillRate::new(app_name.to_string());
         let _scoped = meio::thread::spawn(actor)?;
-        let path = locations::READY_BOARDS.root();
+        let path = READY_BOARDS.root();
         let ready_board_flow = ReadyBoardTracer::new(path);
         Ok(Self {
             _scoped,
