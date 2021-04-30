@@ -1,5 +1,5 @@
 use crate::flow::core::{Flow, TimedEvent};
-use crate::flow::locations::Location;
+use crate::flow::location::Location;
 use crate::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
