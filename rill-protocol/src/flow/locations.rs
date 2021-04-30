@@ -15,6 +15,14 @@ impl Location {
         path
     }
 
+    pub fn of_server(&self) -> Path {
+        self.of(server())
+    }
+
+    pub fn of_client(&self) -> Path {
+        self.of(client())
+    }
+
     pub fn root(&self) -> Path {
         Path::single(self.element)
     }
