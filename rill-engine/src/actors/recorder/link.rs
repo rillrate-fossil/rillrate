@@ -6,10 +6,17 @@ use rill_protocol::flow::core;
 use rill_protocol::io::provider::{ProviderReqId, RecorderRequest};
 
 /// COOL SOLUTION!
-trait Recipient: ActionRecipient<DoRecorderRequest> + ActionRecipient<ConnectionChanged> {}
+trait Recipient
+where
+    Self: ActionRecipient<DoRecorderRequest>,
+    Self: ActionRecipient<ConnectionChanged>,
+{
+}
 
-impl<T> Recipient for T where
-    T: ActionRecipient<DoRecorderRequest> + ActionRecipient<ConnectionChanged>
+impl<T> Recipient for T
+where
+    T: ActionRecipient<DoRecorderRequest>,
+    T: ActionRecipient<ConnectionChanged>,
 {
 }
 
