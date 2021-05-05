@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
-use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
+use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy, TaskAddress};
 use rill_protocol::flow::core::{self, TimedEvent, ToEvent};
 use rill_protocol::io::provider::{
     Description, FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
@@ -22,6 +22,7 @@ pub(crate) struct Recorder<T: core::Flow> {
     sender: RillSender,
     mode: TracerMode<T>,
     subscribers: HashSet<ProviderReqId>,
+    heartbeat: Option<TaskAddress<HeartBeat>>,
 }
 
 impl<T: core::Flow> Recorder<T> {
@@ -32,6 +33,7 @@ impl<T: core::Flow> Recorder<T> {
             sender,
             mode,
             subscribers: HashSet::new(),
+            heartbeat: None,
         }
     }
 
@@ -74,22 +76,29 @@ impl<T: core::Flow> Recorder<T> {
         self.sender.response(direction, response);
     }
 
-    fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+    /// No more messages from the flow will be received (no more messages expected).
+    fn drained(&mut self, ctx: &mut Context<Self>) {
+        // No more events will be received after this point.
+        self.drained_at = Some(Instant::now());
         if self.subscribers.is_empty() {
+            // There are subscribers. Wait when they will be terminated.
             ctx.shutdown();
         } else {
-            // TODO: Spawn a `HeartBeat`
+            self.send_end(self.all_subscribers());
+            // TODO: Start a heartbeat to limit waiting for close events
         }
     }
+}
 
-    /*
-    fn start_heartbeat(&mut self, ctx: &mut Context<Self>) {
-    }
-    */
+// TODO: Use `strum` here
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub enum Group {
+    HeartBeat,
+    Receiver,
 }
 
 impl<T: core::Flow> Actor for Recorder<T> {
-    type GroupBy = ();
+    type GroupBy = Group;
 
     fn name(&self) -> String {
         format!("Recorder({})", &self.description.path)
@@ -99,18 +108,20 @@ impl<T: core::Flow> Actor for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> StartedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(vec![Group::HeartBeat, Group::Receiver]);
         match &mut self.mode {
             TracerMode::Push { receiver, .. } => {
                 let rx = receiver
                     .take()
                     .expect("tracer hasn't attached receiver")
                     .ready_chunks(32);
-                ctx.attach(rx, (), ());
+                ctx.attach(rx, (), Group::Receiver);
                 Ok(())
             }
             TracerMode::Pull { interval, .. } => {
                 let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
-                let _task = ctx.spawn_task(heartbeat, (), ());
+                let task = ctx.spawn_task(heartbeat, (), Group::HeartBeat);
+                self.heartbeat = Some(task);
                 // Waiting for the subscribers to spawn a heartbeat activity
                 Ok(())
             }
@@ -121,7 +132,7 @@ impl<T: core::Flow> StartedBy<RillWorker> for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> InterruptedBy<RillWorker> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.graceful_shutdown(ctx);
+        ctx.shutdown();
         Ok(())
     }
 }
@@ -168,11 +179,7 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        // No more events will be received after this point.
-        self.send_end(self.all_subscribers());
-        self.drained_at = Some(Instant::now());
-        // TODO: Start a heartbeat to limit waiting for close events
-        self.graceful_shutdown(ctx);
+        self.drained(ctx);
         Ok(())
     }
 }
@@ -180,13 +187,14 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> OnTick for Recorder<T> {
     async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
+        let mut stop = false;
         if !self.subscribers.is_empty() {
             match &self.mode {
                 TracerMode::Pull { .. } => {
                     let direction = self.all_subscribers();
                     if let Err(_err) = self.send_state(direction).await {
-                        // Stop the actor if the data can't be pulled.
-                        self.graceful_shutdown(ctx);
+                        self.drained(ctx);
+                        stop = true;
                     }
                 }
                 TracerMode::Push { .. } => {
@@ -196,6 +204,13 @@ impl<T: core::Flow> OnTick for Recorder<T> {
                     );
                 }
             }
+        }
+        if stop {
+            let task = self
+                .heartbeat
+                .take()
+                .ok_or_else(|| Error::msg("No heartbeat address"))?;
+            task.stop()?;
         }
         Ok(())
     }
@@ -235,6 +250,8 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                                         id
                                     );
                                 }
+                                // TODO: Start heartbeat if the first subscriber appeared
+                                // for Pull mode only
                             } else {
                                 // TODO: Send Error
                             }
@@ -246,8 +263,11 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                                 log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
                             }
                             if self.drained_at.is_some() {
-                                self.graceful_shutdown(ctx);
+                                if self.subscribers.is_empty() {
+                                    ctx.shutdown();
+                                }
                             }
+                            // TODO: Stop heartbeat here
                         }
                     }
                     /*
