@@ -14,8 +14,10 @@ use rill_protocol::io::provider::{
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
+use std::time::Instant;
 
 pub(crate) struct Recorder<T: core::Flow> {
+    drained_at: Option<Instant>,
     description: Arc<Description>,
     sender: RillSender,
     mode: TracerMode<T>,
@@ -25,6 +27,7 @@ pub(crate) struct Recorder<T: core::Flow> {
 impl<T: core::Flow> Recorder<T> {
     pub fn new(description: Arc<Description>, sender: RillSender, mode: TracerMode<T>) -> Self {
         Self {
+            drained_at: None,
             description,
             sender,
             mode,
@@ -72,11 +75,17 @@ impl<T: core::Flow> Recorder<T> {
     }
 
     fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
-        // No more events will be received after this point.
-        self.send_end(self.all_subscribers());
-        self.subscribers.clear();
-        ctx.shutdown();
+        if self.subscribers.is_empty() {
+            ctx.shutdown();
+        } else {
+            // TODO: Spawn a `HeartBeat`
+        }
     }
+
+    /*
+    fn start_heartbeat(&mut self, ctx: &mut Context<Self>) {
+    }
+    */
 }
 
 impl<T: core::Flow> Actor for Recorder<T> {
@@ -159,6 +168,10 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        // No more events will be received after this point.
+        self.send_end(self.all_subscribers());
+        self.drained_at = Some(Instant::now());
+        // TODO: Start a heartbeat to limit waiting for close events
         self.graceful_shutdown(ctx);
         Ok(())
     }
@@ -213,13 +226,17 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     );
                     match control {
                         FlowControl::StartStream => {
-                            if self.subscribers.insert(id) {
-                                self.send_state(id.into()).await?;
+                            if self.drained_at.is_none() {
+                                if self.subscribers.insert(id) {
+                                    self.send_state(id.into()).await?;
+                                } else {
+                                    log::warn!(
+                                        "Attempt to subscribe twice for <path> with id: {:?}",
+                                        id
+                                    );
+                                }
                             } else {
-                                log::warn!(
-                                    "Attempt to subscribe twice for <path> with id: {:?}",
-                                    id
-                                );
+                                // TODO: Send Error
                             }
                         }
                         FlowControl::StopStream => {
@@ -227,6 +244,9 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                                 self.send_end(id.into());
                             } else {
                                 log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
+                            }
+                            if self.drained_at.is_some() {
+                                self.graceful_shutdown(ctx);
                             }
                         }
                     }
@@ -238,46 +258,52 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     }
                     */
                 }
-                RecorderRequest::Action(action) => match action {
-                    RecorderAction::GetSnapshot => {
-                        self.send_state(id.into()).await?;
-                    }
-                    RecorderAction::GetFlow => {
-                        self.send_flow(id.into());
-                    }
-                    RecorderAction::DoAction(data) => {
-                        let action = T::unpack_action(&data)?;
-                        match &mut self.mode {
-                            TracerMode::Push {
-                                state,
-                                control_sender,
-                                ..
-                            } => {
-                                // TODO: Track errors and send them back to the client
-                                let opt_event = action.to_event();
-                                let timestamp = time_to_ts(None)?;
-                                if let Err(err) = control_sender.send(action) {
-                                    log::error!(
-                                        "No action listeners in {} watcher: {}",
-                                        self.description.path,
-                                        err,
-                                    );
+                RecorderRequest::Action(action) => {
+                    match action {
+                        RecorderAction::GetSnapshot => {
+                            self.send_state(id.into()).await?;
+                        }
+                        RecorderAction::GetFlow => {
+                            self.send_flow(id.into());
+                        }
+                        RecorderAction::DoAction(data) => {
+                            if self.drained_at.is_none() {
+                                let action = T::unpack_action(&data)?;
+                                match &mut self.mode {
+                                    TracerMode::Push {
+                                        state,
+                                        control_sender,
+                                        ..
+                                    } => {
+                                        // TODO: Track errors and send them back to the client
+                                        let opt_event = action.to_event();
+                                        let timestamp = time_to_ts(None)?;
+                                        if let Err(err) = control_sender.send(action) {
+                                            log::error!(
+                                                "No action listeners in {} watcher: {}",
+                                                self.description.path,
+                                                err,
+                                            );
+                                        }
+                                        if let Some(event) = opt_event {
+                                            let timed_event = TimedEvent { timestamp, event };
+                                            T::apply(state, timed_event.clone());
+                                            self.send_delta(&[timed_event])?;
+                                        }
+                                    }
+                                    TracerMode::Pull { .. } => {
+                                        log::error!(
+                                            "Do action request in the pull mode of {}",
+                                            self.description.path
+                                        );
+                                    }
                                 }
-                                if let Some(event) = opt_event {
-                                    let timed_event = TimedEvent { timestamp, event };
-                                    T::apply(state, timed_event.clone());
-                                    self.send_delta(&[timed_event])?;
-                                }
-                            }
-                            TracerMode::Pull { .. } => {
-                                log::error!(
-                                    "Do action request in the pull mode of {}",
-                                    self.description.path
-                                );
+                            } else {
+                                // TODO: Send Error?
                             }
                         }
                     }
-                },
+                }
             }
         } else {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
