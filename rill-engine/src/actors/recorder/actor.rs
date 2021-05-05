@@ -135,25 +135,29 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     async fn handle(
         &mut self,
         chunk: Vec<DataEnvelope<T>>,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        let mut delta = Vec::new();
-        for envelope in chunk.into_iter() {
-            let event = envelope.into_inner();
-            delta.push(event);
-        }
+        if !ctx.is_terminating() {
+            let mut delta = Vec::new();
+            for envelope in chunk.into_iter() {
+                let event = envelope.into_inner();
+                delta.push(event);
+            }
 
-        self.send_delta(&delta)?;
+            self.send_delta(&delta)?;
 
-        match &mut self.mode {
-            TracerMode::Push { state, .. } => {
-                for event in delta {
-                    T::apply(state, event);
+            match &mut self.mode {
+                TracerMode::Push { state, .. } => {
+                    for event in delta {
+                        T::apply(state, event);
+                    }
+                }
+                TracerMode::Pull { .. } => {
+                    log::error!("Delta received in pull mode for: {}", self.description.path);
                 }
             }
-            TracerMode::Pull { .. } => {
-                log::error!("Delta received in pull mode for: {}", self.description.path);
-            }
+        } else {
+            // TODO: Use `ConsumerHandle` to abort the stream (or interrupt with `stop` call).
         }
         Ok(())
     }
@@ -167,7 +171,7 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> OnTick for Recorder<T> {
     async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
-        if !self.subscribers.is_empty() {
+        if !self.subscribers.is_empty() && !ctx.is_terminating() {
             match &self.mode {
                 TracerMode::Pull { .. } => {
                     let direction = self.all_subscribers();
