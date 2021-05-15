@@ -106,6 +106,17 @@ impl<T: core::Flow> Clone for Tracer<T> {
     }
 }
 
+// TODO: Not sure this is suitable for on-demand spawned recorders.
+/// Both tracers are equal only if they use the same description.
+/// That means they both have the same recorder/channel.
+impl<T: core::Flow> PartialEq for Tracer<T> {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.description, &other.description)
+    }
+}
+
+impl<T: core::Flow> Eq for Tracer<T> {}
+
 impl<T: core::Flow> Tracer<T> {
     /// Creates a new `Tracer`.
     pub fn new_tracer(state: T, path: Path, pull: Option<Duration>) -> Self {
