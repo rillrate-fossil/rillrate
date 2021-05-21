@@ -72,6 +72,7 @@ impl<T: core::Flow> Recorder<T> {
     }
 
     fn graceful_shutdown(&mut self, ctx: &mut Context<Self>) {
+        //log::warn!("Terminating: {}", self.name());
         // No more events will be received after this point.
         self.send_end(self.all_subscribers());
         self.subscribers.clear();

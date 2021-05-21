@@ -25,9 +25,10 @@ impl RillConnector {
         Ok(())
     }
 
-    pub(super) fn detach_distributor(&mut self, ctx: &mut Context<Self>) {
+    pub(super) fn detach_distributor(&mut self) {
         DISTRIBUTOR.sender.close_channel();
-        ctx.terminate_group(Group::ParcelStream);
+        // NEVER terminate the group. The channel above has to be drained!!!
+        //ctx.terminate_group(Group::ParcelStream);
     }
 }
 

@@ -127,7 +127,8 @@ impl StartedBy<RillEngine> for RillConnector {
 #[async_trait]
 impl InterruptedBy<RillEngine> for RillConnector {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.detach_distributor(ctx);
+        self.detach_distributor();
+        ctx.shutdown();
         Ok(())
     }
 }
