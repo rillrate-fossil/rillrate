@@ -1,6 +1,8 @@
 //! This module contains a generic `Tracer`'s methods.
-use crate::actors::connector::DISTRIBUTOR;
+use crate::actors::connector;
+use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
+use async_trait::async_trait;
 use futures::channel::mpsc;
 use meio::Action;
 use rill_protocol::flow::core::{self, TimedEvent};
@@ -173,7 +175,7 @@ impl<T: core::Flow> Tracer<T> {
             description: description.clone(),
             mode: inner_mode,
         };
-        if let Err(err) = DISTRIBUTOR.register_tracer(description, mode) {
+        if let Err(err) = connector::DISTRIBUTOR.register_tracer(description, mode) {
             log::error!(
                 "Can't register a Tracer. The worker can be terminated already: {}",
                 err
@@ -250,7 +252,12 @@ impl<T: core::Flow> Tracer<T> {
             tracer: self.clone(),
             callback: func,
         };
-        tokio::spawn(callback.routine());
+        if let Err(err) = pool::DISTRIBUTOR.spawn_task(callback) {
+            log::error!(
+                "Can't spawn a Callback. The worker can be terminated already: {}",
+                err
+            );
+        }
     }
 }
 
@@ -259,10 +266,11 @@ struct Callback<T: core::Flow, F> {
     callback: F,
 }
 
-impl<T, F> Callback<T, F>
+#[async_trait]
+impl<T, F> RillPoolTask for Callback<T, F>
 where
     T: core::Flow,
-    F: Fn(T::Action),
+    F: Fn(T::Action) + Send + 'static,
 {
     async fn routine(mut self) -> Result<(), Error> {
         let mut stream = self.tracer.subscribe()?;

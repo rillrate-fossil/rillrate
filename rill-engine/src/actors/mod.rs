@@ -1,4 +1,4 @@
 pub(crate) mod connector;
 pub mod engine;
-mod pool;
+pub(crate) mod pool;
 mod recorder;
