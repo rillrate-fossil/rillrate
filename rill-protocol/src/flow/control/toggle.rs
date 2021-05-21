@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, TimedEvent, ToEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
@@ -57,14 +57,6 @@ impl ToggleAction {
 
     pub fn off() -> Self {
         Self { set_active: false }
-    }
-}
-
-impl ToEvent<ToggleEvent> for ToggleAction {
-    fn to_event(&self) -> Option<ToggleEvent> {
-        Some(ToggleEvent {
-            active: self.set_active,
-        })
     }
 }
 

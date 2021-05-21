@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::click::ClickState;
+use rill_protocol::flow::control::click::{ClickEvent, ClickState};
 use rill_protocol::io::provider::Path;
 
 /// Receives clicks from a user.
@@ -17,10 +17,9 @@ impl ClickWatcher {
         Self { tracer }
     }
 
-    /*
-    /// Wait for the click event.
-    pub fn clicks(&mut self) -> Result<Watcher<ClickEvent>, Error> {
-        self.tracer.subscribe()
+    /// Send `Clicked` event.
+    pub fn clicked(&self) {
+        let event = ClickEvent;
+        self.tracer.send(event, None);
     }
-    */
 }

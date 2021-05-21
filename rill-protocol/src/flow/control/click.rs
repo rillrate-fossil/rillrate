@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, TimedEvent, ToEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
@@ -32,12 +32,6 @@ impl Flow for ClickState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClickAction;
-
-impl ToEvent<ClickEvent> for ClickAction {
-    fn to_event(&self) -> Option<ClickEvent> {
-        Some(ClickEvent)
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClickEvent;

@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, TimedEvent, ToEvent};
+use crate::flow::core::{Flow, TimedEvent};
 use crate::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
@@ -53,14 +53,6 @@ pub struct SelectorAction {
 impl SelectorAction {
     pub fn select(value: String) -> Self {
         Self { select: value }
-    }
-}
-
-impl ToEvent<SelectorEvent> for SelectorAction {
-    fn to_event(&self) -> Option<SelectorEvent> {
-        Some(SelectorEvent {
-            selected: self.select.clone(),
-        })
     }
 }
 

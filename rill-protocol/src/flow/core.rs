@@ -17,21 +17,10 @@ impl<T> DataFraction for T where
 {
 }
 
-/// Generates a notification `Flow::Event` from `Flow::Action` reference.
-pub trait ToEvent<E> {
-    fn to_event(&self) -> Option<E>;
-}
-
-impl<E> ToEvent<E> for () {
-    fn to_event(&self) -> Option<E> {
-        None
-    }
-}
-
 /// Immutable state of a data flow.
 pub trait Flow: DataFraction {
     /// `ControlEvent` - that send from a client to a server
-    type Action: DataFraction + ToEvent<Self::Event>;
+    type Action: DataFraction;
 
     /// `UpdateEvent` - that sent from a server to a client
     type Event: DataFraction;

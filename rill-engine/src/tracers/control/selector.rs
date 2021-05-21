@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::selector::SelectorState;
+use rill_protocol::flow::control::selector::{SelectorEvent, SelectorState};
 use rill_protocol::io::provider::Path;
 
 /// Receives select events from a user.
@@ -17,14 +17,9 @@ impl SelectorWatcher {
         Self { tracer }
     }
 
-    /*
-    /// Wait for the select event.
-    pub async fn watch_select(&mut self) -> Result<String, Error> {
-        // TODO: Use cloneable values of type `K` and keep them in an `Arc`
-        self.tracer
-            .recv()
-            .await
-            .map(|timed_event| timed_event.event.select)
+    /// Set selected value.
+    pub fn selected(&self, selected: String) {
+        let event = SelectorEvent { selected };
+        self.tracer.send(event, None);
     }
-    */
 }

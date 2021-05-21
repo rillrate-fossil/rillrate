@@ -1,6 +1,6 @@
 use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::toggle::ToggleState;
+use rill_protocol::flow::control::toggle::{ToggleEvent, ToggleState};
 use rill_protocol::io::provider::Path;
 
 /// Receives toggle events from a user.
@@ -17,13 +17,9 @@ impl ToggleWatcher {
         Self { tracer }
     }
 
-    /*
-    /// Wait for the toggle event.
-    pub async fn watch_toggle(&mut self) -> Result<bool, Error> {
-        self.tracer
-            .recv()
-            .await
-            .map(|timed_event| timed_event.event.active)
+    /// Set selected value.
+    pub fn set_active(&self, active: bool) {
+        let event = ToggleEvent { active };
+        self.tracer.send(event, None);
     }
-    */
 }
