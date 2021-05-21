@@ -11,13 +11,13 @@ use std::time::Duration;
 
 fn main() -> Result<(), Error> {
     env_logger::try_init()?;
+
     let mut rillrate = RillRate::from_env("all-example")?;
     rillrate.add_board(
         "All Pulses".into(),
         vec!["my.pulse.fast".parse()?, "my.pulse.random".parse()?],
         Some("Show all pulses available in the example.".into()),
     );
-
     rillrate.add_board(
         "Counters with Alert".into(),
         vec![
@@ -28,7 +28,9 @@ fn main() -> Result<(), Error> {
         Some("Show all counters and alerts.".into()),
     );
 
-    let _click = Click::create("control.click", "Button".into())?;
+    let click = Click::create("control.click", "Button".into())?;
+    //click.callback(|click| click.clicked());
+
     let _selector = Selector::create(
         "control.selector",
         "Selector".into(),

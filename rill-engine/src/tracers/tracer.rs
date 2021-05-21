@@ -240,6 +240,37 @@ impl<T: core::Flow> Tracer<T> {
             }
         }
     }
+
+    /// Registers a callback to the flow.
+    pub fn callback<F>(&mut self, func: F)
+    where
+        F: Fn(&Self, T::Action) + Send + 'static,
+    {
+        let callback = Callback {
+            tracer: self.clone(),
+            callback: func,
+        };
+        tokio::spawn(callback.routine());
+    }
+}
+
+struct Callback<T: core::Flow, F> {
+    tracer: Tracer<T>,
+    callback: F,
+}
+
+impl<T, F> Callback<T, F>
+where
+    T: core::Flow,
+    F: Fn(&Tracer<T>, T::Action),
+{
+    async fn routine(mut self) -> Result<(), Error> {
+        let mut stream = self.tracer.subscribe()?;
+        loop {
+            let action = stream.recv().await?;
+            (self.callback)(&self.tracer, action)
+        }
+    }
 }
 
 impl<T: core::Flow> Tracer<T> {
