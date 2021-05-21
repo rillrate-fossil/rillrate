@@ -9,10 +9,27 @@ use once_cell::sync::Lazy;
 use rill_protocol::flow::core;
 use rill_protocol::io::provider::Description;
 use std::sync::Arc;
+use thiserror::Error;
 
 /// It used by tracers to register them into the state.
 pub(crate) static DISTRIBUTOR: Lazy<ParcelDistributor<RillConnector>> =
     Lazy::new(ParcelDistributor::new);
+
+impl RillConnector {
+    pub(super) async fn attach_distributor(
+        &mut self,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        let rx = DISTRIBUTOR.take_receiver().await?;
+        ctx.attach(rx, (), Group::ParcelStream);
+        Ok(())
+    }
+
+    pub(super) fn detach_distributor(&mut self, ctx: &mut Context<Self>) {
+        DISTRIBUTOR.sender.close_channel();
+        ctx.terminate_group(Group::ParcelStream);
+    }
+}
 
 #[async_trait]
 impl Consumer<Parcel<Self>> for RillConnector {
@@ -62,12 +79,16 @@ pub(crate) struct RegisterTracer<T: core::Flow> {
 
 impl<T: core::Flow> InstantAction for RegisterTracer<T> {}
 
+#[derive(Error, Debug)]
+#[error("Tracer not registered")]
+pub struct TracerNotRegistered;
+
 impl ParcelDistributor<RillConnector> {
     pub fn register_tracer<T>(
         &self,
         description: Arc<Description>,
         mode: TracerMode<T>,
-    ) -> Result<(), Error>
+    ) -> Result<(), TracerNotRegistered>
     where
         RillConnector: InstantActionHandler<RegisterTracer<T>>,
         T: core::Flow,
@@ -76,6 +97,6 @@ impl ParcelDistributor<RillConnector> {
         let parcel = Parcel::pack(msg);
         self.sender
             .unbounded_send(parcel)
-            .map_err(|_| Error::msg("Can't register a tracer."))
+            .map_err(|_| TracerNotRegistered)
     }
 }

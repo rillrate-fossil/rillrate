@@ -60,7 +60,7 @@ pub enum Group {
     WsConnection,
     /// Interactions
     ActiveRequests,
-    UpgradeStream,
+    ParcelStream,
     Recorders,
 }
 
@@ -107,12 +107,11 @@ impl StartedBy<RillEngine> for RillConnector {
         ctx.termination_sequence(vec![
             Group::ActiveRequests,
             Group::WsConnection,
-            Group::UpgradeStream,
+            Group::ParcelStream,
             Group::Recorders,
         ]);
 
-        let rx = super::DISTRIBUTOR.take_receiver().await?;
-        ctx.attach(rx, (), Group::UpgradeStream);
+        self.attach_distributor(ctx).await?;
 
         let client = WsClient::new(
             self.config.node_url(),
@@ -127,9 +126,8 @@ impl StartedBy<RillEngine> for RillConnector {
 
 #[async_trait]
 impl InterruptedBy<RillEngine> for RillConnector {
-    async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        // Closes the control channel and with then it will be finished
-        super::DISTRIBUTOR.sender.close_channel();
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.detach_distributor(ctx);
         Ok(())
     }
 }

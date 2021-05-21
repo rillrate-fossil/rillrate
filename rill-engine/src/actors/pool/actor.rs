@@ -1,3 +1,5 @@
+pub mod parcel;
+
 use crate::actors::engine::RillEngine;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -11,13 +13,20 @@ impl RillPool {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Group {
+    ParcelStream,
+    Tasks,
+}
+
 impl Actor for RillPool {
-    type GroupBy = ();
+    type GroupBy = Group;
 }
 
 #[async_trait]
 impl StartedBy<RillEngine> for RillPool {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.attach_distributor(ctx).await?;
         Ok(())
     }
 }
@@ -25,6 +34,7 @@ impl StartedBy<RillEngine> for RillPool {
 #[async_trait]
 impl InterruptedBy<RillEngine> for RillPool {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.detach_distributor(ctx);
         ctx.shutdown();
         Ok(())
     }
