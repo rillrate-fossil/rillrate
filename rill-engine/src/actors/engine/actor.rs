@@ -1,4 +1,5 @@
 use crate::actors::connector::RillConnector;
+use crate::actors::pool::RillPool;
 use crate::config::EngineConfig;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -8,14 +9,14 @@ use rill_protocol::io::provider::EntryId;
 /// The supervisor that spawns a connector.
 pub struct RillEngine {
     name: EntryId,
-    /// It wrapped with `Option` to take it for a `Worker` instance later.
+    /// It wrapped with `Option` to take it for a `Connector` instance later.
     config: Option<EngineConfig>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Group {
-    Worker,
-    Storage,
+    Connector,
+    Pool,
 }
 
 impl Actor for RillEngine {
@@ -40,11 +41,14 @@ impl RillEngine {
 #[async_trait]
 impl<T: Actor> StartedBy<T> for RillEngine {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Worker, Group::Storage]);
+        ctx.termination_sequence(vec![Group::Connector, Group::Pool]);
 
         let config = self.config.take().unwrap();
         let connector = RillConnector::new(config);
-        ctx.spawn_actor(connector, Group::Worker);
+        ctx.spawn_actor(connector, Group::Connector);
+
+        let pool = RillPool::new();
+        ctx.spawn_actor(pool, Group::Pool);
 
         Ok(())
     }
@@ -65,8 +69,14 @@ impl Eliminated<RillConnector> for RillEngine {
         _id: IdOf<RillConnector>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        // TODO: Do we really need it here?
         ctx.shutdown();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Eliminated<RillPool> for RillEngine {
+    async fn handle(&mut self, _id: IdOf<RillPool>, ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }
