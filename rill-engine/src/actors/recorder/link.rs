@@ -1,5 +1,5 @@
 use super::Recorder;
-use crate::actors::worker::RillSender;
+use crate::actors::connector::RillSender;
 use anyhow::Error;
 use meio::{Action, ActionRecipient, Address};
 use rill_protocol::flow::core;

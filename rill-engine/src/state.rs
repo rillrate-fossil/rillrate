@@ -1,4 +1,4 @@
-use crate::actors::worker::RillWorker;
+use crate::actors::connector::RillConnector;
 use crate::tracers::tracer::TracerMode;
 use anyhow::Error;
 use futures::channel::mpsc;
@@ -12,8 +12,8 @@ use std::sync::Arc;
 /// It used by tracers to register them into the state.
 pub(crate) static RILL_LINK: Lazy<RillState> = Lazy::new(RillState::new);
 
-type Sender = mpsc::UnboundedSender<Parcel<RillWorker>>;
-type Receiver = mpsc::UnboundedReceiver<Parcel<RillWorker>>;
+type Sender = mpsc::UnboundedSender<Parcel<RillConnector>>;
+type Receiver = mpsc::UnboundedReceiver<Parcel<RillConnector>>;
 
 pub(crate) struct RillState {
     pub sender: Sender,
@@ -49,7 +49,7 @@ impl RillState {
         mode: TracerMode<T>,
     ) -> Result<(), Error>
     where
-        RillWorker: InstantActionHandler<RegisterTracer<T>>,
+        RillConnector: InstantActionHandler<RegisterTracer<T>>,
         T: core::Flow,
     {
         let msg = RegisterTracer { description, mode };

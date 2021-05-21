@@ -1,3 +1,3 @@
 mod actor;
+pub use actor::RillConnector;
 pub(crate) use actor::RillSender;
-pub use actor::RillWorker;

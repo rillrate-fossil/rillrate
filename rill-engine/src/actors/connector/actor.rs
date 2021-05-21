@@ -63,7 +63,7 @@ pub enum Group {
     Recorders,
 }
 
-pub struct RillWorker {
+pub struct RillConnector {
     url: String,
     config: EngineConfig,
     sender: RillSender,
@@ -72,7 +72,7 @@ pub struct RillWorker {
     path_flow: PathTracer,
 }
 
-impl RillWorker {
+impl RillConnector {
     pub fn new(config: EngineConfig) -> Self {
         let paths = PATHS.root();
         Self {
@@ -91,16 +91,16 @@ impl RillWorker {
 }
 
 #[async_trait]
-impl Actor for RillWorker {
+impl Actor for RillConnector {
     type GroupBy = Group;
 
     fn name(&self) -> String {
-        format!("RillWorker({})", &self.url)
+        format!("RillConnector({})", &self.url)
     }
 }
 
 #[async_trait]
-impl StartedBy<RillEngine> for RillWorker {
+impl StartedBy<RillEngine> for RillConnector {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         // TODO: Replace with strum iter
         ctx.termination_sequence(vec![
@@ -128,7 +128,7 @@ impl StartedBy<RillEngine> for RillWorker {
 }
 
 #[async_trait]
-impl InterruptedBy<RillEngine> for RillWorker {
+impl InterruptedBy<RillEngine> for RillConnector {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         // Closes the control channel and with then it will be finished
         state::RILL_LINK.sender.close_channel();
@@ -137,7 +137,7 @@ impl InterruptedBy<RillEngine> for RillWorker {
 }
 
 #[async_trait]
-impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillWorker {
+impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillConnector {
     async fn handle(
         &mut self,
         status: WsClientStatus<ProviderProtocol>,
@@ -183,7 +183,7 @@ impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillWorker {
 }
 
 #[async_trait]
-impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for RillWorker {
+impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for RillConnector {
     async fn handle(
         &mut self,
         msg: WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>,
@@ -212,7 +212,7 @@ impl ActionHandler<WsIncoming<Envelope<ProviderProtocol, ServerToProvider>>> for
 }
 
 #[async_trait]
-impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillWorker {
+impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillConnector {
     async fn handle(
         &mut self,
         _id: IdOf<WsClient<ProviderProtocol, Self>>,
@@ -226,7 +226,7 @@ impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillWorker {
 }
 
 #[async_trait]
-impl Consumer<Parcel<Self>> for RillWorker {
+impl Consumer<Parcel<Self>> for RillConnector {
     async fn handle(&mut self, parcel: Parcel<Self>, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.address().unpack_parcel(parcel)
     }
@@ -238,7 +238,7 @@ impl Consumer<Parcel<Self>> for RillWorker {
 }
 
 #[async_trait]
-impl<T: core::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorker {
+impl<T: core::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillConnector {
     async fn handle(
         &mut self,
         msg: state::RegisterTracer<T>,
@@ -267,7 +267,7 @@ impl<T: core::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillWorke
 }
 
 #[async_trait]
-impl<T: core::Flow> Eliminated<Recorder<T>> for RillWorker {
+impl<T: core::Flow> Eliminated<Recorder<T>> for RillConnector {
     async fn handle(
         &mut self,
         id: IdOf<Recorder<T>>,

@@ -1,5 +1,5 @@
 use super::link;
-use crate::actors::worker::{RillSender, RillWorker};
+use crate::actors::connector::{RillConnector, RillSender};
 use crate::tracers::tracer::{DataEnvelope, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -88,7 +88,7 @@ impl<T: core::Flow> Actor for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: core::Flow> StartedBy<RillWorker> for Recorder<T> {
+impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         match &mut self.mode {
             TracerMode::Push { receiver, .. } => {
@@ -110,7 +110,7 @@ impl<T: core::Flow> StartedBy<RillWorker> for Recorder<T> {
 }
 
 #[async_trait]
-impl<T: core::Flow> InterruptedBy<RillWorker> for Recorder<T> {
+impl<T: core::Flow> InterruptedBy<RillConnector> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         self.graceful_shutdown(ctx);
         Ok(())
