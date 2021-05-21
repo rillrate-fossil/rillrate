@@ -110,7 +110,7 @@ impl StartedBy<RillEngine> for RillConnector {
             Group::Recorders,
         ]);
 
-        let rx = state::RILL_LINK.take_connector_receiver().await?;
+        let rx = state::RILL_LINK.take_receiver().await?;
         ctx.attach(rx, (), Group::UpgradeStream);
 
         let client = WsClient::new(

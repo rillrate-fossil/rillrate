@@ -3,7 +3,7 @@ use crate::tracers::tracer::TracerMode;
 use anyhow::Error;
 use futures::channel::mpsc;
 use futures::lock::Mutex;
-use meio::{InstantAction, InstantActionHandler, Parcel};
+use meio::{Actor, InstantAction, InstantActionHandler, Parcel};
 use once_cell::sync::Lazy;
 use rill_protocol::flow::core;
 use rill_protocol::io::provider::Description;
@@ -15,17 +15,15 @@ use thiserror::Error;
 pub struct AlreadyTaken;
 
 /// It used by tracers to register them into the state.
-pub(crate) static RILL_LINK: Lazy<RillState> = Lazy::new(RillState::new);
+pub(crate) static RILL_LINK: Lazy<ParcelDistributor<RillConnector>> =
+    Lazy::new(ParcelDistributor::new);
 
-type Sender = mpsc::UnboundedSender<Parcel<RillConnector>>;
-type Receiver = mpsc::UnboundedReceiver<Parcel<RillConnector>>;
-
-pub(crate) struct RillState {
-    pub sender: Sender,
-    pub receiver: Mutex<Option<Receiver>>,
+pub(crate) struct ParcelDistributor<A: Actor> {
+    pub sender: mpsc::UnboundedSender<Parcel<A>>,
+    pub receiver: Mutex<Option<mpsc::UnboundedReceiver<Parcel<A>>>>,
 }
 
-impl RillState {
+impl<A: Actor> ParcelDistributor<A> {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::unbounded();
         let receiver = Mutex::new(Some(rx));
@@ -35,7 +33,7 @@ impl RillState {
         }
     }
 
-    pub async fn take_connector_receiver(&self) -> Result<Receiver, AlreadyTaken> {
+    pub async fn take_receiver(&self) -> Result<mpsc::UnboundedReceiver<Parcel<A>>, AlreadyTaken> {
         self.receiver.lock().await.take().ok_or(AlreadyTaken)
     }
 }
@@ -47,7 +45,7 @@ pub(crate) struct RegisterTracer<T: core::Flow> {
 
 impl<T: core::Flow> InstantAction for RegisterTracer<T> {}
 
-impl RillState {
+impl ParcelDistributor<RillConnector> {
     pub fn register_tracer<T>(
         &self,
         description: Arc<Description>,
