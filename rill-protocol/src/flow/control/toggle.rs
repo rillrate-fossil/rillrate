@@ -58,6 +58,10 @@ impl ToggleAction {
     pub fn off() -> Self {
         Self { set_active: false }
     }
+
+    pub fn into_value(self) -> bool {
+        self.set_active
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

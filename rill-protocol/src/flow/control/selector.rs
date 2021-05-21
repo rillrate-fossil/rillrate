@@ -54,6 +54,10 @@ impl SelectorAction {
     pub fn select(value: String) -> Self {
         Self { select: value }
     }
+
+    pub fn into_value(self) -> String {
+        self.select
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

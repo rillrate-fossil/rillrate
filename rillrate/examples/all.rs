@@ -28,16 +28,22 @@ fn main() -> Result<(), Error> {
         Some("Show all counters and alerts.".into()),
     );
 
-    let click = Click::create("control.click", "Button".into())?;
-    //click.callback(|click| click.clicked());
+    let mut click = Click::create("control.click", "Button".into())?;
+    let tracer = click.clone();
+    click.callback(move |_action| tracer.clicked());
 
-    let _selector = Selector::create(
+    let mut selector = Selector::create(
         "control.selector",
         "Selector".into(),
         vec!["One".into(), "Two".into()],
         "One".into(),
     )?;
-    let _toggle = Toggle::create("control.toggle", "Toggle".into(), false)?;
+    let tracer = selector.clone();
+    selector.callback(move |action| tracer.selected(action.into_value()));
+
+    let mut toggle = Toggle::create("control.toggle", "Toggle".into(), false)?;
+    let tracer = toggle.clone();
+    toggle.callback(move |action| tracer.set_active(action.into_value()));
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));
