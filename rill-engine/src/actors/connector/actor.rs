@@ -1,13 +1,14 @@
+mod parcel;
+
 use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::config::EngineConfig;
-use crate::state;
 use crate::tracers::meta::PathTracer;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
-    ActionHandler, Actor, Consumer, Context, Eliminated, Id, IdOf, InstantActionHandler,
-    InterruptedBy, Parcel, StartedBy, TaskEliminated, TaskError,
+    ActionHandler, Actor, Context, Eliminated, Id, IdOf, InstantActionHandler, InterruptedBy,
+    StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -110,7 +111,7 @@ impl StartedBy<RillEngine> for RillConnector {
             Group::Recorders,
         ]);
 
-        let rx = state::RILL_LINK.take_receiver().await?;
+        let rx = super::DISTRIBUTOR.take_receiver().await?;
         ctx.attach(rx, (), Group::UpgradeStream);
 
         let client = WsClient::new(
@@ -128,7 +129,7 @@ impl StartedBy<RillEngine> for RillConnector {
 impl InterruptedBy<RillEngine> for RillConnector {
     async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         // Closes the control channel and with then it will be finished
-        state::RILL_LINK.sender.close_channel();
+        super::DISTRIBUTOR.sender.close_channel();
         Ok(())
     }
 }
@@ -218,47 +219,6 @@ impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillConnector {
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         // TODO: Drop unfinished tasks
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl Consumer<Parcel<Self>> for RillConnector {
-    async fn handle(&mut self, parcel: Parcel<Self>, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.address().unpack_parcel(parcel)
-    }
-
-    async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl<T: core::Flow> InstantActionHandler<state::RegisterTracer<T>> for RillConnector {
-    async fn handle(
-        &mut self,
-        msg: state::RegisterTracer<T>,
-        ctx: &mut Context<Self>,
-    ) -> Result<(), Error> {
-        let description = msg.description;
-        let path = description.path.clone();
-        log::info!("Add tracer: {}", path);
-        let record = self.recorders.dig(path.clone());
-        if record.get_link().is_none() {
-            let packed_desc = Description::clone(&description);
-            let sender = self.sender.clone();
-            //let link = ctx.address().link();
-            let actor = Recorder::new(description, sender, msg.mode);
-            let recorder = ctx.spawn_actor(actor, Group::Recorders);
-            record.set_link(recorder.link());
-            // Send a description that's new tracer added
-            self.registered
-                .insert(recorder.id().into(), packed_desc.clone());
-            self.path_flow.add(path, packed_desc);
-        } else {
-            log::error!("Provider for {} already registered.", path);
-        }
         Ok(())
     }
 }

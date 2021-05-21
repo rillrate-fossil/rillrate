@@ -4,7 +4,7 @@
 
 mod actors;
 pub mod config;
-mod state;
+mod distributor;
 pub mod tracers;
 
 metacrate::meta!();

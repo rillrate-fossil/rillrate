@@ -1,5 +1,5 @@
 //! This module contains a generic `Tracer`'s methods.
-use crate::state::RILL_LINK;
+use crate::actors::connector::DISTRIBUTOR;
 use anyhow::Error;
 use futures::channel::mpsc;
 use meio::Action;
@@ -173,7 +173,7 @@ impl<T: core::Flow> Tracer<T> {
             description: description.clone(),
             mode: inner_mode,
         };
-        if let Err(err) = RILL_LINK.register_tracer(description, mode) {
+        if let Err(err) = DISTRIBUTOR.register_tracer(description, mode) {
             log::error!(
                 "Can't register a Tracer. The worker can be terminated already: {}",
                 err
