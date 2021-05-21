@@ -110,10 +110,7 @@ impl StartedBy<RillEngine> for RillConnector {
             Group::Recorders,
         ]);
 
-        let rx = state::RILL_LINK
-            .take_receiver()
-            .await
-            .ok_or_else(|| Error::msg("Receiver already taken"))?;
+        let rx = state::RILL_LINK.take_connector_receiver().await?;
         ctx.attach(rx, (), Group::UpgradeStream);
 
         let client = WsClient::new(

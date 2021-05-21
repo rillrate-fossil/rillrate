@@ -8,6 +8,11 @@ use once_cell::sync::Lazy;
 use rill_protocol::flow::core;
 use rill_protocol::io::provider::Description;
 use std::sync::Arc;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+#[error("Reserved receiver already taken.")]
+pub struct AlreadyTaken;
 
 /// It used by tracers to register them into the state.
 pub(crate) static RILL_LINK: Lazy<RillState> = Lazy::new(RillState::new);
@@ -30,8 +35,8 @@ impl RillState {
         }
     }
 
-    pub async fn take_receiver(&self) -> Option<Receiver> {
-        self.receiver.lock().await.take()
+    pub async fn take_connector_receiver(&self) -> Result<Receiver, AlreadyTaken> {
+        self.receiver.lock().await.take().ok_or(AlreadyTaken)
     }
 }
 
