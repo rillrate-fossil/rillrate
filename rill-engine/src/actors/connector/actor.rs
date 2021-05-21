@@ -1,4 +1,4 @@
-mod parcel;
+pub mod parcel;
 
 use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};

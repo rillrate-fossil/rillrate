@@ -5,9 +5,14 @@ use crate::tracers::tracer::TracerMode;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Consumer, Context, InstantAction, InstantActionHandler, Parcel};
+use once_cell::sync::Lazy;
 use rill_protocol::flow::core;
 use rill_protocol::io::provider::Description;
 use std::sync::Arc;
+
+/// It used by tracers to register them into the state.
+pub(crate) static DISTRIBUTOR: Lazy<ParcelDistributor<RillConnector>> =
+    Lazy::new(ParcelDistributor::new);
 
 #[async_trait]
 impl Consumer<Parcel<Self>> for RillConnector {
