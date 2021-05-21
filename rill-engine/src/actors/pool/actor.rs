@@ -26,6 +26,7 @@ impl Actor for RillPool {
 #[async_trait]
 impl StartedBy<RillEngine> for RillPool {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(vec![Group::ParcelStream, Group::Tasks]);
         self.attach_distributor(ctx).await?;
         Ok(())
     }

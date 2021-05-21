@@ -77,6 +77,7 @@ impl Eliminated<RillConnector> for RillEngine {
 #[async_trait]
 impl Eliminated<RillPool> for RillEngine {
     async fn handle(&mut self, _id: IdOf<RillPool>, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }
