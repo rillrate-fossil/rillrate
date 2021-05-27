@@ -8,6 +8,7 @@ use meio::{Actor, Context, InterruptedBy, StartedBy};
 pub struct RillPool {}
 
 impl RillPool {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {}
     }
