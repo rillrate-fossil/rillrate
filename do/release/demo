@@ -1,0 +1,1 @@
+cargo build --release --example all
