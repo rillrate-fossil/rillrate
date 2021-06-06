@@ -1,8 +1,11 @@
+mod wait_ready;
+
 use anyhow::Error;
 use async_trait::async_trait;
+use derive_more::From;
 use meio::{
-    ActionHandler, Actor, Context, IdOf, InstantActionHandler, InterruptedBy, StartedBy,
-    TaskEliminated, TaskError,
+    ActionHandler, Actor, Address, Context, IdOf, InstantActionHandler, InteractionResponder,
+    InterruptedBy, StartedBy, TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
@@ -13,19 +16,30 @@ use rill_protocol::io::client::{
     ClientServiceResponse,
 };
 use rill_protocol::io::transport::{Envelope, ServiceEnvelope};
+use std::collections::VecDeque;
 use std::time::Duration;
 
 type WsOutgoing = WsSender<ServiceEnvelope<ClientProtocol, ClientRequest, ClientServiceResponse>>;
 
+#[derive(From)]
+pub struct RillClientLink {
+    address: Address<RillClient>,
+}
+
 pub struct RillClient {
     url: String,
     sender: Option<WsOutgoing>,
+    awaiting_clients: VecDeque<wait_ready::Notifier>,
 }
 
 impl RillClient {
     pub fn new(url: Option<String>) -> Self {
         let url = url.unwrap_or_else(|| "http://localhost:1636".into());
-        Self { url, sender: None }
+        Self {
+            url,
+            sender: None,
+            awaiting_clients: VecDeque::new(),
+        }
     }
 }
 
@@ -73,6 +87,7 @@ impl InstantActionHandler<WsClientStatus<ClientProtocol>> for RillClient {
         match status {
             WsClientStatus::Connected { sender } => {
                 self.sender = Some(sender);
+                self.notify_awaiting_clients();
             }
             WsClientStatus::Failed { reason } => {
                 log::error!("Connection failed: {}", reason);
