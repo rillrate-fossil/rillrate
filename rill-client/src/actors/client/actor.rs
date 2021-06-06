@@ -23,7 +23,8 @@ pub struct RillClient {
 }
 
 impl RillClient {
-    pub fn new(url: String) -> Self {
+    pub fn new(url: Option<String>) -> Self {
+        let url = url.unwrap_or_else(|| "http://localhost:1636".into());
         Self { url, sender: None }
     }
 }
@@ -93,6 +94,22 @@ impl
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         log::trace!("Incoming to exporter: {:?}", msg);
+        match msg.0 {
+            ServiceEnvelope::Envelope(envelope) => {
+                let direct_id = envelope.direct_id;
+                match envelope.data {
+                    ClientResponse::Declare(entry_id) => {
+                        log::info!("Connected to: {}", entry_id);
+                    }
+                    evt => {
+                        log::error!("Not implemented for {:?}", evt);
+                    }
+                }
+            }
+            ServiceEnvelope::Service(_) => {
+                log::error!("Service message is not supported yet.");
+            }
+        }
         Ok(())
     }
 }

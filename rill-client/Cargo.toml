@@ -7,8 +7,10 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.40"
 async-trait = "0.1.50"
+derive_more = "0.99.14"
 log = "0.4.14"
 meio = "0.89.0"
 meio-connect = "0.89.0"
 rill-protocol = { version = "0.30.0-alpha.4", path = "../rill-protocol" }
 thiserror = "1.0.25"
+tokio = "1.6.1"

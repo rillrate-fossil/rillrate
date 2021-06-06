@@ -1,3 +1,3 @@
 mod actors;
 
-pub use actors::client::RillClient;
+pub use actors::client::{RillClient, RillClientLink};
