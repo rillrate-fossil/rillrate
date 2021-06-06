@@ -1,3 +1,3 @@
 mod actors;
 
-pub use actors::connector::Connector;
+pub use actors::client::RillClient;
