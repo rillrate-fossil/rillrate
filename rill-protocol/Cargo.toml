@@ -16,13 +16,13 @@ categories = ["development-tools::debugging"]
 description = "Dynamic logging and tracing system"
 
 [dependencies]
-anyhow = "1.0.40"
+anyhow = "1.0.41"
 derive_more = "0.99.14"
 flexbuffers = "2.0.0"
 log = "0.4.14"
-meio-protocol = "0.89.0"
+meio-protocol = "0.89.2"
 metacrate = "0.1.2"
-once_cell = "1.7.2"
+once_cell = "1.8.0"
 ordered-float = { version = "2.5.1", features = ["serde"], default-features = false }
 serde = { version = "1.0.126", features = ["derive"] }
 thiserror = "1.0.25"
