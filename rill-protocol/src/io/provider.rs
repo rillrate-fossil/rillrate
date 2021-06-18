@@ -388,7 +388,7 @@ packed!(PackedAction);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProviderToServer {
     Declare {
-        entry_id: EntryId,
+        path: Path,
         provider_type: ProviderType,
     },
     /// The response to `ControlStream { active: true }` request
