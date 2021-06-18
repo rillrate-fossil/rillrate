@@ -324,6 +324,21 @@ impl fmt::Display for EntryType {
 }
 
 #[derive(Debug, Clone, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct ProviderType(String);
+
+impl fmt::Display for ProviderType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl From<&str> for ProviderType {
+    fn from(name: &str) -> Self {
+        Self(name.into())
+    }
+}
+
+#[derive(Debug, Clone, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct StreamType(String);
 
 impl fmt::Display for StreamType {
@@ -374,6 +389,7 @@ packed!(PackedAction);
 pub enum ProviderToServer {
     Declare {
         entry_id: EntryId,
+        provider_type: ProviderType,
     },
     /// The response to `ControlStream { active: true }` request
     Flow {

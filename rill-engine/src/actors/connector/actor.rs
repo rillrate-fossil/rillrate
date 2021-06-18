@@ -156,7 +156,11 @@ impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillConnector {
                 }
 
                 let entry_id = self.config.provider_name();
-                let msg = ProviderToServer::Declare { entry_id };
+                let provider_type = self.config.provider_type();
+                let msg = ProviderToServer::Declare {
+                    entry_id,
+                    provider_type,
+                };
                 self.send_global(msg);
             }
             WsClientStatus::Failed { reason } => {

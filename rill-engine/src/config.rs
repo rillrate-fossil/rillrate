@@ -1,7 +1,7 @@
 //! Configuration structs for the provider and tracers
 
 use rill_protocol::config::ConfigPatch;
-use rill_protocol::io::provider::EntryId;
+use rill_protocol::io::provider::{EntryId, ProviderType};
 use serde::Deserialize;
 
 /// The external user app can set this value to override default server.
@@ -20,6 +20,8 @@ pub struct EngineConfig {
     // TODO: Use default serde value instead
     /// The name of the provider
     pub name: Option<EntryId>,
+    /// The type of the provider
+    pub provider_type: Option<ProviderType>,
 }
 
 impl Default for EngineConfig {
@@ -27,6 +29,7 @@ impl Default for EngineConfig {
         Self {
             node: None,
             name: None,
+            provider_type: None,
         }
     }
 }
@@ -56,5 +59,12 @@ impl EngineConfig {
                     .unwrap_or_else(|| "rillrate".into())
             },
         )
+    }
+
+    /// The type of the provider
+    pub fn provider_type(&self) -> ProviderType {
+        self.provider_type
+            .clone()
+            .unwrap_or_else(|| "generic".into())
     }
 }
