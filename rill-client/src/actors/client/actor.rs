@@ -4,18 +4,17 @@ use anyhow::Error;
 use async_trait::async_trait;
 use derive_more::From;
 use meio::{
-    ActionHandler, Actor, Address, Context, IdOf, InstantActionHandler, InteractionResponder,
-    InterruptedBy, StartedBy, TaskEliminated, TaskError,
+    ActionHandler, Actor, Address, Context, IdOf, InstantActionHandler, InterruptedBy, StartedBy,
+    TaskEliminated, TaskError,
 };
 use meio_connect::{
     client::{WsClient, WsClientStatus, WsSender},
     WsIncoming,
 };
 use rill_protocol::io::client::{
-    ClientProtocol, ClientReqId, ClientRequest, ClientResponse, ClientServiceRequest,
-    ClientServiceResponse,
+    ClientProtocol, ClientRequest, ClientResponse, ClientServiceRequest, ClientServiceResponse,
 };
-use rill_protocol::io::transport::{Envelope, ServiceEnvelope};
+use rill_protocol::io::transport::ServiceEnvelope;
 use std::collections::VecDeque;
 use std::time::Duration;
 
@@ -111,7 +110,7 @@ impl
         log::trace!("Incoming to exporter: {:?}", msg);
         match msg.0 {
             ServiceEnvelope::Envelope(envelope) => {
-                let direct_id = envelope.direct_id;
+                let _direct_id = envelope.direct_id;
                 match envelope.data {
                     ClientResponse::Declare(entry_id) => {
                         log::info!("Connected to: {}", entry_id);

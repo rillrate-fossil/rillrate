@@ -37,7 +37,7 @@ impl ActionHandler<Interact<WaitReady>> for RillClient {
     async fn handle(
         &mut self,
         input: Interact<WaitReady>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         let notifier = Notifier::from(input.responder);
         if self.sender.is_some() {
