@@ -1,6 +1,6 @@
 [package]
 name = "rill-client"
-version = "0.1.0"
+version = "0.30.0-alpha.5"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 
@@ -11,6 +11,6 @@ derive_more = "0.99.14"
 log = "0.4.14"
 meio = "0.89.3"
 meio-connect = "0.89.3"
-rill-protocol = { version = "0.30.0-alpha.4", path = "../rill-protocol" }
+rill-protocol = { version = "0.30.0-alpha.5", path = "../rill-protocol" }
 thiserror = "1.0.25"
 tokio = "1.7.0"
