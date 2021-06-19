@@ -21,15 +21,16 @@ pub struct EngineConfig {
     /// The name of the provider
     pub name: Option<EntryId>,
     /// The type of the provider
-    pub provider_type: Option<StreamType>,
+    pub provider_type: StreamType,
 }
 
-impl Default for EngineConfig {
-    fn default() -> Self {
+impl EngineConfig {
+    /// Creates a new `EngineConfig` of the specified type.
+    pub fn new(provider_type: StreamType) -> Self {
         Self {
             node: None,
             name: None,
-            provider_type: None,
+            provider_type,
         }
     }
 }
@@ -63,8 +64,6 @@ impl EngineConfig {
 
     /// The type of the provider
     pub fn provider_type(&self) -> StreamType {
-        self.provider_type
-            .clone()
-            .unwrap_or_else(|| "generic".into())
+        self.provider_type.clone()
     }
 }
