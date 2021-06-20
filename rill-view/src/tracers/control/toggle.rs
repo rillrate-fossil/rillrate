@@ -1,6 +1,6 @@
-use crate::tracers::tracer::Tracer;
+use crate::flow::control::toggle::{ToggleEvent, ToggleState};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::toggle::{ToggleEvent, ToggleState};
+use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::io::provider::Path;
 
 /// Receives toggle events from a user.
