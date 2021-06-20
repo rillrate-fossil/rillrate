@@ -14,6 +14,7 @@ description = "Dynamic logging and tracing system"
 
 [dependencies]
 derive_more = "0.99.14"
+log = "0.4.14"
 rill-engine = { version = "0.30.0-alpha.6", path = "../rill-engine", optional = true }
 rill-protocol = { version = "0.30.0-alpha.6", path = "../rill-protocol" }
 serde = "1.0.126"

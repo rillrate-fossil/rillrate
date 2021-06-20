@@ -1,6 +1,6 @@
-use crate::tracers::tracer::Tracer;
+use crate::flow::control::selector::{SelectorEvent, SelectorState};
 use derive_more::{Deref, DerefMut};
-use rill_protocol::flow::control::selector::{SelectorEvent, SelectorState};
+use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::io::provider::Path;
 
 /// Receives select events from a user.
