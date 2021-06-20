@@ -1,8 +1,8 @@
-use crate::flow::core::{Flow, TimedEvent};
-use crate::frame::Frame;
-use crate::io::provider::StreamType;
-use crate::range::Pct;
 use ordered_float::OrderedFloat;
+use rill_protocol::flow::core::{Flow, TimedEvent};
+use rill_protocol::frame::Frame;
+use rill_protocol::io::provider::StreamType;
+use rill_protocol::range::Pct;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 

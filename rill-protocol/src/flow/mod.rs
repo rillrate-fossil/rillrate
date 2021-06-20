@@ -1,4 +1,3 @@
-pub mod data;
 pub mod meta;
 
 pub mod core;

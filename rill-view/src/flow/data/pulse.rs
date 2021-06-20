@@ -1,8 +1,8 @@
-use crate::flow::core::{Flow, TimedEvent};
+use rill_protocol::flow::core::{Flow, TimedEvent};
 // TODO: Join `Frame` and `Range` into a single module.
-use crate::frame::Frame;
-use crate::io::provider::StreamType;
-use crate::range::Range;
+use rill_protocol::frame::Frame;
+use rill_protocol::io::provider::StreamType;
+use rill_protocol::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,6 +1,6 @@
-use crate::flow::core::{Flow, TimedEvent};
-use crate::io::provider::{StreamType, Timestamp};
-use crate::range::Range;
+use rill_protocol::flow::core::{Flow, TimedEvent};
+use rill_protocol::io::provider::{StreamType, Timestamp};
+use rill_protocol::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
