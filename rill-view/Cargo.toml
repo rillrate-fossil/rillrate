@@ -13,3 +13,10 @@ categories = ["development-tools::debugging"]
 description = "Dynamic logging and tracing system"
 
 [dependencies]
+derive_more = "0.99.14"
+rill-engine = { version = "0.30.0-alpha.5", path = "../rill-engine", optional = true }
+rill-protocol = { version = "0.30.0-alpha.5", path = "../rill-protocol" }
+serde = "1.0.126"
+
+[features]
+default = ["rill-engine"]
