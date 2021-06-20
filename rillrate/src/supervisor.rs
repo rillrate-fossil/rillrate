@@ -99,7 +99,9 @@ impl TaskEliminated<ReadConfigFile, ()> for RillRate {
                 Config::default()
             });
 
-        let engine_config = config.rillrate.unwrap_or_default();
+        let engine_config = config
+            .rillrate
+            .unwrap_or_else(|| EngineConfig::new("rillrate".into()));
         log::info!("Remote node set.");
         self.spawn_engine(engine_config, ctx);
         /*

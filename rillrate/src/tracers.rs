@@ -3,12 +3,13 @@
 
 use anyhow::Error;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::control::{ClickWatcher, SelectorWatcher, ToggleWatcher};
+use rill_engine::tracers::control::{SelectorWatcher, ToggleWatcher};
 use rill_engine::tracers::data::{
     CounterTracer, DictTracer, GaugeTracer, HistogramTracer, LoggerTracer, PulseTracer, TableTracer,
 };
 use rill_engine::tracers::meta::AlertTracer;
 pub use rill_protocol::flow::data::table::{Col, Row};
+use rill_view::tracers::control::ClickWatcher;
 
 macro_rules! impl_tracer {
     ($wrapper:ident < $tracer:ident > ( $( $arg:ident : $typ:ty ),* )) => {
