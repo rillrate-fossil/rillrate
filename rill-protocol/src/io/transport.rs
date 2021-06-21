@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fmt;
+use std::hash::Hash;
 use std::marker::PhantomData;
 
 /// An `Envelope` with service-layer messages
@@ -23,7 +24,7 @@ pub struct WideEnvelope<T: Origin, D> {
 }
 
 /// The origin of `DirectId`.
-pub trait Origin: Default + Clone {}
+pub trait Origin: Default + Clone + PartialEq + Eq + Hash {}
 
 #[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct DirectId<T: Origin> {
@@ -57,8 +58,7 @@ impl<T: Origin> From<DirectId<T>> for usize {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Direction<T: Origin> {
     Direct(DirectId<T>),
-    // TODO: Consider to use `HashSet` here
-    Multicast(Vec<DirectId<T>>),
+    Multicast(HashSet<DirectId<T>>),
     Broadcast,
 }
 
@@ -66,7 +66,7 @@ impl<T: Origin> Direction<T> {
     pub fn into_vec(self) -> Vec<DirectId<T>> {
         match self {
             Self::Direct(direct_id) => vec![direct_id],
-            Self::Multicast(ids) => ids,
+            Self::Multicast(ids) => ids.into_iter().collect(),
             Self::Broadcast => Vec::new(),
         }
     }
