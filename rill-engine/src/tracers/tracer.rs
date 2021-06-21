@@ -13,7 +13,7 @@ use tokio::sync::{broadcast, watch};
 
 #[derive(Debug)]
 pub(crate) enum DataEnvelope<T: core::Flow> {
-    Event(TimedEvent<T::Event>),
+    Event { event: TimedEvent<T::Event> },
 }
 
 impl<T: core::Flow> Action for DataEnvelope<T> {}
@@ -21,7 +21,7 @@ impl<T: core::Flow> Action for DataEnvelope<T> {}
 impl<T: core::Flow> DataEnvelope<T> {
     pub fn into_inner(self) -> TimedEvent<T::Event> {
         match self {
-            Self::Event(event) => event,
+            Self::Event { event } => event,
         }
     }
 }
@@ -195,13 +195,13 @@ impl<T: core::Flow> Tracer<T> {
             let ts = time_to_ts(opt_system_time);
             match ts {
                 Ok(timestamp) => {
-                    let timed_event = TimedEvent {
+                    let event = TimedEvent {
                         timestamp,
                         event: data,
                     };
                     match &self.mode {
                         InnerMode::Push { sender, .. } => {
-                            let envelope = DataEnvelope::Event(timed_event);
+                            let envelope = DataEnvelope::Event { event };
                             // And will never send an event
                             if let Err(err) = sender.unbounded_send(envelope) {
                                 log::error!("Can't transfer data to sender: {}", err);
@@ -209,7 +209,7 @@ impl<T: core::Flow> Tracer<T> {
                         }
                         InnerMode::Pull { state } => match state.lock() {
                             Ok(ref mut state) => {
-                                T::apply(state, timed_event);
+                                T::apply(state, event);
                             }
                             Err(err) => {
                                 log::error!(
