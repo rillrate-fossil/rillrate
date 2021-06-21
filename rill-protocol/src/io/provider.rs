@@ -367,7 +367,7 @@ macro_rules! packed {
 }
 
 packed!(PackedState);
-packed!(PackedDelta); // `PackedEvents`
+packed!(PackedEvent);
 packed!(PackedAction);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -384,7 +384,7 @@ pub enum ProviderToServer {
     },
     Data {
         /// Aggregated events.
-        delta: PackedDelta,
+        delta: PackedEvent,
     },
     EndStream,
     Error {

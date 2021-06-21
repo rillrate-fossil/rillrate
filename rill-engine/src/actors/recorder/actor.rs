@@ -123,7 +123,7 @@ impl<T: core::Flow> Recorder<T> {
     fn send_delta(&mut self, delta: &[TimedEvent<T::Event>]) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             let response = ProviderToServer::Data {
-                delta: T::pack_delta(&delta)?,
+                delta: T::pack_event(&delta)?,
             };
             let direction = self.all_subscribers();
             self.sender.response(direction, response);

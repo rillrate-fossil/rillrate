@@ -1,5 +1,5 @@
 use crate::encoding;
-use crate::io::provider::{PackedAction, PackedDelta, PackedState, StreamType, Timestamp};
+use crate::io::provider::{PackedAction, PackedEvent, PackedState, StreamType, Timestamp};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -37,11 +37,11 @@ pub trait Flow: DataFraction {
         encoding::unpack(data)
     }
 
-    fn pack_delta(delta: &[TimedEvent<Self::Event>]) -> Result<PackedDelta, Error> {
+    fn pack_event(delta: &[TimedEvent<Self::Event>]) -> Result<PackedEvent, Error> {
         encoding::pack(delta)
     }
 
-    fn unpack_delta(data: &PackedDelta) -> Result<Vec<TimedEvent<Self::Event>>, Error> {
+    fn unpack_event(data: &PackedEvent) -> Result<Vec<TimedEvent<Self::Event>>, Error> {
         encoding::unpack(data)
     }
 

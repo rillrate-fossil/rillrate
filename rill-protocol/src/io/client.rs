@@ -1,5 +1,5 @@
 use crate::io::codec::BinaryCodec;
-use crate::io::provider::{Description, EntryId, PackedDelta, PackedState, Path, RecorderRequest};
+use crate::io::provider::{Description, EntryId, PackedEvent, PackedState, Path, RecorderRequest};
 use crate::io::transport::{DirectId, Origin, ServiceEnvelope};
 use meio_protocol::Protocol;
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ pub enum ClientResponse {
     Declare(EntryId),
     Flow(Description),
     State(PackedState),
-    Delta(PackedDelta),
+    Delta(PackedEvent),
     /// Stream closed/finished.
     Done,
     Error(String),
