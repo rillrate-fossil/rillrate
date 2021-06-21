@@ -20,6 +20,6 @@ impl ToggleWatcher {
     /// Set selected value.
     pub fn set_active(&self, active: bool) {
         let event = ToggleEvent { active };
-        self.tracer.send(event, None);
+        self.tracer.send(event, None, None);
     }
 }

@@ -21,6 +21,6 @@ impl HistogramTracer {
     /// Add value of the histogram.
     pub fn add(&self, value: f64, timestamp: Option<SystemTime>) {
         let data = HistogramEvent::Add(value);
-        self.tracer.send(data, timestamp);
+        self.tracer.send(data, timestamp, None);
     }
 }

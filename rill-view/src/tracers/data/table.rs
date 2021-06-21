@@ -30,13 +30,13 @@ impl TableTracer {
     /// Adds a new row
     pub fn add_row(&self, row: Row) {
         let event = TableEvent::AddRow { row };
-        self.tracer.send(event, None);
+        self.tracer.send(event, None, None);
     }
 
     /// Deletes a row by id
     pub fn del_row(&self, row: Row) {
         let event = TableEvent::DelRow { row };
-        self.tracer.send(event, None);
+        self.tracer.send(event, None, None);
     }
 
     /// Sets a value to the cell
@@ -52,6 +52,6 @@ impl TableTracer {
             col,
             value: value.to_string(),
         };
-        self.tracer.send(event, timestamp);
+        self.tracer.send(event, timestamp, None);
     }
 }

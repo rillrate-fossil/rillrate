@@ -20,6 +20,6 @@ impl ClickWatcher {
     /// Send `Clicked` event.
     pub fn clicked(&self) {
         let event = ClickEvent;
-        self.tracer.send(event, None);
+        self.tracer.send(event, None, None);
     }
 }

@@ -20,12 +20,12 @@ impl PathTracer {
     /// Add an path
     pub fn add(&self, path: Path, description: Description) {
         let data = PathEvent::AddPath { path, description };
-        self.tracer.send(data, None);
+        self.tracer.send(data, None, None);
     }
 
     /// Remove an path
     pub fn del(&self, path: Path) {
         let data = PathEvent::RemovePath { path };
-        self.tracer.send(data, None);
+        self.tracer.send(data, None, None);
     }
 }

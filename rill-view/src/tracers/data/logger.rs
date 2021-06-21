@@ -21,6 +21,6 @@ impl LoggerTracer {
     /// Writes a message.
     pub fn log(&self, message: String, timestamp: Option<SystemTime>) {
         let data = LoggerEvent { msg: message };
-        self.tracer.send(data, timestamp);
+        self.tracer.send(data, timestamp, None);
     }
 }

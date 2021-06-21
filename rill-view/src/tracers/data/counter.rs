@@ -21,6 +21,6 @@ impl CounterTracer {
     /// Increments value by the sepcific delta.
     pub fn inc(&self, delta: f64, timestamp: Option<SystemTime>) {
         let data = CounterEvent::Inc(delta);
-        self.tracer.send(data, timestamp);
+        self.tracer.send(data, timestamp, None);
     }
 }

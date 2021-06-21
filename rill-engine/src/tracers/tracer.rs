@@ -186,9 +186,12 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Send an event to a `Recorder`.
-    pub fn send(&self, data: T::Event, opt_system_time: Option<SystemTime>) {
-        // TODO: Get `direction` from arg
-        let direction = None;
+    pub fn send(
+        &self,
+        data: T::Event,
+        opt_system_time: Option<SystemTime>,
+        direction: Option<Direction<ProviderProtocol>>,
+    ) {
         if self.is_active() {
             let ts = time_to_ts(opt_system_time);
             match ts {

@@ -21,12 +21,12 @@ impl DictTracer {
     /// Set a value to key.
     pub fn set(&self, key: String, value: String, timestamp: Option<SystemTime>) {
         let data = DictEvent::Assign { key, value };
-        self.tracer.send(data, timestamp);
+        self.tracer.send(data, timestamp, None);
     }
 
     /// Remove a key.
     pub fn del(&self, key: String, timestamp: Option<SystemTime>) {
         let data = DictEvent::Remove { key };
-        self.tracer.send(data, timestamp);
+        self.tracer.send(data, timestamp, None);
     }
 }

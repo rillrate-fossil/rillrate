@@ -21,6 +21,6 @@ impl AlertTracer {
     /// Writes a message.
     pub fn alert(&self, message: String, timestamp: Option<SystemTime>) {
         let data = AlertEvent { msg: message };
-        self.tracer.send(data, timestamp);
+        self.tracer.send(data, timestamp, None);
     }
 }

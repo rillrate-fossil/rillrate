@@ -20,6 +20,6 @@ impl SelectorWatcher {
     /// Set selected value.
     pub fn selected(&self, selected: String) {
         let event = SelectorEvent { selected };
-        self.tracer.send(event, None);
+        self.tracer.send(event, None, None);
     }
 }

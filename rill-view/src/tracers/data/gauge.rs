@@ -23,6 +23,6 @@ impl GaugeTracer {
     /// Set value of the gauge.
     pub fn set(&self, value: f64, timestamp: Option<SystemTime>) {
         let data = GaugeEvent::Set(value);
-        self.tracer.send(data, timestamp);
+        self.tracer.send(data, timestamp, None);
     }
 }
