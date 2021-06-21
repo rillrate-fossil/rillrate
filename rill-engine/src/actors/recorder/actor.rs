@@ -144,14 +144,44 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
             for envelope in chunk.into_iter() {
-                let DataEnvelope::Event { direction, event } = envelope;
-                if let Some(direction) = direction {
+                let DataEnvelope::Event {
+                    mut direction,
+                    event,
+                } = envelope;
+                let apply;
+                if let Some(dir) = direction.take() {
                     // Direct events not applied to the state
-                    self.send_event(direction, &event)?;
+                    apply = false;
+                    match dir {
+                        Direction::Direct(direct_id) => {
+                            if self.subscribers.contains(&direct_id) {
+                                direction = Some(Direction::Direct(direct_id));
+                            }
+                        }
+                        Direction::Multicast(directions) => {
+                            let directions: HashSet<_> = self
+                                .subscribers
+                                .intersection(&directions)
+                                .cloned()
+                                .collect();
+                            if !directions.is_empty() {
+                                direction = Some(Direction::Multicast(directions));
+                            }
+                        }
+                        Direction::Broadcast => {
+                            direction = Some(Direction::Broadcast);
+                        }
+                    }
                 } else {
                     // Multicast the event and apply it to the state
-                    let direction = self.all_subscribers();
+                    apply = true;
+                    direction = Some(self.all_subscribers());
+                }
+                if let Some(direction) = direction {
                     self.send_event(direction, &event)?;
+                }
+                // Apply even if it has no subscribers
+                if apply {
                     match &mut self.mode {
                         TracerMode::Push { state, .. } => {
                             T::apply(state, event);
