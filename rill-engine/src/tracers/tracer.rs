@@ -5,9 +5,9 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::flow::core::{self, TimedEvent};
+use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
-use rill_protocol::io::transport::{DirectId, Direction};
+use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
 use tokio::sync::{broadcast, watch};
@@ -16,26 +16,6 @@ use tokio::sync::{broadcast, watch};
 pub(crate) struct EventEnvelope<T: core::Flow> {
     pub direction: Option<Direction<ProviderProtocol>>,
     pub event: TimedEvent<T::Event>,
-}
-
-/// Envelope for incoming actions that contains routing information.
-#[derive(Debug, Clone)]
-pub struct ActionEnvelope<T: core::Flow> {
-    /// Direction to a client.
-    pub origin: DirectId<ProviderProtocol>,
-    /// Action or activity that sent by a client.
-    pub activity: Activity<T>,
-}
-
-/// Variant of activity that send to tracers.
-#[derive(Debug, Clone)]
-pub enum Activity<T: core::Flow> {
-    /// Listener connected
-    Connected,
-    /// Forwards an action
-    Action(T::Action),
-    /// Listener disconnected
-    Disconnected,
 }
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}

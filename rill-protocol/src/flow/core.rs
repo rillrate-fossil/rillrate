@@ -1,5 +1,7 @@
 use crate::encoding;
-use crate::io::provider::{PackedAction, PackedEvent, PackedState, StreamType, Timestamp};
+use crate::io::provider::{
+    PackedAction, PackedEvent, PackedState, ProviderReqId, StreamType, Timestamp,
+};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -85,3 +87,23 @@ impl<T> PartialEq for TimedEvent<T> {
 }
 
 impl<T> Eq for TimedEvent<T> {}
+
+/// Envelope for incoming actions that contains routing information.
+#[derive(Debug, Clone)]
+pub struct ActionEnvelope<T: Flow> {
+    /// Direction to a client.
+    pub origin: ProviderReqId,
+    /// Action or activity that sent by a client.
+    pub activity: Activity<T>,
+}
+
+/// Variant of activity that send to tracers.
+#[derive(Debug, Clone)]
+pub enum Activity<T: Flow> {
+    /// Listener connected
+    Connected,
+    /// Forwards an action
+    Action(T::Action),
+    /// Listener disconnected
+    Disconnected,
+}
