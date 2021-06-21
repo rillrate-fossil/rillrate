@@ -1,7 +1,7 @@
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
-use crate::tracers::tracer::{DataEnvelope, TracerMode};
+use crate::tracers::tracer::{EventEnvelope, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -136,15 +136,15 @@ impl<T: core::Flow> Recorder<T> {
 }
 
 #[async_trait]
-impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
+impl<T: core::Flow> Consumer<Vec<EventEnvelope<T>>> for Recorder<T> {
     async fn handle(
         &mut self,
-        chunk: Vec<DataEnvelope<T>>,
+        chunk: Vec<EventEnvelope<T>>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
             for envelope in chunk.into_iter() {
-                let DataEnvelope::Event {
+                let EventEnvelope {
                     mut direction,
                     event,
                 } = envelope;

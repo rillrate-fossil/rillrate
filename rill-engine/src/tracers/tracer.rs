@@ -13,18 +13,16 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::{broadcast, watch};
 
 #[derive(Debug)]
-pub(crate) enum DataEnvelope<T: core::Flow> {
-    Event {
-        direction: Option<Direction<ProviderProtocol>>,
-        event: TimedEvent<T::Event>,
-    },
+pub(crate) struct EventEnvelope<T: core::Flow> {
+    pub direction: Option<Direction<ProviderProtocol>>,
+    pub event: TimedEvent<T::Event>,
 }
 
-impl<T: core::Flow> Action for DataEnvelope<T> {}
+impl<T: core::Flow> Action for EventEnvelope<T> {}
 
 // TODO: Remove that aliases and use raw types receivers in recorders.
-pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
-pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;
+pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
+pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
 /// Watches for the control events.
 pub type Watcher<T> = broadcast::Receiver<T>;
@@ -202,7 +200,7 @@ impl<T: core::Flow> Tracer<T> {
                     };
                     match &self.mode {
                         InnerMode::Push { sender, .. } => {
-                            let envelope = DataEnvelope::Event { direction, event };
+                            let envelope = EventEnvelope { direction, event };
                             // And will never send an event
                             if let Err(err) = sender.unbounded_send(envelope) {
                                 log::error!("Can't transfer data to sender: {}", err);
