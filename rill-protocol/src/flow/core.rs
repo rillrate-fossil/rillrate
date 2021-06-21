@@ -41,7 +41,7 @@ pub trait Flow: DataFraction {
         encoding::pack(delta)
     }
 
-    fn unpack_delta(data: &PackedDelta) -> Result<Delta<Self::Event>, Error> {
+    fn unpack_delta(data: &PackedDelta) -> Result<Vec<TimedEvent<Self::Event>>, Error> {
         encoding::unpack(data)
     }
 
@@ -53,8 +53,6 @@ pub trait Flow: DataFraction {
         encoding::unpack(data)
     }
 }
-
-pub type Delta<T> = Vec<TimedEvent<T>>;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TimedEvent<T> {

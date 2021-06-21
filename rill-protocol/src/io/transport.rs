@@ -57,6 +57,7 @@ impl<T: Origin> From<DirectId<T>> for usize {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Direction<T: Origin> {
     Direct(DirectId<T>),
+    // TODO: Consider to use `HashSet` here
     Multicast(Vec<DirectId<T>>),
     Broadcast,
 }
