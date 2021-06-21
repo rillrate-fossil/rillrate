@@ -1,4 +1,5 @@
-use super::link;
+pub mod link;
+
 use crate::actors::connector::{RillConnector, RillSender};
 use crate::tracers::tracer::{DataEnvelope, TracerMode};
 use anyhow::Error;
