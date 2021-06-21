@@ -30,8 +30,12 @@ pub struct ActionEnvelope<T: core::Flow> {
 /// Variant of activity that send to tracers.
 #[derive(Debug, Clone)]
 pub enum Activity<T: core::Flow> {
+    /// Listener connected
+    Connected,
     /// Forwards an action
     Action(T::Action),
+    /// Listener disconnected
+    Disconnected,
 }
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}

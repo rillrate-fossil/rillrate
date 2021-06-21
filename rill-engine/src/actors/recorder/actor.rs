@@ -237,6 +237,30 @@ impl<T: core::Flow> OnTick for Recorder<T> {
     }
 }
 
+impl<T: core::Flow> Recorder<T> {
+    fn send_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) {
+        match &mut self.mode {
+            TracerMode::Push { control_sender, .. } => {
+                let envelope = ActionEnvelope { origin, activity };
+                // TODO: Track errors and send them back to the client?
+                if let Err(err) = control_sender.send(envelope) {
+                    log::error!(
+                        "No activity listeners in {} watcher: {}",
+                        self.description.path,
+                        err,
+                    );
+                }
+            }
+            TracerMode::Pull { .. } => {
+                log::error!(
+                    "Do activity request in the pull mode of {}",
+                    self.description.path
+                );
+            }
+        }
+    }
+}
+
 #[async_trait]
 impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
     async fn handle(
@@ -258,6 +282,7 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                         FlowControl::StartStream => {
                             if self.subscribers.insert(id) {
                                 self.send_state(id.into()).await?;
+                                self.send_activity(id, Activity::Connected);
                             } else {
                                 log::warn!(
                                     "Attempt to subscribe twice for <path> with id: {:?}",
@@ -267,6 +292,7 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                         }
                         FlowControl::StopStream => {
                             if self.subscribers.remove(&id) {
+                                self.send_activity(id, Activity::Disconnected);
                                 self.send_end(id.into());
                             } else {
                                 log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
@@ -290,29 +316,8 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     }
                     RecorderAction::DoAction(data) => {
                         let action = T::unpack_action(&data)?;
-                        match &mut self.mode {
-                            TracerMode::Push { control_sender, .. } => {
-                                let activity = Activity::Action(action);
-                                let envelope = ActionEnvelope {
-                                    origin: id,
-                                    activity,
-                                };
-                                // TODO: Track errors and send them back to the client?
-                                if let Err(err) = control_sender.send(envelope) {
-                                    log::error!(
-                                        "No action listeners in {} watcher: {}",
-                                        self.description.path,
-                                        err,
-                                    );
-                                }
-                            }
-                            TracerMode::Pull { .. } => {
-                                log::error!(
-                                    "Do action request in the pull mode of {}",
-                                    self.description.path
-                                );
-                            }
-                        }
+                        let activity = Activity::Action(action);
+                        self.send_activity(id, activity);
                     }
                 },
             }
