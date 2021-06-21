@@ -1,7 +1,7 @@
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
-use crate::tracers::tracer::{ActionEnvelope, EventEnvelope, TracerMode};
+use crate::tracers::tracer::{ActionEnvelope, Activity, EventEnvelope, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -292,7 +292,11 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                         let action = T::unpack_action(&data)?;
                         match &mut self.mode {
                             TracerMode::Push { control_sender, .. } => {
-                                let envelope = ActionEnvelope { origin: id, action };
+                                let activity = Activity::Action(action);
+                                let envelope = ActionEnvelope {
+                                    origin: id,
+                                    activity,
+                                };
                                 // TODO: Track errors and send them back to the client?
                                 if let Err(err) = control_sender.send(envelope) {
                                     log::error!(

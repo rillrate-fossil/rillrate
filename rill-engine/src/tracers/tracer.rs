@@ -23,8 +23,15 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
 pub struct ActionEnvelope<T: core::Flow> {
     /// Direction to a client.
     pub origin: DirectId<ProviderProtocol>,
-    /// Action that sent by a client.
-    pub action: T::Action,
+    /// Action or activity that sent by a client.
+    pub activity: Activity<T>,
+}
+
+/// Variant of activity that send to tracers.
+#[derive(Debug, Clone)]
+pub enum Activity<T: core::Flow> {
+    /// Forwards an action
+    Action(T::Action),
 }
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}
