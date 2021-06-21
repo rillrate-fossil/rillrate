@@ -120,12 +120,15 @@ impl<T: core::Flow> InterruptedBy<RillConnector> for Recorder<T> {
 }
 
 impl<T: core::Flow> Recorder<T> {
-    fn send_delta(&mut self, delta: &[TimedEvent<T::Event>]) -> Result<(), Error> {
+    fn send_event(
+        &mut self,
+        direction: Direction<ProviderProtocol>,
+        delta: &TimedEvent<T::Event>,
+    ) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             let response = ProviderToServer::Data {
                 delta: T::pack_event(&delta)?,
             };
-            let direction = self.all_subscribers();
             self.sender.response(direction, response);
         }
         Ok(())
@@ -140,22 +143,26 @@ impl<T: core::Flow> Consumer<Vec<DataEnvelope<T>>> for Recorder<T> {
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
-            let mut delta = Vec::new();
             for envelope in chunk.into_iter() {
-                let event = envelope.into_inner();
-                delta.push(event);
-            }
-
-            self.send_delta(&delta)?;
-
-            match &mut self.mode {
-                TracerMode::Push { state, .. } => {
-                    for event in delta {
-                        T::apply(state, event);
+                let DataEnvelope::Event { direction, event } = envelope;
+                if let Some(direction) = direction {
+                    // Direct events not applied to the state
+                    self.send_event(direction, &event)?;
+                } else {
+                    // Multicast the event and apply it to the state
+                    let direction = self.all_subscribers();
+                    self.send_event(direction, &event)?;
+                    match &mut self.mode {
+                        TracerMode::Push { state, .. } => {
+                            T::apply(state, event);
+                        }
+                        TracerMode::Pull { .. } => {
+                            log::error!(
+                                "Delta received in pull mode for: {}",
+                                self.description.path
+                            );
+                        }
                     }
-                }
-                TracerMode::Pull { .. } => {
-                    log::error!("Delta received in pull mode for: {}", self.description.path);
                 }
             }
         } else {

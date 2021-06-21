@@ -22,14 +22,6 @@ pub(crate) enum DataEnvelope<T: core::Flow> {
 
 impl<T: core::Flow> Action for DataEnvelope<T> {}
 
-impl<T: core::Flow> DataEnvelope<T> {
-    pub fn into_inner(self) -> TimedEvent<T::Event> {
-        match self {
-            Self::Event { event, .. } => event,
-        }
-    }
-}
-
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<DataEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<DataEnvelope<T>>;

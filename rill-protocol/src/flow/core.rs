@@ -37,11 +37,11 @@ pub trait Flow: DataFraction {
         encoding::unpack(data)
     }
 
-    fn pack_event(delta: &[TimedEvent<Self::Event>]) -> Result<PackedEvent, Error> {
+    fn pack_event(delta: &TimedEvent<Self::Event>) -> Result<PackedEvent, Error> {
         encoding::pack(delta)
     }
 
-    fn unpack_event(data: &PackedEvent) -> Result<Vec<TimedEvent<Self::Event>>, Error> {
+    fn unpack_event(data: &PackedEvent) -> Result<TimedEvent<Self::Event>, Error> {
         encoding::unpack(data)
     }
 
