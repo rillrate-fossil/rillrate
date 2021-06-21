@@ -18,6 +18,14 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
     pub event: TimedEvent<T::Event>,
 }
 
+/// Envelope for incoming actions that contains routing information.
+#[derive(Debug, Clone)]
+pub struct ActionEnvelope<T: core::Flow> {
+    //pub origin: Direction<ProviderProtocol>,
+    /// Action that sent by a client.
+    pub action: T::Action,
+}
+
 impl<T: core::Flow> Action for EventEnvelope<T> {}
 
 // TODO: Remove that aliases and use raw types receivers in recorders.
@@ -25,7 +33,7 @@ pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
 /// Watches for the control events.
-pub type Watcher<T> = broadcast::Receiver<T>;
+pub type Watcher<T> = broadcast::Receiver<ActionEnvelope<T>>;
 
 pub(crate) enum TracerMode<T: core::Flow> {
     /* TODO: THE Idea to implement storage:
@@ -43,7 +51,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
         state: T,
         receiver: Option<DataReceiver<T>>,
         /// For sending events to a `Tracer` instances
-        control_sender: broadcast::Sender<T::Action>,
+        control_sender: broadcast::Sender<ActionEnvelope<T>>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
@@ -57,7 +65,7 @@ enum InnerMode<T: core::Flow> {
     Push {
         sender: DataSender<T>,
         /// Kept for generating new `Receiver`s
-        control_sender: Arc<broadcast::Sender<T::Action>>,
+        control_sender: Arc<broadcast::Sender<ActionEnvelope<T>>>,
     },
     Pull {
         state: Arc<Mutex<T>>,
@@ -123,7 +131,7 @@ impl<T: core::Flow> Tracer<T> {
         state: T,
         path: Path,
         pull: Option<Duration>,
-    ) -> (Self, Option<broadcast::Receiver<T::Action>>) {
+    ) -> (Self, Option<Watcher<T>>) {
         let inner_mode;
         let mode;
         let subscriber;
@@ -233,7 +241,7 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Subscribe to the stream of the watcher.
-    pub fn subscribe(&mut self) -> Result<Watcher<T::Action>, Error> {
+    pub fn subscribe(&mut self) -> Result<Watcher<T>, Error> {
         match &mut self.mode {
             InnerMode::Push { control_sender, .. } => Ok(control_sender.subscribe()),
             InnerMode::Pull { .. } => {
@@ -246,7 +254,7 @@ impl<T: core::Flow> Tracer<T> {
     /// Registers a callback to the flow.
     pub fn callback<F>(&mut self, func: F)
     where
-        F: Fn(T::Action) + Send + 'static,
+        F: Fn(ActionEnvelope<T>) + Send + 'static,
     {
         let callback = Callback {
             tracer: self.clone(),
@@ -270,13 +278,13 @@ struct Callback<T: core::Flow, F> {
 impl<T, F> RillPoolTask for Callback<T, F>
 where
     T: core::Flow,
-    F: Fn(T::Action) + Send + 'static,
+    F: Fn(ActionEnvelope<T>) + Send + 'static,
 {
     async fn routine(mut self) -> Result<(), Error> {
         let mut stream = self.tracer.subscribe()?;
         loop {
-            let action = stream.recv().await?;
-            (self.callback)(action)
+            let envelope = stream.recv().await?;
+            (self.callback)(envelope)
         }
     }
 }
