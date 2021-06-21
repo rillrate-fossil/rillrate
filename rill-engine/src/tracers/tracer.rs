@@ -6,14 +6,18 @@ use async_trait::async_trait;
 use futures::channel::mpsc;
 use meio::Action;
 use rill_protocol::flow::core::{self, TimedEvent};
-use rill_protocol::io::provider::{Description, Path, Timestamp};
+use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
+use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
 use tokio::sync::{broadcast, watch};
 
 #[derive(Debug)]
 pub(crate) enum DataEnvelope<T: core::Flow> {
-    Event { event: TimedEvent<T::Event> },
+    Event {
+        direction: Option<Direction<ProviderProtocol>>,
+        event: TimedEvent<T::Event>,
+    },
 }
 
 impl<T: core::Flow> Action for DataEnvelope<T> {}
@@ -21,7 +25,7 @@ impl<T: core::Flow> Action for DataEnvelope<T> {}
 impl<T: core::Flow> DataEnvelope<T> {
     pub fn into_inner(self) -> TimedEvent<T::Event> {
         match self {
-            Self::Event { event } => event,
+            Self::Event { event, .. } => event,
         }
     }
 }
@@ -191,6 +195,8 @@ impl<T: core::Flow> Tracer<T> {
 
     /// Send an event to a `Recorder`.
     pub fn send(&self, data: T::Event, opt_system_time: Option<SystemTime>) {
+        // TODO: Get `direction` from arg
+        let direction = None;
         if self.is_active() {
             let ts = time_to_ts(opt_system_time);
             match ts {
@@ -201,13 +207,14 @@ impl<T: core::Flow> Tracer<T> {
                     };
                     match &self.mode {
                         InnerMode::Push { sender, .. } => {
-                            let envelope = DataEnvelope::Event { event };
+                            let envelope = DataEnvelope::Event { direction, event };
                             // And will never send an event
                             if let Err(err) = sender.unbounded_send(envelope) {
                                 log::error!("Can't transfer data to sender: {}", err);
                             }
                         }
                         InnerMode::Pull { state } => match state.lock() {
+                            // `direction` ignored always in the `Pull` mode
                             Ok(ref mut state) => {
                                 T::apply(state, event);
                             }
