@@ -292,8 +292,8 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                         let action = T::unpack_action(&data)?;
                         match &mut self.mode {
                             TracerMode::Push { control_sender, .. } => {
+                                let envelope = ActionEnvelope { origin: id, action };
                                 // TODO: Track errors and send them back to the client?
-                                let envelope = ActionEnvelope { action };
                                 if let Err(err) = control_sender.send(envelope) {
                                     log::error!(
                                         "No action listeners in {} watcher: {}",

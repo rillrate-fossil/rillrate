@@ -7,7 +7,7 @@ use futures::channel::mpsc;
 use meio::Action;
 use rill_protocol::flow::core::{self, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
-use rill_protocol::io::transport::Direction;
+use rill_protocol::io::transport::{DirectId, Direction};
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
 use tokio::sync::{broadcast, watch};
@@ -21,7 +21,8 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
 /// Envelope for incoming actions that contains routing information.
 #[derive(Debug, Clone)]
 pub struct ActionEnvelope<T: core::Flow> {
-    //pub origin: Direction<ProviderProtocol>,
+    /// Direction to a client.
+    pub origin: DirectId<ProviderProtocol>,
     /// Action that sent by a client.
     pub action: T::Action,
 }
