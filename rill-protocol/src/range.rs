@@ -87,7 +87,7 @@ impl Pct {
         Pct::from_div(value, diff)
     }
 
-    pub fn to_cent(&self) -> f64 {
+    pub fn to_cent(self) -> f64 {
         (self.0 * 100.0).round()
     }
 }

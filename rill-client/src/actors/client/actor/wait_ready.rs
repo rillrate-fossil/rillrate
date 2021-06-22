@@ -26,7 +26,7 @@ pub(super) struct Notifier {
 impl Notifier {
     fn notify(self) {
         let res = self.responder.send(Ok(()));
-        if let Err(_) = res {
+        if res.is_err() {
             log::error!("Can't notify a listener that the client is ready.");
         }
     }

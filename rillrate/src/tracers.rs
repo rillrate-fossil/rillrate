@@ -4,6 +4,7 @@
 use anyhow::Error;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::meta::AlertTracer;
+pub use rill_protocol::flow::core::Activity;
 pub use rill_view::flow::data::table::{Col, Row};
 use rill_view::tracers::control::{ClickWatcher, SelectorWatcher, ToggleWatcher};
 use rill_view::tracers::data::{

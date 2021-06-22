@@ -245,7 +245,7 @@ impl TryInto<Duration> for Timestamp {
 
 impl Timestamp {
     // TODO: Maybe just impl `ToPrimitive`?
-    pub fn to_f64(&self) -> f64 {
+    pub fn to_f64(self) -> f64 {
         self.0 as f64
     }
 

@@ -1,6 +1,8 @@
 use anyhow::Error;
 use rand::Rng;
-use rillrate::{Alert, Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table};
+use rillrate::{
+    Activity, Alert, Col, Counter, Dict, Gauge, Histogram, Logger, Pulse, RillRate, Row, Table,
+};
 use rillrate::{Click, Selector, Toggle};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -39,11 +41,19 @@ fn main() -> Result<(), Error> {
         "One".into(),
     )?;
     let tracer = selector.clone();
-    selector.callback(move |action| tracer.selected(action.into_value()));
+    selector.callback(move |envelope| {
+        if let Activity::Action(action) = envelope.activity {
+            tracer.selected(action.into_value());
+        }
+    });
 
     let mut toggle = Toggle::create("control.toggle", "Toggle".into(), false)?;
     let tracer = toggle.clone();
-    toggle.callback(move |action| tracer.set_active(action.into_value()));
+    toggle.callback(move |envelope| {
+        if let Activity::Action(action) = envelope.activity {
+            tracer.set_active(action.into_value());
+        }
+    });
 
     // TODO: DRY it
     let running = Arc::new(AtomicBool::new(true));
