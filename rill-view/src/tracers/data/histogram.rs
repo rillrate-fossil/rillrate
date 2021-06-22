@@ -14,7 +14,7 @@ impl HistogramTracer {
     /// Creates a new tracer instance.
     pub fn new(path: Path, levels: Vec<f64>) -> Self {
         let state = HistogramState::new(levels, None);
-        let tracer = Tracer::new_tracer(state, path, None);
+        let tracer = Tracer::new_push(state, path).0;
         Self { tracer }
     }
 

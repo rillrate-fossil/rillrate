@@ -16,7 +16,7 @@ impl GaugeTracer {
     pub fn new(path: Path, min: f64, max: f64) -> Self {
         let range = Range::new(min, max);
         let state = GaugeState::new(range);
-        let tracer = Tracer::new_tracer(state, path, None);
+        let tracer = Tracer::new_push(state, path).0;
         Self { tracer }
     }
 

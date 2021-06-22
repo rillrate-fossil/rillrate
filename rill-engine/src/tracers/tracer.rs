@@ -114,45 +114,34 @@ impl<T: core::Flow> PartialEq for Tracer<T> {
 impl<T: core::Flow> Eq for Tracer<T> {}
 
 impl<T: core::Flow> Tracer<T> {
-    /// Creates a new `Tracer`.
-    pub fn new_tracer(state: T, path: Path, pull: Option<Duration>) -> Self {
-        Self::new_tracer_subscribed(state, path, pull).0
+    /// Create a `Push` mode `Tracer`
+    pub fn new_push(state: T, path: Path) -> (Self, Watcher<T>) {
+        let (tx, rx) = mpsc::unbounded();
+        let (control_tx, control_rx) = broadcast::channel(16);
+        let mode = TracerMode::Push {
+            state,
+            receiver: Some(rx),
+            control_sender: control_tx.clone(),
+        };
+        let inner_mode = InnerMode::Push {
+            sender: tx,
+            control_sender: Arc::new(control_tx),
+        };
+        (Self::new_inner(path, inner_mode, mode), control_rx)
     }
 
-    fn new_tracer_subscribed(
-        state: T,
-        path: Path,
-        pull: Option<Duration>,
-    ) -> (Self, Option<Watcher<T>>) {
-        let inner_mode;
-        let mode;
-        let subscriber;
-        if let Some(interval) = pull {
-            let state = Arc::new(Mutex::new(state));
-            mode = TracerMode::Pull {
-                state: Arc::downgrade(&state),
-                interval,
-            };
-            inner_mode = InnerMode::Pull { state };
-            subscriber = None;
-        } else {
-            let (tx, rx) = mpsc::unbounded();
-            let (control_tx, control_rx) = broadcast::channel(16);
-            mode = TracerMode::Push {
-                state,
-                receiver: Some(rx),
-                control_sender: control_tx.clone(),
-            };
-            inner_mode = InnerMode::Push {
-                sender: tx,
-                control_sender: Arc::new(control_tx),
-            };
-            subscriber = Some(control_rx);
-        }
-        (Self::new(path, inner_mode, mode), subscriber)
+    /// Create a `Pull` mode `Tracer`
+    pub fn new_pull(state: T, path: Path, interval: Duration) -> Self {
+        let state = Arc::new(Mutex::new(state));
+        let mode = TracerMode::Pull {
+            state: Arc::downgrade(&state),
+            interval,
+        };
+        let inner_mode = InnerMode::Pull { state };
+        Self::new_inner(path, inner_mode, mode)
     }
 
-    fn new(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
+    fn new_inner(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
         let description = Description {

@@ -23,7 +23,7 @@ impl TableTracer {
             })
             .collect();
         let state = TableState::new(columns);
-        let tracer = Tracer::new_tracer(state, path, None);
+        let tracer = Tracer::new_push(state, path).0;
         Self { tracer }
     }
 

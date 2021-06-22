@@ -14,7 +14,7 @@ impl PulseTracer {
     /// Creates a new `Pulse` tracer.
     pub fn new(path: Path, depth: Option<u32>) -> Self {
         let state = PulseState::new(None, depth);
-        let tracer = Tracer::new_tracer(state, path, None);
+        let tracer = Tracer::new_push(state, path).0;
         Self { tracer }
     }
 

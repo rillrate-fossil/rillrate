@@ -14,7 +14,8 @@ impl ReadyBoardTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path) -> Self {
         let state = ReadyBoardState::new();
-        let tracer = Tracer::new_tracer(state, path, None);
+        // TODO: Use the `Receiver`
+        let tracer = Tracer::new_push(state, path).0;
         Self { tracer }
     }
 
