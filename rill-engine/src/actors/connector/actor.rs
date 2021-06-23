@@ -71,10 +71,18 @@ pub struct RillConnector {
     recorders: Pathfinder<RecorderLink>,
     registered: HashMap<Id, Description>,
     path_flow: PathTracer,
+    description: Description,
 }
 
 impl RillConnector {
     pub fn new(config: EngineConfig) -> Self {
+        let entry_id = config.provider_name();
+        let provider_type = config.provider_type();
+        let description = Description {
+            path: entry_id.into(),
+            info: "".into(),
+            stream_type: provider_type,
+        };
         let paths = PATHS.root();
         Self {
             url: config.node_url(),
@@ -82,7 +90,8 @@ impl RillConnector {
             sender: RillSender::default(),
             recorders: Pathfinder::default(),
             registered: HashMap::new(),
-            path_flow: PathTracer::new(paths),
+            path_flow: PathTracer::new(paths, description.clone()),
+            description,
         }
     }
 
@@ -155,13 +164,7 @@ impl InstantActionHandler<WsClientStatus<ProviderProtocol>> for RillConnector {
                     }
                 }
 
-                let entry_id = self.config.provider_name();
-                let provider_type = self.config.provider_type();
-                let description = Description {
-                    path: entry_id.into(),
-                    info: "".into(),
-                    stream_type: provider_type,
-                };
+                let description = self.description.clone();
                 let msg = ProviderToServer::Declare { description };
                 self.send_global(msg);
             }

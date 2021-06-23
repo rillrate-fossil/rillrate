@@ -8,15 +8,18 @@ pub const PATHS: Location = Location::new("meta:paths");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathState {
+    /// Description of the provider
+    pub description: Description,
     #[serde(with = "vectorize")]
-    pub entries: BTreeMap<Path, Description>,
+    pub paths: BTreeMap<Path, Description>,
 }
 
 #[allow(clippy::new_without_default)]
 impl PathState {
-    pub fn new() -> Self {
+    pub fn new(description: Description) -> Self {
         Self {
-            entries: BTreeMap::new(),
+            description,
+            paths: BTreeMap::new(),
         }
     }
 }
@@ -26,16 +29,16 @@ impl Flow for PathState {
     type Event = PathEvent;
 
     fn stream_type() -> StreamType {
-        StreamType::from("rillrate.meta.path.v0")
+        StreamType::from("rillrate::meta::path::v0")
     }
 
     fn apply(&mut self, event: TimedEvent<Self::Event>) {
         match event.event {
             PathEvent::AddPath { path, description } => {
-                self.entries.insert(path, description);
+                self.paths.insert(path, description);
             }
             PathEvent::RemovePath { path } => {
-                self.entries.remove(&path);
+                self.paths.remove(&path);
             }
         }
     }
