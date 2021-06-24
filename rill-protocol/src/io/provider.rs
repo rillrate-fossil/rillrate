@@ -99,6 +99,14 @@ impl Path {
             .any(|entry_id| entry_id.as_ref().contains("meta:"))
     }
 
+    pub fn is_hidden(&self) -> bool {
+        self.0
+            .iter()
+            .next()
+            .map(|entry_id| entry_id.as_ref().starts_with("@"))
+            .unwrap_or_default()
+    }
+
     /*
     pub fn root() -> Self {
         Self(Vec::new())
