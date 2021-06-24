@@ -1,6 +1,6 @@
 use crate::io::codec::BinaryCodec;
 use crate::io::transport::{DirectId, Envelope, Origin, WideEnvelope};
-use derive_more::{Deref, DerefMut, From, FromStr, Index, Into};
+use derive_more::{AsMut, AsRef, Deref, DerefMut, From, FromStr, Index, Into};
 use meio_protocol::Protocol;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::borrow::Borrow;
@@ -72,6 +72,8 @@ impl From<PathPattern> for Path {
 #[derive(
     Debug,
     Clone,
+    AsRef,
+    AsMut,
     Deref,
     DerefMut,
     From,
@@ -174,11 +176,13 @@ impl IntoIterator for Path {
     }
 }
 
+/*
 impl AsRef<[EntryId]> for Path {
     fn as_ref(&self) -> &[EntryId] {
         &self.0
     }
 }
+*/
 
 impl fmt::Display for Path {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
