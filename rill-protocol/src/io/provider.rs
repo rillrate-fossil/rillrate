@@ -103,9 +103,8 @@ impl Path {
 
     pub fn is_hidden(&self) -> bool {
         self.0
-            .iter()
-            .next()
-            .map(|entry_id| entry_id.as_ref().starts_with("@"))
+            .get(0)
+            .map(|entry_id| entry_id.as_ref().starts_with('@'))
             .unwrap_or_default()
     }
 
