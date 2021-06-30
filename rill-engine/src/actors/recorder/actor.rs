@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::flow::core::{self, ActionEnvelope, Activity, TimedEvent};
+use rill_protocol::flow::core::{self, ActionEnvelope, Activity};
 use rill_protocol::io::provider::{
     Description, FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
     RecorderAction, RecorderRequest,
@@ -123,11 +123,11 @@ impl<T: core::Flow> Recorder<T> {
     fn send_event(
         &mut self,
         direction: Direction<ProviderProtocol>,
-        delta: &TimedEvent<T::Event>,
+        event: &T::Event,
     ) -> Result<(), Error> {
         if !self.subscribers.is_empty() {
             let response = ProviderToServer::Data {
-                delta: T::pack_event(&delta)?,
+                delta: T::pack_event(event)?,
             };
             self.sender.response(direction, response);
         }

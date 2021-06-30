@@ -2,7 +2,6 @@ use crate::tracers::tracer::Tracer;
 use derive_more::{Deref, DerefMut};
 use rill_protocol::flow::meta::alert::{AlertEvent, AlertState};
 use rill_protocol::io::provider::Path;
-use std::time::SystemTime;
 
 /// This tracer sends text messages.
 #[derive(Debug, Deref, DerefMut, Clone)]
@@ -20,8 +19,8 @@ impl AlertTracer {
     }
 
     /// Writes a message.
-    pub fn alert(&self, message: String, timestamp: Option<SystemTime>) {
+    pub fn alert(&self, message: String) {
         let data = AlertEvent { msg: message };
-        self.tracer.send(data, timestamp, None);
+        self.tracer.send(data, None);
     }
 }

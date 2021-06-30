@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, TimedEvent};
+use crate::flow::core::Flow;
 use crate::flow::location::Location;
 use crate::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
@@ -37,16 +37,14 @@ impl Flow for ReadyBoardState {
         StreamType::from("rillrate.meta.readyboard.v0")
     }
 
-    fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        match event.event {
+    fn apply(&mut self, event: Self::Event) {
+        match event {
             ReadyBoardEvent::AddBoard { name, board } => {
                 self.entries.insert(name, board);
             }
         }
     }
 }
-
-pub type ReadyBoardDelta = Vec<TimedEvent<ReadyBoardEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReadyBoardEvent {

@@ -29,7 +29,7 @@ pub trait Flow: DataFraction {
 
     fn stream_type() -> StreamType;
 
-    fn apply(&mut self, event: TimedEvent<Self::Event>);
+    fn apply(&mut self, event: Self::Event);
 
     fn pack_state(&self) -> Result<PackedState, Error> {
         encoding::pack(self)
@@ -39,11 +39,11 @@ pub trait Flow: DataFraction {
         encoding::unpack(data)
     }
 
-    fn pack_event(delta: &TimedEvent<Self::Event>) -> Result<PackedEvent, Error> {
+    fn pack_event(delta: &Self::Event) -> Result<PackedEvent, Error> {
         encoding::pack(delta)
     }
 
-    fn unpack_event(data: &PackedEvent) -> Result<TimedEvent<Self::Event>, Error> {
+    fn unpack_event(data: &PackedEvent) -> Result<Self::Event, Error> {
         encoding::unpack(data)
     }
 

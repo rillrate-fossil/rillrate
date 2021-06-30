@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
+use rill_protocol::flow::core::{self, ActionEnvelope};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
@@ -15,7 +15,7 @@ use tokio::sync::{broadcast, watch};
 #[derive(Debug)]
 pub(crate) struct EventEnvelope<T: core::Flow> {
     pub direction: Option<Direction<ProviderProtocol>>,
-    pub event: TimedEvent<T::Event>,
+    pub event: T::Event,
 }
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}
@@ -173,50 +173,29 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Send an event to a `Recorder`.
-    pub fn send(
-        &self,
-        data: T::Event,
-        opt_system_time: Option<SystemTime>,
-        direction: Option<Direction<ProviderProtocol>>,
-    ) {
+    pub fn send(&self, event: T::Event, direction: Option<Direction<ProviderProtocol>>) {
         if self.is_active() {
-            let ts = time_to_ts(opt_system_time);
-            match ts {
-                Ok(timestamp) => {
-                    let event = TimedEvent {
-                        timestamp,
-                        event: data,
-                    };
-                    match &self.mode {
-                        InnerMode::Push { sender, .. } => {
-                            let envelope = EventEnvelope { direction, event };
-                            // And will never send an event
-                            if let Err(err) = sender.unbounded_send(envelope) {
-                                log::error!("Can't transfer data to sender: {}", err);
-                            }
-                        }
-                        InnerMode::Pull { state } => match state.lock() {
-                            // `direction` ignored always in the `Pull` mode
-                            Ok(ref mut state) => {
-                                T::apply(state, event);
-                            }
-                            Err(err) => {
-                                log::error!(
-                                    "Can't lock the mutex to apply the changes of {}: {}",
-                                    self.path(),
-                                    err
-                                );
-                            }
-                        },
+            match &self.mode {
+                InnerMode::Push { sender, .. } => {
+                    let envelope = EventEnvelope { direction, event };
+                    // And will never send an event
+                    if let Err(err) = sender.unbounded_send(envelope) {
+                        log::error!("Can't transfer data to sender: {}", err);
                     }
                 }
-                Err(err) => {
-                    log::error!(
-                        "Can't make a timestamp from provided system time of {}: {}",
-                        self.path(),
-                        err
-                    );
-                }
+                InnerMode::Pull { state } => match state.lock() {
+                    // `direction` ignored always in the `Pull` mode
+                    Ok(ref mut state) => {
+                        T::apply(state, event);
+                    }
+                    Err(err) => {
+                        log::error!(
+                            "Can't lock the mutex to apply the changes of {}: {}",
+                            self.path(),
+                            err
+                        );
+                    }
+                },
             }
         }
     }
@@ -297,8 +276,9 @@ impl<T: core::Flow> Tracer<T> {
     */
 }
 
+/// Generates a `Timestamp` of converts `SystemTime` to it.
 // TODO: How to avoid errors here?
-pub(crate) fn time_to_ts(opt_system_time: Option<SystemTime>) -> Result<Timestamp, Error> {
+pub fn time_to_ts(opt_system_time: Option<SystemTime>) -> Result<Timestamp, Error> {
     opt_system_time
         .unwrap_or_else(SystemTime::now)
         .duration_since(SystemTime::UNIX_EPOCH)

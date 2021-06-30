@@ -1,4 +1,4 @@
-use crate::flow::core::{Flow, TimedEvent};
+use crate::flow::core::Flow;
 use crate::flow::location::Location;
 use crate::io::provider::{Description, Path, StreamType};
 use serde::{Deserialize, Serialize};
@@ -32,8 +32,8 @@ impl Flow for PathState {
         StreamType::from("rillrate::meta::path::v0")
     }
 
-    fn apply(&mut self, event: TimedEvent<Self::Event>) {
-        match event.event {
+    fn apply(&mut self, event: Self::Event) {
+        match event {
             PathEvent::AddPath { path, description } => {
                 self.paths.insert(path, description);
             }
@@ -43,8 +43,6 @@ impl Flow for PathState {
         }
     }
 }
-
-pub type PathDelta = Vec<TimedEvent<PathEvent>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PathEvent {
