@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope};
+use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
@@ -274,6 +274,13 @@ impl<T: core::Flow> Tracer<T> {
         Ok(())
     }
     */
+}
+
+/// Wraps with timed event
+pub fn timed<T>(event: T) -> Option<TimedEvent<T>> {
+    time_to_ts(None)
+        .map(move |timestamp| TimedEvent { timestamp, event })
+        .ok()
 }
 
 /// Generates a `Timestamp` of converts `SystemTime` to it.
