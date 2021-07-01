@@ -49,4 +49,8 @@ impl<T> Frame<T> {
     pub fn size(&self) -> u32 {
         self.size
     }
+
+    pub fn clear(&mut self) {
+        self.frame.clear()
+    }
 }
