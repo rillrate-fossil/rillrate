@@ -1,5 +1,4 @@
 use crate::flow::core::TimedEvent;
-use crate::io::provider::Timestamp;
 use derive_more::Deref;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
@@ -27,9 +26,9 @@ impl<T> TimedFrame<T> {
         }
     }
 
-    pub fn insert_pop(&mut self, item: TimedEvent<T>, ts: Timestamp) {
+    pub fn insert_pop(&mut self, item: TimedEvent<T>) {
         while let Some(front) = self.frame.front() {
-            if (ts.0 - front.timestamp.0) >= self.depth_ms {
+            if (item.timestamp.0 - front.timestamp.0) >= self.depth_ms {
                 self.frame.pop_front();
             } else {
                 break;
