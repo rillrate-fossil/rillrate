@@ -175,6 +175,20 @@ impl IntoIterator for Path {
     }
 }
 
+impl Path {
+    pub fn of_server(self) -> Self {
+        let mut server = vec!["@server".into()];
+        server.extend(self);
+        server.into()
+    }
+
+    pub fn of_client(self) -> Self {
+        let mut server = vec!["@self".into()];
+        server.extend(self);
+        server.into()
+    }
+}
+
 /*
 impl AsRef<[EntryId]> for Path {
     fn as_ref(&self) -> &[EntryId] {
