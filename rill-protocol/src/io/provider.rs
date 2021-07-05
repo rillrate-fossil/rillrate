@@ -312,28 +312,6 @@ pub enum FlowControl {
     StopStream,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum EntryType {
-    Node,
-    Container,
-    Provider,
-    Stream(StreamType),
-}
-
-impl fmt::Display for EntryType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
-            Self::Node => "node",
-            Self::Container => "container",
-            Self::Provider => "provider",
-            Self::Stream(stream_type) => {
-                return write!(f, "stream/{}", stream_type);
-            }
-        };
-        value.fmt(f)
-    }
-}
-
 #[derive(Debug, Clone, From, Into, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct StreamType(String);
 
