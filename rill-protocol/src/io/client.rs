@@ -36,13 +36,13 @@ pub enum ClientResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientServiceRequest {
-    Ping,
+    //Ping,
     AccessLevel(AccessLevel),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientServiceResponse {
-    Pong,
+    //Pong,
 }
 
 /// `AccessLevel` notifies about specific stages of a session:
