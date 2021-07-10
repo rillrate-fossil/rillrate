@@ -10,7 +10,7 @@ use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
-use tokio::sync::watch;
+use tokio::sync::{mpsc as tokio_mpsc, watch};
 
 #[derive(Debug)]
 pub(crate) struct EventEnvelope<T: core::Flow> {
@@ -24,10 +24,10 @@ impl<T: core::Flow> Action for EventEnvelope<T> {}
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
-pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
+pub(crate) type ControlSender<T> = tokio_mpsc::UnboundedSender<ActionEnvelope<T>>;
 
 /// Watches for the control events.
-pub type Watcher<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
+pub type Watcher<T> = tokio_mpsc::UnboundedReceiver<ActionEnvelope<T>>;
 
 pub(crate) enum TracerMode<T: core::Flow> {
     /* TODO: THE Idea to implement storage:
@@ -109,7 +109,7 @@ impl<T: core::Flow> Tracer<T> {
     /// Create a `Push` mode `Tracer`
     pub fn new_push(state: T, path: Path) -> (Self, Watcher<T>) {
         let (tx, rx) = mpsc::unbounded();
-        let (control_tx, control_rx) = mpsc::unbounded();
+        let (control_tx, control_rx) = tokio_mpsc::unbounded_channel();
         let mode = TracerMode::Push {
             state,
             receiver: Some(rx),
