@@ -1,10 +1,11 @@
 use crate::actors::connector::RillConnector;
-use crate::actors::pool::RillPool;
+//use crate::actors::pool::RillPool;
 use crate::config::EngineConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Actor, Context, Eliminated, IdOf, InterruptedBy, StartedBy};
 use rill_protocol::io::provider::EntryId;
+use strum::{EnumIter, IntoEnumIterator};
 
 /// The supervisor that spawns a connector.
 pub struct RillEngine {
@@ -13,10 +14,10 @@ pub struct RillEngine {
     config: Option<EngineConfig>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter)]
 pub enum Group {
     Connector,
-    Pool,
+    //Pool,
 }
 
 impl Actor for RillEngine {
@@ -41,14 +42,16 @@ impl RillEngine {
 #[async_trait]
 impl<T: Actor> StartedBy<T> for RillEngine {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.termination_sequence(vec![Group::Connector, Group::Pool]);
+        ctx.termination_sequence(Group::iter().collect());
 
         let config = self.config.take().unwrap();
         let connector = RillConnector::new(config);
         ctx.spawn_actor(connector, Group::Connector);
 
+        /*
         let pool = RillPool::new();
         ctx.spawn_actor(pool, Group::Pool);
+        */
 
         Ok(())
     }
@@ -74,6 +77,7 @@ impl Eliminated<RillConnector> for RillEngine {
     }
 }
 
+/*
 #[async_trait]
 impl Eliminated<RillPool> for RillEngine {
     async fn handle(&mut self, _id: IdOf<RillPool>, ctx: &mut Context<Self>) -> Result<(), Error> {
@@ -81,3 +85,4 @@ impl Eliminated<RillPool> for RillEngine {
         Ok(())
     }
 }
+*/

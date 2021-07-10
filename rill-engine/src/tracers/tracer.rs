@@ -1,8 +1,8 @@
 //! This module contains a generic `Tracer`'s methods.
 use crate::actors::connector;
-use crate::actors::pool::{self, RillPoolTask};
+//use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
-use async_trait::async_trait;
+//use async_trait::async_trait;
 use futures::channel::mpsc;
 use meio::Action;
 use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
@@ -57,27 +57,16 @@ pub(crate) enum TracerMode<T: core::Flow> {
 
 #[derive(Debug)]
 enum InnerMode<T: core::Flow> {
-    Push {
-        sender: DataSender<T>,
-        // TODO: Consider removing and use the first channel only
-        /// Kept for generating new `Receiver`s
-        control_sender: Arc<ControlSender<T>>,
-    },
-    Pull {
-        state: Arc<Mutex<T>>,
-    },
+    Push { sender: DataSender<T> },
+    Pull { state: Arc<Mutex<T>> },
 }
 
 // TODO: Or require `Clone` for the `Flow` to derive this
 impl<T: core::Flow> Clone for InnerMode<T> {
     fn clone(&self) -> Self {
         match self {
-            Self::Push {
-                sender,
-                control_sender,
-            } => Self::Push {
+            Self::Push { sender } => Self::Push {
                 sender: sender.clone(),
-                control_sender: control_sender.clone(),
             },
             Self::Pull { state } => Self::Pull {
                 state: state.clone(),
@@ -127,10 +116,7 @@ impl<T: core::Flow> Tracer<T> {
             receiver: Some(rx),
             control_sender: Some(control_tx.clone()),
         };
-        let inner_mode = InnerMode::Push {
-            sender: tx,
-            control_sender: Arc::new(control_tx),
-        };
+        let inner_mode = InnerMode::Push { sender: tx };
         (Self::new_inner(path, inner_mode, mode), control_rx)
     }
 
@@ -204,6 +190,7 @@ impl<T: core::Flow> Tracer<T> {
         }
     }
 
+    /*
     /// Subscribe to the stream of the watcher.
     pub fn subscribe(&mut self) -> Result<Watcher<T>, Error> {
         match &mut self.mode {
@@ -214,7 +201,9 @@ impl<T: core::Flow> Tracer<T> {
             }
         }
     }
+    */
 
+    /*
     /// Registers a callback to the flow.
     pub fn callback<F>(&mut self, func: F)
     where
@@ -231,8 +220,10 @@ impl<T: core::Flow> Tracer<T> {
             );
         }
     }
+    */
 }
 
+/*
 struct Callback<T: core::Flow, F> {
     tracer: Tracer<T>,
     callback: F,
@@ -252,6 +243,7 @@ where
         }
     }
 }
+*/
 
 impl<T: core::Flow> Tracer<T> {
     /// Returns `true` is the `Tracer` has to send data.
