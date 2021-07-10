@@ -246,7 +246,7 @@ impl<T: core::Flow> Recorder<T> {
             } => {
                 let envelope = ActionEnvelope { origin, activity };
                 // TODO: Track errors and send them back to the client?
-                if let Err(err) = sender.send(envelope) {
+                if let Err(err) = sender.unbounded_send(envelope) {
                     log::error!(
                         "No activity listeners in {} watcher: {}",
                         self.description.path,
