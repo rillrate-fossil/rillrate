@@ -24,6 +24,9 @@ impl<T: core::Flow> Action for EventEnvelope<T> {}
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
+// TODO: Consider changing to mpsc
+pub(crate) type ControlSender<T> = broadcast::Sender<ActionEnvelope<T>>;
+
 /// Watches for the control events.
 pub type Watcher<T> = broadcast::Receiver<ActionEnvelope<T>>;
 
@@ -42,8 +45,8 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Push {
         state: T,
         receiver: Option<DataReceiver<T>>,
-        /// For sending events to a `Tracer` instances
-        control_sender: broadcast::Sender<ActionEnvelope<T>>,
+        /// For sending events to the `Tracer` instance
+        control_sender: ControlSender<T>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
@@ -56,8 +59,9 @@ pub(crate) enum TracerMode<T: core::Flow> {
 enum InnerMode<T: core::Flow> {
     Push {
         sender: DataSender<T>,
+        // TODO: Consider removing and use the first channel only
         /// Kept for generating new `Receiver`s
-        control_sender: Arc<broadcast::Sender<ActionEnvelope<T>>>,
+        control_sender: Arc<ControlSender<T>>,
     },
     Pull {
         state: Arc<Mutex<T>>,
