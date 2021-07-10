@@ -46,7 +46,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
         state: T,
         receiver: Option<DataReceiver<T>>,
         /// For sending events to the `Tracer` instance
-        control_sender: ControlSender<T>,
+        control_sender: Option<ControlSender<T>>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
@@ -125,7 +125,7 @@ impl<T: core::Flow> Tracer<T> {
         let mode = TracerMode::Push {
             state,
             receiver: Some(rx),
-            control_sender: control_tx.clone(),
+            control_sender: Some(control_tx.clone()),
         };
         let inner_mode = InnerMode::Push {
             sender: tx,

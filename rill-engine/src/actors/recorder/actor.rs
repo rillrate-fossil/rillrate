@@ -240,16 +240,28 @@ impl<T: core::Flow> OnTick for Recorder<T> {
 impl<T: core::Flow> Recorder<T> {
     fn send_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) {
         match &mut self.mode {
-            TracerMode::Push { control_sender, .. } => {
+            TracerMode::Push {
+                control_sender: Some(sender),
+                ..
+            } => {
                 let envelope = ActionEnvelope { origin, activity };
                 // TODO: Track errors and send them back to the client?
-                if let Err(err) = control_sender.send(envelope) {
+                if let Err(err) = sender.send(envelope) {
                     log::error!(
                         "No activity listeners in {} watcher: {}",
                         self.description.path,
                         err,
                     );
                 }
+            }
+            TracerMode::Push {
+                control_sender: None,
+                ..
+            } => {
+                log::error!(
+                    "Push sender doesn't support control actions for {}",
+                    self.description.path
+                );
             }
             TracerMode::Pull { .. } => {
                 log::error!(
