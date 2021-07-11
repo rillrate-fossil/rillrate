@@ -30,6 +30,7 @@ serde = "1.0.126"
 strum = { version = "0.21.0", features = ["derive"] }
 thiserror = "1.0.26"
 tokio = { version = "1.8.0", features = ["full"] }
+tokio-stream = "0.1.7"
 
 [dev-dependencies]
 ctrlc = "3.1.9"

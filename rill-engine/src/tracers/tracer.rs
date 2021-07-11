@@ -3,14 +3,14 @@ use crate::actors::connector;
 //use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
 //use async_trait::async_trait;
-use futures::channel::mpsc;
+//use futures::channel::mpsc;
 use meio::Action;
 use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
-use tokio::sync::{mpsc as tokio_mpsc, watch};
+use tokio::sync::{mpsc, watch};
 
 #[derive(Debug)]
 pub(crate) struct EventEnvelope<T: core::Flow> {
@@ -24,10 +24,10 @@ impl<T: core::Flow> Action for EventEnvelope<T> {}
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
-pub(crate) type ControlSender<T> = tokio_mpsc::UnboundedSender<ActionEnvelope<T>>;
+pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 
 /// Watches for the control events.
-pub type Watcher<T> = tokio_mpsc::UnboundedReceiver<ActionEnvelope<T>>;
+pub type Watcher<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
 
 pub(crate) enum TracerMode<T: core::Flow> {
     /* TODO: THE Idea to implement storage:
@@ -108,8 +108,8 @@ impl<T: core::Flow> Eq for Tracer<T> {}
 impl<T: core::Flow> Tracer<T> {
     /// Create a `Push` mode `Tracer`
     pub fn new_push(state: T, path: Path) -> (Self, Watcher<T>) {
-        let (tx, rx) = mpsc::unbounded();
-        let (control_tx, control_rx) = tokio_mpsc::unbounded_channel();
+        let (tx, rx) = mpsc::unbounded_channel();
+        let (control_tx, control_rx) = mpsc::unbounded_channel();
         let mode = TracerMode::Push {
             state,
             receiver: Some(rx),
@@ -168,7 +168,7 @@ impl<T: core::Flow> Tracer<T> {
                 InnerMode::Push { sender, .. } => {
                     let envelope = EventEnvelope { direction, event };
                     // And will never send an event
-                    if let Err(err) = sender.unbounded_send(envelope) {
+                    if let Err(err) = sender.send(envelope) {
                         log::error!("Can't transfer data to sender: {}", err);
                     }
                 }

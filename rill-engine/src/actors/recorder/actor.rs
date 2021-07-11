@@ -15,6 +15,7 @@ use rill_protocol::io::provider::{
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
+use tokio_stream::wrappers::UnboundedReceiverStream;
 
 pub(crate) struct Recorder<T: core::Flow> {
     description: Arc<Description>,
@@ -94,10 +95,8 @@ impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         match &mut self.mode {
             TracerMode::Push { receiver, .. } => {
-                let rx = receiver
-                    .take()
-                    .expect("tracer hasn't attached receiver")
-                    .ready_chunks(32);
+                let rx = receiver.take().expect("tracer hasn't attached receiver");
+                let rx = UnboundedReceiverStream::new(rx).ready_chunks(32);
                 ctx.attach(rx, (), ());
                 Ok(())
             }
