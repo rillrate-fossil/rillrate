@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct Avg {
     counter: u64,
     sum: f64,
@@ -8,10 +8,7 @@ pub struct Avg {
 
 impl Avg {
     pub fn new() -> Self {
-        Self {
-            counter: 0,
-            sum: 0.0,
-        }
+        Self::default()
     }
 
     pub fn add(&mut self, value: f64) {
