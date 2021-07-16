@@ -4,7 +4,7 @@ use crate::actors::connector::{RillConnector, RillSender};
 use crate::tracers::tracer::{EventEnvelope, TracerMode};
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::StreamExt;
+use futures::stream::{self, StreamExt};
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::flow::core::{self, ActionEnvelope, Activity};
@@ -100,10 +100,17 @@ impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
                 ctx.attach(rx, (), ());
                 Ok(())
             }
-            TracerMode::Pull { interval, .. } => {
+            TracerMode::Pull {
+                interval, notifier, ..
+            } => {
+                // TODO: Wait for the subscribers to spawn a heartbeat activity
                 let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
                 let _task = ctx.spawn_task(heartbeat, (), ());
-                // Waiting for the subscribers to spawn a heartbeat activity
+                let notifications = stream::repeat(notifier.to_owned())
+                    .then(|notifier| async move { notifier.notified().await })
+                    .map(|()| FlushImportantChange)
+                    .boxed();
+                ctx.attach(notifications, (), ());
                 Ok(())
             }
         }
@@ -206,9 +213,37 @@ impl<T: core::Flow> Consumer<Vec<EventEnvelope<T>>> for Recorder<T> {
     }
 }
 
+/// A notification to force sending of the current pullable state.
+struct FlushImportantChange;
+
+#[async_trait]
+impl<T: core::Flow> Consumer<FlushImportantChange> for Recorder<T> {
+    async fn handle(
+        &mut self,
+        _: FlushImportantChange,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
+        log::warn!("FLUSH BY NOTIFICATION!!!!!!");
+        self.flush_state(ctx).await
+    }
+}
+
 #[async_trait]
 impl<T: core::Flow> OnTick for Recorder<T> {
     async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.flush_state(ctx).await
+    }
+
+    async fn done(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        // This can happen only if the `InterruptedBy` handler called and
+        // all shutdown routine (sending `End` responses) was already performed.
+        Ok(())
+    }
+}
+
+impl<T: core::Flow> Recorder<T> {
+    /// Sends a state in the `Pull` mode.
+    async fn flush_state(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         if !self.subscribers.is_empty() && !ctx.is_terminating() {
             match &self.mode {
                 TracerMode::Pull { .. } => {
@@ -226,12 +261,6 @@ impl<T: core::Flow> OnTick for Recorder<T> {
                 }
             }
         }
-        Ok(())
-    }
-
-    async fn done(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        // This can happen only if the `InterruptedBy` handler called and
-        // all shutdown routine (sending `End` responses) was already performed.
         Ok(())
     }
 }

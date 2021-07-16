@@ -10,7 +10,7 @@ use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
-use tokio::sync::{mpsc, watch};
+use tokio::sync::{mpsc, watch, Notify};
 
 #[derive(Debug)]
 pub(crate) struct EventEnvelope<T: core::Flow> {
@@ -51,13 +51,28 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Pull {
         state: Weak<Mutex<T>>,
         interval: Duration,
+        notifier: Arc<Notify>,
+        // TODO: It's also possible to support `control_sender`
     },
 }
 
 #[derive(Debug)]
 enum InnerMode<T: core::Flow> {
-    Push { sender: DataSender<T> },
-    Pull { state: Arc<Mutex<T>> },
+    Push {
+        // TODO: Add an optional buffer + flushing:
+        // TODO: Also it's possible to add a special `AccumulatedDelta` subtype to `Flow`.
+        // buffer: `Option<Vec<T>, usize>`,
+        // if the `buffer` exists it does `autoflush`
+        // or can be flushed manually by `tracer.flush()` call.
+        sender: DataSender<T>,
+    },
+    Pull {
+        state: Arc<Mutex<T>>,
+        /// For sending notifications about important state changes
+        /// IMPORTANT! No join with `Arc` of `state`, because
+        /// state needs `Weak` to detect closing.
+        notifier: Arc<Notify>,
+    },
 }
 
 // TODO: Or require `Clone` for the `Flow` to derive this
@@ -67,8 +82,9 @@ impl<T: core::Flow> Clone for InnerMode<T> {
             Self::Push { sender } => Self::Push {
                 sender: sender.clone(),
             },
-            Self::Pull { state } => Self::Pull {
+            Self::Pull { state, notifier } => Self::Pull {
                 state: state.clone(),
+                notifier: notifier.clone(),
             },
         }
     }
@@ -122,11 +138,13 @@ impl<T: core::Flow> Tracer<T> {
     /// Create a `Pull` mode `Tracer`
     pub fn new_pull(state: T, path: Path, interval: Duration) -> Self {
         let state = Arc::new(Mutex::new(state));
+        let notifier = Arc::new(Notify::new());
         let mode = TracerMode::Pull {
             state: Arc::downgrade(&state),
             interval,
+            notifier: notifier.clone(),
         };
-        let inner_mode = InnerMode::Pull { state };
+        let inner_mode = InnerMode::Pull { state, notifier };
         Self::new_inner(path, inner_mode, mode)
     }
 
@@ -161,6 +179,21 @@ impl<T: core::Flow> Tracer<T> {
         &self.description.path
     }
 
+    /// Ask recorder to resend a state in the `Pull` mode.
+    pub fn flush(&self) {
+        if self.is_active() {
+            match &self.mode {
+                InnerMode::Pull { notifier, .. } => {
+                    notifier.notify_one();
+                }
+                InnerMode::Push { .. } => {
+                    // TODO: Implement buffering and flushing.
+                    log::error!("Buffering and flushing is not supported in `Push` mode yet");
+                }
+            }
+        }
+    }
+
     /// Send an event to a `Recorder`.
     pub fn send(&self, event: T::Event, direction: Option<Direction<ProviderProtocol>>) {
         if self.is_active() {
@@ -172,7 +205,7 @@ impl<T: core::Flow> Tracer<T> {
                         log::error!("Can't transfer data to sender: {}", err);
                     }
                 }
-                InnerMode::Pull { state } => match state.lock() {
+                InnerMode::Pull { state, .. } => match state.lock() {
                     // `direction` ignored always in the `Pull` mode
                     Ok(ref mut state) => {
                         T::apply(state, event);
