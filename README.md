@@ -1,5 +1,7 @@
 # rillrate
 
-Real-time monitoring for Microservices, Apps and Servers.
+The core implementation of the **RillRate** protocol.
 
-This repository contains the protocol and the client implementation.
+> In the past, this repository also contained an embedded
+monitoring server, but the project is actively improving
+and monitoring parts moved to a separate application.
