@@ -1,7 +1,9 @@
-# rillrate
+## rillrate
 
-The core implementation of the **RillRate** protocol.
+**The data protocol and the async engine.**
 
-> In the past, this repository also contained an embedded
-monitoring server, but the project is actively improving
-and monitoring parts moved to a separate application.
+This protocol used as the core part of the [Tame](https://github.com/rillrate/tame)
+multi-tool for developers.
+
+This protocol strongly inspired by the [Nitrogen](https://nitrogenproject.com/)
+Web Framework (Erlang).
