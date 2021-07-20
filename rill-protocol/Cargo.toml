@@ -1,19 +1,16 @@
 [package]
 name = "rill-protocol"
 version = "0.35.0"
-authors = [
-    "Denis Kolodin <deniskolodin@gmail.com>",
-    "overfloat <rillrate@gmail.com>",
-]
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate-rs"
 homepage = "https://github.com/rillrate/rillrate-rs"
 documentation = "https://docs.rs/rill-protocol/"
-license = "MIT/Apache-2.0"
+license = "Apache-2.0"
 readme = "README.md"
 keywords = ["logging"]
 categories = ["development-tools::debugging"]
-description = "Dynamic logging and tracing system"
+description = "The RillRate protocol."
 
 [dependencies]
 anyhow = "1.0.42"
