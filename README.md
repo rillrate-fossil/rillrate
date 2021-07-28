@@ -5,7 +5,6 @@
 - **_It's fully custom_** - You add your own data streams with everything you want
 - **_It works in real-time!_** - NOT `5 secs` real-time, it's `0.002 secs` real-time 🚀
 - **_Zero-configuration_** - you don't need to install and configure any other software
-- **_Micro-frontend inside_** - it's based on own microfrontend approach (in-progress)
 
 ![dashboard](https://rillrate.com/images/dashboard.png)
 

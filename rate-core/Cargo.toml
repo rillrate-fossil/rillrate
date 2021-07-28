@@ -1,5 +1,5 @@
 [package]
-name = "rill-server"
+name = "rate-core"
 version = "0.35.0"
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"

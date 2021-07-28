@@ -1,7 +1,10 @@
 [workspace]
 members = [
-    "rill-client",
-    "rill-engine",
+    "rillrate",
+
     "rill-protocol",
-    "rill-server",
+    "rill-engine",
+    "rill-client",
+
+    "rate-core",
 ]
