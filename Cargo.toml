@@ -7,4 +7,6 @@ members = [
     "rill-client",
 
     "rate-core",
+
+    "demo",
 ]
