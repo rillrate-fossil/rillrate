@@ -10,6 +10,9 @@
 
 ![dashboard](https://rillrate.com/images/dashboard.png)
 
+Become a [sponsor](https://github.com/sponsors/rillrate) to read weekly updated
+[book](https://github.com/sponsors/rillrate) how we develop the full-stack Rust product.
+
 ### How to use it?
 
 > TODO!
