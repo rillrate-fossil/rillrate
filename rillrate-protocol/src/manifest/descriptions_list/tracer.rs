@@ -1,5 +1,5 @@
 use super::state::*;
-use crate::base::list_flow::{ListFlowTracer, ListFlowWatcher};
+use crate::base::list_flow::ListFlowTracer;
 use derive_more::{Deref, DerefMut};
 use once_cell::sync::Lazy;
 use rill_engine::tracers::tracer::Tracer;
@@ -8,9 +8,18 @@ use rill_protocol::io::provider::{Description, Path};
 use std::ops::Deref;
 use std::sync::Arc;
 
-pub type DescriptionsFlowTracer = ListFlowTracer<DescriptionsFlowSpec>;
+#[derive(Deref, DerefMut)]
+struct DescriptionsListTracer {
+    tracer: ListFlowTracer<DescriptionsListSpec>,
+}
 
-pub type DescriptionsFlowWatcher = ListFlowWatcher<DescriptionsFlowSpec>;
+impl DescriptionsListTracer {
+    fn new() -> Self {
+        Self {
+            tracer: ListFlowTracer::new().0,
+        }
+    }
+}
 
 /// `Binded` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
@@ -36,7 +45,7 @@ impl<T> Binded<T> {
     }
 }
 
-static DESCRIPTIONS: Lazy<DescriptionsFlowTracer> = Lazy::new(|| DescriptionsFlowTracer::new().0);
+static DESCRIPTIONS: Lazy<DescriptionsListTracer> = Lazy::new(DescriptionsListTracer::new);
 
 #[derive(Debug)]
 struct DescriptionBinder {
