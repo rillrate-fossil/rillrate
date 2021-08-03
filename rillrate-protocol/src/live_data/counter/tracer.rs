@@ -1,4 +1,5 @@
 use super::state::*;
+use crate::manifest::descriptions_flow::DescriptionBinder;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::{Tracer, Watcher};
 use rill_protocol::io::provider::Path;
@@ -6,7 +7,10 @@ use std::time::Duration;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct CounterTracer {
+    #[deref]
+    #[deref_mut]
     tracer: Tracer<CounterState>,
+    binder: DescriptionBinder,
 }
 
 impl CounterTracer {
@@ -20,7 +24,8 @@ impl CounterTracer {
                 Tracer::new_push(state, path).0
             }
         };
-        Self { tracer }
+        let binder = DescriptionBinder::new(&tracer);
+        Self { tracer, binder }
     }
 
     pub fn inc(&self, delta: i64) {

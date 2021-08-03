@@ -179,6 +179,11 @@ impl<T: core::Flow> Tracer<T> {
         &self.description.path
     }
 
+    /// Returns a reference to a `Description` of the `Tracer`.
+    pub fn description(&self) -> &Description {
+        &self.description
+    }
+
     /// Ask recorder to resend a state in the `Pull` mode.
     pub fn flush(&self) {
         if self.is_active() {
