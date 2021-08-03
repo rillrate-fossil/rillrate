@@ -10,7 +10,7 @@ pub trait StatFlowSpec: DataFraction {
 
     fn path(&self) -> Path;
 
-    fn interval(&self) -> Duration;
+    fn interval(&self) -> Option<Duration>;
 
     fn apply(stat: &mut Self::Stat, delta: Self::Delta);
 }

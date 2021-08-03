@@ -122,6 +122,15 @@ impl<T: core::Flow> PartialEq for Tracer<T> {
 impl<T: core::Flow> Eq for Tracer<T> {}
 
 impl<T: core::Flow> Tracer<T> {
+    /// Create a new `Tracer`
+    pub fn new(state: T, path: Path, pull_interval: Option<Duration>) -> Self {
+        if let Some(duration) = pull_interval {
+            Self::new_pull(state, path, duration)
+        } else {
+            Self::new_push(state, path).0
+        }
+    }
+
     /// Create a `Push` mode `Tracer`
     pub fn new_push(state: T, path: Path) -> (Self, Watcher<T>) {
         let (tx, rx) = mpsc::unbounded_channel();
