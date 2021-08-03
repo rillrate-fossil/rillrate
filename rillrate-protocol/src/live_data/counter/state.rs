@@ -21,6 +21,7 @@ impl StatFlowSpec for CounterStatSpec {
     type Delta = i64;
 
     fn path(&self) -> Path {
+        // TODO: Improve that
         format!("rillrate.live_data.counter.{}", self.name)
             .parse()
             .unwrap()

@@ -5,9 +5,9 @@ use std::time::Duration;
 pub fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let handle = rillrate::start();
-    let counter_1 = rillrate::CounterStatTracer::new("Demo Counter 1", 0);
-    let counter_2 = rillrate::CounterStatTracer::new("Demo Counter 2", 0);
-    let counter_3 = rillrate::CounterStatTracer::new("Demo Counter 3", 0);
+    let counter_1 = rillrate::CounterStatTracer::new("Demo Counter 1", true);
+    let counter_2 = rillrate::CounterStatTracer::new("Demo Counter 2", true);
+    let counter_3 = rillrate::CounterStatTracer::new("Demo Counter 3", true);
     for _ in 1..=300 {
         counter_1.inc(1);
         counter_2.inc(10);

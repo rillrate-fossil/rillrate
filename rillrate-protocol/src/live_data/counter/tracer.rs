@@ -9,10 +9,11 @@ pub struct CounterStatTracer {
 }
 
 impl CounterStatTracer {
-    pub fn new(name: impl Into<EntryId>, pull_ms: u64) -> Self {
+    pub fn new(name: impl Into<EntryId>, realtime: bool) -> Self {
+        let pull_ms = if realtime { None } else { Some(1_000) };
         let spec = CounterStatSpec {
             name: name.into(),
-            pull_ms: Some(pull_ms).filter(|ms| *ms > 0),
+            pull_ms,
         };
         let tracer = StatFlowTracer::new(spec);
         let binder = DescriptionBinder::new(&tracer);

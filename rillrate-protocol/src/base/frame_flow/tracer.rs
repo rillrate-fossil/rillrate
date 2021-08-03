@@ -5,6 +5,7 @@ use rill_protocol::io::provider::Path;
 
 pub type FrameFlowWatcher<T> = Watcher<FrameFlowState<T>>;
 
+/// It records time automatically.
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct FrameFlowTracer<T: FrameFlowSpec> {
     tracer: Tracer<FrameFlowState<T>>,
