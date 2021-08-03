@@ -23,6 +23,7 @@ pub struct ConnectionLimiter<T: Actor> {
 }
 
 impl<T: Actor> ConnectionLimiter<T> {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             slots: HashMap::new(),

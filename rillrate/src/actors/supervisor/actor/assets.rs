@@ -32,7 +32,7 @@ impl InteractionDone<WaitHttpServer, ()> for NodeSupervisor {
             url: None,
             embedded,
         };
-        let app_bind = AppBind::new(link.clone(), options);
+        let app_bind = AppBind::new(link, options);
         ctx.spawn_actor(app_bind, Group::Assets);
         Ok(())
     }

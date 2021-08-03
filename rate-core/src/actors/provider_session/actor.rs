@@ -321,7 +321,7 @@ impl InteractionHandler<link::UnsubscribeFromPath> for ProviderSession {
         log::info!("Unsubscribing from {}", msg.path);
         let direct_id = msg.req_id;
         if let Some(rule) = self.directions.get_mut(direct_id) {
-            if let Some(_) = rule.forward_to.take() {
+            if rule.forward_to.take().is_some() {
                 rule.stop();
                 rule.unsubscribed = true;
                 if !rule.drained {

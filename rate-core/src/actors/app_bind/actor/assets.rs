@@ -19,7 +19,6 @@ impl AppBind {
         let path = self
             .options
             .env_var
-            .clone()
             .and_then(|env_var| std::env::var(env_var).ok());
         if let Some(path) = path {
             if path.starts_with("http") {

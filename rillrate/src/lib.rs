@@ -7,11 +7,11 @@ use anyhow::Error;
 use meio::thread;
 
 pub struct RillRateHandle {
-    rt: thread::ScopedRuntime,
+    _rt: thread::ScopedRuntime,
 }
 
 pub fn start() -> Result<RillRateHandle, Error> {
     let actor = NodeSupervisor::new(Default::default());
     let rt = thread::spawn(actor)?;
-    Ok(RillRateHandle { rt })
+    Ok(RillRateHandle { _rt: rt })
 }

@@ -1,5 +1,5 @@
 use crate::base::frame_flow::{FrameFlowSpec, FrameFlowState};
-use rill_protocol::io::provider::{EntryId, Path, StreamType};
+use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
 
 pub type PulseFrameState = FrameFlowState<PulseFrameSpec>;

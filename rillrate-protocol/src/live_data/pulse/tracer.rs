@@ -1,5 +1,5 @@
 use super::state::*;
-use crate::base::frame_flow::{FrameFlowSpec, FrameFlowTracer, FrameFlowWatcher};
+use crate::base::frame_flow::{FrameFlowSpec, FrameFlowTracer};
 use crate::manifest::descriptions_flow::Binded;
 use rill_protocol::io::provider::EntryId;
 

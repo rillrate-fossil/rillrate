@@ -12,6 +12,7 @@ pub struct SessionAcl {
 }
 
 impl SessionAcl {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         // @ prefix means - hidden
         let session_id = format!("@{}", Uuid::new_v4()).into();

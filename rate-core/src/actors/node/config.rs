@@ -21,13 +21,11 @@ impl Default for NodeConfig {
 impl NodeConfig {
     pub fn external_address(&self) -> SocketAddr {
         self.external_address
-            .clone()
             .unwrap_or_else(|| "0.0.0.0:6361".parse().unwrap())
     }
 
     pub fn internal_address(&self) -> SocketAddr {
         self.internal_address
-            .clone()
             .unwrap_or_else(|| "127.0.0.1:1636".parse().unwrap())
     }
 }

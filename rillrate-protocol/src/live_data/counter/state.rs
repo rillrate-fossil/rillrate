@@ -1,5 +1,5 @@
 use crate::base::stat_flow::{StatFlowSpec, StatFlowState};
-use rill_protocol::io::provider::{EntryId, Path, StreamType};
+use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 

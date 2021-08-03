@@ -202,6 +202,7 @@ impl<T: Supervisor> ClientSession<T> {
         // TODO: Fix `ValidPath` shit
         // TODO: Return error for invalid paths
         // TODO: Use `AliasPath` instead (to prevent potential mistakes on refactoring)
+        #[allow(clippy::collapsible_if)]
         if !self.session_acl.has_access_to(&path).await {
             if !self.global_acl.has_access_to(&path).await {
                 //log::error!("No access to: {}", path);

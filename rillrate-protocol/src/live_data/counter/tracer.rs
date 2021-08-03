@@ -1,5 +1,5 @@
 use super::state::*;
-use crate::base::stat_flow::{StatFlowTracer, StatFlowWatcher};
+use crate::base::stat_flow::StatFlowTracer;
 use crate::manifest::descriptions_flow::Binded;
 use rill_protocol::io::provider::EntryId;
 

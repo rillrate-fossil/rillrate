@@ -23,6 +23,7 @@ pub struct Registry {
 }
 
 impl Registry {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let inner = RegistryInner::new();
         Self {

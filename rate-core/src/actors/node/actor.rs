@@ -100,7 +100,7 @@ impl<T: Supervisor> StartedBy<T> for Node<T> {
         let external_link: HttpServerLink = external_address.link();
         let wait_addr = external_link.wait_for_address();
         ctx.track_interaction(wait_addr, External, Group::Service);
-        self.external_server = Some(external_link.clone());
+        self.external_server = Some(external_link);
 
         // TODO: `Router` is not needed in the future... Look to the `AppBind`
         log::info!("Starting router...");
