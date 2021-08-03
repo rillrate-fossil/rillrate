@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "rillrate",
+    "rillrate-protocol",
 
     "rill-protocol",
     "rill-engine",

@@ -1,0 +1,14 @@
+[package]
+name = "rillrate-protocol"
+version = "0.1.0"
+edition = "2018"
+repository = "https://github.com/rillrate/rillrate"
+homepage = "https://github.com/rillrate/rillrate"
+documentation = "https://docs.rs/rillrate-protocol/"
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["logging"]
+categories = ["development-tools::debugging"]
+description = "Top level protocol for the RillRate protocol."
+
+[dependencies]
