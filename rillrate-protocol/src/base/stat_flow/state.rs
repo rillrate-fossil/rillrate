@@ -3,6 +3,7 @@ use rill_protocol::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+/// It's like meta, but uses pulling for handling intensive load.
 pub trait StatFlowSpec: DataFraction {
     type Stat: DataFraction + Default;
     type Delta: DataFraction;

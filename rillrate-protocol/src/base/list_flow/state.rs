@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::hash::Hash;
 
+/// Similar to meta, but every record can be changed separately.
 pub trait ListFlowSpec: DataFraction {
     type Id: DataFraction + Ord + Hash;
     type Record: DataFraction;

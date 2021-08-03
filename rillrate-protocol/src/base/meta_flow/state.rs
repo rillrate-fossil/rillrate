@@ -2,6 +2,7 @@ use rill_protocol::flow::core::{DataFraction, Flow};
 use rill_protocol::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 
+// TODO: Use list instead?
 pub trait MetaFlowSpec: DataFraction {
     type Meta: DataFraction;
 
