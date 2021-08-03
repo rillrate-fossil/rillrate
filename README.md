@@ -2,6 +2,8 @@
 
 🚧 The project is under **active development** and the working version will be released **this week** (before Aug 8 2021).
 
+Join our [reddit/rillrate](https://www.reddit.com/r/rillrate/) community to stay tuned about all the new features we released every day!
+
 ### UI for Microservices, Bots and IoT devices.
 
 - **_It's fully custom_** - You add your own data streams with everything you want
