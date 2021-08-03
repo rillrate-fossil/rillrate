@@ -20,3 +20,5 @@ impl ListFlowSpec for DescriptionsFlowSpec {
         log::error!("Inner updates not supported to DescriptionsFlow");
     }
 }
+
+pub type DescriptionsFlowState = ListFlowState<DescriptionsFlowSpec>;

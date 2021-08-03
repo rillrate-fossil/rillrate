@@ -1,5 +1,7 @@
 pub mod actors;
 
+pub use rillrate_protocol::live_data::counter::CounterTracer;
+
 use actors::supervisor::NodeSupervisor;
 use anyhow::Error;
 use meio::thread;

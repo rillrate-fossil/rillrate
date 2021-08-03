@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CounterState {
-    total: i64,
+    pub total: i64,
 }
 
 #[allow(clippy::new_without_default)]

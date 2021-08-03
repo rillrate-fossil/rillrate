@@ -12,6 +12,7 @@ meio = "0.93.0"
 meio-connect = "0.93.0"
 rate-core = { version = "0.35.0", path = "../rate-core" }
 rill-protocol = { version = "0.35.0", path = "../rill-protocol" }
+rillrate-protocol = { version = "0.35.0", path = "../rillrate-protocol" }
 serde = "1.0.126"
 strum = "0.21.0"
 thiserror = "1.0.26"
