@@ -1,6 +1,6 @@
 pub mod actors;
 
-pub use rillrate_protocol::live_data::counter::CounterTracer;
+pub use rillrate_protocol::live_data::counter::*;
 
 use actors::supervisor::NodeSupervisor;
 use anyhow::Error;

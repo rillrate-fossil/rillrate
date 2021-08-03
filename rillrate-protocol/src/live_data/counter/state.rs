@@ -1,40 +1,36 @@
-use rill_protocol::flow::core::{DataFraction, Flow};
-use rill_protocol::io::provider::{Path, StreamType};
+use crate::base::stat_flow::{StatFlowSpec, StatFlowState};
+use rill_protocol::io::provider::{EntryId, Path, StreamType};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
+
+pub type CounterStatState = StatFlowState<CounterStatSpec>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CounterState {
+pub struct CounterStatSpec {
+    pub name: EntryId,
+    pub pull_ms: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CounterStat {
     pub total: i64,
 }
 
-#[allow(clippy::new_without_default)]
-impl CounterState {
-    pub fn new() -> Self {
-        Self { total: 0 }
-    }
-}
+impl StatFlowSpec for CounterStatSpec {
+    type Stat = CounterStat;
+    type Delta = i64;
 
-impl Flow for CounterState {
-    type Action = CounterAction;
-    type Event = CounterEvent;
-
-    fn stream_type() -> StreamType {
-        StreamType::from(module_path!())
+    fn path(&self) -> Path {
+        format!("rillrate.live_data.counter.{}", self.name)
+            .parse()
+            .unwrap()
     }
 
-    fn apply(&mut self, event: Self::Event) {
-        match event {
-            CounterEvent::Inc { delta } => {
-                self.total += delta;
-            }
-        }
+    fn interval(&self) -> Option<Duration> {
+        self.pull_ms.map(Duration::from_millis)
     }
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum CounterAction {}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum CounterEvent {
-    Inc { delta: i64 },
+    fn apply(stat: &mut Self::Stat, delta: Self::Delta) {
+        stat.total += delta;
+    }
 }
