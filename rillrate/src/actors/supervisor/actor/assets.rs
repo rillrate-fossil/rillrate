@@ -25,7 +25,6 @@ impl InteractionDone<WaitHttpServer, ()> for NodeSupervisor {
         link: HttpServerLink,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        #[cfg(debug_assertions)]
         let embedded = None;
         let options = AssetsOptions {
             prefix: "/ui/",
