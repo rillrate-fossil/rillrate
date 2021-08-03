@@ -3,7 +3,6 @@ use derive_more::{Display, From, Into};
 use rill_protocol::io::provider::{Description, Path};
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DescriptionsFlowSpec;
 
@@ -21,4 +20,3 @@ impl ListFlowSpec for DescriptionsFlowSpec {
         log::error!("Inner updates not supported to DescriptionsFlow");
     }
 }
-
