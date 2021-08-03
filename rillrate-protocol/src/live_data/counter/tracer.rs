@@ -1,11 +1,10 @@
 use super::state::*;
 use crate::base::stat_flow::{StatFlowTracer, StatFlowWatcher};
-use crate::manifest::descriptions_flow::DescriptionBinder;
+use crate::manifest::descriptions_flow::Binded;
 use rill_protocol::io::provider::EntryId;
 
 pub struct CounterStatTracer {
-    tracer: StatFlowTracer<CounterStatSpec>,
-    binder: DescriptionBinder,
+    tracer: Binded<StatFlowTracer<CounterStatSpec>>,
 }
 
 impl CounterStatTracer {
@@ -15,9 +14,8 @@ impl CounterStatTracer {
             name: name.into(),
             pull_ms,
         };
-        let tracer = StatFlowTracer::new(spec);
-        let binder = DescriptionBinder::new(&tracer);
-        Self { tracer, binder }
+        let tracer = Binded::new(StatFlowTracer::new(spec));
+        Self { tracer }
     }
 
     pub fn inc(&self, delta: i64) {

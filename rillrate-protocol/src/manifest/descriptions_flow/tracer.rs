@@ -1,27 +1,37 @@
 use super::state::*;
 use crate::base::list_flow::{ListFlowTracer, ListFlowWatcher};
+use derive_more::{Deref, DerefMut};
 use once_cell::sync::Lazy;
 use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::{Description, Path};
+use std::ops::Deref;
 use std::sync::Arc;
 
 pub type DescriptionsFlowTracer = ListFlowTracer<DescriptionsFlowSpec>;
 
 pub type DescriptionsFlowWatcher = ListFlowWatcher<DescriptionsFlowSpec>;
 
-#[derive(Debug, Clone)]
-pub struct DescriptionBinder {
-    inner: Arc<DescriptionBinderInner>,
+/// `Binded` wraps a tracer to automatically track it in the global `DescriptionFlow`.
+#[derive(Deref, DerefMut, Debug, Clone)]
+pub struct Binded<T> {
+    #[deref]
+    #[deref_mut]
+    tracer: T,
+    _binder: Arc<DescriptionBinder>,
 }
 
-impl DescriptionBinder {
-    pub fn new<T: Flow>(tracer: &Tracer<T>) -> Self {
-        let path = tracer.path().clone();
+impl<T> Binded<T> {
+    pub fn new<F>(tracer: T) -> Self
+    where
+        F: Flow,
+        T: Deref<Target = Tracer<F>>,
+    {
         let description = tracer.description().clone();
-        let inner = DescriptionBinderInner::new(path, description);
+        let binder = DescriptionBinder::new(description);
         Self {
-            inner: Arc::new(inner),
+            tracer,
+            _binder: Arc::new(binder),
         }
     }
 }
@@ -29,18 +39,19 @@ impl DescriptionBinder {
 static DESCRIPTIONS: Lazy<DescriptionsFlowTracer> = Lazy::new(|| DescriptionsFlowTracer::new().0);
 
 #[derive(Debug)]
-struct DescriptionBinderInner {
+struct DescriptionBinder {
     path: Path,
 }
 
-impl DescriptionBinderInner {
-    fn new(path: Path, description: Description) -> Self {
+impl DescriptionBinder {
+    fn new(description: Description) -> Self {
+        let path = description.path.clone();
         DESCRIPTIONS.add_record(path.clone(), description);
         Self { path }
     }
 }
 
-impl Drop for DescriptionBinderInner {
+impl Drop for DescriptionBinder {
     fn drop(&mut self) {
         DESCRIPTIONS.remove_record(self.path.clone());
     }
