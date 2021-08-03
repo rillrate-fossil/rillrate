@@ -12,3 +12,13 @@ categories = ["development-tools::debugging"]
 description = "Top level protocol for the RillRate protocol."
 
 [dependencies]
+derive_more = "0.99.16"
+log = "0.4.14"
+rill-engine = { version = "0.35.0", optional = true }
+rill-protocol = "0.35.0"
+serde = "1.0.126"
+vectorize = "0.2.0"
+
+[features]
+default = ["engine"]
+engine = ["rill-engine"]
