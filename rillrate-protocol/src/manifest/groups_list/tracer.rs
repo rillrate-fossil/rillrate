@@ -11,8 +11,9 @@ pub struct GroupsListTracer {
 
 impl GroupsListTracer {
     pub fn new() -> Self {
+        let path = GroupsListSpec::path();
         Self {
-            tracer: ListFlowTracer::new().0,
+            tracer: ListFlowTracer::new(path).0,
         }
     }
 

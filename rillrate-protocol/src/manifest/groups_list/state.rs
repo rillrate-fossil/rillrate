@@ -14,15 +14,17 @@ pub enum GroupsListUpdate {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroupsListSpec;
 
+impl GroupsListSpec {
+    pub fn path() -> Path {
+        "rillrate.manifest.groups_list".parse().unwrap()
+    }
+}
+
 impl ListFlowSpec for GroupsListSpec {
     type Id = EntryId;
     type Record = BTreeSet<EntryId>;
     type Action = ();
     type Update = GroupsListUpdate;
-
-    fn path() -> Path {
-        "rillrate.manifest.groups_list".parse().unwrap()
-    }
 
     fn update_record(record: &mut Self::Record, update: Self::Update) {
         match update {

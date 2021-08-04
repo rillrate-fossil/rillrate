@@ -1,5 +1,5 @@
 use rill_protocol::flow::core::{DataFraction, Flow};
-use rill_protocol::io::provider::{Path, StreamType};
+use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
@@ -11,8 +11,6 @@ pub trait ListFlowSpec: DataFraction {
     type Record: DataFraction;
     type Action: DataFraction;
     type Update: DataFraction; // aka `Event`, but inner
-
-    fn path() -> Path;
 
     fn update_record(record: &mut Self::Record, update: Self::Update);
 

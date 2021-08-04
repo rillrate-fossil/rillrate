@@ -9,8 +9,9 @@ pub struct DescriptionsListTracer {
 
 impl DescriptionsListTracer {
     pub fn new() -> Self {
+        let path = DescriptionsListSpec::path();
         Self {
-            tracer: ListFlowTracer::new().0,
+            tracer: ListFlowTracer::new(path).0,
         }
     }
 }
