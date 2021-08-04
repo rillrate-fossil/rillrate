@@ -1,6 +1,6 @@
 use super::state::*;
 use crate::base::stat_flow::StatFlowTracer;
-use crate::manifest::descriptions_list::Binded;
+use crate::manifest::Binded;
 use rill_protocol::io::provider::EntryId;
 
 pub struct CounterStatTracer {
