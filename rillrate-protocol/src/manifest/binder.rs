@@ -43,15 +43,17 @@ impl<T> Binded<T> {
     }
 
     fn register(&self) {
+        let path = self.description.path.clone();
+        DESCRIPTIONS.add_record(path, self.description.clone());
         let (group, name) = self.pair();
-        DESCRIPTIONS.add_record(name.clone(), self.description.clone());
         let update = GroupsListUpdate::JoinGroup { entry_id: name };
         GROUPS.update_record(group, update);
     }
 
     fn unregister(&self) {
+        let path = self.description.path.clone();
+        DESCRIPTIONS.remove_record(path.clone());
         let (group, name) = self.pair();
-        DESCRIPTIONS.remove_record(name.clone());
         let update = GroupsListUpdate::LeaveGroup { entry_id: name };
         GROUPS.update_record(group, update);
     }
