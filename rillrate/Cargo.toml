@@ -5,7 +5,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.42"
-async-trait = "0.1.50"
+async-trait = "0.1.51"
 derive_more = "0.99.16"
 log = "0.4.14"
 meio = "0.93.0"
@@ -13,7 +13,7 @@ meio-connect = "0.93.0"
 rate-core = { version = "0.35.0", path = "../rate-core" }
 rill-protocol = { version = "0.35.0", path = "../rill-protocol" }
 rillrate-protocol = { version = "0.35.0", path = "../rillrate-protocol" }
-serde = "1.0.126"
+serde = "1.0.127"
 strum = "0.21.0"
 thiserror = "1.0.26"
 tokio = "1.9.0"

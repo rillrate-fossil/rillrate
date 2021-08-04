@@ -21,6 +21,6 @@ meio-protocol = "0.93.0"
 metacrate = "0.1.2"
 once_cell = "1.8.0"
 ordered-float = { version = "2.7.0", features = ["serde"], default-features = false }
-serde = { version = "1.0.126", features = ["derive"] }
+serde = { version = "1.0.127", features = ["derive"] }
 thiserror = "1.0.26"
 vectorize = "0.2.0"

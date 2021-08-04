@@ -14,7 +14,7 @@ description = "The RillRate Protocol async engine."
 
 [dependencies]
 anyhow = "1.0.42"
-async-trait = "0.1.50"
+async-trait = "0.1.51"
 derive_more = "0.99.16"
 futures = "0.3.16"
 log = "0.4.14"
@@ -23,7 +23,7 @@ meio-connect = "0.93.0"
 metacrate = "0.1.2"
 once_cell = "1.8.0"
 rill-protocol = { version = "0.35.0", path = "../rill-protocol" }
-serde = "1.0.126"
+serde = "1.0.127"
 strum = { version = "0.21.0", features = ["derive"] }
 thiserror = "1.0.26"
 tokio = { version = "1.9.0", features = ["full"] }
