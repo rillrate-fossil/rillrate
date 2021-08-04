@@ -1,6 +1,7 @@
 use rill_protocol::flow::core::{DataFraction, Flow};
 use rill_protocol::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
+use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::hash::Hash;
 
@@ -14,6 +15,15 @@ pub trait ListFlowSpec: DataFraction {
     fn path() -> Path;
 
     fn update_record(record: &mut Self::Record, update: Self::Update);
+
+    fn no_record_fallback(id: &Self::Id) -> Option<Self::Record> {
+        log::error!("List record with {:?} not found.", id);
+        None
+    }
+
+    fn is_spent(_record: &Self::Record) -> bool {
+        false
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -47,10 +57,24 @@ impl<T: ListFlowSpec> Flow for ListFlowState<T> {
                     self.records.insert(id, record);
                 }
                 ListFlowEvent::UpdateRecord { update } => {
-                    if let Some(record) = self.records.get_mut(&id) {
-                        T::update_record(record, update);
-                    } else {
-                        log::error!("List record with {:?} not found.", id);
+                    let entry = self.records.entry(id);
+                    match entry {
+                        Entry::Occupied(mut entry) => {
+                            let record = entry.get_mut();
+                            T::update_record(record, update);
+                            if T::is_spent(record) {
+                                entry.remove_entry();
+                            }
+                        }
+                        Entry::Vacant(entry) => {
+                            let fallback = T::no_record_fallback(entry.key());
+                            if let Some(mut record) = fallback {
+                                T::update_record(&mut record, update);
+                                if !T::is_spent(&record) {
+                                    entry.insert(record);
+                                }
+                            }
+                        }
                     }
                 }
                 ListFlowEvent::RemoveRecord => {
