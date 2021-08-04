@@ -1,14 +1,12 @@
 use crate::base::new_tf;
 use rill_protocol::flow::core::{DataFraction, Flow, TimedEvent};
-use rill_protocol::io::provider::{Path, StreamType};
+use rill_protocol::io::provider::StreamType;
 use rill_protocol::timed_frame::TimedFrame;
 use serde::{Deserialize, Serialize};
 
 pub trait FrameFlowSpec: DataFraction {
     type Info: DataFraction;
     type Frame: DataFraction;
-
-    fn path(&self) -> Path;
 
     fn retain_secs() -> u32;
 }

@@ -1,5 +1,5 @@
 use rill_protocol::flow::core::{DataFraction, Flow};
-use rill_protocol::io::provider::{Path, StreamType};
+use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -7,8 +7,6 @@ use std::time::Duration;
 pub trait StatFlowSpec: DataFraction {
     type Stat: DataFraction + Default;
     type Delta: DataFraction;
-
-    fn path(&self) -> Path;
 
     fn interval(&self) -> Option<Duration>;
 

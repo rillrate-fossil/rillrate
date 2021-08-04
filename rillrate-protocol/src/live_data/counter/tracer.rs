@@ -8,13 +8,12 @@ pub struct CounterStatTracer {
 }
 
 impl CounterStatTracer {
-    pub fn new(name: impl Into<EntryId>, realtime: bool) -> Self {
+    // TODO: Use `ms` here and move `realtime` paramter to the rillrate constructor
+    pub fn new(group: EntryId, name: EntryId, realtime: bool) -> Self {
         let pull_ms = if realtime { None } else { Some(1_000) };
-        let spec = CounterStatSpec {
-            name: name.into(),
-            pull_ms,
-        };
-        let tracer = Binded::new(StatFlowTracer::new(spec));
+        let spec = CounterStatSpec { pull_ms };
+        let path = vec![group, name].into();
+        let tracer = Binded::new(StatFlowTracer::new(path, spec));
         Self { tracer }
     }
 

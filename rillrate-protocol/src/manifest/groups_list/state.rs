@@ -1,5 +1,5 @@
 use crate::base::list_flow::{ListFlowSpec, ListFlowState};
-use rill_protocol::io::provider::Path;
+use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
@@ -7,16 +7,16 @@ pub type GroupsListState = ListFlowState<GroupsListSpec>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GroupsListUpdate {
-    JoinGroup { path: Path },
-    LeaveGroup { path: Path },
+    JoinGroup { entry_id: EntryId },
+    LeaveGroup { entry_id: EntryId },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroupsListSpec;
 
 impl ListFlowSpec for GroupsListSpec {
-    type Id = Path;
-    type Record = BTreeSet<Path>;
+    type Id = EntryId;
+    type Record = BTreeSet<EntryId>;
     type Action = ();
     type Update = GroupsListUpdate;
 
@@ -26,11 +26,11 @@ impl ListFlowSpec for GroupsListSpec {
 
     fn update_record(record: &mut Self::Record, update: Self::Update) {
         match update {
-            GroupsListUpdate::JoinGroup { path } => {
-                record.insert(path);
+            GroupsListUpdate::JoinGroup { entry_id } => {
+                record.insert(entry_id);
             }
-            GroupsListUpdate::LeaveGroup { path } => {
-                record.remove(&path);
+            GroupsListUpdate::LeaveGroup { entry_id } => {
+                record.remove(&entry_id);
             }
         }
     }

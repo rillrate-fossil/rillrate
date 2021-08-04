@@ -1,12 +1,12 @@
 use crate::base::list_flow::{ListFlowSpec, ListFlowState};
-use rill_protocol::io::provider::{Description, Path};
+use rill_protocol::io::provider::{Description, EntryId, Path};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DescriptionsListSpec;
 
 impl ListFlowSpec for DescriptionsListSpec {
-    type Id = Path;
+    type Id = EntryId;
     type Record = Description;
     type Action = ();
     type Update = ();

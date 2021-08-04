@@ -1,5 +1,5 @@
 use super::state::*;
-use crate::base::frame_flow::{FrameFlowSpec, FrameFlowTracer};
+use crate::base::frame_flow::FrameFlowTracer;
 use crate::manifest::Binded;
 use rill_protocol::io::provider::EntryId;
 
@@ -8,9 +8,8 @@ pub struct PulseFrameTracer {
 }
 
 impl PulseFrameTracer {
-    pub fn new(name: impl Into<EntryId>) -> Self {
-        let spec = PulseFrameSpec { name: name.into() };
-        let path = spec.path();
+    pub fn new(group: EntryId, name: EntryId) -> Self {
+        let path = vec![group, name].into();
         // TODO: Use `info` later for labels, scale, etc.
         let info = ();
         let tracer = Binded::new(FrameFlowTracer::new(path, info).0);
