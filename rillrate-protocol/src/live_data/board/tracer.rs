@@ -13,4 +13,8 @@ impl BoardListTracer {
         let tracer = Binded::new(ListFlowTracer::new(path).0);
         Self { tracer }
     }
+
+    pub fn set(&self, key: String, value: String) {
+        self.tracer.add_record(key, value);
+    }
 }

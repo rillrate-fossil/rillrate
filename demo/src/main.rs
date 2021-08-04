@@ -12,7 +12,9 @@ pub fn main() -> Result<(), Error> {
     let counter_2 = rillrate::CounterStatTracer::new(GROUP_1.into(), "counter-2".into(), true);
     let counter_3 = rillrate::CounterStatTracer::new(GROUP_1.into(), "counter-3".into(), true);
     let pulse_1 = rillrate::PulseFrameTracer::new(GROUP_2.into(), "pulse-1".into());
+    let board_1 = rillrate::BoardListTracer::new(GROUP_2.into(), "board-1".into());
     loop {
+        board_1.set("Loop".into(), "First".into());
         for x in 1..=10 {
             counter_1.inc(1);
             counter_2.inc(10);
@@ -20,6 +22,7 @@ pub fn main() -> Result<(), Error> {
             pulse_1.add(x as f32);
             thread::sleep(Duration::from_secs(1));
         }
+        board_1.set("Loop".into(), "Second".into());
         let pulse_2 = rillrate::PulseFrameTracer::new(GROUP_2.into(), "pulse-2".into());
         for x in 1..=50 {
             counter_1.inc(1);
