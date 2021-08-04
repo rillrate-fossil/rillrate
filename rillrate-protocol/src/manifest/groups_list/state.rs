@@ -34,4 +34,12 @@ impl ListFlowSpec for GroupsListSpec {
             }
         }
     }
+
+    fn no_record_fallback(_id: &Self::Id) -> Option<Self::Record> {
+        Some(BTreeSet::new())
+    }
+
+    fn is_spent(record: &Self::Record) -> bool {
+        record.is_empty()
+    }
 }
