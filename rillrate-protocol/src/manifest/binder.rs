@@ -37,8 +37,8 @@ impl<T> Binded<T> {
     fn pair(&self) -> (EntryId, EntryId) {
         let mut path = self.description.path.clone().into_iter();
         assert!(path.len() == 2);
-        let name = path.next().unwrap();
         let group = path.next().unwrap();
+        let name = path.next().unwrap();
         (group, name)
     }
 

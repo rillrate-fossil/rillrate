@@ -2,12 +2,14 @@ use anyhow::Error;
 use std::thread;
 use std::time::Duration;
 
+const GROUP_1: &str = "group-1";
+
 pub fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let _handle = rillrate::start();
-    let counter_1 = rillrate::CounterStatTracer::new("counters".into(), "counter-1".into(), true);
-    let counter_2 = rillrate::CounterStatTracer::new("counters".into(), "counter-2".into(), true);
-    let counter_3 = rillrate::CounterStatTracer::new("countes".into(), "counter-3".into(), true);
+    let counter_1 = rillrate::CounterStatTracer::new(GROUP_1.into(), "counter-1".into(), true);
+    let counter_2 = rillrate::CounterStatTracer::new(GROUP_1.into(), "counter-2".into(), true);
+    let counter_3 = rillrate::CounterStatTracer::new(GROUP_1.into(), "counter-3".into(), true);
     let pulse_1 = rillrate::PulseFrameTracer::new("pulses".into(), "pulse-1".into());
     for x in 1..=300 {
         counter_1.inc(1);
