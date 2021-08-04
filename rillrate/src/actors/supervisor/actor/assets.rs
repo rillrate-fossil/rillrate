@@ -29,7 +29,7 @@ impl InteractionDone<WaitHttpServer, ()> for NodeSupervisor {
         let options = AssetsOptions {
             prefix: "/ui/",
             env_var: Some("RILLRATE_UI"),
-            url: None,
+            url: Some("https://cdn.rillrate.com/live/trunk.tar.gz".parse()?),
             embedded,
         };
         let app_bind = AppBind::new(link, options);

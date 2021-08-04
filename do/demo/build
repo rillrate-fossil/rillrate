@@ -1,0 +1,1 @@
+docker build -t rillrate/demo:latest --file do/demo/Dockerfile .
