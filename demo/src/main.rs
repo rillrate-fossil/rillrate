@@ -8,6 +8,7 @@ const DASHBOARD_1: &str = "dashboard-1";
 const DASHBOARD_2: &str = "dashboard-2";
 
 const GROUP_1: &str = "group-1";
+const GROUP_2: &str = "group-2";
 
 pub fn main() -> Result<(), Error> {
     env_logger::try_init()?;
@@ -17,7 +18,7 @@ pub fn main() -> Result<(), Error> {
     let counter_2 =
         CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"].into(), true);
     let counter_3 =
-        CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
+        CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_2, "counter-3"].into(), true);
     let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into());
     let board_1 = BoardListTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "board-1"].into());
     loop {
