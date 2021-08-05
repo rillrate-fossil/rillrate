@@ -12,4 +12,4 @@ pub mod pulse;
 #[cfg(feature = "engine")]
 pub use pulse::PulseFrameTracer;
 
-pub mod live_path;
+pub mod auto_path;

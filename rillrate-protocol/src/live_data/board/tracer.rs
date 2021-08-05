@@ -1,6 +1,6 @@
 use super::state::*;
 use crate::base::list_flow::ListFlowTracer;
-use crate::live_data::live_path::LivePath;
+use crate::live_data::auto_path::AutoPath;
 use crate::manifest::Binded;
 
 pub struct BoardListTracer {
@@ -8,8 +8,8 @@ pub struct BoardListTracer {
 }
 
 impl BoardListTracer {
-    pub fn new(live_path: LivePath) -> Self {
-        let path = live_path.into();
+    pub fn new(auto_path: AutoPath) -> Self {
+        let path = auto_path.into();
         let tracer = Binded::new(ListFlowTracer::new(path).0);
         Self { tracer }
     }

@@ -1,6 +1,6 @@
 use super::state::*;
 use crate::base::frame_flow::FrameFlowTracer;
-use crate::live_data::live_path::LivePath;
+use crate::live_data::auto_path::AutoPath;
 use crate::manifest::Binded;
 
 pub struct PulseFrameTracer {
@@ -8,8 +8,8 @@ pub struct PulseFrameTracer {
 }
 
 impl PulseFrameTracer {
-    pub fn new(live_path: LivePath) -> Self {
-        let path = live_path.into();
+    pub fn new(auto_path: AutoPath) -> Self {
+        let path = auto_path.into();
         // TODO: Use `info` later for labels, scale, etc.
         let info = ();
         let tracer = Binded::new(FrameFlowTracer::new(path, info).0);
