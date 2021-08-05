@@ -1,0 +1,2 @@
+IMAGE=rillrate/demo:latest
+docker image push $IMAGE
