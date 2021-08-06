@@ -25,11 +25,15 @@ impl InteractionDone<WaitHttpServer, ()> for NodeSupervisor {
         link: HttpServerLink,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        let url = format!(
+            "https://cdn.rillrate.com/live/v0/v{}.tar.gz",
+            crate::meta::VERSION
+        );
         let embedded = None;
         let options = AssetsOptions {
             prefix: "/ui/",
             env_var: Some("RILLRATE_UI"),
-            url: Some("https://cdn.rillrate.com/live/trunk.tar.gz".parse()?),
+            url: Some(url.parse()?),
             embedded,
         };
         let app_bind = AppBind::new(link, options);

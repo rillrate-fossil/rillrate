@@ -1,5 +1,7 @@
 pub mod actors;
 
+metacrate::meta!();
+
 pub use rillrate_protocol::live_data::*;
 // TODO: Add wrappers for tracers
 
