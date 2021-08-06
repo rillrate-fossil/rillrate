@@ -8,8 +8,8 @@ anyhow = "1.0.42"
 async-trait = "0.1.51"
 derive_more = "0.99.16"
 log = "0.4.14"
-meio = "0.93.0"
-meio-connect = "0.93.0"
+meio = "0.93.1"
+meio-connect = "0.93.1"
 metacrate = "0.1.2"
 rate-core = { version = "0.35.0", path = "../rate-core" }
 rill-protocol = { version = "0.35.0", path = "../rill-protocol" }
