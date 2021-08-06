@@ -1,0 +1,4 @@
+set -e
+
+do/demo/build
+do/demo/upload
