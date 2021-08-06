@@ -11,7 +11,7 @@ impl PulseFrameTracer {
     pub fn new(auto_path: AutoPath) -> Self {
         let path = auto_path.into();
         // TODO: Use `info` later for labels, scale, etc.
-        let info = ();
+        let info = PulseFrameSpec { retain: 31 };
         let tracer = Binded::new(FrameFlowTracer::new(path, info).0);
         Self { tracer }
     }

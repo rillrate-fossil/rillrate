@@ -5,25 +5,23 @@ use rill_protocol::timed_frame::TimedFrame;
 use serde::{Deserialize, Serialize};
 
 pub trait FrameFlowSpec: DataFraction {
-    type Info: DataFraction;
     type Frame: DataFraction;
 
-    fn retain_secs() -> u32;
+    fn retain_secs(&self) -> u32;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FrameFlowState<T: FrameFlowSpec> {
-    pub info: T::Info,
+    #[serde(bound = "")]
+    pub spec: T,
     pub frame: TimedFrame<T::Frame>,
 }
 
 #[allow(clippy::new_without_default)]
 impl<T: FrameFlowSpec> FrameFlowState<T> {
-    pub fn new(info: T::Info) -> Self {
-        Self {
-            info,
-            frame: new_tf(T::retain_secs() as i64),
-        }
+    pub fn new(spec: T) -> Self {
+        let frame = new_tf(spec.retain_secs() as i64);
+        Self { spec, frame }
     }
 }
 
@@ -50,6 +48,6 @@ pub enum FrameFlowAction {}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FrameFlowEvent<T: FrameFlowSpec> {
     // TODO: Maybe:
-    // UpdateInfo { info }
+    // UpdateInfo { spec }
     AddFrame { event: TimedEvent<T::Frame> },
 }
