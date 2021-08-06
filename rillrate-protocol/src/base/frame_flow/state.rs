@@ -20,7 +20,7 @@ pub struct FrameFlowState<T: FrameFlowSpec> {
 #[allow(clippy::new_without_default)]
 impl<T: FrameFlowSpec> FrameFlowState<T> {
     pub fn new(spec: T) -> Self {
-        let frame = new_tf(spec.retain_secs() as i64);
+        let frame = new_tf(spec.retain_secs() as i64 + 1);
         Self { spec, frame }
     }
 }
