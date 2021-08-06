@@ -8,11 +8,10 @@ pub struct PulseFrameTracer {
 }
 
 impl PulseFrameTracer {
-    pub fn new(auto_path: AutoPath) -> Self {
+    pub fn new(auto_path: AutoPath, spec: Option<PulseFrameSpec>) -> Self {
+        let spec = spec.unwrap_or_default();
         let path = auto_path.into();
-        // TODO: Use `info` later for labels, scale, etc.
-        let info = PulseFrameSpec { retain: 30 };
-        let tracer = Binded::new(FrameFlowTracer::new(path, info).0);
+        let tracer = Binded::new(FrameFlowTracer::new(path, spec).0);
         Self { tracer }
     }
 

@@ -9,6 +9,12 @@ pub struct PulseFrameSpec {
     pub retain: u32,
 }
 
+impl Default for PulseFrameSpec {
+    fn default() -> Self {
+        Self { retain: 30 }
+    }
+}
+
 impl FrameFlowSpec for PulseFrameSpec {
     type Frame = f32;
 

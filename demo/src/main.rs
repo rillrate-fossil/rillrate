@@ -19,7 +19,7 @@ pub fn main() -> Result<(), Error> {
         CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"].into(), true);
     let counter_3 =
         CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
-    let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into());
+    let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = BoardListTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
     loop {
         board_1.set("Loop".into(), "First".into());
@@ -31,7 +31,8 @@ pub fn main() -> Result<(), Error> {
             thread::sleep(Duration::from_secs(1));
         }
         board_1.set("Loop".into(), "Second".into());
-        let pulse_2 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"].into());
+        let pulse_2 =
+            PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"].into(), None);
         for x in 1..=50 {
             counter_1.inc(1);
             counter_2.inc(10);
