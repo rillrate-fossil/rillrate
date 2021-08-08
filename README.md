@@ -1,8 +1,8 @@
 ## RillRate
 
-🚧 The project is under **active development** and the working version will be released **this week** (before Aug 8 2021).
+Become a [sponsor][sponsor] to see how the project is born.
 
-Join our [reddit/rillrate](https://www.reddit.com/r/rillrate/) community to stay tuned about all the new features we released every day!
+Join our [reddit/rillrate][reddit] community to stay tuned about all the new features we released every day!
 
 ### UI for Microservices, Bots and IoT devices.
 
@@ -12,14 +12,14 @@ Join our [reddit/rillrate](https://www.reddit.com/r/rillrate/) community to stay
 
 ![dashboard](https://rillrate.com/images/dashboard.png)
 
-Become a [sponsor](https://github.com/sponsors/rillrate) to read weekly updated
-[book](https://github.com/sponsors/rillrate) how we develop the full-stack Rust product.
-
 ### How to use it?
 
 > TODO!
 
 **The data protocol and the async engine.**
 
-This protocol and the project is strongly inspired by the [Nitrogen](https://nitrogenproject.com/)
-Web Framework (Erlang).
+This protocol and the project is strongly inspired by the [Nitrogen][nitrogen] Web Framework (Erlang).
+
+[reddit]: https://www.reddit.com/r/rillrate/
+[sponsor]: https://github.com/sponsors/rillrate
+[nitrogen]: https://nitrogenproject.com/
