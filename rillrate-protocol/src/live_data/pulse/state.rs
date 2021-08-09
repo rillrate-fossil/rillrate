@@ -57,6 +57,14 @@ impl Label {
             divisor,
         }
     }
+
+    pub fn pct_100() -> Self {
+        Self::new("%", 1.0)
+    }
+
+    pub fn pct_1() -> Self {
+        Self::new("%", 1.0 / 100.0)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
