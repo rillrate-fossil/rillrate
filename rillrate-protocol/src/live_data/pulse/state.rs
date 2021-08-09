@@ -36,10 +36,36 @@ impl Range {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Label {
+    pub caption: String,
+    pub divisor: f32,
+}
+
+impl Default for Label {
+    fn default() -> Self {
+        Self {
+            caption: String::new(),
+            divisor: 1.0,
+        }
+    }
+}
+
+impl Label {
+    pub fn new(caption: impl Into<String>, divisor: f32) -> Self {
+        Self {
+            caption: caption.into(),
+            divisor,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulseFrameSpec {
     /// Retain interval in seconds.
+    // TODO: Make `retain` optional
     pub retain: u32,
     pub range: Range,
+    pub label: Label,
 }
 
 impl Default for PulseFrameSpec {
@@ -47,6 +73,7 @@ impl Default for PulseFrameSpec {
         Self {
             retain: 30,
             range: Range::default(),
+            label: Label::default(),
         }
     }
 }
