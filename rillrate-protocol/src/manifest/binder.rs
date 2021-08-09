@@ -39,7 +39,7 @@ impl<T> Binded<T> {
 
     fn unregister(&self) {
         let path = self.description.path.clone();
-        DESCRIPTIONS.remove_record(path.clone());
+        DESCRIPTIONS.remove_record(path);
     }
 }
 

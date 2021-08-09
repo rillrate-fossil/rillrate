@@ -63,7 +63,7 @@ impl<T> Record<T> {
         let mut record = self;
         let mut iter = path.as_ref().iter();
         let mut remained = Vec::new();
-        while let Some(element) = iter.next() {
+        for element in &mut iter {
             if let Some(next_record) = record.subs.get(element) {
                 record = next_record;
             } else {

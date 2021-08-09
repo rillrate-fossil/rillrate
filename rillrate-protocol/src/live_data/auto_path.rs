@@ -14,15 +14,15 @@ impl AutoPath {
         Self {
             package: entry.clone(),
             dashboard: entry.clone(),
-            group: entry.clone(),
+            group: entry,
             name,
         }
     }
 }
 
-impl Into<Path> for AutoPath {
-    fn into(self) -> Path {
-        vec![self.package, self.dashboard, self.group, self.name].into()
+impl From<AutoPath> for Path {
+    fn from(this: AutoPath) -> Self {
+        vec![this.package, this.dashboard, this.group, this.name].into()
     }
 }
 

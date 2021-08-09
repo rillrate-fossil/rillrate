@@ -39,7 +39,7 @@ impl SessionAcl {
     }
 
     pub async fn remove_path(&mut self, path: &Path) {
-        self.inner.lock().await.allowed_paths.remove(&path);
+        self.inner.lock().await.allowed_paths.remove(path);
     }
 
     pub async fn unlock_all(&mut self) {
@@ -52,7 +52,7 @@ impl SessionAcl {
 
     pub async fn has_access_to(&mut self, path: &Path) -> bool {
         let inner = self.inner.lock().await;
-        inner.unlock_all || inner.allowed_paths.contains(&path)
+        inner.unlock_all || inner.allowed_paths.contains(path)
     }
 }
 
