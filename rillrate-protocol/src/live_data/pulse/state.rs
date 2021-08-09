@@ -19,6 +19,20 @@ impl Range {
             max: Some(max),
         }
     }
+
+    pub fn min(min: f32) -> Self {
+        Self {
+            min: Some(min),
+            max: None,
+        }
+    }
+
+    pub fn max(max: f32) -> Self {
+        Self {
+            min: None,
+            max: Some(max),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
