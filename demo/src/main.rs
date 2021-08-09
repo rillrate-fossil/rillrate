@@ -22,7 +22,7 @@ pub fn main() -> Result<(), Error> {
     let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = BoardListTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
     loop {
-        board_1.set("Loop".into(), "First".into());
+        board_1.set("Loop", "First");
         for x in 1..=10 {
             counter_1.inc(1);
             counter_2.inc(10);
@@ -30,7 +30,7 @@ pub fn main() -> Result<(), Error> {
             pulse_1.add(x as f32);
             thread::sleep(Duration::from_secs(1));
         }
-        board_1.set("Loop".into(), "Second".into());
+        board_1.set("Loop", "Second");
         let pulse_2 =
             PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"].into(), None);
         for x in 1..=50 {

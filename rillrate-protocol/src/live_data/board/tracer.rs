@@ -14,7 +14,7 @@ impl BoardListTracer {
         Self { tracer }
     }
 
-    pub fn set(&self, key: String, value: String) {
-        self.tracer.add_record(key, value);
+    pub fn set(&self, key: impl ToString, value: impl ToString) {
+        self.tracer.add_record(key.to_string(), value.to_string());
     }
 }
