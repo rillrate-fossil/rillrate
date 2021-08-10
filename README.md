@@ -63,7 +63,7 @@ tracer.add(value);
         <p>Key-value map</p>
     </td>
     <td align="center">
-        <h4>Coutner</h4>
+        <h4>Counter</h4>
         <img src="https://cdn.rillrate.com/github/rillrate/tracers/counter.png" width="250">
         <p>Incremental value</p>
     </td>
