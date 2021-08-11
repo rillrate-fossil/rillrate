@@ -9,6 +9,7 @@ const DASHBOARD_2: &str = "dashboard-2";
 
 const GROUP_1: &str = "group-1";
 const GROUP_2: &str = "group-2";
+const GROUP_I: &str = "group-issues";
 
 pub fn main() -> Result<(), Error> {
     env_logger::try_init()?;
@@ -16,9 +17,34 @@ pub fn main() -> Result<(), Error> {
 
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
-    let pulse_empty = PulseFrameTracer::new(
-        [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-empty"].into(),
+    let _pulse_empty = PulseFrameTracer::new(
+        [PACKAGE_1, DASHBOARD_2, GROUP_I, "pulse-empty"].into(),
         None,
+    );
+    let long_board = BoardListTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_I, "long-board"].into());
+    long_board.set(
+        "Very Long Long Long Long Long Long Long Key",
+        "Very Long Long Long Long Long Long Long Long Long Long Value",
+    );
+    long_board.set(
+        "Very Long Long Long Long Long Long Long Key1",
+        "Very Long Long Long Long Long Long Long Long Long Long Value",
+    );
+    long_board.set(
+        "Very Long Long Long Long Long Long Long Key2",
+        "Very Long Long Long Long Long Long Long Long Long Long Value",
+    );
+    long_board.set(
+        "Very Long Long Long Long Long Long Long Key3",
+        "Very Long Long Long Long Long Long Long Long Long Long Value",
+    );
+    long_board.set(
+        "Very-Long-Long-Long-Long-Long-Long-Long-Key3",
+        "Very-Long-Long-Long-Long-Long-Long-Long-Long-Long-Long-Value",
+    );
+    long_board.set(
+        "Very::Long::Long::Long::Long::Long::Long::Long::Key3",
+        "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
     );
 
     // The main part
@@ -30,12 +56,6 @@ pub fn main() -> Result<(), Error> {
         CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
     let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = BoardListTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
-    board_1.set("Very Long Long Long Long Long Long Long Key", "Very Long Long Long Long Long Long Long Long Long Long Value");
-    board_1.set("Very Long Long Long Long Long Long Long Key1", "Very Long Long Long Long Long Long Long Long Long Long Value");
-    board_1.set("Very Long Long Long Long Long Long Long Key2", "Very Long Long Long Long Long Long Long Long Long Long Value");
-    board_1.set("Very Long Long Long Long Long Long Long Key3", "Very Long Long Long Long Long Long Long Long Long Long Value");
-    board_1.set("Very-Long-Long-Long-Long-Long-Long-Long-Key3", "Very-Long-Long-Long-Long-Long-Long-Long-Long-Long-Long-Value");
-    board_1.set("Very::Long::Long::Long::Long::Long::Long::Long::Key3", "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value");
     loop {
         board_1.set("Loop", "First");
         for x in 1..=10 {

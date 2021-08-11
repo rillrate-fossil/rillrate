@@ -1,6 +1,6 @@
 [package]
 name = "rillrate"
-version = "0.36.0"
+version = "0.37.0-dev"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
@@ -20,9 +20,9 @@ log = "0.4.14"
 meio = "0.93.2"
 meio-connect = "0.93.2"
 metacrate = "0.1.2"
-rate-core = { version = "0.36.0", path = "../rate-core" }
-rill-protocol = { version = "0.36.0", path = "../rill-protocol" }
-rillrate-protocol = { version = "0.36.0", path = "../rillrate-protocol" }
+rate-core = { version = "0.37.0-dev", path = "../rate-core" }
+rill-protocol = { version = "0.37.0-dev", path = "../rill-protocol" }
+rillrate-protocol = { version = "0.37.0-dev", path = "../rillrate-protocol" }
 serde = "1.0.127"
 strum = "0.21.0"
 thiserror = "1.0.26"
