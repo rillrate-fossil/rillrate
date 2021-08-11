@@ -13,6 +13,15 @@ const GROUP_2: &str = "group-2";
 pub fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let _handle = rillrate::start();
+
+    // Special tracers for checking issues:
+    // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
+    let pulse_empty = PulseFrameTracer::new(
+        [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-empty"].into(),
+        None,
+    );
+
+    // The main part
     let counter_1 =
         CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);
     let counter_2 =
