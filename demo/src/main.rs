@@ -6,10 +6,10 @@ use std::time::Duration;
 const PACKAGE_1: &str = "package-1";
 const DASHBOARD_1: &str = "dashboard-1";
 const DASHBOARD_2: &str = "dashboard-2";
+const DASHBOARD_I: &str = "issues";
 
 const GROUP_1: &str = "group-1";
 const GROUP_2: &str = "group-2";
-const GROUP_I: &str = "group-issues";
 
 pub fn main() -> Result<(), Error> {
     env_logger::try_init()?;
@@ -18,10 +18,10 @@ pub fn main() -> Result<(), Error> {
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
     let _pulse_empty = PulseFrameTracer::new(
-        [PACKAGE_1, DASHBOARD_2, GROUP_I, "pulse-empty"].into(),
+        [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"].into(),
         None,
     );
-    let long_board = BoardListTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_I, "long-board"].into());
+    let long_board = BoardListTracer::new([PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"].into());
     long_board.set(
         "Very Long Long Long Long Long Long Long Key",
         "Very Long Long Long Long Long Long Long Long Long Long Value",
