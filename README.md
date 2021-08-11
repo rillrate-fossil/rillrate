@@ -2,6 +2,8 @@
 
 ### UI for Microservices, Bots and IoT devices.
 
+**Support**: Rust, Python _(soon)_, Node.js _(soon)_.
+
 <img align="left" width="400px" style="margin-left: 20px;" src="https://rillrate.com/images/dashboard.png" />
 
 - **_It's fully custom_** - You add your own data streams with everything you want
@@ -23,7 +25,7 @@ Add a dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rillrate = "0.35.0"
+rillrate = "0.36.0"
 ```
 
 Start the **rillrate** engine in the `main` function:
