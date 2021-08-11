@@ -30,6 +30,12 @@ pub fn main() -> Result<(), Error> {
         CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
     let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = BoardListTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
+    board_1.set("Very Long Long Long Long Long Long Long Key", "Very Long Long Long Long Long Long Long Long Long Long Value");
+    board_1.set("Very Long Long Long Long Long Long Long Key1", "Very Long Long Long Long Long Long Long Long Long Long Value");
+    board_1.set("Very Long Long Long Long Long Long Long Key2", "Very Long Long Long Long Long Long Long Long Long Long Value");
+    board_1.set("Very Long Long Long Long Long Long Long Key3", "Very Long Long Long Long Long Long Long Long Long Long Value");
+    board_1.set("Very-Long-Long-Long-Long-Long-Long-Long-Key3", "Very-Long-Long-Long-Long-Long-Long-Long-Long-Long-Long-Value");
+    board_1.set("Very::Long::Long::Long::Long::Long::Long::Long::Key3", "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value");
     loop {
         board_1.set("Loop", "First");
         for x in 1..=10 {
