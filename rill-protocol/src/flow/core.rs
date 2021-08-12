@@ -100,10 +100,14 @@ pub struct ActionEnvelope<T: Flow> {
 /// Variant of activity that send to tracers.
 #[derive(Debug, Clone)]
 pub enum Activity<T: Flow> {
+    /// At least one client connected
+    Awake,
     /// Listener connected
     Connected,
     /// Forwards an action
     Action(T::Action),
     /// Listener disconnected
     Disconnected,
+    /// No one connected client
+    Suspend,
 }

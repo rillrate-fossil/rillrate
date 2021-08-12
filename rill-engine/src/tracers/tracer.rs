@@ -2,10 +2,10 @@
 use crate::actors::connector;
 //use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
-use async_trait::async_trait;
 use meio::Action;
-use rill_protocol::flow::core::{self, Activity, TimedEvent};
-use rill_protocol::io::provider::{Description, Path, ProviderProtocol, ProviderReqId, Timestamp};
+use rill_protocol::flow::core::ActionEnvelope;
+use rill_protocol::flow::core::{self, TimedEvent};
+use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
@@ -19,47 +19,15 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}
 
-/*
-struct EmptyCallback<T: core::Flow> {}
-
-impl<T> ActionCallback<T> for EmptyCallback<T> {
-    async fn handle_activity(
-        &mut self,
-        _origin: ProviderReqId,
-        _activity: Activity<T>,
-    ) -> Result<(), Error> {
-        Ok(())
-    }
-}
-*/
-
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
-/// The callback that called on flow's incoming actions.
-#[async_trait]
-pub trait ActionCallback<T: core::Flow>: Send + Sync {
-    /// When at least one connection exists.
-    async fn awake(&mut self) {}
-
-    /// When all clients disconnected.
-    async fn suspend(&mut self) {}
-
-    /// A method to handle an action.
-    async fn handle_activity(
-        &mut self,
-        origin: ProviderReqId,
-        activity: Activity<T>,
-    ) -> Result<(), Error>;
-}
-
-/// Boxed callback.
-pub type BoxedCallback<T> = Box<dyn ActionCallback<T>>;
+pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,
-    pub callback: Option<BoxedCallback<T>>,
+    pub callback: Option<ControlSender<T>>,
 }
 
 pub(crate) enum TracerMode<T: core::Flow> {
@@ -67,15 +35,12 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Push {
         state: T,
         receiver: Option<DataReceiver<T>>,
-        // For sending events to the `Tracer` instance
-        //control_sender: Option<ControlSender<T>>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
         state: Weak<Mutex<T>>,
         interval: Duration,
         notifier: Arc<Notify>,
-        // TODO: It's also possible to support `control_sender`
     },
 }
 
@@ -150,7 +115,7 @@ impl<T: core::Flow> Tracer<T> {
         state: T,
         path: Path,
         pull_interval: Option<Duration>,
-        callback: Option<BoxedCallback<T>>,
+        callback: Option<ControlSender<T>>,
     ) -> Self {
         if let Some(duration) = pull_interval {
             Self::new_pull(state, path, duration, callback)
@@ -160,7 +125,7 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Create a `Push` mode `Tracer`
-    pub fn new_push(state: T, path: Path, callback: Option<BoxedCallback<T>>) -> Self {
+    pub fn new_push(state: T, path: Path, callback: Option<ControlSender<T>>) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         let mode = TracerMode::Push {
             state,
@@ -175,7 +140,7 @@ impl<T: core::Flow> Tracer<T> {
         state: T,
         path: Path,
         interval: Duration,
-        callback: Option<BoxedCallback<T>>,
+        callback: Option<ControlSender<T>>,
     ) -> Self {
         let state = Arc::new(Mutex::new(state));
         let notifier = Arc::new(Notify::new());
@@ -192,7 +157,7 @@ impl<T: core::Flow> Tracer<T> {
         path: Path,
         inner_mode: InnerMode<T>,
         mode: TracerMode<T>,
-        callback: Option<BoxedCallback<T>>,
+        callback: Option<ControlSender<T>>,
     ) -> Self {
         let operator = TracerOperator { mode, callback };
         let stream_type = T::stream_type();

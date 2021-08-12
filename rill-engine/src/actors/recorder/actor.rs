@@ -1,15 +1,14 @@
-pub mod callback;
+//pub mod callback;
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
-use crate::tracers::tracer::{EventEnvelope, TracerMode, TracerOperator};
+use crate::tracers::tracer::{ControlSender, EventEnvelope, TracerMode, TracerOperator};
 use anyhow::Error;
 use async_trait::async_trait;
-use callback::CallbackHolder;
 use futures::stream::{self, StreamExt};
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
-use rill_protocol::flow::core::{self, Activity};
+use rill_protocol::flow::core::{self, ActionEnvelope, Activity};
 use rill_protocol::io::provider::{
     Description, FlowControl, PackedState, ProviderProtocol, ProviderReqId, ProviderToServer,
     RecorderAction, RecorderRequest,
@@ -22,8 +21,11 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 pub(crate) struct Recorder<T: core::Flow> {
     description: Arc<Description>,
     sender: RillSender,
+
+    // TODO: Just keep the whole `TracerOperator` here
     mode: TracerMode<T>,
-    callback: CallbackHolder<T>,
+    callback: Option<ControlSender<T>>,
+
     subscribers: HashSet<ProviderReqId>,
 }
 
@@ -33,15 +35,11 @@ impl<T: core::Flow> Recorder<T> {
         sender: RillSender,
         operator: TracerOperator<T>,
     ) -> Self {
-        let callback = CallbackHolder {
-            callback: operator.callback,
-            sender: None,
-        };
         Self {
             description,
             sender,
             mode: operator.mode,
-            callback,
+            callback: operator.callback,
             subscribers: HashSet::new(),
         }
     }
@@ -105,7 +103,6 @@ impl<T: core::Flow> Actor for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.spawn_callback_worker(ctx);
         match &mut self.mode {
             TracerMode::Push { receiver, .. } => {
                 let rx = receiver.take().expect("tracer hasn't attached receiver");
@@ -297,9 +294,12 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     );
                     match control {
                         FlowControl::StartStream => {
+                            if self.subscribers.is_empty() {
+                                self.send_activity(id, Activity::Awake);
+                            }
                             if self.subscribers.insert(id) {
                                 self.send_state(id.into()).await?;
-                                self.send_activity(id, Activity::Connected).await;
+                                self.send_activity(id, Activity::Connected);
                             } else {
                                 log::warn!(
                                     "Attempt to subscribe twice for <path> with id: {:?}",
@@ -309,10 +309,13 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                         }
                         FlowControl::StopStream => {
                             if self.subscribers.remove(&id) {
-                                self.send_activity(id, Activity::Disconnected).await;
+                                self.send_activity(id, Activity::Disconnected);
                                 self.send_end(id.into());
                             } else {
                                 log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
+                            }
+                            if self.subscribers.is_empty() {
+                                self.send_activity(id, Activity::Suspend);
                             }
                         }
                     }
@@ -334,7 +337,7 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     RecorderAction::DoAction(data) => {
                         let action = T::unpack_action(&data)?;
                         let activity = Activity::Action(action);
-                        self.send_activity(id, activity).await;
+                        self.send_activity(id, activity);
                     }
                 },
             }
@@ -342,6 +345,17 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
             // TODO: Send `EndStream` immediately and maybe `BeginStream` before
         }
         Ok(())
+    }
+}
+
+impl<T: core::Flow> Recorder<T> {
+    fn send_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) {
+        if let Some(sender) = self.callback.as_mut() {
+            let envelope = ActionEnvelope { origin, activity };
+            if let Err(err) = sender.send(envelope) {
+                log::error!("Can't send action to a callback worker: {:?}", err);
+            }
+        }
     }
 }
 
