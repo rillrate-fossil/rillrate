@@ -22,7 +22,6 @@ pub struct StatFlowState<T: StatFlowSpec> {
     pub stat: T::Stat,
 }
 
-#[allow(clippy::new_without_default)]
 impl<T: StatFlowSpec> StatFlowState<T> {
     pub fn new(spec: T) -> Self {
         let stat = T::Stat::default();
