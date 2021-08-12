@@ -1,4 +1,5 @@
 use crate::base::stat_flow::{StatFlowSpec, StatFlowState};
+use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -15,6 +16,10 @@ pub struct CounterStat {
 impl StatFlowSpec for CounterSpec {
     type Stat = CounterStat;
     type Delta = i64;
+
+    fn stream_type() -> StreamType {
+        StreamType::from(module_path!())
+    }
 
     fn interval(&self) -> Option<Duration> {
         self.pull_ms.map(Duration::from_millis)

@@ -1,4 +1,5 @@
 use crate::base::stat_flow::{StatFlowSpec, StatFlowState};
+use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -16,6 +17,10 @@ pub struct GaugeStat {
 impl StatFlowSpec for GaugeSpec {
     type Stat = GaugeStat;
     type Delta = f64;
+
+    fn stream_type() -> StreamType {
+        StreamType::from(module_path!())
+    }
 
     fn interval(&self) -> Option<Duration> {
         self.pull_ms.map(Duration::from_millis)

@@ -8,6 +8,8 @@ pub trait StatFlowSpec: DataFraction {
     type Stat: DataFraction + Default;
     type Delta: DataFraction;
 
+    fn stream_type() -> StreamType;
+
     fn interval(&self) -> Option<Duration>;
 
     fn apply(stat: &mut Self::Stat, delta: Self::Delta);
@@ -32,7 +34,7 @@ impl<T: StatFlowSpec> Flow for StatFlowState<T> {
     type Event = StatFlowEvent<T>;
 
     fn stream_type() -> StreamType {
-        StreamType::from(module_path!())
+        T::stream_type()
     }
 
     fn apply(&mut self, event: Self::Event) {
