@@ -1,4 +1,6 @@
 use anyhow::Error;
+use rillrate::gauge::GaugeSpec;
+use rillrate::pulse::Range;
 use rillrate::*;
 use std::thread;
 use std::time::Duration;
@@ -10,6 +12,9 @@ const DASHBOARD_I: &str = "issues";
 
 const GROUP_1: &str = "group-1";
 const GROUP_2: &str = "group-2";
+
+const FIRST_LIMIT: usize = 10;
+const SECOND_LIMIT: usize = 50;
 
 pub fn main() -> Result<(), Error> {
     env_logger::try_init()?;
@@ -52,21 +57,29 @@ pub fn main() -> Result<(), Error> {
     let counter_1 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);
     let counter_2 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"].into(), true);
     let counter_3 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
+    let gauge_1_spec = GaugeSpec {
+        pull_ms: None,
+        range: Range::new(0.0, FIRST_LIMIT as f64),
+    };
     let gauge_1 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"].into(),
-        None,
+        Some(gauge_1_spec),
         true,
     );
+    let gauge_2_spec = GaugeSpec {
+        pull_ms: None,
+        range: Range::new(0.0, SECOND_LIMIT as f64),
+    };
     let gauge_2 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"].into(),
-        None,
+        Some(gauge_2_spec),
         true,
     );
     let pulse_1 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
     loop {
         board_1.set("Loop", "First");
-        for x in 1..=10 {
+        for x in 1..=FIRST_LIMIT {
             gauge_1.set(x as f64);
             counter_1.inc(1);
             counter_2.inc(10);
@@ -76,14 +89,14 @@ pub fn main() -> Result<(), Error> {
         }
         board_1.set("Loop", "Second");
         let pulse_2 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"].into(), None);
-        for x in 1..=50 {
+        for x in 1..=SECOND_LIMIT {
             gauge_2.set(x as f64);
             counter_1.inc(1);
             counter_2.inc(10);
             counter_3.inc(100);
             pulse_1.add(x as f64);
             pulse_2.add(x as f64);
-            thread::sleep(Duration::from_millis(500 - x * 10));
+            thread::sleep(Duration::from_millis(500 - x as u64 * 10));
         }
         thread::sleep(Duration::from_secs(1));
     }
