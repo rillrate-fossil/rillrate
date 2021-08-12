@@ -1,10 +1,8 @@
 use super::state::*;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::tracer::{Tracer, Watcher};
+use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::io::provider::Path;
 use std::collections::BTreeMap;
-
-pub type ListFlowWatcher<T> = Watcher<ListFlowState<T>>;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct ListFlowTracer<T: ListFlowSpec> {
@@ -12,10 +10,10 @@ pub struct ListFlowTracer<T: ListFlowSpec> {
 }
 
 impl<T: ListFlowSpec> ListFlowTracer<T> {
-    pub fn new(path: Path) -> (Self, ListFlowWatcher<T>) {
+    pub fn new(path: Path) -> Self {
         let state = ListFlowState::new();
-        let (tracer, watcher) = Tracer::new_push(state, path);
-        (Self { tracer }, watcher)
+        let tracer = Tracer::new_push(state, path);
+        Self { tracer }
     }
 
     pub fn add_record(&self, id: T::Id, record: T::Record) {

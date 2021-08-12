@@ -14,7 +14,7 @@ impl AlertTracer {
     pub fn new(path: Path) -> Self {
         let state = AlertState::new();
         // TODO: Use the `Receiver`
-        let tracer = Tracer::new_push(state, path).0;
+        let tracer = Tracer::new_push(state, path);
         Self { tracer }
     }
 

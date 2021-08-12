@@ -1,8 +1,6 @@
 use super::state::*;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::tracer::{Tracer, Watcher};
-
-pub type MetaFlowWatcher<T> = Watcher<MetaFlowState<T>>;
+use rill_engine::tracers::tracer::Tracer;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct MetaFlowTracer<T: MetaFlowSpec> {
@@ -10,10 +8,10 @@ pub struct MetaFlowTracer<T: MetaFlowSpec> {
 }
 
 impl<T: MetaFlowSpec> MetaFlowTracer<T> {
-    pub fn new() -> (Self, MetaFlowWatcher<T>) {
+    pub fn new() -> Self {
         let state = MetaFlowState::new();
-        let (tracer, watcher) = Tracer::new_push(state, T::path());
-        (Self { tracer }, watcher)
+        let tracer = Tracer::new_push(state, T::path());
+        Self { tracer }
     }
 
     pub fn set_meta(&self, meta: T::Meta) {

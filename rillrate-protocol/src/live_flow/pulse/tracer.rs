@@ -11,7 +11,7 @@ impl Pulse {
     pub fn new(auto_path: AutoPath, spec: Option<PulseSpec>) -> Self {
         let spec = spec.unwrap_or_default();
         let path = auto_path.into();
-        let tracer = Binded::new(FrameFlowTracer::new(path, spec).0);
+        let tracer = Binded::new(FrameFlowTracer::new(path, spec));
         Self { tracer }
     }
 

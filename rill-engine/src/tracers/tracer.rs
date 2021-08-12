@@ -3,9 +3,8 @@ use crate::actors::connector;
 //use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
 use async_trait::async_trait;
-//use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope, Activity, TimedEvent};
+use rill_protocol::flow::core::{self, Activity, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, ProviderReqId, Timestamp};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
@@ -24,14 +23,14 @@ impl<T: core::Flow> Action for EventEnvelope<T> {}
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
-pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
-
+/// The callback that called on flow's incoming actions.
 #[async_trait]
 pub trait ActionCallback<T: core::Flow>: Send + Sync {
     // TODO: Track connections in the Recorder
     // TODO: `async fn awake()` - when at least one client connected
     // TODO: `async fn suspend()` - when the last client disconnected
 
+    /// A method to handle an action.
     async fn handle_activity(
         &mut self,
         origin: ProviderReqId,
@@ -39,12 +38,9 @@ pub trait ActionCallback<T: core::Flow>: Send + Sync {
     ) -> Result<(), Error>;
 }
 
-/// Watches for the control events.
-pub type Watcher<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
-
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,
-    pub action_handler: Option<()>,
+    pub callback: Option<Box<dyn ActionCallback<T>>>,
 }
 
 pub(crate) enum TracerMode<T: core::Flow> {
@@ -135,21 +131,19 @@ impl<T: core::Flow> Tracer<T> {
         if let Some(duration) = pull_interval {
             Self::new_pull(state, path, duration)
         } else {
-            Self::new_push(state, path).0
+            Self::new_push(state, path)
         }
     }
 
     /// Create a `Push` mode `Tracer`
-    pub fn new_push(state: T, path: Path) -> (Self, Watcher<T>) {
+    pub fn new_push(state: T, path: Path) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
-        let (control_tx, control_rx) = mpsc::unbounded_channel();
         let mode = TracerMode::Push {
             state,
             receiver: Some(rx),
-            //control_sender: Some(control_tx),
         };
         let inner_mode = InnerMode::Push { sender: tx };
-        (Self::new_inner(path, inner_mode, mode), control_rx)
+        Self::new_inner(path, inner_mode, mode)
     }
 
     /// Create a `Pull` mode `Tracer`
@@ -168,7 +162,8 @@ impl<T: core::Flow> Tracer<T> {
     fn new_inner(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
         let operator = TracerOperator {
             mode,
-            action_handler: None,
+            // TODO: Expect it from a parameter
+            callback: None,
         };
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
@@ -247,19 +242,6 @@ impl<T: core::Flow> Tracer<T> {
             }
         }
     }
-
-    /*
-    /// Subscribe to the stream of the watcher.
-    pub fn subscribe(&mut self) -> Result<Watcher<T>, Error> {
-        match &mut self.mode {
-            InnerMode::Push { control_sender, .. } => Ok(control_sender.subscribe()),
-            InnerMode::Pull { .. } => {
-                log::error!("Can't receive state in pull mode of {}", self.path(),);
-                Err(Error::msg("Tracer::recv is not supported in pull mode."))
-            }
-        }
-    }
-    */
 
     /*
     /// Registers a callback to the flow.

@@ -10,7 +10,7 @@ pub struct Board {
 impl Board {
     pub fn new(auto_path: AutoPath) -> Self {
         let path = auto_path.into();
-        let tracer = Binded::new(ListFlowTracer::new(path).0);
+        let tracer = Binded::new(ListFlowTracer::new(path));
         Self { tracer }
     }
 

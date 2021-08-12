@@ -13,8 +13,7 @@ impl PathTracer {
     /// Create a new instance of the `Tracer`.
     pub fn new(path: Path, description: Description) -> Self {
         let state = PathState::new(description);
-        // TODO: Use the receiver
-        let tracer = Tracer::new_push(state, path).0;
+        let tracer = Tracer::new_push(state, path);
         Self { tracer }
     }
 

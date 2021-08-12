@@ -1,9 +1,7 @@
 use super::state::*;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::tracer::{Tracer, Watcher};
+use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::io::provider::Path;
-
-pub type StatFlowWatcher<T> = Watcher<StatFlowState<T>>;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct StatFlowTracer<T: StatFlowSpec> {
