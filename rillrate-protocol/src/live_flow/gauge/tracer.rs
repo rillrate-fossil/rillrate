@@ -1,6 +1,6 @@
 use super::state::*;
 use crate::base::stat_flow::StatFlowTracer;
-use crate::live_data::auto_path::AutoPath;
+use crate::live_flow::auto_path::AutoPath;
 use crate::manifest::Binded;
 
 pub struct Gauge {

@@ -2,8 +2,8 @@ pub mod actors;
 
 metacrate::meta!();
 
-pub use rillrate_protocol::live_data::*;
-// TODO: Add wrappers for tracers
+pub use rillrate_protocol::live_flow::*;
+// TODO: Add wrappers for tracers?
 
 use actors::supervisor::NodeSupervisor;
 use anyhow::Error;
