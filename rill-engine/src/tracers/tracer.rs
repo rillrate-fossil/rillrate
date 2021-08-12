@@ -146,7 +146,12 @@ impl<T: core::Flow> Eq for Tracer<T> {}
 
 impl<T: core::Flow> Tracer<T> {
     /// Create a new `Tracer`
-    pub fn new(state: T, path: Path, pull_interval: Option<Duration>, callback: Option<BoxedCallback<T>>) -> Self {
+    pub fn new(
+        state: T,
+        path: Path,
+        pull_interval: Option<Duration>,
+        callback: Option<BoxedCallback<T>>,
+    ) -> Self {
         if let Some(duration) = pull_interval {
             Self::new_pull(state, path, duration, callback)
         } else {
@@ -166,7 +171,12 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Create a `Pull` mode `Tracer`
-    pub fn new_pull(state: T, path: Path, interval: Duration, callback: Option<BoxedCallback<T>>) -> Self {
+    pub fn new_pull(
+        state: T,
+        path: Path,
+        interval: Duration,
+        callback: Option<BoxedCallback<T>>,
+    ) -> Self {
         let state = Arc::new(Mutex::new(state));
         let notifier = Arc::new(Notify::new());
         let mode = TracerMode::Pull {
@@ -178,7 +188,12 @@ impl<T: core::Flow> Tracer<T> {
         Self::new_inner(path, inner_mode, mode, callback)
     }
 
-    fn new_inner(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>, callback: Option<BoxedCallback<T>>) -> Self {
+    fn new_inner(
+        path: Path,
+        inner_mode: InnerMode<T>,
+        mode: TracerMode<T>,
+        callback: Option<BoxedCallback<T>>,
+    ) -> Self {
         let operator = TracerOperator { mode, callback };
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
