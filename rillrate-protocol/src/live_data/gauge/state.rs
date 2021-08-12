@@ -41,8 +41,14 @@ impl StatFlowSpec for GaugeSpec {
     }
 
     // TODO: Use `Spec` reference here to check the range
-    fn apply(stat: &mut Self::Stat, delta: Self::Delta) {
-        stat.value = Some(delta);
+    fn apply(stat: &mut Self::Stat, value: Self::Delta) {
+        stat.value = Some(value);
+        if value < stat.abs_min {
+            stat.abs_min = value;
+        }
+        if value > stat.abs_max {
+            stat.abs_max = value;
+        }
     }
 }
 
