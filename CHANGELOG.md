@@ -2,7 +2,8 @@
 
 Improvements:
 
-- Tracers' names reduced to: `Board`, `Counter` and `Pulse`
+- New: `Gauge` tracer that rendered as a progress bar
+- Refator: names of the existent tracers reduced to: `Board`, `Counter` and `Pulse`
 
 Fixes:
 
