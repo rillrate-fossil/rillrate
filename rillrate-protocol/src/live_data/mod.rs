@@ -6,7 +6,7 @@ pub use board::Board;
 
 pub mod counter;
 #[cfg(feature = "engine")]
-pub use counter::CounterStatTracer;
+pub use counter::Counter;
 
 pub mod pulse;
 #[cfg(feature = "engine")]

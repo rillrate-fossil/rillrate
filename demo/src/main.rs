@@ -48,12 +48,9 @@ pub fn main() -> Result<(), Error> {
     );
 
     // The main part
-    let counter_1 =
-        CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);
-    let counter_2 =
-        CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"].into(), true);
-    let counter_3 =
-        CounterStatTracer::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
+    let counter_1 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);
+    let counter_2 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"].into(), true);
+    let counter_3 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
     let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
     loop {

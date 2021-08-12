@@ -2,10 +2,8 @@ use crate::base::stat_flow::{StatFlowSpec, StatFlowState};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-pub type CounterStatState = StatFlowState<CounterStatSpec>;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CounterStatSpec {
+pub struct CounterSpec {
     pub pull_ms: Option<u64>,
 }
 
@@ -14,7 +12,7 @@ pub struct CounterStat {
     pub total: i64,
 }
 
-impl StatFlowSpec for CounterStatSpec {
+impl StatFlowSpec for CounterSpec {
     type Stat = CounterStat;
     type Delta = i64;
 
@@ -26,3 +24,5 @@ impl StatFlowSpec for CounterStatSpec {
         stat.total += delta;
     }
 }
+
+pub type CounterState = StatFlowState<CounterSpec>;
