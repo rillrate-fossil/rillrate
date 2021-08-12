@@ -1,7 +1,7 @@
 use super::{Group, RillConnector};
 use crate::actors::recorder::Recorder;
 use crate::distributor::ParcelDistributor;
-use crate::tracers::tracer::TracerMode;
+use crate::tracers::tracer::TracerOperator;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Consumer, Context, InstantAction, InstantActionHandler, Parcel};
@@ -59,7 +59,7 @@ impl<T: core::Flow> InstantActionHandler<RegisterTracer<T>> for RillConnector {
             let packed_desc = Description::clone(&description);
             let sender = self.sender.clone();
             //let link = ctx.address().link();
-            let actor = Recorder::new(description, sender, msg.mode);
+            let actor = Recorder::new(description, sender, msg.operator);
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             // Send a description that's new tracer added
@@ -75,7 +75,7 @@ impl<T: core::Flow> InstantActionHandler<RegisterTracer<T>> for RillConnector {
 
 pub(crate) struct RegisterTracer<T: core::Flow> {
     pub description: Arc<Description>,
-    pub mode: TracerMode<T>,
+    pub operator: TracerOperator<T>,
 }
 
 impl<T: core::Flow> InstantAction for RegisterTracer<T> {}
@@ -88,13 +88,16 @@ impl ParcelDistributor<RillConnector> {
     pub fn register_tracer<T>(
         &self,
         description: Arc<Description>,
-        mode: TracerMode<T>,
+        operator: TracerOperator<T>,
     ) -> Result<(), TracerNotRegistered>
     where
         RillConnector: InstantActionHandler<RegisterTracer<T>>,
         T: core::Flow,
     {
-        let msg = RegisterTracer { description, mode };
+        let msg = RegisterTracer {
+            description,
+            operator,
+        };
         let parcel = Parcel::pack(msg);
         self.sender
             .unbounded_send(parcel)

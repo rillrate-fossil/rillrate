@@ -29,17 +29,12 @@ pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 /// Watches for the control events.
 pub type Watcher<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
 
+pub(crate) struct TracerOperator<T: core::Flow> {
+    pub mode: TracerMode<T>,
+    pub action_handler: Option<()>,
+}
+
 pub(crate) enum TracerMode<T: core::Flow> {
-    /* TODO: THE Idea to implement storage:
-     *
-     * Routed recorder shares the state and listens requests to forward them
-     * and return responses.
-     *
-     * Routed {
-     *   initial_state: T, - aka lazy state / bootstrap state
-     *   interactor: Address<?> or spawned routine, - to send requests there to update individual states
-     * },
-     */
     /// Real-time mode
     Push {
         state: T,
@@ -158,6 +153,10 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     fn new_inner(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
+        let operator = TracerOperator {
+            mode,
+            action_handler: None,
+        };
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
         let description = Description {
@@ -174,7 +173,7 @@ impl<T: core::Flow> Tracer<T> {
             description: description.clone(),
             mode: inner_mode,
         };
-        if let Err(err) = connector::DISTRIBUTOR.register_tracer(description, mode) {
+        if let Err(err) = connector::DISTRIBUTOR.register_tracer(description, operator) {
             log::error!(
                 "Can't register a Tracer. The worker can be terminated already: {}",
                 err

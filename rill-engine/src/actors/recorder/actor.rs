@@ -1,7 +1,7 @@
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
-use crate::tracers::tracer::{EventEnvelope, TracerMode};
+use crate::tracers::tracer::{EventEnvelope, TracerMode, TracerOperator};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::stream::{self, StreamExt};
@@ -25,11 +25,15 @@ pub(crate) struct Recorder<T: core::Flow> {
 }
 
 impl<T: core::Flow> Recorder<T> {
-    pub fn new(description: Arc<Description>, sender: RillSender, mode: TracerMode<T>) -> Self {
+    pub fn new(
+        description: Arc<Description>,
+        sender: RillSender,
+        operator: TracerOperator<T>,
+    ) -> Self {
         Self {
             description,
             sender,
-            mode,
+            mode: operator.mode,
             subscribers: HashSet::new(),
         }
     }
