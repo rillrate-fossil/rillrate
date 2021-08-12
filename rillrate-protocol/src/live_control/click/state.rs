@@ -1,22 +1,37 @@
-use crate::base_control::emit_control::{EmitControlSpec, EmitControlState};
-use rill_protocol::flow::core::TimedEvent;
-use rill_protocol::io::provider::StreamType;
+use rill_protocol::flow::core::{Flow, TimedEvent};
+use rill_protocol::io::provider::{StreamType, Timestamp};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClickSpec;
+pub struct ClickState {
+    pub caption: String,
+    pub last_click: Option<Timestamp>,
+}
 
-impl EmitControlSpec for ClickSpec {
-    type State = ();
-    type Action = ();
-
-    fn stream_type() -> StreamType {
-        StreamType::from(module_path!())
-    }
-
-    fn apply(_state: &mut Self::State, _action: TimedEvent<Self::Action>) {
-        //
+impl ClickState {
+    pub fn new(caption: String) -> Self {
+        Self {
+            caption,
+            last_click: None,
+        }
     }
 }
 
-pub type ClickState = EmitControlState<ClickSpec>;
+impl Flow for ClickState {
+    type Action = ClickAction;
+    type Event = TimedEvent<ClickEvent>;
+
+    fn stream_type() -> StreamType {
+        StreamType::from("rillrate.flow.control.click.v0")
+    }
+
+    fn apply(&mut self, event: Self::Event) {
+        self.last_click = Some(event.timestamp);
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClickAction;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClickEvent;

@@ -23,7 +23,8 @@ impl<T: core::Flow> Action for EventEnvelope<T> {}
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
-pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
+/// A sender for actions wrapped with an envelope.
+pub type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,

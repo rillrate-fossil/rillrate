@@ -48,3 +48,34 @@ impl<T> Drop for Binded<T> {
         self.unregister();
     }
 }
+
+/// `Binder` wraps a tracer to automatically track it in the global `DescriptionFlow`.
+#[derive(Deref, DerefMut, Debug, Clone)]
+pub struct Binder {
+    description: Description,
+}
+
+impl Binder {
+    pub fn new<T: Flow>(tracer: &Tracer<T>) -> Self {
+        let description = tracer.description().clone();
+        let this = Self { description };
+        this.register();
+        this
+    }
+
+    fn register(&self) {
+        let path = self.description.path.clone();
+        DESCRIPTIONS.add_record(path, self.description.clone());
+    }
+
+    fn unregister(&self) {
+        let path = self.description.path.clone();
+        DESCRIPTIONS.remove_record(path);
+    }
+}
+
+impl Drop for Binder {
+    fn drop(&mut self) {
+        self.unregister();
+    }
+}
