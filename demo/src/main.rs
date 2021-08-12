@@ -71,7 +71,7 @@ pub fn main() -> Result<(), Error> {
             counter_1.inc(1);
             counter_2.inc(10);
             counter_3.inc(100);
-            pulse_1.add(x as f32);
+            pulse_1.add(x as f64);
             thread::sleep(Duration::from_secs(1));
         }
         board_1.set("Loop", "Second");
@@ -81,8 +81,8 @@ pub fn main() -> Result<(), Error> {
             counter_1.inc(1);
             counter_2.inc(10);
             counter_3.inc(100);
-            pulse_1.add(x as f32);
-            pulse_2.add(x as f32);
+            pulse_1.add(x as f64);
+            pulse_2.add(x as f64);
             thread::sleep(Duration::from_millis(500 - x * 10));
         }
         thread::sleep(Duration::from_secs(1));

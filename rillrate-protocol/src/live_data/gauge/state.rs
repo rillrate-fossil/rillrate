@@ -11,9 +11,21 @@ pub struct GaugeSpec {
     pub range: Range,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GaugeStat {
     pub value: Option<f64>,
+    pub abs_min: f64,
+    pub abs_max: f64,
+}
+
+impl Default for GaugeStat {
+    fn default() -> Self {
+        Self {
+            value: None,
+            abs_min: f64::MAX,
+            abs_max: f64::MIN,
+        }
+    }
 }
 
 impl StatFlowSpec for GaugeSpec {

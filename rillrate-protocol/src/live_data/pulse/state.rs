@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 // TODO: Move some parts here from the `rill-protocol::Range`
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Range {
-    pub min: Option<f32>,
-    pub max: Option<f32>,
+    pub min: Option<f64>,
+    pub max: Option<f64>,
 }
 
 impl Range {
-    pub fn new(mut min: f32, mut max: f32) -> Self {
+    pub fn new(mut min: f64, mut max: f64) -> Self {
         if min > max {
             std::mem::swap(&mut min, &mut max);
         }
@@ -19,14 +19,14 @@ impl Range {
         }
     }
 
-    pub fn min(min: f32) -> Self {
+    pub fn min(min: f64) -> Self {
         Self {
             min: Some(min),
             max: None,
         }
     }
 
-    pub fn max(max: f32) -> Self {
+    pub fn max(max: f64) -> Self {
         Self {
             min: None,
             max: Some(max),
@@ -37,7 +37,7 @@ impl Range {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Label {
     pub caption: String,
-    pub divisor: f32,
+    pub divisor: f64,
 }
 
 impl Default for Label {
@@ -50,7 +50,7 @@ impl Default for Label {
 }
 
 impl Label {
-    pub fn new(caption: impl Into<String>, divisor: f32) -> Self {
+    pub fn new(caption: impl Into<String>, divisor: f64) -> Self {
         Self {
             caption: caption.into(),
             divisor,
@@ -86,7 +86,7 @@ impl Default for PulseSpec {
 }
 
 impl FrameFlowSpec for PulseSpec {
-    type Frame = f32;
+    type Frame = f64;
 
     fn retain_secs(&self) -> u32 {
         self.retain

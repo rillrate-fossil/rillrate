@@ -15,7 +15,7 @@ impl Pulse {
         Self { tracer }
     }
 
-    pub fn add(&self, value: f32) {
+    pub fn add(&self, value: f64) {
         self.tracer.add_frame(value);
     }
 }
