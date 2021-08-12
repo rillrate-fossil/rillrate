@@ -1,4 +1,4 @@
-use crate::base::list_flow::{ListFlowSpec, ListFlowState};
+use crate::base_flow::list_flow::{ListFlowSpec, ListFlowState};
 use rill_protocol::io::provider::{Description, Path};
 use serde::{Deserialize, Serialize};
 

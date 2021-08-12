@@ -1,4 +1,4 @@
-use crate::base::frame_flow::{FrameFlowSpec, FrameFlowState};
+use crate::base_flow::frame_flow::{FrameFlowSpec, FrameFlowState};
 use crate::live_flow::range::{Label, Range};
 use serde::{Deserialize, Serialize};
 

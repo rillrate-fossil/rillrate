@@ -1,4 +1,4 @@
-use crate::base::list_flow::{ListFlowSpec, ListFlowState};
+use crate::base_flow::list_flow::{ListFlowSpec, ListFlowState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
