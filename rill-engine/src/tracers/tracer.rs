@@ -25,6 +25,13 @@ pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
 /// A sender for actions wrapped with an envelope.
 pub type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
+/// A receiver for actions.
+pub type ControlReceiver<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
+
+/// Creates a new control channel.
+pub fn channel<T: core::Flow>() -> (ControlSender<T>, ControlReceiver<T>) {
+    mpsc::unbounded_channel()
+}
 
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,

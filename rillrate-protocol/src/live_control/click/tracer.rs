@@ -13,9 +13,13 @@ pub struct Click {
 }
 
 impl Click {
-    pub fn new(auto_path: AutoPath, caption: String, sender: ControlSender<ClickState>) -> Self {
+    pub fn new(
+        auto_path: AutoPath,
+        caption: impl ToString,
+        sender: ControlSender<ClickState>,
+    ) -> Self {
         let path = auto_path.into();
-        let state = ClickState::new(caption);
+        let state = ClickState::new(caption.to_string());
         let tracer = Tracer::new(state, path, None, Some(sender));
         let binder = Binder::new(&tracer);
         Self {

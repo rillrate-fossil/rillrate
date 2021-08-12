@@ -1,4 +1,5 @@
 use anyhow::Error;
+use rillrate::click::Click;
 use rillrate::gauge::GaugeSpec;
 use rillrate::range::Range;
 use rillrate::*;
@@ -50,6 +51,14 @@ pub fn main() -> Result<(), Error> {
     long_board.set(
         "Very::Long::Long::Long::Long::Long::Long::Long::Key3",
         "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
+    );
+
+    let link = Link::new();
+    link.sender();
+    let click = Click::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(),
+        "Click Me!",
+        link.sender(),
     );
 
     // === The main part ===
