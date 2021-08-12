@@ -5,8 +5,8 @@ use anyhow::Error;
 use async_trait::async_trait;
 //use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent, Activity};
-use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp, ProviderReqId};
+use rill_protocol::flow::core::{self, ActionEnvelope, Activity, TimedEvent};
+use rill_protocol::io::provider::{Description, Path, ProviderProtocol, ProviderReqId, Timestamp};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
@@ -27,12 +27,16 @@ pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 
 #[async_trait]
-pub trait ActionHandler<T: core::Flow> {
+pub trait ActionCallback<T: core::Flow>: Send + Sync {
     // TODO: Track connections in the Recorder
     // TODO: `async fn awake()` - when at least one client connected
     // TODO: `async fn suspend()` - when the last client disconnected
 
-    async fn handle_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) -> Result<(), Error>;
+    async fn handle_activity(
+        &mut self,
+        origin: ProviderReqId,
+        activity: Activity<T>,
+    ) -> Result<(), Error>;
 }
 
 /// Watches for the control events.

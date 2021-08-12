@@ -1,7 +1,7 @@
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
-use crate::tracers::tracer::{EventEnvelope, TracerMode, TracerOperator};
+use crate::tracers::tracer::{ActionCallback, EventEnvelope, TracerMode, TracerOperator};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::stream::{self, StreamExt};
@@ -21,6 +21,7 @@ pub(crate) struct Recorder<T: core::Flow> {
     description: Arc<Description>,
     sender: RillSender,
     mode: TracerMode<T>,
+    callback: Option<Box<dyn ActionCallback<T>>>,
     subscribers: HashSet<ProviderReqId>,
 }
 
@@ -34,6 +35,7 @@ impl<T: core::Flow> Recorder<T> {
             description,
             sender,
             mode: operator.mode,
+            callback: None,
             subscribers: HashSet::new(),
         }
     }
@@ -97,6 +99,7 @@ impl<T: core::Flow> Actor for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        // TODO: Spawn a `LiteTask` if `callback` exists
         match &mut self.mode {
             TracerMode::Push { receiver, .. } => {
                 let rx = receiver.take().expect("tracer hasn't attached receiver");
@@ -271,6 +274,9 @@ impl<T: core::Flow> Recorder<T> {
 
 impl<T: core::Flow> Recorder<T> {
     fn send_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) {
+        if let Some(callback) = self.callback.as_mut() {
+            callback.handle_activity(origin, activity);
+        }
         // TODO: Improve that! Use attached handler instead.
         // TODO: Use `async handler(origin, activity)`
         /*
