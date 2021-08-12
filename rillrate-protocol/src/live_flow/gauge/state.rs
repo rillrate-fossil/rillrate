@@ -1,5 +1,5 @@
 use crate::base::stat_flow::{StatFlowSpec, StatFlowState};
-use crate::live_flow::pulse::Range;
+use crate::live_flow::range::Range;
 use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

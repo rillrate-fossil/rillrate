@@ -17,3 +17,5 @@ pub mod pulse;
 pub use pulse::Pulse;
 
 pub mod auto_path;
+
+pub mod range;

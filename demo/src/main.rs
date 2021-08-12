@@ -1,6 +1,6 @@
 use anyhow::Error;
 use rillrate::gauge::GaugeSpec;
-use rillrate::pulse::Range;
+use rillrate::range::Range;
 use rillrate::*;
 use std::thread;
 use std::time::Duration;
