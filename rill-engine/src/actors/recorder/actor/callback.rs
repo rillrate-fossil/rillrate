@@ -1,5 +1,5 @@
 use super::Recorder;
-use crate::tracers::tracer::ActionCallback;
+use crate::tracers::tracer::BoxedCallback;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Context, IdOf, LiteTask, TaskEliminated, TaskError};
@@ -35,7 +35,7 @@ impl<T: core::Flow> Recorder<T> {
 }
 
 pub(crate) struct CallbackHolder<T: core::Flow> {
-    pub callback: Option<Box<dyn ActionCallback<T>>>,
+    pub callback: Option<BoxedCallback<T>>,
     pub sender: Option<mpsc::Sender<ActionEnvelope<T>>>,
 }
 
@@ -43,7 +43,7 @@ pub struct CallbackWorker<T: core::Flow> {
     description: Arc<Description>,
     active_connections: HashSet<ProviderReqId>,
     // TODO: Count connected to call lifetime methods of the callback
-    callback: Box<dyn ActionCallback<T>>,
+    callback: BoxedCallback<T>,
     receiver: mpsc::Receiver<ActionEnvelope<T>>,
 }
 

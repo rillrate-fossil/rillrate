@@ -11,7 +11,7 @@ pub struct EmitControlTracer<T: EmitControlSpec> {
 impl<T: EmitControlSpec> EmitControlTracer<T> {
     pub fn new(path: Path, spec: T, initial_state: T::State) -> Self {
         let state = EmitControlState::new(spec, initial_state);
-        let tracer = Tracer::new_push(state, path);
+        let tracer = Tracer::new_push(state, path, None);
         Self { tracer }
     }
 }

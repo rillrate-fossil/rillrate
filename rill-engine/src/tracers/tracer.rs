@@ -19,6 +19,20 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}
 
+/*
+struct EmptyCallback<T: core::Flow> {}
+
+impl<T> ActionCallback<T> for EmptyCallback<T> {
+    async fn handle_activity(
+        &mut self,
+        _origin: ProviderReqId,
+        _activity: Activity<T>,
+    ) -> Result<(), Error> {
+        Ok(())
+    }
+}
+*/
+
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
@@ -40,9 +54,12 @@ pub trait ActionCallback<T: core::Flow>: Send + Sync {
     ) -> Result<(), Error>;
 }
 
+/// Boxed callback.
+pub type BoxedCallback<T> = Box<dyn ActionCallback<T>>;
+
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,
-    pub callback: Option<Box<dyn ActionCallback<T>>>,
+    pub callback: Option<BoxedCallback<T>>,
 }
 
 pub(crate) enum TracerMode<T: core::Flow> {
@@ -129,27 +146,27 @@ impl<T: core::Flow> Eq for Tracer<T> {}
 
 impl<T: core::Flow> Tracer<T> {
     /// Create a new `Tracer`
-    pub fn new(state: T, path: Path, pull_interval: Option<Duration>) -> Self {
+    pub fn new(state: T, path: Path, pull_interval: Option<Duration>, callback: Option<BoxedCallback<T>>) -> Self {
         if let Some(duration) = pull_interval {
-            Self::new_pull(state, path, duration)
+            Self::new_pull(state, path, duration, callback)
         } else {
-            Self::new_push(state, path)
+            Self::new_push(state, path, callback)
         }
     }
 
     /// Create a `Push` mode `Tracer`
-    pub fn new_push(state: T, path: Path) -> Self {
+    pub fn new_push(state: T, path: Path, callback: Option<BoxedCallback<T>>) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         let mode = TracerMode::Push {
             state,
             receiver: Some(rx),
         };
         let inner_mode = InnerMode::Push { sender: tx };
-        Self::new_inner(path, inner_mode, mode)
+        Self::new_inner(path, inner_mode, mode, callback)
     }
 
     /// Create a `Pull` mode `Tracer`
-    pub fn new_pull(state: T, path: Path, interval: Duration) -> Self {
+    pub fn new_pull(state: T, path: Path, interval: Duration, callback: Option<BoxedCallback<T>>) -> Self {
         let state = Arc::new(Mutex::new(state));
         let notifier = Arc::new(Notify::new());
         let mode = TracerMode::Pull {
@@ -158,15 +175,11 @@ impl<T: core::Flow> Tracer<T> {
             notifier: notifier.clone(),
         };
         let inner_mode = InnerMode::Pull { state, notifier };
-        Self::new_inner(path, inner_mode, mode)
+        Self::new_inner(path, inner_mode, mode, callback)
     }
 
-    fn new_inner(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
-        let operator = TracerOperator {
-            mode,
-            // TODO: Expect it from a parameter
-            callback: None,
-        };
+    fn new_inner(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>, callback: Option<BoxedCallback<T>>) -> Self {
+        let operator = TracerOperator { mode, callback };
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
         let description = Description {
