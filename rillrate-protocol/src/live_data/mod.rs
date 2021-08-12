@@ -8,6 +8,10 @@ pub mod counter;
 #[cfg(feature = "engine")]
 pub use counter::Counter;
 
+pub mod gauge;
+#[cfg(feature = "engine")]
+pub use gauge::Gauge;
+
 pub mod pulse;
 #[cfg(feature = "engine")]
 pub use pulse::Pulse;
