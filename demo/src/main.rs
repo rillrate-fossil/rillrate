@@ -52,8 +52,16 @@ pub fn main() -> Result<(), Error> {
     let counter_1 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);
     let counter_2 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"].into(), true);
     let counter_3 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
-    let gauge_1 = Gauge::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"].into(), true);
-    let gauge_2 = Gauge::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"].into(), true);
+    let gauge_1 = Gauge::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"].into(),
+        None,
+        true,
+    );
+    let gauge_2 = Gauge::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"].into(),
+        None,
+        true,
+    );
     let pulse_1 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
     loop {

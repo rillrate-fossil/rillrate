@@ -1,6 +1,7 @@
 use crate::base::frame_flow::{FrameFlowSpec, FrameFlowState};
 use serde::{Deserialize, Serialize};
 
+// TODO: Move some parts here from the `rill-protocol::Range`
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Range {
     pub min: Option<f32>,

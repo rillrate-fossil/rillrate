@@ -17,15 +17,16 @@ pub trait StatFlowSpec: DataFraction {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StatFlowState<T: StatFlowSpec> {
+    #[serde(bound = "")]
+    pub spec: T,
     pub stat: T::Stat,
 }
 
 #[allow(clippy::new_without_default)]
 impl<T: StatFlowSpec> StatFlowState<T> {
-    pub fn new() -> Self {
-        Self {
-            stat: T::Stat::default(),
-        }
+    pub fn new(spec: T) -> Self {
+        let stat = T::Stat::default();
+        Self { spec, stat }
     }
 }
 

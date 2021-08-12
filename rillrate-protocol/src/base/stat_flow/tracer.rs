@@ -12,8 +12,10 @@ pub struct StatFlowTracer<T: StatFlowSpec> {
 
 impl<T: StatFlowSpec> StatFlowTracer<T> {
     pub fn new(path: Path, spec: T) -> Self {
-        let state = StatFlowState::new();
-        let tracer = Tracer::new(state, path, spec.interval());
+        // TODO: Consider to get `interval` from a parameter
+        let interval = spec.interval();
+        let state = StatFlowState::new(spec);
+        let tracer = Tracer::new(state, path, interval);
         Self { tracer }
     }
 

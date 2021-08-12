@@ -2,6 +2,7 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 
+// TODO: Consider removing (use `rillrate-protocol::Range` instead)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Range {
     min: OrderedFloat<f64>,
