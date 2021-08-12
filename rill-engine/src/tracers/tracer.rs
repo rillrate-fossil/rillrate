@@ -2,11 +2,11 @@
 use crate::actors::connector;
 //use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
-//use async_trait::async_trait;
+use async_trait::async_trait;
 //use futures::channel::mpsc;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
-use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
+use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent, Activity};
+use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp, ProviderReqId};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
@@ -26,6 +26,15 @@ pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
 pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 
+#[async_trait]
+pub trait ActionHandler<T: core::Flow> {
+    // TODO: Track connections in the Recorder
+    // TODO: `async fn awake()` - when at least one client connected
+    // TODO: `async fn suspend()` - when the last client disconnected
+
+    async fn handle_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) -> Result<(), Error>;
+}
+
 /// Watches for the control events.
 pub type Watcher<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
 
@@ -39,8 +48,8 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Push {
         state: T,
         receiver: Option<DataReceiver<T>>,
-        /// For sending events to the `Tracer` instance
-        control_sender: Option<ControlSender<T>>,
+        // For sending events to the `Tracer` instance
+        //control_sender: Option<ControlSender<T>>,
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
@@ -133,7 +142,7 @@ impl<T: core::Flow> Tracer<T> {
         let mode = TracerMode::Push {
             state,
             receiver: Some(rx),
-            control_sender: Some(control_tx),
+            //control_sender: Some(control_tx),
         };
         let inner_mode = InnerMode::Push { sender: tx };
         (Self::new_inner(path, inner_mode, mode), control_rx)

@@ -271,6 +271,9 @@ impl<T: core::Flow> Recorder<T> {
 
 impl<T: core::Flow> Recorder<T> {
     fn send_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) {
+        // TODO: Improve that! Use attached handler instead.
+        // TODO: Use `async handler(origin, activity)`
+        /*
         match &mut self.mode {
             TracerMode::Push {
                 control_sender: Some(sender),
@@ -302,6 +305,7 @@ impl<T: core::Flow> Recorder<T> {
                 );
             }
         }
+        */
     }
 }
 
