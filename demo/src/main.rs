@@ -17,7 +17,7 @@ pub fn main() -> Result<(), Error> {
 
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
-    let _pulse_empty = PulseFrameTracer::new(
+    let _pulse_empty = Pulse::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"].into(),
         None,
     );
@@ -47,11 +47,12 @@ pub fn main() -> Result<(), Error> {
         "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
     );
 
-    // The main part
+    // === The main part ===
+    // TODO: Improve that busy paths declarations...
     let counter_1 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);
     let counter_2 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"].into(), true);
     let counter_3 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"].into(), true);
-    let pulse_1 = PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
+    let pulse_1 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
     loop {
         board_1.set("Loop", "First");
@@ -63,8 +64,7 @@ pub fn main() -> Result<(), Error> {
             thread::sleep(Duration::from_secs(1));
         }
         board_1.set("Loop", "Second");
-        let pulse_2 =
-            PulseFrameTracer::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"].into(), None);
+        let pulse_2 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"].into(), None);
         for x in 1..=50 {
             counter_1.inc(1);
             counter_2.inc(10);

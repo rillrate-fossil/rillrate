@@ -1,8 +1,6 @@
 use crate::base::frame_flow::{FrameFlowSpec, FrameFlowState};
 use serde::{Deserialize, Serialize};
 
-pub type PulseFrameState = FrameFlowState<PulseFrameSpec>;
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Range {
     pub min: Option<f32>,
@@ -68,7 +66,7 @@ impl Label {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PulseFrameSpec {
+pub struct PulseSpec {
     /// Retain interval in seconds.
     // TODO: Make `retain` optional
     pub retain: u32,
@@ -76,7 +74,7 @@ pub struct PulseFrameSpec {
     pub label: Label,
 }
 
-impl Default for PulseFrameSpec {
+impl Default for PulseSpec {
     fn default() -> Self {
         Self {
             retain: 30,
@@ -86,10 +84,12 @@ impl Default for PulseFrameSpec {
     }
 }
 
-impl FrameFlowSpec for PulseFrameSpec {
+impl FrameFlowSpec for PulseSpec {
     type Frame = f32;
 
     fn retain_secs(&self) -> u32 {
         self.retain
     }
 }
+
+pub type PulseState = FrameFlowState<PulseSpec>;

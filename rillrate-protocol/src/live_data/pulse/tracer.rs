@@ -3,12 +3,12 @@ use crate::base::frame_flow::FrameFlowTracer;
 use crate::live_data::auto_path::AutoPath;
 use crate::manifest::Binded;
 
-pub struct PulseFrameTracer {
-    tracer: Binded<FrameFlowTracer<PulseFrameSpec>>,
+pub struct Pulse {
+    tracer: Binded<FrameFlowTracer<PulseSpec>>,
 }
 
-impl PulseFrameTracer {
-    pub fn new(auto_path: AutoPath, spec: Option<PulseFrameSpec>) -> Self {
+impl Pulse {
+    pub fn new(auto_path: AutoPath, spec: Option<PulseSpec>) -> Self {
         let spec = spec.unwrap_or_default();
         let path = auto_path.into();
         let tracer = Binded::new(FrameFlowTracer::new(path, spec).0);
