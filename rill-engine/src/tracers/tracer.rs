@@ -26,9 +26,11 @@ pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 /// The callback that called on flow's incoming actions.
 #[async_trait]
 pub trait ActionCallback<T: core::Flow>: Send + Sync {
-    // TODO: Track connections in the Recorder
-    // TODO: `async fn awake()` - when at least one client connected
-    // TODO: `async fn suspend()` - when the last client disconnected
+    /// When at least one connection exists.
+    async fn awake(&mut self) {}
+
+    /// When all clients disconnected.
+    async fn suspend(&mut self) {}
 
     /// A method to handle an action.
     async fn handle_activity(

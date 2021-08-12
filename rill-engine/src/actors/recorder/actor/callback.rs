@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use meio::{Context, IdOf, LiteTask, TaskEliminated, TaskError};
 use rill_protocol::flow::core::{self, ActionEnvelope, Activity};
 use rill_protocol::io::provider::{Description, ProviderReqId};
+use std::collections::HashSet;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
@@ -14,6 +15,7 @@ impl<T: core::Flow> Recorder<T> {
         if let Some(callback) = self.callback.callback.take() {
             let worker = CallbackWorker {
                 description: self.description.clone(),
+                active_connections: HashSet::new(),
                 callback,
                 receiver: rx,
             };
@@ -39,6 +41,7 @@ pub(crate) struct CallbackHolder<T: core::Flow> {
 
 pub struct CallbackWorker<T: core::Flow> {
     description: Arc<Description>,
+    active_connections: HashSet<ProviderReqId>,
     // TODO: Count connected to call lifetime methods of the callback
     callback: Box<dyn ActionCallback<T>>,
     receiver: mpsc::Receiver<ActionEnvelope<T>>,
@@ -50,6 +53,23 @@ impl<T: core::Flow> LiteTask for CallbackWorker<T> {
 
     async fn interruptable_routine(mut self) -> Result<Self::Output, Error> {
         while let Some(envelope) = self.receiver.recv().await {
+            match envelope.activity {
+                Activity::Connected => {
+                    let awake = self.active_connections.is_empty();
+                    self.active_connections.insert(envelope.origin);
+                    if awake {
+                        self.callback.awake().await;
+                    }
+                }
+                Activity::Disconnected => {
+                    self.active_connections.remove(&envelope.origin);
+                    let suspend = self.active_connections.is_empty();
+                    if suspend {
+                        self.callback.suspend().await;
+                    }
+                }
+                Activity::Action(_) => {}
+            }
             let res = self
                 .callback
                 .handle_activity(envelope.origin, envelope.activity)
