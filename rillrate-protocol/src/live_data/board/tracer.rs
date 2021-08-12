@@ -3,11 +3,11 @@ use crate::base::list_flow::ListFlowTracer;
 use crate::live_data::auto_path::AutoPath;
 use crate::manifest::Binded;
 
-pub struct BoardListTracer {
-    tracer: Binded<ListFlowTracer<BoardListSpec>>,
+pub struct Board {
+    tracer: Binded<ListFlowTracer<BoardSpec>>,
 }
 
-impl BoardListTracer {
+impl Board {
     pub fn new(auto_path: AutoPath) -> Self {
         let path = auto_path.into();
         let tracer = Binded::new(ListFlowTracer::new(path).0);

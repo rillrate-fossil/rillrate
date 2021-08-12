@@ -2,7 +2,7 @@
 
 pub mod board;
 #[cfg(feature = "engine")]
-pub use board::BoardListTracer;
+pub use board::Board;
 
 pub mod counter;
 #[cfg(feature = "engine")]

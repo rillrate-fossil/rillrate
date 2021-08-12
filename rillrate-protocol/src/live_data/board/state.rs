@@ -2,17 +2,17 @@ use crate::base::list_flow::{ListFlowSpec, ListFlowState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BoardListSpec;
+pub struct BoardSpec;
 
-impl ListFlowSpec for BoardListSpec {
+impl ListFlowSpec for BoardSpec {
     type Id = String;
     type Record = String;
     type Action = ();
     type Update = ();
 
     fn update_record(_record: &mut Self::Record, _update: Self::Update) {
-        log::error!("Inner updates not supported to BoardList");
+        log::error!("Inner updates are not supported for Board");
     }
 }
 
-pub type BoardListState = ListFlowState<BoardListSpec>;
+pub type BoardState = ListFlowState<BoardSpec>;
