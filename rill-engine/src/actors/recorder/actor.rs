@@ -151,6 +151,59 @@ impl<T: core::Flow> Recorder<T> {
     }
 }
 
+impl<T: core::Flow> Recorder<T> {
+    fn process_event(&mut self, envelope: EventEnvelope<T>) -> Result<(), Error> {
+        let EventEnvelope {
+            mut direction,
+            event,
+        } = envelope;
+        let apply;
+        if let Some(dir) = direction.take() {
+            // Direct events not applied to the state
+            apply = false;
+            match dir {
+                Direction::Direct(direct_id) => {
+                    if self.subscribers.contains(&direct_id) {
+                        direction = Some(Direction::Direct(direct_id));
+                    }
+                }
+                Direction::Multicast(directions) => {
+                    let directions: HashSet<_> = self
+                        .subscribers
+                        .intersection(&directions)
+                        .cloned()
+                        .collect();
+                    if !directions.is_empty() {
+                        direction = Some(Direction::Multicast(directions));
+                    }
+                }
+                Direction::Broadcast => {
+                    direction = Some(Direction::Broadcast);
+                }
+            }
+        } else {
+            // Multicast the event and apply it to the state
+            apply = true;
+            direction = Some(self.all_subscribers());
+        }
+        if let Some(direction) = direction {
+            self.send_event(direction, &event)?;
+        }
+        // Apply even if it has no subscribers
+        if apply {
+            match &mut self.mode {
+                TracerMode::Push { state, .. } => {
+                    T::apply(state, event);
+                }
+                TracerMode::Pull { .. } => {
+                    log::error!("Delta received in pull mode for: {}", self.description.path);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<T: core::Flow> Consumer<Vec<EventEnvelope<T>>> for Recorder<T> {
     async fn handle(
@@ -160,56 +213,7 @@ impl<T: core::Flow> Consumer<Vec<EventEnvelope<T>>> for Recorder<T> {
     ) -> Result<(), Error> {
         if !ctx.is_terminating() {
             for envelope in chunk.into_iter() {
-                let EventEnvelope {
-                    mut direction,
-                    event,
-                } = envelope;
-                let apply;
-                if let Some(dir) = direction.take() {
-                    // Direct events not applied to the state
-                    apply = false;
-                    match dir {
-                        Direction::Direct(direct_id) => {
-                            if self.subscribers.contains(&direct_id) {
-                                direction = Some(Direction::Direct(direct_id));
-                            }
-                        }
-                        Direction::Multicast(directions) => {
-                            let directions: HashSet<_> = self
-                                .subscribers
-                                .intersection(&directions)
-                                .cloned()
-                                .collect();
-                            if !directions.is_empty() {
-                                direction = Some(Direction::Multicast(directions));
-                            }
-                        }
-                        Direction::Broadcast => {
-                            direction = Some(Direction::Broadcast);
-                        }
-                    }
-                } else {
-                    // Multicast the event and apply it to the state
-                    apply = true;
-                    direction = Some(self.all_subscribers());
-                }
-                if let Some(direction) = direction {
-                    self.send_event(direction, &event)?;
-                }
-                // Apply even if it has no subscribers
-                if apply {
-                    match &mut self.mode {
-                        TracerMode::Push { state, .. } => {
-                            T::apply(state, event);
-                        }
-                        TracerMode::Pull { .. } => {
-                            log::error!(
-                                "Delta received in pull mode for: {}",
-                                self.description.path
-                            );
-                        }
-                    }
-                }
+                self.process_event(envelope)?;
             }
         } else {
             // TODO: Use `ConsumerHandle` to abort the stream (or interrupt with `stop` call).
