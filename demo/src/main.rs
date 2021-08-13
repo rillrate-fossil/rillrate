@@ -149,6 +149,13 @@ pub async fn main() -> Result<(), Error> {
     );
     let pulse_1 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"].into(), None);
     let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"].into());
+    let histogram_1 = Histogram::new(
+        [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"].into(),
+        vec![10.0, 20.0, 100.0, 500.0],
+    );
+    histogram_1.add(120.0);
+    histogram_1.add(11.0);
+
     loop {
         board_1.set("Loop", "First");
         for x in 1..=FIRST_LIMIT {
@@ -156,6 +163,7 @@ pub async fn main() -> Result<(), Error> {
             counter_1.inc(1);
             counter_2.inc(10);
             counter_3.inc(100);
+            histogram_1.add(12.0);
             pulse_1.add(x as f64);
             sleep(Duration::from_secs(1)).await;
         }
@@ -166,6 +174,7 @@ pub async fn main() -> Result<(), Error> {
             counter_1.inc(1);
             counter_2.inc(10);
             counter_3.inc(100);
+            histogram_1.add(84.0);
             pulse_1.add(x as f64);
             pulse_2.add(x as f64);
             sleep(Duration::from_millis(500 - x as u64 * 10)).await;
