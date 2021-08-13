@@ -30,20 +30,16 @@ impl Flow for SliderState {
     }
 
     fn apply(&mut self, event: Self::Event) {
-        match event {
-            SliderEvent::UpdateValue { value } => {
-                self.value = value.clamp(self.min, self.max);
-            }
-        }
+        self.value = event.set_value.clamp(self.min, self.max);
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SliderAction {
-    SetValue { value: f64 },
+pub struct SliderAction {
+    pub new_value: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SliderEvent {
-    UpdateValue { value: f64 },
+pub struct SliderEvent {
+    pub set_value: f64,
 }

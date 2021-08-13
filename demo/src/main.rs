@@ -2,8 +2,7 @@ use anyhow::Error;
 use rillrate::gauge::GaugeSpec;
 use rillrate::range::Range;
 use rillrate::*;
-use std::thread;
-use std::time::Duration;
+use tokio::time::{sleep, Duration};
 
 const PACKAGE_1: &str = "package-1";
 const DASHBOARD_1: &str = "dashboard-1";
@@ -87,6 +86,25 @@ pub async fn main() -> Result<(), Error> {
         }
     });
 
+    let link = Link::new();
+    link.sender();
+    let slider = Slider::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "slider-1"].into(),
+        "Slide Me!",
+        100.0,
+        5_000.0,
+        link.sender(),
+    );
+    tokio::spawn(async move {
+        let mut rx = link.receiver();
+        while let Some(envelope) = rx.recv().await {
+            log::warn!("ACTION: {:?}", envelope);
+            if let Some(action) = envelope.activity.to_action() {
+                slider.set(action.new_value);
+            }
+        }
+    });
+
     // === The main part ===
     // TODO: Improve that busy paths declarations...
     let counter_1 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);
@@ -120,7 +138,7 @@ pub async fn main() -> Result<(), Error> {
             counter_2.inc(10);
             counter_3.inc(100);
             pulse_1.add(x as f64);
-            thread::sleep(Duration::from_secs(1));
+            sleep(Duration::from_secs(1)).await;
         }
         board_1.set("Loop", "Second");
         let pulse_2 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"].into(), None);
@@ -131,8 +149,8 @@ pub async fn main() -> Result<(), Error> {
             counter_3.inc(100);
             pulse_1.add(x as f64);
             pulse_2.add(x as f64);
-            thread::sleep(Duration::from_millis(500 - x as u64 * 10));
+            sleep(Duration::from_millis(500 - x as u64 * 10)).await;
         }
-        thread::sleep(Duration::from_secs(1));
+        sleep(Duration::from_secs(1)).await;
     }
 }

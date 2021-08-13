@@ -30,8 +30,8 @@ impl Slider {
         }
     }
 
-    pub fn set(&self, value: f64) {
-        let msg = SliderEvent::UpdateValue { value };
+    pub fn set(&self, set_value: f64) {
+        let msg = SliderEvent { set_value };
         self.tracer.send(msg, None);
     }
 }
