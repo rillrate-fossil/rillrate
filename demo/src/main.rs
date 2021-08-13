@@ -17,7 +17,8 @@ const GROUP_2: &str = "group-2";
 const FIRST_LIMIT: usize = 10;
 const SECOND_LIMIT: usize = 50;
 
-pub fn main() -> Result<(), Error> {
+#[tokio::main]
+pub async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     let _handle = rillrate::start();
 
@@ -56,10 +57,18 @@ pub fn main() -> Result<(), Error> {
     let link = Link::new();
     link.sender();
     let click = Click::new(
-        [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(),
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"].into(),
         "Click Me!",
         link.sender(),
     );
+    tokio::spawn(async move {
+        let mut rx = link.receiver();
+        while let Some(action) = rx.recv().await {
+            if action.activity.is_action() {
+                click.clicked();
+            }
+        }
+    });
 
     // === The main part ===
     // TODO: Improve that busy paths declarations...

@@ -17,10 +17,17 @@ impl<T: core::Flow> Link<T> {
     pub fn sender(&self) -> ControlSender<T> {
         self.tx.clone()
     }
+
+    /// Takes a receiver.
+    pub fn receiver(self) -> ControlReceiver<T> {
+        self.rx
+    }
 }
 
+/*
 impl<T: core::Flow> From<Link<T>> for ControlReceiver<T> {
     fn from(link: Link<T>) -> Self {
         link.rx
     }
 }
+*/

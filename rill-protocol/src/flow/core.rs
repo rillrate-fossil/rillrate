@@ -111,3 +111,9 @@ pub enum Activity<T: Flow> {
     /// No one connected client
     Suspend,
 }
+
+impl<T: Flow> Activity<T> {
+    pub fn is_action(&self) -> bool {
+        matches!(self, Self::Action(_))
+    }
+}
