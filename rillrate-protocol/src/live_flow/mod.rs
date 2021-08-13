@@ -19,3 +19,7 @@ pub use histogram::Histogram;
 pub mod pulse;
 #[cfg(feature = "engine")]
 pub use pulse::Pulse;
+
+pub mod table;
+#[cfg(feature = "engine")]
+pub use table::Table;
