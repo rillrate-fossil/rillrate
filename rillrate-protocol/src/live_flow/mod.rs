@@ -12,6 +12,10 @@ pub mod gauge;
 #[cfg(feature = "engine")]
 pub use gauge::Gauge;
 
+pub mod histogram;
+#[cfg(feature = "engine")]
+pub use histogram::Histogram;
+
 pub mod pulse;
 #[cfg(feature = "engine")]
 pub use pulse::Pulse;
