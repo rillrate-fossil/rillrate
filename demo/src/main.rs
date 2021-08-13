@@ -64,8 +64,8 @@ pub async fn main() -> Result<(), Error> {
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
-            log::warn!("ACTION: {:?}", envelope);
-            if envelope.activity.is_action() {
+            if let Some(action) = envelope.activity.to_action() {
+                log::warn!("ACTION: {:?}", action);
                 click.clicked();
             }
         }
@@ -81,8 +81,8 @@ pub async fn main() -> Result<(), Error> {
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
-            log::warn!("ACTION: {:?}", envelope);
             if let Some(action) = envelope.activity.to_action() {
+                log::warn!("ACTION: {:?}", action);
                 switch.turn(action.turn_on);
             }
         }
@@ -101,8 +101,8 @@ pub async fn main() -> Result<(), Error> {
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
-            log::warn!("ACTION: {:?}", envelope);
             if let Some(action) = envelope.activity.to_action() {
+                log::warn!("ACTION: {:?}", action);
                 slider.set(action.new_value);
             }
         }
@@ -119,8 +119,8 @@ pub async fn main() -> Result<(), Error> {
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
-            log::warn!("ACTION: {:?}", envelope);
             if let Some(action) = envelope.activity.to_action() {
+                log::warn!("ACTION: {:?}", action);
                 selector.select(action.new_selected);
             }
         }
@@ -169,10 +169,12 @@ pub async fn main() -> Result<(), Error> {
         tbl.add_row(Row(i));
         tbl.set_cell(Row(i), Col(0), &tname);
         tokio::spawn(async move {
-            tbl.set_cell(Row(i), Col(1), "wait 1");
-            sleep(Duration::from_millis(500)).await;
-            tbl.set_cell(Row(i), Col(1), "wait 2");
-            sleep(Duration::from_millis(500)).await;
+            loop {
+                tbl.set_cell(Row(i), Col(1), "wait 1");
+                sleep(Duration::from_millis(100 * i)).await;
+                tbl.set_cell(Row(i), Col(1), "wait 2");
+                sleep(Duration::from_millis(500)).await;
+            }
         });
     }
 
