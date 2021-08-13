@@ -163,7 +163,6 @@ pub async fn main() -> Result<(), Error> {
         [PACKAGE_1, DASHBOARD_2, GROUP_3, "table-1"].into(),
         vec![(Col(0), "Thread"), (Col(1), "State")],
     );
-
     for i in 1..=5 {
         let tbl = my_table.clone();
         let tname = format!("task-{}", i);

@@ -5,9 +5,11 @@ use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::Description;
 use std::ops::Deref;
+use std::sync::Arc;
 
 static DESCRIPTIONS: Lazy<DescriptionsListTracer> = Lazy::new(DescriptionsListTracer::new);
 
+// TODO: Remove and replace with `Binder`! It unregistered wrong!
 /// `Binded` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
 pub struct Binded<T> {
@@ -52,29 +54,42 @@ impl<T> Drop for Binded<T> {
 /// `Binder` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
 pub struct Binder {
-    description: Description,
+    /// Wrapped with `Arc` to have a single instance of inner only.
+    inner: Arc<BinderInner>,
 }
 
 impl Binder {
     pub fn new<T: Flow>(tracer: &Tracer<T>) -> Self {
         let description = tracer.description().clone();
-        let this = Self { description };
-        this.register();
+        let inner = BinderInner { description };
+        let this = Self {
+            inner: Arc::new(inner),
+        };
+        this.inner.register();
         this
     }
+}
 
+#[derive(Deref, DerefMut, Debug, Clone)]
+pub struct BinderInner {
+    description: Description,
+}
+
+impl BinderInner {
     fn register(&self) {
         let path = self.description.path.clone();
+        //log::debug!("REGISTERING: {}", path);
         DESCRIPTIONS.add_record(path, self.description.clone());
     }
 
     fn unregister(&self) {
         let path = self.description.path.clone();
+        //log::debug!("UNREGISTERING: {}", path);
         DESCRIPTIONS.remove_record(path);
     }
 }
 
-impl Drop for Binder {
+impl Drop for BinderInner {
     fn drop(&mut self) {
         self.unregister();
     }
