@@ -29,9 +29,9 @@ impl Selector {
         }
     }
 
-    pub fn select(&self, idx: u64) {
+    pub fn select(&self, value: Option<String>) {
         let msg = SelectorEvent {
-            update_selected: Some(idx),
+            update_selected: value,
         };
         self.tracer.send(msg, None);
     }

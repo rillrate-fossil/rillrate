@@ -106,6 +106,24 @@ pub async fn main() -> Result<(), Error> {
         }
     });
 
+    let link = Link::new();
+    link.sender();
+    let selector = Selector::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "selector-1"].into(),
+        "Select Me!",
+        vec!["One".into(), "Two".into(), "Three".into()],
+        link.sender(),
+    );
+    tokio::spawn(async move {
+        let mut rx = link.receiver();
+        while let Some(envelope) = rx.recv().await {
+            log::warn!("ACTION: {:?}", envelope);
+            if let Some(action) = envelope.activity.to_action() {
+                selector.select(action.new_selected);
+            }
+        }
+    });
+
     // === The main part ===
     // TODO: Improve that busy paths declarations...
     let counter_1 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"].into(), true);

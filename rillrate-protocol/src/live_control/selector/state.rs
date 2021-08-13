@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct SelectorState {
     pub label: String,
     pub options: Vec<String>,
-    pub selected: Option<u64>,
+    pub selected: Option<String>,
 }
 
 impl SelectorState {
@@ -34,10 +34,10 @@ impl Flow for SelectorState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SelectorAction {
-    pub new_selected: Option<f64>,
+    pub new_selected: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SelectorEvent {
-    pub update_selected: Option<u64>,
+    pub update_selected: Option<String>,
 }
