@@ -226,7 +226,7 @@ impl<T: core::Flow> Tracer<T> {
                     let envelope = EventEnvelope { direction, event };
                     // And will never send an event
                     if let Err(err) = sender.send(envelope) {
-                        log::error!("Can't transfer data to sender: {}", err);
+                        log::error!("Can't transfer data to sender of {}: {}", self.path(), err);
                     }
                 }
                 InnerMode::Pull { state, .. } => match state.lock() {
