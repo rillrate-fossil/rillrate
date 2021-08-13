@@ -62,9 +62,9 @@ pub async fn main() -> Result<(), Error> {
     );
     tokio::spawn(async move {
         let mut rx = link.receiver();
-        while let Some(action) = rx.recv().await {
-            log::warn!("ACTION: {:?}", action);
-            if action.activity.is_action() {
+        while let Some(envelope) = rx.recv().await {
+            log::warn!("ACTION: {:?}", envelope);
+            if envelope.activity.is_action() {
                 click.clicked();
             }
         }
@@ -79,9 +79,11 @@ pub async fn main() -> Result<(), Error> {
     );
     tokio::spawn(async move {
         let mut rx = link.receiver();
-        while let Some(action) = rx.recv().await {
-            log::warn!("ACTION: {:?}", action);
-            switch.turn(true);
+        while let Some(envelope) = rx.recv().await {
+            log::warn!("ACTION: {:?}", envelope);
+            if let Some(action) = envelope.activity.to_action() {
+                switch.turn(action.turn_on);
+            }
         }
     });
 
