@@ -64,6 +64,7 @@ pub async fn main() -> Result<(), Error> {
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(action) = rx.recv().await {
+            log::warn!("ACTION: {:?}", action);
             if action.activity.is_action() {
                 click.clicked();
             }
