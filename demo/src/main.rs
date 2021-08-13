@@ -1,6 +1,7 @@
 use anyhow::Error;
 use rillrate::gauge::GaugeSpec;
 use rillrate::range::Range;
+use rillrate::table::{Col, Row};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
 
@@ -11,6 +12,7 @@ const DASHBOARD_I: &str = "issues";
 
 const GROUP_1: &str = "group-1";
 const GROUP_2: &str = "group-2";
+const GROUP_3: &str = "group-3";
 
 const FIRST_LIMIT: usize = 10;
 const SECOND_LIMIT: usize = 50;
@@ -155,6 +157,25 @@ pub async fn main() -> Result<(), Error> {
     );
     histogram_1.add(120.0);
     histogram_1.add(11.0);
+
+    // TABLE
+    let my_table = Table::new(
+        [PACKAGE_1, DASHBOARD_2, GROUP_3, "table-1"].into(),
+        vec![(Col(0), "Thread"), (Col(1), "State")],
+    );
+
+    for i in 1..=5 {
+        let tbl = my_table.clone();
+        let tname = format!("task-{}", i);
+        tbl.add_row(Row(i));
+        tbl.set_cell(Row(i), Col(0), &tname);
+        tokio::spawn(async move {
+            tbl.set_cell(Row(i), Col(1), "wait 1");
+            sleep(Duration::from_millis(500)).await;
+            tbl.set_cell(Row(i), Col(1), "wait 2");
+            sleep(Duration::from_millis(500)).await;
+        });
+    }
 
     loop {
         board_1.set("Loop", "First");
