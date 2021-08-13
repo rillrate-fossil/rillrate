@@ -1,5 +1,5 @@
 use super::state::*;
-use crate::live_flow::auto_path::AutoPath;
+use crate::auto_path::AutoPath;
 use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::{ControlSender, Tracer};

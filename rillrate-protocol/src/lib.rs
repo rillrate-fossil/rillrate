@@ -5,5 +5,8 @@ pub mod live_control;
 pub mod live_flow;
 pub mod manifest;
 
+pub mod auto_path;
+pub mod range;
+
 #[cfg(feature = "engine")]
 pub use rill_engine::tracers::link::Link;

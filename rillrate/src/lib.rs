@@ -4,6 +4,7 @@ metacrate::meta!();
 
 pub use rillrate_protocol::live_control::*;
 pub use rillrate_protocol::live_flow::*;
+pub use rillrate_protocol::range;
 pub use rillrate_protocol::Link;
 
 // TODO: Add wrappers for tracers?

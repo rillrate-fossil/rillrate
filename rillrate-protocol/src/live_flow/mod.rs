@@ -15,7 +15,3 @@ pub use gauge::Gauge;
 pub mod pulse;
 #[cfg(feature = "engine")]
 pub use pulse::Pulse;
-
-pub mod auto_path;
-
-pub mod range;

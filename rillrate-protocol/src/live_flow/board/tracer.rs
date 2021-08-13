@@ -1,6 +1,6 @@
 use super::state::*;
+use crate::auto_path::AutoPath;
 use crate::base_flow::list_flow::ListFlowTracer;
-use crate::live_flow::auto_path::AutoPath;
 use crate::manifest::Binded;
 
 pub struct Board {

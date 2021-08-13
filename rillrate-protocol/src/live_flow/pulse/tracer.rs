@@ -1,6 +1,6 @@
 use super::state::*;
+use crate::auto_path::AutoPath;
 use crate::base_flow::frame_flow::FrameFlowTracer;
-use crate::live_flow::auto_path::AutoPath;
 use crate::manifest::Binded;
 
 pub struct Pulse {
