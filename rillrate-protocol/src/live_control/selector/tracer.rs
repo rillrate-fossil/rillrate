@@ -5,21 +5,22 @@ use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::{ControlSender, Tracer};
 
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct Click {
+pub struct Selector {
     #[deref]
     #[deref_mut]
-    tracer: Tracer<ClickState>,
+    tracer: Tracer<SelectorState>,
     _binder: Binder,
 }
 
-impl Click {
+impl Selector {
     pub fn new(
         auto_path: AutoPath,
         label: impl ToString,
-        sender: ControlSender<ClickState>,
+        options: Vec<String>,
+        sender: ControlSender<SelectorState>,
     ) -> Self {
         let path = auto_path.into();
-        let state = ClickState::new(label.to_string());
+        let state = SelectorState::new(label.to_string(), options);
         let tracer = Tracer::new(state, path, None, Some(sender));
         let binder = Binder::new(&tracer);
         Self {
@@ -28,8 +29,10 @@ impl Click {
         }
     }
 
-    pub fn clicked(&self) {
-        let msg = ClickEvent;
+    pub fn select(&self, idx: u64) {
+        let msg = SelectorEvent {
+            update_selected: Some(idx),
+        };
         self.tracer.send(msg, None);
     }
 }

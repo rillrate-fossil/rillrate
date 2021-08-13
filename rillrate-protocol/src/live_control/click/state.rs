@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClickState {
-    pub caption: String,
+    pub label: String,
 }
 
 impl ClickState {
-    pub fn new(caption: String) -> Self {
-        Self { caption }
+    pub fn new(label: String) -> Self {
+        Self { label }
     }
 }
 
