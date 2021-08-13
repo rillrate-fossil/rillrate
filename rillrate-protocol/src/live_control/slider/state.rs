@@ -7,15 +7,17 @@ pub struct SliderState {
     pub label: String,
     pub min: f64,
     pub max: f64,
+    pub step: f64,
     pub value: f64,
 }
 
 impl SliderState {
-    pub fn new(label: String, min: f64, max: f64) -> Self {
+    pub fn new(label: String, min: f64, max: f64, step: f64) -> Self {
         Self {
             label,
             min,
             max,
+            step,
             value: min,
         }
     }

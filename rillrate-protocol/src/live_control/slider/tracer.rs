@@ -18,10 +18,11 @@ impl Slider {
         label: impl ToString,
         min: f64,
         max: f64,
+        step: f64,
         sender: ControlSender<SliderState>,
     ) -> Self {
         let path = auto_path.into();
-        let state = SliderState::new(label.to_string(), min, max);
+        let state = SliderState::new(label.to_string(), min, max, step);
         let tracer = Tracer::new(state, path, None, Some(sender));
         let binder = Binder::new(&tracer);
         Self {

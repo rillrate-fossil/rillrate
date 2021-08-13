@@ -93,6 +93,7 @@ pub async fn main() -> Result<(), Error> {
         "Slide Me!",
         100.0,
         5_000.0,
+        100.0,
         link.sender(),
     );
     tokio::spawn(async move {
