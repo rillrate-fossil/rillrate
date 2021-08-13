@@ -116,4 +116,12 @@ impl<T: Flow> Activity<T> {
     pub fn is_action(&self) -> bool {
         matches!(self, Self::Action(_))
     }
+
+    pub fn to_action(self) -> Option<T::Action> {
+        if let Activity::Action(action) = self {
+            Some(action)
+        } else {
+            None
+        }
+    }
 }

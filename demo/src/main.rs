@@ -1,5 +1,4 @@
 use anyhow::Error;
-use rillrate::click::Click;
 use rillrate::gauge::GaugeSpec;
 use rillrate::range::Range;
 use rillrate::*;
@@ -68,6 +67,21 @@ pub async fn main() -> Result<(), Error> {
             if action.activity.is_action() {
                 click.clicked();
             }
+        }
+    });
+
+    let link = Link::new();
+    link.sender();
+    let switch = Switch::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"].into(),
+        "Switch Me!",
+        link.sender(),
+    );
+    tokio::spawn(async move {
+        let mut rx = link.receiver();
+        while let Some(action) = rx.recv().await {
+            log::warn!("ACTION: {:?}", action);
+            switch.turn(true);
         }
     });
 

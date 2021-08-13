@@ -6,4 +6,4 @@ pub mod live_flow;
 pub mod manifest;
 
 #[cfg(feature = "engine")]
-pub mod link;
+pub use rill_engine::tracers::link::Link;

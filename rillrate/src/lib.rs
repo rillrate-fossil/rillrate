@@ -2,9 +2,9 @@ pub mod actors;
 
 metacrate::meta!();
 
-pub use rillrate_protocol::link::Link;
 pub use rillrate_protocol::live_control::*;
 pub use rillrate_protocol::live_flow::*;
+pub use rillrate_protocol::Link;
 
 // TODO: Add wrappers for tracers?
 
