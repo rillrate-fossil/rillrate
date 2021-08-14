@@ -1,13 +1,10 @@
 [workspace]
 members = [
     "rillrate",
-    "rillrate-protocol",
-
+    "rate-core",
     "rill-protocol",
     "rill-engine",
     "rill-client",
-
-    "rate-core",
-
+    "rrpack-prime",
     "demo",
 ]

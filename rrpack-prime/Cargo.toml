@@ -1,11 +1,11 @@
 [package]
-name = "rillrate-protocol"
+name = "rrpack-prime"
 version = "0.37.0-dev"
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"
-documentation = "https://docs.rs/rillrate-protocol/"
-license = "Apache-2.0"
+documentation = "https://docs.rs/rrpack-prime/"
+license = "BUSL-1.1"
 readme = "README.md"
 keywords = ["logging"]
 categories = ["development-tools::debugging"]

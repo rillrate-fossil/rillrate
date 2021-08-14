@@ -6,10 +6,11 @@ mod actors;
 
 metacrate::meta!();
 
-pub use rillrate_protocol::live_control::*;
-pub use rillrate_protocol::live_flow::*;
-pub use rillrate_protocol::range;
-pub use rillrate_protocol::Link;
+// TODO: Use packs separately (later).
+pub use rrpack_prime::live_control::*;
+pub use rrpack_prime::live_flow::*;
+pub use rrpack_prime::range;
+pub use rrpack_prime::Link;
 
 use actors::supervisor::NodeSupervisor;
 use anyhow::Error;

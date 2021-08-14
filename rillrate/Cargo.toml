@@ -23,7 +23,7 @@ metacrate = "0.1.2"
 once_cell = "1.8.0"
 rate-core = { version = "0.37.0-dev", path = "../rate-core" }
 rill-protocol = { version = "0.37.0-dev", path = "../rill-protocol" }
-rillrate-protocol = { version = "0.37.0-dev", path = "../rillrate-protocol" }
+rrpack-prime = { version = "0.37.0-dev", path = "../rrpack-prime" }
 serde = "1.0.127"
 strum = "0.21.0"
 thiserror = "1.0.26"
