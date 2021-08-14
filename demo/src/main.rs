@@ -20,7 +20,7 @@ const SECOND_LIMIT: usize = 50;
 #[tokio::main]
 pub async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
-    let _handle = rillrate::start();
+    rillrate::install("demo")?;
 
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
@@ -200,4 +200,5 @@ pub async fn main() -> Result<(), Error> {
         }
         sleep(Duration::from_secs(1)).await;
     }
+    //rillrate::uninstall()?;
 }

@@ -26,7 +26,7 @@ pub struct RillRateHandle {
 }
 
 /// Starts the engine.
-pub fn start() -> Result<(), Error> {
+pub fn install(_name: impl ToString) -> Result<(), Error> {
     let actor = NodeSupervisor::new(Default::default());
     let rt = thread::spawn(actor)?;
     let mut opt_handle = GLOBAL.lock().map_err(|err| Error::msg(err.to_string()))?;
@@ -35,7 +35,7 @@ pub fn start() -> Result<(), Error> {
 }
 
 /// Stops the engine.
-pub fn stop() -> Result<(), Error> {
+pub fn uninstall() -> Result<(), Error> {
     let mut opt_handle = GLOBAL.lock().map_err(|err| Error::msg(err.to_string()))?;
     opt_handle.take();
     Ok(())
