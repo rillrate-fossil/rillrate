@@ -9,12 +9,12 @@ pub struct Gauge {
 
 impl Gauge {
     // TODO: Use `ms` here and move `realtime` paramter to the rillrate constructor
-    pub fn new(auto_path: AutoPath, spec: Option<GaugeSpec>, realtime: bool) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, spec: Option<GaugeSpec>, realtime: bool) -> Self {
         let path = auto_path.into();
         // TODO: Improve that!!!
         let _pull_ms = if realtime { None } else { Some(1_000) };
         let spec = spec.unwrap_or_default();
-        let tracer = Binded::new(StatFlowTracer::new(path, spec));
+        let tracer = Binded::new(StatFlowTracer::new(path.into(), spec));
         Self { tracer }
     }
 

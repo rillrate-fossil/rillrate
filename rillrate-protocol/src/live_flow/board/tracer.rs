@@ -8,9 +8,9 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(auto_path: AutoPath) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>) -> Self {
         let path = auto_path.into();
-        let tracer = Binded::new(ListFlowTracer::new(path));
+        let tracer = Binded::new(ListFlowTracer::new(path.into()));
         Self { tracer }
     }
 

@@ -14,7 +14,7 @@ pub struct Slider {
 
 impl Slider {
     pub fn new(
-        auto_path: AutoPath,
+        auto_path: impl Into<AutoPath>,
         label: impl ToString,
         min: f64,
         max: f64,
@@ -23,7 +23,7 @@ impl Slider {
     ) -> Self {
         let path = auto_path.into();
         let state = SliderState::new(label.to_string(), min, max, step);
-        let tracer = Tracer::new(state, path, None, Some(sender));
+        let tracer = Tracer::new(state, path.into(), None, Some(sender));
         let binder = Binder::new(&tracer);
         Self {
             tracer,

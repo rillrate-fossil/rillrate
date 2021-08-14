@@ -8,10 +8,10 @@ pub struct Pulse {
 }
 
 impl Pulse {
-    pub fn new(auto_path: AutoPath, spec: Option<PulseSpec>) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, spec: Option<PulseSpec>) -> Self {
         let spec = spec.unwrap_or_default();
         let path = auto_path.into();
-        let tracer = Binded::new(FrameFlowTracer::new(path, spec));
+        let tracer = Binded::new(FrameFlowTracer::new(path.into(), spec));
         Self { tracer }
     }
 

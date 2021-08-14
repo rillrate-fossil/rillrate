@@ -9,11 +9,11 @@ pub struct Counter {
 
 impl Counter {
     // TODO: Use `ms` here and move `realtime` paramter to the rillrate constructor
-    pub fn new(auto_path: AutoPath, realtime: bool) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, realtime: bool) -> Self {
         let path = auto_path.into();
         let pull_ms = if realtime { None } else { Some(1_000) };
         let spec = CounterSpec { pull_ms };
-        let tracer = Binded::new(StatFlowTracer::new(path, spec));
+        let tracer = Binded::new(StatFlowTracer::new(path.into(), spec));
         Self { tracer }
     }
 
