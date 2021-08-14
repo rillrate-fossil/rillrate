@@ -37,8 +37,8 @@ let _handle = rillrate::start();
 And create a `Tracer` to visualize data on the embedded dashboard:
 
 ```rust
-let my_tracer = PulseFrameTracer::new(
-    ["package", "dashboard", "group", "tracer-name"].into(),
+let my_tracer = Pulse::new(
+    ["package", "dashboard", "group", "tracer-name"],
     None, // You can add a specification here: depth, ranges, labels, etc.
 );
 ```
@@ -46,7 +46,7 @@ let my_tracer = PulseFrameTracer::new(
 When you tracer is spawned use it to put data to it:
 
 ```rust
-tracer.add(value);
+tracer.push(value);
 ```
 
 ### What types of tracers supported?
