@@ -4,6 +4,17 @@ Improvements:
 
 - New: `Gauge` tracer that rendered as a progress bar
 - Refator: names of the existent tracers reduced to: `Board`, `Counter` and `Pulse`
+- Method `start` stores rillrate's handle globally
+- Add `stop` method for termination the rillrate engine
+- Controls added:
+    - `Click` control
+    - `Switch` control
+    - `Selector` control
+    - `Slider` control
+- Data flows added:
+    - `Gauge`
+    - `Histogram`
+    - `Table`
 
 Fixes:
 
