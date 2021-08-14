@@ -9,4 +9,4 @@ anyhow = "1.0.42"
 env_logger = "0.9.0"
 log = "0.4.14"
 rillrate = { version = "0.37.0-dev", path = "../rillrate" }
-tokio = "1.9.0"
+tokio = "1.10.0"
