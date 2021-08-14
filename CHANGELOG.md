@@ -15,6 +15,7 @@ Improvements:
     - `Gauge`
     - `Histogram`
     - `Table`
+- Strings as paths allowed. For example: "package.dashboard.group.my-data-flow"
 
 Fixes:
 
