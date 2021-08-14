@@ -78,7 +78,7 @@ impl<T: RillPoolTask> LiteTask for AttachTask<T> {
 }
 
 #[derive(Error, Debug)]
-#[error("Task not spawned")]
+#[error("Task not spawned, because pool has not started (channel lost or not exists).")]
 pub struct TaskNotSpawned;
 
 impl ParcelDistributor<RillPool> {
