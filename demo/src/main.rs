@@ -24,7 +24,10 @@ pub async fn main() -> Result<(), Error> {
 
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
-    let _pulse_empty = Pulse::new([PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"], None);
+    let _pulse_empty = Pulse::new(
+        [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"],
+        Default::default(),
+    );
     let long_board = Board::new([PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"]);
     long_board.set(
         "Very Long Long Long Long Long Long Long Key",
@@ -132,19 +135,16 @@ pub async fn main() -> Result<(), Error> {
         pull_ms: None,
         range: Range::new(0.0, FIRST_LIMIT as f64),
     };
-    let gauge_1 = Gauge::new(
-        [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"],
-        Some(gauge_1_spec),
-    );
+    let gauge_1 = Gauge::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"], gauge_1_spec);
     let gauge_2_spec = GaugeSpec {
         pull_ms: None,
         range: Range::new(0.0, SECOND_LIMIT as f64),
     };
-    let gauge_2 = Gauge::new(
-        [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"],
-        Some(gauge_2_spec),
+    let gauge_2 = Gauge::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"], gauge_2_spec);
+    let pulse_1 = Pulse::new(
+        [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"],
+        Default::default(),
     );
-    let pulse_1 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"], None);
     let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"]);
     let histogram_1 = Histogram::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"],
@@ -181,19 +181,22 @@ pub async fn main() -> Result<(), Error> {
             counter_2.inc(10);
             counter_3.inc(100);
             histogram_1.add(12.0);
-            pulse_1.add(x as f64);
+            pulse_1.push(x as f64);
             sleep(Duration::from_secs(1)).await;
         }
         board_1.set("Loop", "Second");
-        let pulse_2 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"], None);
+        let pulse_2 = Pulse::new(
+            [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"],
+            Default::default(),
+        );
         for x in 1..=SECOND_LIMIT {
             gauge_2.set(x as f64);
             counter_1.inc(1);
             counter_2.inc(10);
             counter_3.inc(100);
             histogram_1.add(84.0);
-            pulse_1.add(x as f64);
-            pulse_2.add(x as f64);
+            pulse_1.push(x as f64);
+            pulse_2.push(x as f64);
             sleep(Duration::from_millis(500 - x as u64 * 10)).await;
         }
         sleep(Duration::from_secs(1)).await;
