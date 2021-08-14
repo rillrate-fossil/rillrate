@@ -135,7 +135,6 @@ pub async fn main() -> Result<(), Error> {
     let gauge_1 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"],
         Some(gauge_1_spec),
-        true,
     );
     let gauge_2_spec = GaugeSpec {
         pull_ms: None,
@@ -144,7 +143,6 @@ pub async fn main() -> Result<(), Error> {
     let gauge_2 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"],
         Some(gauge_2_spec),
-        true,
     );
     let pulse_1 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"], None);
     let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"]);
