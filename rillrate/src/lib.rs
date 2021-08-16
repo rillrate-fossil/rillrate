@@ -18,25 +18,47 @@ use meio::thread;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
-static GLOBAL: Lazy<Mutex<Option<RillRateHandle>>> = Lazy::new(|| Mutex::new(None));
+static GLOBAL: Lazy<Mutex<Option<RillRate>>> = Lazy::new(|| Mutex::new(None));
 
 /// Tracks a lifetime of the `RillRate` engine.
-pub struct RillRateHandle {
+pub struct RillRate {
     _rt: thread::ScopedRuntime,
 }
 
-/// Starts the engine.
-pub fn install(_name: impl ToString) -> Result<(), Error> {
-    let actor = NodeSupervisor::new(Default::default());
-    let rt = thread::spawn(actor)?;
-    let mut opt_handle = GLOBAL.lock().map_err(|err| Error::msg(err.to_string()))?;
-    *opt_handle = Some(RillRateHandle { _rt: rt });
-    Ok(())
+impl RillRate {
+    /// Starts the engine.
+    pub fn start(_name: impl ToString) -> Result<Self, Error> {
+        let actor = NodeSupervisor::new(Default::default());
+        let rt = thread::spawn(actor)?;
+        Ok(RillRate { _rt: rt })
+    }
+
+    /// Pin the engine globally. Not needed to keep the handle in the scope.
+    pub fn pin(self) -> Result<(), Error> {
+        let mut opt_handle = GLOBAL.lock().map_err(|err| Error::msg(err.to_string()))?;
+        *opt_handle = Some(self);
+        Ok(())
+    }
+
+    /// Installs the engine globally.
+    pub fn install(name: impl ToString) -> Result<(), Error> {
+        Self::start(name)?.pin()
+    }
+
+    /// Uninstall the engine from the global scope.
+    pub fn uninstall() -> Result<(), Error> {
+        let mut opt_handle = GLOBAL.lock().map_err(|err| Error::msg(err.to_string()))?;
+        opt_handle.take();
+        Ok(())
+    }
 }
 
-/// Stops the engine.
+/// Install the engine.
+pub fn install(name: impl ToString) -> Result<(), Error> {
+    RillRate::install(name)
+}
+
+/// Uninstall the engine.
 pub fn uninstall() -> Result<(), Error> {
-    let mut opt_handle = GLOBAL.lock().map_err(|err| Error::msg(err.to_string()))?;
-    opt_handle.take();
-    Ok(())
+    RillRate::uninstall()
 }

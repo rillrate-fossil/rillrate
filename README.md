@@ -31,7 +31,7 @@ rillrate = "0.37.0-rc.1"
 Install the **rillrate** engine in the `main` function:
 
 ```rust
-rillrate::install();
+rillrate::install("my-app");
 ```
 
 And create a `Tracer` to visualize data on the embedded dashboard:
