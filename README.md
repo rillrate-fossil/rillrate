@@ -25,13 +25,13 @@ Add a dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rillrate = "0.36.0"
+rillrate = "0.37.0-rc.1"
 ```
 
-Start the **rillrate** engine in the `main` function:
+Install the **rillrate** engine in the `main` function:
 
 ```rust
-let _handle = rillrate::start();
+rillrate::install();
 ```
 
 And create a `Tracer` to visualize data on the embedded dashboard:
