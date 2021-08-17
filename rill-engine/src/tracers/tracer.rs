@@ -8,7 +8,7 @@ use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
-use tokio::sync::{mpsc, Notify};
+use tokio::sync::mpsc;
 
 #[derive(Debug)]
 pub(crate) struct EventEnvelope<T: core::Flow> {
@@ -47,7 +47,6 @@ pub(crate) enum TracerMode<T: core::Flow> {
     Pull {
         state: Weak<Mutex<T>>,
         interval: Duration,
-        notifier: Arc<Notify>,
     },
 }
 
@@ -63,10 +62,6 @@ enum InnerMode<T: core::Flow> {
     },
     Pull {
         state: Arc<Mutex<T>>,
-        /// For sending notifications about important state changes
-        /// IMPORTANT! No join with `Arc` of `state`, because
-        /// state needs `Weak` to detect closing.
-        notifier: Arc<Notify>,
     },
 }
 
@@ -77,9 +72,8 @@ impl<T: core::Flow> Clone for InnerMode<T> {
             Self::Push { sender } => Self::Push {
                 sender: sender.clone(),
             },
-            Self::Pull { state, notifier } => Self::Pull {
+            Self::Pull { state } => Self::Pull {
                 state: state.clone(),
-                notifier: notifier.clone(),
             },
         }
     }
@@ -147,13 +141,11 @@ impl<T: core::Flow> Tracer<T> {
         callback: Option<ControlSender<T>>,
     ) -> Self {
         let state = Arc::new(Mutex::new(state));
-        let notifier = Arc::new(Notify::new());
         let mode = TracerMode::Pull {
             state: Arc::downgrade(&state),
             interval,
-            notifier: notifier.clone(),
         };
-        let inner_mode = InnerMode::Pull { state, notifier };
+        let inner_mode = InnerMode::Pull { state };
         Self::new_inner(path, inner_mode, mode, callback)
     }
 
@@ -198,6 +190,7 @@ impl<T: core::Flow> Tracer<T> {
 
     /// Ask recorder to resend a state in the `Pull` mode.
     pub fn flush(&self) {
+        /* TODO: Use events
         match &self.mode {
             InnerMode::Pull { notifier, .. } => {
                 notifier.notify_one();
@@ -207,6 +200,7 @@ impl<T: core::Flow> Tracer<T> {
                 log::error!("Buffering and flushing is not supported in `Push` mode yet");
             }
         }
+        */
     }
 
     /// Send an event to a `Recorder`.

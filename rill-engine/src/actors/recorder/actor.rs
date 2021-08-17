@@ -110,17 +110,17 @@ impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
                 ctx.attach(rx, (), ());
                 Ok(())
             }
-            TracerMode::Pull {
-                interval, notifier, ..
-            } => {
+            TracerMode::Pull { interval, .. } => {
                 // TODO: Wait for the subscribers to spawn a heartbeat activity
                 let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
                 let _task = ctx.spawn_task(heartbeat, (), ());
+                /*
                 let notifications = stream::repeat(notifier.to_owned())
                     .then(|notifier| async move { notifier.notified().await })
                     .map(|()| FlushImportantChange)
                     .boxed();
                 ctx.attach(notifications, (), ());
+                */
                 Ok(())
             }
         }
@@ -227,6 +227,7 @@ impl<T: core::Flow> Consumer<Vec<EventEnvelope<T>>> for Recorder<T> {
     }
 }
 
+/* TODO: Flush has to be ordered!
 /// A notification to force sending of the current pullable state.
 struct FlushImportantChange;
 
@@ -241,6 +242,7 @@ impl<T: core::Flow> Consumer<FlushImportantChange> for Recorder<T> {
         self.flush_state(ctx).await
     }
 }
+*/
 
 #[async_trait]
 impl<T: core::Flow> OnTick for Recorder<T> {
