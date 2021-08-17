@@ -8,7 +8,7 @@ use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
-use tokio::sync::{mpsc, watch, Notify};
+use tokio::sync::{mpsc, Notify};
 
 #[derive(Debug)]
 pub(crate) struct EventEnvelope<T: core::Flow> {
@@ -89,8 +89,6 @@ impl<T: core::Flow> Clone for InnerMode<T> {
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
 pub struct Tracer<T: core::Flow> {
-    /// The receiver that used to activate/deactivate streams.
-    active: watch::Receiver<bool>,
     description: Arc<Description>,
     mode: InnerMode<T>,
 }
@@ -98,7 +96,6 @@ pub struct Tracer<T: core::Flow> {
 impl<T: core::Flow> Clone for Tracer<T> {
     fn clone(&self) -> Self {
         Self {
-            active: self.active.clone(),
             description: self.description.clone(),
             mode: self.mode.clone(),
         }
@@ -174,12 +171,9 @@ impl<T: core::Flow> Tracer<T> {
             info,
             stream_type,
         };
-        // TODO: Remove this active watch channel?
-        let (_active_tx, active_rx) = watch::channel(true);
         log::trace!("Creating Tracer with path: {}", description.path);
         let description = Arc::new(description);
         let this = Tracer {
-            active: active_rx,
             description: description.clone(),
             mode: inner_mode,
         };
@@ -204,44 +198,40 @@ impl<T: core::Flow> Tracer<T> {
 
     /// Ask recorder to resend a state in the `Pull` mode.
     pub fn flush(&self) {
-        if self.is_active() {
-            match &self.mode {
-                InnerMode::Pull { notifier, .. } => {
-                    notifier.notify_one();
-                }
-                InnerMode::Push { .. } => {
-                    // TODO: Implement buffering and flushing.
-                    log::error!("Buffering and flushing is not supported in `Push` mode yet");
-                }
+        match &self.mode {
+            InnerMode::Pull { notifier, .. } => {
+                notifier.notify_one();
+            }
+            InnerMode::Push { .. } => {
+                // TODO: Implement buffering and flushing.
+                log::error!("Buffering and flushing is not supported in `Push` mode yet");
             }
         }
     }
 
     /// Send an event to a `Recorder`.
     pub fn send(&self, event: T::Event, direction: Option<Direction<ProviderProtocol>>) {
-        if self.is_active() {
-            match &self.mode {
-                InnerMode::Push { sender, .. } => {
-                    let envelope = EventEnvelope { direction, event };
-                    // And will never send an event
-                    if let Err(err) = sender.send(envelope) {
-                        log::error!("Can't transfer data to sender of {}: {}", self.path(), err);
-                    }
+        match &self.mode {
+            InnerMode::Push { sender, .. } => {
+                let envelope = EventEnvelope { direction, event };
+                // And will never send an event
+                if let Err(err) = sender.send(envelope) {
+                    log::error!("Can't transfer data to sender of {}: {}", self.path(), err);
                 }
-                InnerMode::Pull { state, .. } => match state.lock() {
-                    // `direction` ignored always in the `Pull` mode
-                    Ok(ref mut state) => {
-                        T::apply(state, event);
-                    }
-                    Err(err) => {
-                        log::error!(
-                            "Can't lock the mutex to apply the changes of {}: {}",
-                            self.path(),
-                            err
-                        );
-                    }
-                },
             }
+            InnerMode::Pull { state, .. } => match state.lock() {
+                // `direction` ignored always in the `Pull` mode
+                Ok(ref mut state) => {
+                    T::apply(state, event);
+                }
+                Err(err) => {
+                    log::error!(
+                        "Can't lock the mutex to apply the changes of {}: {}",
+                        self.path(),
+                        err
+                    );
+                }
+            },
         }
     }
 
@@ -286,33 +276,6 @@ where
     }
 }
 */
-
-impl<T: core::Flow> Tracer<T> {
-    /// Returns `true` is the `Tracer` has to send data.
-    pub fn is_active(&self) -> bool {
-        *self.active.borrow()
-    }
-
-    /* TODO: Remove or replace with an alternative
-    /// Use this method to detect when stream had activated.
-    ///
-    /// It's useful if you want to spawn async coroutine that
-    /// can read a batch of data, but will wait when some streams
-    /// will be activated to avoid resources wasting.
-    ///
-    /// When the generating coroutine active you can use `is_active`
-    /// method to detect when to change it to awaiting state again.
-    pub async fn when_activated(&mut self) -> Result<(), Error> {
-        loop {
-            if self.is_active() {
-                break;
-            }
-            self.active.changed().await?;
-        }
-        Ok(())
-    }
-    */
-}
 
 /// Wraps with timed event
 pub fn timed<T>(event: T) -> Option<TimedEvent<T>> {
