@@ -12,7 +12,7 @@ pub struct ListFlowTracer<T: ListFlowSpec> {
 impl<T: ListFlowSpec> ListFlowTracer<T> {
     pub fn new(path: Path) -> Self {
         let state = ListFlowState::new();
-        let tracer = Tracer::new_push(state, path, None);
+        let tracer = Tracer::new_push(state, path);
         Self { tracer }
     }
 

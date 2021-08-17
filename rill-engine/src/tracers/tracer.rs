@@ -41,6 +41,7 @@ pub fn channel<T: core::Flow>() -> (ActionSender<T>, ActionReceiver<T>) {
 
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,
+    pub control_rx: Option<ControlReceiver>,
 }
 
 pub(crate) enum TracerMode<T: core::Flow> {
@@ -92,6 +93,7 @@ impl<T: core::Flow> Clone for InnerMode<T> {
 #[derive(Debug)]
 pub struct Tracer<T: core::Flow> {
     description: Arc<Description>,
+    control_tx: ControlSender,
     mode: InnerMode<T>,
 }
 
@@ -99,6 +101,7 @@ impl<T: core::Flow> Clone for Tracer<T> {
     fn clone(&self) -> Self {
         Self {
             description: self.description.clone(),
+            control_tx: self.control_tx.clone(),
             mode: self.mode.clone(),
         }
     }
@@ -124,46 +127,40 @@ impl<T: core::Flow> Tracer<T> {
         callback: Option<ActionSender<T>>,
     ) -> Self {
         if let Some(duration) = pull_interval {
-            Self::new_pull(state, path, duration, callback)
+            Self::new_pull(state, path, duration)
         } else {
-            Self::new_push(state, path, callback)
+            Self::new_push(state, path)
         }
     }
 
     /// Create a `Push` mode `Tracer`
-    pub fn new_push(state: T, path: Path, callback: Option<ActionSender<T>>) -> Self {
+    pub fn new_push(state: T, path: Path) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         let mode = TracerMode::Push {
             state,
             receiver: Some(rx),
         };
         let inner_mode = InnerMode::Push { sender: tx };
-        Self::new_inner(path, inner_mode, mode, callback)
+        Self::new_inner(path, inner_mode, mode)
     }
 
     /// Create a `Pull` mode `Tracer`
-    pub fn new_pull(
-        state: T,
-        path: Path,
-        interval: Duration,
-        callback: Option<ActionSender<T>>,
-    ) -> Self {
+    pub fn new_pull(state: T, path: Path, interval: Duration) -> Self {
         let state = Arc::new(Mutex::new(state));
         let mode = TracerMode::Pull {
             state: Arc::downgrade(&state),
             interval,
         };
         let inner_mode = InnerMode::Pull { state };
-        Self::new_inner(path, inner_mode, mode, callback)
+        Self::new_inner(path, inner_mode, mode)
     }
 
-    fn new_inner(
-        path: Path,
-        inner_mode: InnerMode<T>,
-        mode: TracerMode<T>,
-        callback: Option<ActionSender<T>>,
-    ) -> Self {
-        let operator = TracerOperator { mode };
+    fn new_inner(path: Path, inner_mode: InnerMode<T>, mode: TracerMode<T>) -> Self {
+        let (control_tx, control_rx) = mpsc::unbounded_channel();
+        let operator = TracerOperator {
+            mode,
+            control_rx: Some(control_rx),
+        };
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
         let description = Description {
@@ -175,6 +172,7 @@ impl<T: core::Flow> Tracer<T> {
         let description = Arc::new(description);
         let this = Tracer {
             description: description.clone(),
+            control_tx,
             mode: inner_mode,
         };
         if let Err(err) = connector::DISTRIBUTOR.register_tracer(description, operator) {
@@ -198,17 +196,10 @@ impl<T: core::Flow> Tracer<T> {
 
     /// Ask recorder to resend a state in the `Pull` mode.
     pub fn flush(&self) {
-        /* TODO: Use events
-        match &self.mode {
-            InnerMode::Pull { notifier, .. } => {
-                notifier.notify_one();
-            }
-            InnerMode::Push { .. } => {
-                // TODO: Implement buffering and flushing.
-                log::error!("Buffering and flushing is not supported in `Push` mode yet");
-            }
+        let event = ControlEvent::Flush;
+        if let Err(err) = self.control_tx.send(event) {
+            log::error!("Can't send a flush event to {}: {}", self.path(), err);
         }
-        */
     }
 
     /// Send an event to a `Recorder`.

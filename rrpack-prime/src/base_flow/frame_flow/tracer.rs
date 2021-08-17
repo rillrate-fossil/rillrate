@@ -12,7 +12,7 @@ pub struct FrameFlowTracer<T: FrameFlowSpec> {
 impl<T: FrameFlowSpec> FrameFlowTracer<T> {
     pub fn new(path: Path, spec: T) -> Self {
         let state = FrameFlowState::new(spec);
-        let tracer = Tracer::new_push(state, path, None);
+        let tracer = Tracer::new_push(state, path);
         Self { tracer }
     }
 

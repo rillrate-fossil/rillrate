@@ -2,7 +2,9 @@ pub mod callback;
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
-use crate::tracers::tracer::{ActionSender, EventEnvelope, TracerMode, TracerOperator};
+use crate::tracers::tracer::{
+    ActionSender, ControlEvent, EventEnvelope, TracerMode, TracerOperator,
+};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::stream::StreamExt;
@@ -22,8 +24,7 @@ pub(crate) struct Recorder<T: core::Flow> {
     description: Arc<Description>,
     sender: RillSender,
 
-    // TODO: Just keep the whole `TracerOperator` here
-    mode: TracerMode<T>,
+    operator: TracerOperator<T>,
     callback: Option<ActionSender<T>>,
 
     subscribers: HashSet<ProviderReqId>,
@@ -38,7 +39,7 @@ impl<T: core::Flow> Recorder<T> {
         Self {
             description,
             sender,
-            mode: operator.mode,
+            operator,
             callback: None,
             subscribers: HashSet::new(),
         }
@@ -56,7 +57,7 @@ impl<T: core::Flow> Recorder<T> {
     }
 
     async fn pack_state(&self) -> Result<PackedState, Error> {
-        match &self.mode {
+        match &self.operator.mode {
             TracerMode::Push { state, .. } => T::pack_state(state),
             TracerMode::Pull { state, .. } => {
                 if let Some(state) = Weak::upgrade(state) {
@@ -103,7 +104,14 @@ impl<T: core::Flow> Actor for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        match &mut self.mode {
+        let rx = self
+            .operator
+            .control_rx
+            .take()
+            .expect("tracer hasn't attached control receiver");
+        let rx = UnboundedReceiverStream::new(rx);
+        ctx.attach(rx, (), ());
+        match &mut self.operator.mode {
             TracerMode::Push { receiver, .. } => {
                 let rx = receiver.take().expect("tracer hasn't attached receiver");
                 let rx = UnboundedReceiverStream::new(rx).ready_chunks(32);
@@ -191,13 +199,25 @@ impl<T: core::Flow> Recorder<T> {
         }
         // Apply even if it has no subscribers
         if apply {
-            match &mut self.mode {
+            match &mut self.operator.mode {
                 TracerMode::Push { state, .. } => {
                     T::apply(state, event);
                 }
                 TracerMode::Pull { .. } => {
                     log::error!("Delta received in pull mode for: {}", self.description.path);
                 }
+            }
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: core::Flow> Consumer<ControlEvent> for Recorder<T> {
+    async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+        match event {
+            ControlEvent::Flush => {
+                self.flush_state(ctx).await?;
             }
         }
         Ok(())
@@ -261,7 +281,7 @@ impl<T: core::Flow> Recorder<T> {
     /// Sends a state in the `Pull` mode.
     async fn flush_state(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         if !self.subscribers.is_empty() && !ctx.is_terminating() {
-            match &self.mode {
+            match &self.operator.mode {
                 TracerMode::Pull { .. } => {
                     let direction = self.all_subscribers();
                     if let Err(_err) = self.send_state(direction).await {

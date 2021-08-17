@@ -10,7 +10,7 @@ pub struct MetaFlowTracer<T: MetaFlowSpec> {
 impl<T: MetaFlowSpec> MetaFlowTracer<T> {
     pub fn new() -> Self {
         let state = MetaFlowState::new();
-        let tracer = Tracer::new_push(state, T::path(), None);
+        let tracer = Tracer::new_push(state, T::path());
         Self { tracer }
     }
 
