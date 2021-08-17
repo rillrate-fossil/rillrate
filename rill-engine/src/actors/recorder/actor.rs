@@ -39,7 +39,7 @@ impl<T: core::Flow> Recorder<T> {
             description,
             sender,
             mode: operator.mode,
-            callback: operator.callback,
+            callback: None,
             subscribers: HashSet::new(),
         }
     }

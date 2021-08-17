@@ -36,7 +36,6 @@ pub fn channel<T: core::Flow>() -> (ControlSender<T>, ControlReceiver<T>) {
 
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,
-    pub callback: Option<ControlSender<T>>,
 }
 
 pub(crate) enum TracerMode<T: core::Flow> {
@@ -159,7 +158,7 @@ impl<T: core::Flow> Tracer<T> {
         mode: TracerMode<T>,
         callback: Option<ControlSender<T>>,
     ) -> Self {
-        let operator = TracerOperator { mode, callback };
+        let operator = TracerOperator { mode };
         let stream_type = T::stream_type();
         let info = format!("{} - {}", path, stream_type);
         let description = Description {
