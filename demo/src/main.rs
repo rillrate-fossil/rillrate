@@ -61,6 +61,7 @@ pub async fn main() -> Result<(), Error> {
         "Click Me!",
         link.sender(),
     );
+    let _click = click.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
@@ -78,6 +79,7 @@ pub async fn main() -> Result<(), Error> {
         "Switch Me!",
         link.sender(),
     );
+    let _switch = switch.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
@@ -98,6 +100,7 @@ pub async fn main() -> Result<(), Error> {
         100.0,
         link.sender(),
     );
+    let _slider = slider.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
@@ -116,6 +119,7 @@ pub async fn main() -> Result<(), Error> {
         vec!["One".into(), "Two".into(), "Three".into()],
         link.sender(),
     );
+    let _selector = selector.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
         while let Some(envelope) = rx.recv().await {
