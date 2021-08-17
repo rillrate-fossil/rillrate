@@ -222,6 +222,11 @@ impl<T: core::Flow> Consumer<ControlEvent> for Recorder<T> {
         }
         Ok(())
     }
+
+    async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.graceful_shutdown(ctx);
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -242,7 +247,7 @@ impl<T: core::Flow> Consumer<Vec<EventEnvelope<T>>> for Recorder<T> {
     }
 
     async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.graceful_shutdown(ctx);
+        //self.graceful_shutdown(ctx);
         Ok(())
     }
 }

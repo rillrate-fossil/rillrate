@@ -236,23 +236,21 @@ impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillConnector {
 impl<T: core::Flow> Eliminated<Recorder<T>> for RillConnector {
     async fn handle(
         &mut self,
-        _id: IdOf<Recorder<T>>,
+        id: IdOf<Recorder<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        /*
         let id: Id = id.into();
         if let Some(desc) = self.registered.remove(&id) {
             let path = &desc.path;
             let link = self.recorders.find_mut(path).and_then(Record::take_link);
             if link.is_some() {
-                self.path_flow.del(path.to_owned());
+                //self.path_flow.del(path.to_owned());
             } else {
                 log::error!("Recorder {:?} was registered without a link (lost).", id);
             }
         } else {
             log::error!("Recorder {:?} wasn't registered.", id);
         }
-        */
         Ok(())
     }
 }
