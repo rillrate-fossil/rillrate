@@ -11,9 +11,11 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::mpsc;
 
 #[derive(Debug)]
-pub(crate) struct EventEnvelope<T: core::Flow> {
-    pub direction: Option<Direction<ProviderProtocol>>,
-    pub event: T::Event,
+pub(crate) enum EventEnvelope<T: core::Flow> {
+    Patch {
+        direction: Option<Direction<ProviderProtocol>>,
+        event: T::Event,
+    },
 }
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}
@@ -45,6 +47,8 @@ pub(crate) enum TracerMode<T: core::Flow> {
     },
     /// Pulling for intensive streams with high-load activities
     Pull {
+        // TODO: Replace with `Arc` since data channel used
+        // to detect Tracers's termination
         state: Weak<Mutex<T>>,
         interval: Duration,
     },
@@ -207,7 +211,7 @@ impl<T: core::Flow> Tracer<T> {
     pub fn send(&self, event: T::Event, direction: Option<Direction<ProviderProtocol>>) {
         match &self.mode {
             InnerMode::Push { sender, .. } => {
-                let envelope = EventEnvelope { direction, event };
+                let envelope = EventEnvelope::Patch { direction, event };
                 // And will never send an event
                 if let Err(err) = sender.send(envelope) {
                     log::error!("Can't transfer data to sender of {}: {}", self.path(), err);

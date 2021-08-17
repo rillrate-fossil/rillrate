@@ -5,7 +5,7 @@ use crate::actors::connector::{RillConnector, RillSender};
 use crate::tracers::tracer::{ControlSender, EventEnvelope, TracerMode, TracerOperator};
 use anyhow::Error;
 use async_trait::async_trait;
-use futures::stream::{self, StreamExt};
+use futures::stream::StreamExt;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{ActionHandler, Actor, Consumer, Context, InterruptedBy, StartedBy};
 use rill_protocol::flow::core::{self, ActionEnvelope, Activity};
@@ -152,8 +152,9 @@ impl<T: core::Flow> Recorder<T> {
 }
 
 impl<T: core::Flow> Recorder<T> {
+    // TODO: Change to `process_patch`
     fn process_event(&mut self, envelope: EventEnvelope<T>) -> Result<(), Error> {
-        let EventEnvelope {
+        let EventEnvelope::Patch {
             mut direction,
             event,
         } = envelope;
