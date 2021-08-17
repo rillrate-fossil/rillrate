@@ -2,7 +2,7 @@ use super::state::*;
 use crate::auto_path::AutoPath;
 use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::tracer::{ControlSender, Tracer};
+use rill_engine::tracers::tracer::{ActionSender, Tracer};
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Selector {
@@ -17,7 +17,7 @@ impl Selector {
         auto_path: impl Into<AutoPath>,
         label: impl ToString,
         options: Vec<String>,
-        sender: ControlSender<SelectorState>,
+        sender: ActionSender<SelectorState>,
     ) -> Self {
         let path = auto_path.into();
         let state = SelectorState::new(label.to_string(), options);

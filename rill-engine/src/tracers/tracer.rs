@@ -25,12 +25,12 @@ pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
 /// A sender for actions wrapped with an envelope.
-pub type ControlSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
+pub type ActionSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 /// A receiver for actions.
-pub type ControlReceiver<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
+pub type ActionReceiver<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
 
 /// Creates a new control channel.
-pub fn channel<T: core::Flow>() -> (ControlSender<T>, ControlReceiver<T>) {
+pub fn channel<T: core::Flow>() -> (ActionSender<T>, ActionReceiver<T>) {
     mpsc::unbounded_channel()
 }
 
@@ -116,7 +116,7 @@ impl<T: core::Flow> Tracer<T> {
         state: T,
         path: Path,
         pull_interval: Option<Duration>,
-        callback: Option<ControlSender<T>>,
+        callback: Option<ActionSender<T>>,
     ) -> Self {
         if let Some(duration) = pull_interval {
             Self::new_pull(state, path, duration, callback)
@@ -126,7 +126,7 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Create a `Push` mode `Tracer`
-    pub fn new_push(state: T, path: Path, callback: Option<ControlSender<T>>) -> Self {
+    pub fn new_push(state: T, path: Path, callback: Option<ActionSender<T>>) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         let mode = TracerMode::Push {
             state,
@@ -141,7 +141,7 @@ impl<T: core::Flow> Tracer<T> {
         state: T,
         path: Path,
         interval: Duration,
-        callback: Option<ControlSender<T>>,
+        callback: Option<ActionSender<T>>,
     ) -> Self {
         let state = Arc::new(Mutex::new(state));
         let mode = TracerMode::Pull {
@@ -156,7 +156,7 @@ impl<T: core::Flow> Tracer<T> {
         path: Path,
         inner_mode: InnerMode<T>,
         mode: TracerMode<T>,
-        callback: Option<ControlSender<T>>,
+        callback: Option<ActionSender<T>>,
     ) -> Self {
         let operator = TracerOperator { mode };
         let stream_type = T::stream_type();

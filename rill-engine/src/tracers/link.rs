@@ -1,7 +1,7 @@
 //! Link allows to connect to a `Recorder` to listen to incoming actions.
 
 use crate::actors::pool::{RillPoolTask, DISTRIBUTOR};
-use crate::tracers::tracer::{self, ControlReceiver, ControlSender};
+use crate::tracers::tracer::{self, ActionReceiver, ActionSender};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::{Stream, StreamExt};
@@ -12,8 +12,8 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 
 /// A link for listening events from a `Recorder`.
 pub struct Link<T: core::Flow> {
-    tx: ControlSender<T>,
-    rx: ControlReceiver<T>,
+    tx: ActionSender<T>,
+    rx: ActionReceiver<T>,
 }
 
 impl<T: core::Flow> Link<T> {
@@ -24,12 +24,12 @@ impl<T: core::Flow> Link<T> {
     }
 
     /// Clones a sender.
-    pub fn sender(&self) -> ControlSender<T> {
+    pub fn sender(&self) -> ActionSender<T> {
         self.tx.clone()
     }
 
     /// Takes a receiver.
-    pub fn receiver(self) -> ControlReceiver<T> {
+    pub fn receiver(self) -> ActionReceiver<T> {
         self.rx
     }
 
@@ -74,7 +74,7 @@ struct SyncCallbackTask<T, F>
 where
     T: core::Flow,
 {
-    rx: ControlReceiver<T>,
+    rx: ActionReceiver<T>,
     callback: Arc<F>,
 }
 
@@ -100,7 +100,7 @@ where
 }
 
 /*
-impl<T: core::Flow> From<Link<T>> for ControlReceiver<T> {
+impl<T: core::Flow> From<Link<T>> for ActionReceiver<T> {
     fn from(link: Link<T>) -> Self {
         link.rx
     }

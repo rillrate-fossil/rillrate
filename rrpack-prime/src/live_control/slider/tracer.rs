@@ -2,7 +2,7 @@ use super::state::*;
 use crate::auto_path::AutoPath;
 use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::tracer::{ControlSender, Tracer};
+use rill_engine::tracers::tracer::{ActionSender, Tracer};
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Slider {
@@ -19,7 +19,7 @@ impl Slider {
         min: f64,
         max: f64,
         step: f64,
-        sender: ControlSender<SliderState>,
+        sender: ActionSender<SliderState>,
     ) -> Self {
         let path = auto_path.into();
         let state = SliderState::new(label.to_string(), min, max, step);

@@ -2,7 +2,7 @@ pub mod callback;
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
-use crate::tracers::tracer::{ControlSender, EventEnvelope, TracerMode, TracerOperator};
+use crate::tracers::tracer::{ActionSender, EventEnvelope, TracerMode, TracerOperator};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::stream::StreamExt;
@@ -24,7 +24,7 @@ pub(crate) struct Recorder<T: core::Flow> {
 
     // TODO: Just keep the whole `TracerOperator` here
     mode: TracerMode<T>,
-    callback: Option<ControlSender<T>>,
+    callback: Option<ActionSender<T>>,
 
     subscribers: HashSet<ProviderReqId>,
 }

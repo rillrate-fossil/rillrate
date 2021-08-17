@@ -1,5 +1,5 @@
 use super::Recorder;
-use crate::tracers::tracer::ControlReceiver;
+use crate::tracers::tracer::ActionReceiver;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Context, IdOf, LiteTask, TaskEliminated, TaskError};
@@ -16,7 +16,7 @@ impl<T: core::Flow> Recorder<T> {
 }
 
 pub struct CallbackWorker<T: core::Flow> {
-    receiver: ControlReceiver<T>,
+    receiver: ActionReceiver<T>,
 }
 
 #[async_trait]
