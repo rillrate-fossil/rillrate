@@ -1,4 +1,4 @@
-//pub mod callback;
+pub mod callback;
 pub mod link;
 
 use crate::actors::connector::{RillConnector, RillSender};
