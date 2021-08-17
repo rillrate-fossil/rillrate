@@ -11,11 +11,13 @@ use std::time::{Duration, SystemTime};
 use tokio::sync::mpsc;
 
 #[derive(Debug)]
-pub(crate) enum EventEnvelope<T: core::Flow> {
-    Patch {
-        direction: Option<Direction<ProviderProtocol>>,
-        event: T::Event,
-    },
+pub(crate) struct EventEnvelope<T: core::Flow> {
+    pub direction: Option<Direction<ProviderProtocol>>,
+    pub event: T::Event,
+}
+
+pub(crate) enum ControlEvent {
+    Flush,
 }
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}
@@ -23,6 +25,9 @@ impl<T: core::Flow> Action for EventEnvelope<T> {}
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
+
+pub(crate) type ControlSender = mpsc::UnboundedSender<ControlEvent>;
+pub(crate) type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
 
 /// A sender for actions wrapped with an envelope.
 pub type ActionSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
@@ -210,7 +215,7 @@ impl<T: core::Flow> Tracer<T> {
     pub fn send(&self, event: T::Event, direction: Option<Direction<ProviderProtocol>>) {
         match &self.mode {
             InnerMode::Push { sender, .. } => {
-                let envelope = EventEnvelope::Patch { direction, event };
+                let envelope = EventEnvelope { direction, event };
                 // And will never send an event
                 if let Err(err) = sender.send(envelope) {
                     log::error!("Can't transfer data to sender of {}: {}", self.path(), err);

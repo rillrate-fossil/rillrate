@@ -152,9 +152,8 @@ impl<T: core::Flow> Recorder<T> {
 }
 
 impl<T: core::Flow> Recorder<T> {
-    // TODO: Change to `process_patch`
     fn process_event(&mut self, envelope: EventEnvelope<T>) -> Result<(), Error> {
-        let EventEnvelope::Patch {
+        let EventEnvelope {
             mut direction,
             event,
         } = envelope;
