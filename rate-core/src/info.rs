@@ -1,15 +1,16 @@
 use once_cell::sync::Lazy;
-use rill_engine::tracers::meta::AlertTracer;
-use rill_protocol::flow::meta::alert::ALERTS;
+//use rill_engine::tracers::meta::AlertTracer;
+//use rill_protocol::flow::meta::alert::ALERTS;
 
 pub struct GlobalTracers {
-    pub alerts: AlertTracer,
+    // TODO: Use own scope here
+//pub alerts: AlertTracer,
 }
 
 impl GlobalTracers {
     fn new() -> Self {
         Self {
-            alerts: AlertTracer::new(ALERTS.root()),
+            //alerts: AlertTracer::new(ALERTS.root()),
         }
     }
 

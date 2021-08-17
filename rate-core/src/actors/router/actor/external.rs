@@ -1,7 +1,7 @@
 use super::{Group, Router};
 use crate::actors::client_session::ClientSession;
 use crate::actors::supervisor::Supervisor;
-use crate::info::TRACERS;
+//use crate::info::TRACERS;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{ActionHandler, Context, Eliminated, IdOf, InteractionHandler};
@@ -81,11 +81,13 @@ impl<T: Supervisor> ActionHandler<WsReq<ClientLive>> for Router<T> {
                 let addr = ctx.spawn_actor(session_actor, Group::Externals);
                 self.active_clients.acquire(addr);
             } else {
+                /* TODO: Good idea, but use a special server-level tracer
                 let alert = format!(
                     "Active clients {} limit reached.",
                     self.active_clients.limit().total
                 );
                 TRACERS.alerts.alert(alert);
+                */
                 log::warn!("Limit of active clients reached.");
             }
         } else {

@@ -3,7 +3,7 @@ pub mod parcel;
 use crate::actors::engine::RillEngine;
 use crate::actors::recorder::{Recorder, RecorderLink};
 use crate::config::EngineConfig;
-use crate::tracers::meta::PathTracer;
+//use crate::tracers::meta::PathTracer;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{
@@ -68,9 +68,10 @@ pub struct RillConnector {
     url: String,
     config: EngineConfig,
     sender: RillSender,
+    // TODO: Consider removed that register
     recorders: Pathfinder<RecorderLink>,
     registered: HashMap<Id, Description>,
-    path_flow: PathTracer,
+    //path_flow: PathTracer,
     description: Description,
 }
 
@@ -90,7 +91,7 @@ impl RillConnector {
             sender: RillSender::default(),
             recorders: Pathfinder::default(),
             registered: HashMap::new(),
-            path_flow: PathTracer::new(paths, description.clone()),
+            //path_flow: PathTracer::new(paths, description.clone()),
             description,
         }
     }
@@ -235,9 +236,10 @@ impl TaskEliminated<WsClient<ProviderProtocol, Self>, ()> for RillConnector {
 impl<T: core::Flow> Eliminated<Recorder<T>> for RillConnector {
     async fn handle(
         &mut self,
-        id: IdOf<Recorder<T>>,
+        _id: IdOf<Recorder<T>>,
         _ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
+        /*
         let id: Id = id.into();
         if let Some(desc) = self.registered.remove(&id) {
             let path = &desc.path;
@@ -250,6 +252,7 @@ impl<T: core::Flow> Eliminated<Recorder<T>> for RillConnector {
         } else {
             log::error!("Recorder {:?} wasn't registered.", id);
         }
+        */
         Ok(())
     }
 }
