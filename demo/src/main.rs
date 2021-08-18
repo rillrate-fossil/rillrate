@@ -55,32 +55,24 @@ pub async fn main() -> Result<(), Error> {
     );
 
     let click = Click::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"], "Click Me!");
-    /*
-    let _click = click.clone();
-    tokio::spawn(async move {
-        let mut rx = link.receiver();
-        while let Some(envelope) = rx.recv().await {
-            if let Some(action) = envelope.activity.to_action() {
-                log::warn!("ACTION: {:?}", action);
-                click.clicked();
-            }
+    let this = click.clone();
+    click.sync_callback(move |envelope| {
+        if let Some(action) = envelope.activity.to_action() {
+            log::warn!("ACTION: {:?}", action);
+            this.clicked();
         }
+        Ok(())
     });
-    */
 
     let switch = Switch::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"], "Switch Me!");
-    /*
-    let _switch = switch.clone();
-    tokio::spawn(async move {
-        let mut rx = link.receiver();
-        while let Some(envelope) = rx.recv().await {
-            if let Some(action) = envelope.activity.to_action() {
-                log::warn!("ACTION: {:?}", action);
-                switch.turn(action.turn_on);
-            }
+    let this = switch.clone();
+    switch.sync_callback(move |envelope| {
+        if let Some(action) = envelope.activity.to_action() {
+            log::warn!("ACTION: {:?}", action);
+            this.turn(action.turn_on);
         }
+        Ok(())
     });
-    */
 
     let slider = Slider::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "slider-1"],
@@ -89,36 +81,28 @@ pub async fn main() -> Result<(), Error> {
         5_000.0,
         100.0,
     );
-    /*
-    let _slider = slider.clone();
-    tokio::spawn(async move {
-        let mut rx = link.receiver();
-        while let Some(envelope) = rx.recv().await {
-            if let Some(action) = envelope.activity.to_action() {
-                log::warn!("ACTION: {:?}", action);
-                slider.set(action.new_value);
-            }
+    let this = slider.clone();
+    slider.sync_callback(move |envelope| {
+        if let Some(action) = envelope.activity.to_action() {
+            log::warn!("ACTION: {:?}", action);
+            this.set(action.new_value);
         }
+        Ok(())
     });
-    */
 
     let selector = Selector::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "selector-1"],
         "Select Me!",
         vec!["One".into(), "Two".into(), "Three".into()],
     );
-    /*
-    let _selector = selector.clone();
-    tokio::spawn(async move {
-        let mut rx = link.receiver();
-        while let Some(envelope) = rx.recv().await {
-            if let Some(action) = envelope.activity.to_action() {
-                log::warn!("ACTION: {:?}", action);
-                selector.select(action.new_selected);
-            }
+    let this = selector.clone();
+    selector.sync_callback(move |envelope| {
+        if let Some(action) = envelope.activity.to_action() {
+            log::warn!("ACTION: {:?}", action);
+            this.select(action.new_selected);
         }
+        Ok(())
     });
-    */
 
     // === The main part ===
     // TODO: Improve that busy paths declarations...

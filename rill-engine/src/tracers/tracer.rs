@@ -246,8 +246,13 @@ impl<T: core::Flow> Tracer<T> {
     */
 
     /// Assign a callback
-    pub fn callback(&self, callback: impl ActionCallback<T>) {
-        let callback = Box::new(callback);
+    pub fn sync_callback<F>(&self, callback: F)
+    where
+        F: Fn(ActionEnvelope<T>) -> Result<(), Error>,
+        F: Send + Sync + 'static,
+    {
+        let sync_callback = SyncCallback::new(callback);
+        let callback = Box::new(sync_callback);
         let event = ControlEvent::AttachCallback { callback };
         if let Err(err) = self.control_tx.send(event) {
             log::error!("Can't attach the callback from {}: {}", self.path(), err);
@@ -289,11 +294,17 @@ pub trait ActionCallback<T: core::Flow>: Send + Sync + 'static {
 pub type BoxedCallback<T> = Box<dyn ActionCallback<T>>;
 
 /// Sync callback.
-pub struct SyncCallback<F> {
+struct SyncCallback<F> {
     func: Arc<F>,
 }
 
-impl<F> SyncCallback<F> {}
+impl<F> SyncCallback<F> {
+    fn new(func: F) -> Self {
+        Self {
+            func: Arc::new(func),
+        }
+    }
+}
 
 #[async_trait]
 impl<T, F> ActionCallback<T> for SyncCallback<F>

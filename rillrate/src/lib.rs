@@ -10,7 +10,6 @@ metacrate::meta!();
 pub use rrpack_prime::live_control::*;
 pub use rrpack_prime::live_flow::*;
 pub use rrpack_prime::range;
-pub use rrpack_prime::Link;
 
 use actors::supervisor::NodeSupervisor;
 use anyhow::Error;
