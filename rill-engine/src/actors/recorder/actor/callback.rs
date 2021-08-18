@@ -1,4 +1,4 @@
-use super::Recorder;
+use super::{Group, Recorder};
 use crate::tracers::tracer::ActionReceiver;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -7,11 +7,15 @@ use rill_protocol::flow::core;
 use tokio::sync::mpsc;
 
 impl<T: core::Flow> Recorder<T> {
-    pub(super) fn spawn_callback_worker(&mut self, ctx: &mut Context<Self>) {
+    pub(super) fn attach_callback(&mut self, ctx: &mut Context<Self>) {
         let (tx, rx) = mpsc::unbounded_channel();
         self.callback = Some(tx);
         let worker = CallbackWorker { receiver: rx };
-        ctx.spawn_task(worker, (), ());
+        ctx.spawn_task(worker, (), Group::Callback);
+    }
+
+    pub(super) fn detach_callback(&mut self, ctx: &mut Context<Self>) {
+        ctx.terminate_group(Group::Callback);
     }
 }
 

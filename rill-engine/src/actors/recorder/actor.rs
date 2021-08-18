@@ -18,6 +18,7 @@ use rill_protocol::io::provider::{
 use rill_protocol::io::transport::Direction;
 use std::collections::HashSet;
 use std::sync::{Arc, Weak};
+use strum::{EnumIter, IntoEnumIterator};
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 pub(crate) struct Recorder<T: core::Flow> {
@@ -93,8 +94,16 @@ impl<T: core::Flow> Recorder<T> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter)]
+pub enum Group {
+    HeartBeat,
+    Callback,
+    DataFlow,
+    ServiceFlow,
+}
+
 impl<T: core::Flow> Actor for Recorder<T> {
-    type GroupBy = ();
+    type GroupBy = Group;
 
     fn name(&self) -> String {
         format!("Recorder({})", &self.description.path)
@@ -104,24 +113,25 @@ impl<T: core::Flow> Actor for Recorder<T> {
 #[async_trait]
 impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(Group::iter().collect());
         let rx = self
             .operator
             .control_rx
             .take()
             .expect("tracer hasn't attached control receiver");
         let rx = UnboundedReceiverStream::new(rx);
-        ctx.attach(rx, (), ());
+        ctx.attach(rx, (), Group::ServiceFlow);
         match &mut self.operator.mode {
             TracerMode::Push { receiver, .. } => {
                 let rx = receiver.take().expect("tracer hasn't attached receiver");
                 let rx = UnboundedReceiverStream::new(rx).ready_chunks(32);
-                ctx.attach(rx, (), ());
+                ctx.attach(rx, (), Group::DataFlow);
                 Ok(())
             }
             TracerMode::Pull { interval, .. } => {
                 // TODO: Wait for the subscribers to spawn a heartbeat activity
                 let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
-                let _task = ctx.spawn_task(heartbeat, (), ());
+                let _task = ctx.spawn_task(heartbeat, (), Group::HeartBeat);
                 /*
                 let notifications = stream::repeat(notifier.to_owned())
                     .then(|notifier| async move { notifier.notified().await })
@@ -219,6 +229,8 @@ impl<T: core::Flow> Consumer<ControlEvent> for Recorder<T> {
             ControlEvent::Flush => {
                 self.flush_state(ctx).await?;
             }
+            ControlEvent::AttachCallback => {}
+            ControlEvent::DetachCallback => {}
         }
         Ok(())
     }

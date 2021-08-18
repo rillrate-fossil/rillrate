@@ -18,6 +18,8 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
 
 pub(crate) enum ControlEvent {
     Flush,
+    AttachCallback,
+    DetachCallback,
 }
 
 impl<T: core::Flow> Action for EventEnvelope<T> {}
