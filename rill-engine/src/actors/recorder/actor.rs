@@ -223,14 +223,18 @@ impl<T: core::Flow> Recorder<T> {
 }
 
 #[async_trait]
-impl<T: core::Flow> Consumer<ControlEvent> for Recorder<T> {
-    async fn handle(&mut self, event: ControlEvent, ctx: &mut Context<Self>) -> Result<(), Error> {
+impl<T: core::Flow> Consumer<ControlEvent<T>> for Recorder<T> {
+    async fn handle(
+        &mut self,
+        event: ControlEvent<T>,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), Error> {
         match event {
             ControlEvent::Flush => {
                 self.flush_state(ctx).await?;
             }
-            ControlEvent::AttachCallback => {
-                self.attach_callback(ctx);
+            ControlEvent::AttachCallback { callback } => {
+                self.attach_callback(callback, ctx);
             }
             ControlEvent::DetachCallback => {
                 self.detach_callback(ctx);

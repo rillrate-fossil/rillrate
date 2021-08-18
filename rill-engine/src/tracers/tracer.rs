@@ -2,6 +2,7 @@
 use crate::actors::connector;
 //use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
+use async_trait::async_trait;
 use meio::Action;
 use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
@@ -16,9 +17,9 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
     pub event: T::Event,
 }
 
-pub(crate) enum ControlEvent {
+pub(crate) enum ControlEvent<T> {
     Flush,
-    AttachCallback,
+    AttachCallback { callback: BoxedCallback<T> },
     DetachCallback,
 }
 
@@ -28,8 +29,8 @@ impl<T: core::Flow> Action for EventEnvelope<T> {}
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
 pub(crate) type DataReceiver<T> = mpsc::UnboundedReceiver<EventEnvelope<T>>;
 
-pub(crate) type ControlSender = mpsc::UnboundedSender<ControlEvent>;
-pub(crate) type ControlReceiver = mpsc::UnboundedReceiver<ControlEvent>;
+pub(crate) type ControlSender<T> = mpsc::UnboundedSender<ControlEvent<T>>;
+pub(crate) type ControlReceiver<T> = mpsc::UnboundedReceiver<ControlEvent<T>>;
 
 /// A sender for actions wrapped with an envelope.
 pub type ActionSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
@@ -43,7 +44,7 @@ pub fn channel<T: core::Flow>() -> (ActionSender<T>, ActionReceiver<T>) {
 
 pub(crate) struct TracerOperator<T: core::Flow> {
     pub mode: TracerMode<T>,
-    pub control_rx: Option<ControlReceiver>,
+    pub control_rx: Option<ControlReceiver<T>>,
 }
 
 pub(crate) enum TracerMode<T: core::Flow> {
@@ -95,7 +96,7 @@ impl<T: core::Flow> Clone for InnerMode<T> {
 #[derive(Debug)]
 pub struct Tracer<T: core::Flow> {
     description: Arc<Description>,
-    control_tx: ControlSender,
+    control_tx: ControlSender<T>,
     mode: InnerMode<T>,
 }
 
@@ -250,8 +251,9 @@ impl<T: core::Flow> Tracer<T> {
     */
 
     /// Assign a callback
-    pub fn callback(&self) {
-        let event = ControlEvent::AttachCallback;
+    pub fn callback(&self, callback: impl ActionCallback<T>) {
+        let callback = Box::new(callback);
+        let event = ControlEvent::AttachCallback { callback };
         if let Err(err) = self.control_tx.send(event) {
             log::error!("Can't attach the callback from {}: {}", self.path(), err);
         }
@@ -263,6 +265,54 @@ impl<T: core::Flow> Tracer<T> {
         if let Err(err) = self.control_tx.send(event) {
             log::error!("Can't detach the callback from {}: {}", self.path(), err);
         }
+    }
+}
+
+/// The callback that called on flow's incoming actions.
+#[async_trait]
+pub trait ActionCallback<T: core::Flow>: Send + Sync + 'static {
+    /*
+    /// When at least one connection exists.
+    async fn awake(&mut self) {}
+
+    /// When all clients disconnected.
+    async fn suspend(&mut self) {}
+
+    /// A method to handle an action.
+    async fn handle_activity(
+        &mut self,
+        origin: ProviderReqId,
+        activity: Activity<T>,
+    ) -> Result<(), Error>;
+    */
+
+    /// A method to handle an action.
+    async fn handle_activity(&mut self, envelope: ActionEnvelope<T>) -> Result<(), Error>;
+}
+
+/// Boxed callback.
+pub type BoxedCallback<T> = Box<dyn ActionCallback<T>>;
+
+/// Sync callback.
+pub struct SyncCallback<F> {
+    func: Arc<F>,
+}
+
+impl<F> SyncCallback<F> {}
+
+#[async_trait]
+impl<T, F> ActionCallback<T> for SyncCallback<F>
+where
+    T: core::Flow,
+    F: Fn(ActionEnvelope<T>) -> Result<(), Error>,
+    F: Send + Sync + 'static,
+{
+    async fn handle_activity(&mut self, envelope: ActionEnvelope<T>) -> Result<(), Error> {
+        let func = self.func.clone();
+        tokio::task::spawn_blocking(move || func(envelope))
+            .await
+            .map_err(Error::from)
+            .and_then(std::convert::identity)
     }
 }
 
