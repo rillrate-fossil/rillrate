@@ -123,12 +123,7 @@ impl<T: core::Flow> Eq for Tracer<T> {}
 
 impl<T: core::Flow> Tracer<T> {
     /// Create a new `Tracer`
-    pub fn new(
-        state: T,
-        path: Path,
-        pull_interval: Option<Duration>,
-        callback: Option<ActionSender<T>>,
-    ) -> Self {
+    pub fn new(state: T, path: Path, pull_interval: Option<Duration>) -> Self {
         if let Some(duration) = pull_interval {
             Self::new_pull(state, path, duration)
         } else {

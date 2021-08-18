@@ -13,15 +13,10 @@ pub struct Selector {
 }
 
 impl Selector {
-    pub fn new(
-        auto_path: impl Into<AutoPath>,
-        label: impl ToString,
-        options: Vec<String>,
-        sender: ActionSender<SelectorState>,
-    ) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, label: impl ToString, options: Vec<String>) -> Self {
         let path = auto_path.into();
         let state = SelectorState::new(label.to_string(), options);
-        let tracer = Tracer::new(state, path.into(), None, Some(sender));
+        let tracer = Tracer::new(state, path.into(), None);
         let binder = Binder::new(&tracer);
         Self {
             tracer,

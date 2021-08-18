@@ -13,7 +13,7 @@ impl<T: StatFlowSpec> StatFlowTracer<T> {
         // TODO: Consider to get `interval` from a parameter
         let interval = spec.interval();
         let state = StatFlowState::new(spec);
-        let tracer = Tracer::new(state, path, interval, None);
+        let tracer = Tracer::new(state, path, interval);
         Self { tracer }
     }
 

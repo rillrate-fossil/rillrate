@@ -20,7 +20,7 @@ impl<T: core::Flow> Recorder<T> {
         ctx.spawn_task(worker, (), Group::Callback);
     }
 
-    pub(super) fn detach_callback(&mut self, ctx: &mut Context<Self>) {
+    pub(super) fn detach_callback(&mut self, _ctx: &mut Context<Self>) {
         // The `CallbackWorker` will be closed when drained
         self.callback.take();
         //ctx.terminate_group(Group::Callback);

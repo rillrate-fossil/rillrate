@@ -25,7 +25,7 @@ impl Table {
             })
             .collect();
         let state = TableState::new(columns);
-        let tracer = Tracer::new(state, path.into(), None, None);
+        let tracer = Tracer::new(state, path.into(), None);
         let binder = Binder::new(&tracer);
         Self {
             tracer,

@@ -54,13 +54,8 @@ pub async fn main() -> Result<(), Error> {
         "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
     );
 
-    let link = Link::new();
-    link.sender();
-    let click = Click::new(
-        [PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"],
-        "Click Me!",
-        link.sender(),
-    );
+    let click = Click::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"], "Click Me!");
+    /*
     let _click = click.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
@@ -71,14 +66,10 @@ pub async fn main() -> Result<(), Error> {
             }
         }
     });
+    */
 
-    let link = Link::new();
-    link.sender();
-    let switch = Switch::new(
-        [PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"],
-        "Switch Me!",
-        link.sender(),
-    );
+    let switch = Switch::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"], "Switch Me!");
+    /*
     let _switch = switch.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
@@ -89,17 +80,16 @@ pub async fn main() -> Result<(), Error> {
             }
         }
     });
+    */
 
-    let link = Link::new();
-    link.sender();
     let slider = Slider::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "slider-1"],
         "Slide Me!",
         100.0,
         5_000.0,
         100.0,
-        link.sender(),
     );
+    /*
     let _slider = slider.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
@@ -110,15 +100,14 @@ pub async fn main() -> Result<(), Error> {
             }
         }
     });
+    */
 
-    let link = Link::new();
-    link.sender();
     let selector = Selector::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "selector-1"],
         "Select Me!",
         vec!["One".into(), "Two".into(), "Three".into()],
-        link.sender(),
     );
+    /*
     let _selector = selector.clone();
     tokio::spawn(async move {
         let mut rx = link.receiver();
@@ -129,6 +118,7 @@ pub async fn main() -> Result<(), Error> {
             }
         }
     });
+    */
 
     // === The main part ===
     // TODO: Improve that busy paths declarations...

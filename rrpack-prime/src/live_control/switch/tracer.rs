@@ -13,14 +13,10 @@ pub struct Switch {
 }
 
 impl Switch {
-    pub fn new(
-        auto_path: impl Into<AutoPath>,
-        caption: impl ToString,
-        sender: ActionSender<SwitchState>,
-    ) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, caption: impl ToString) -> Self {
         let path = auto_path.into();
         let state = SwitchState::new(caption.to_string());
-        let tracer = Tracer::new(state, path.into(), None, Some(sender));
+        let tracer = Tracer::new(state, path.into(), None);
         let binder = Binder::new(&tracer);
         Self {
             tracer,

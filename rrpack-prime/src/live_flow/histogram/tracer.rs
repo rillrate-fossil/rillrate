@@ -16,7 +16,7 @@ impl Histogram {
     pub fn new(auto_path: impl Into<AutoPath>, levels: Vec<f64>) -> Self {
         let path = auto_path.into();
         let state = HistogramState::new(levels);
-        let tracer = Tracer::new(state, path.into(), None, None);
+        let tracer = Tracer::new(state, path.into(), None);
         let binder = Binder::new(&tracer);
         Self {
             tracer,
