@@ -93,35 +93,34 @@ impl<T> Eq for TimedEvent<T> {}
 pub struct ActionEnvelope<T: Flow> {
     /// Direction to a client.
     pub origin: ProviderReqId,
-    /// Action or activity that sent by a client.
-    pub activity: Activity<T>,
+    /// The reason of sending an envelope.
+    pub activity: Activity,
+    /// An action sent to a clinet.
+    /// It's detached from activity to make it suitable for
+    /// third-party languages.
+    pub action: Option<T::Action>,
 }
 
 /// Variant of activity that send to tracers.
+///
+/// It doesn't include `Action` value to make this type
+/// compatible with languages that have no ADTs.
 #[derive(Debug, Clone)]
-pub enum Activity<T: Flow> {
+pub enum Activity {
     /// At least one client connected
     Awake,
     /// Listener connected
     Connected,
     /// Forwards an action
-    Action(T::Action),
+    Action,
     /// Listener disconnected
     Disconnected,
     /// No one connected client
     Suspend,
 }
 
-impl<T: Flow> Activity<T> {
+impl Activity {
     pub fn is_action(&self) -> bool {
-        matches!(self, Self::Action(_))
-    }
-
-    pub fn to_action(self) -> Option<T::Action> {
-        if let Activity::Action(action) = self {
-            Some(action)
-        } else {
-            None
-        }
+        matches!(self, Self::Action)
     }
 }

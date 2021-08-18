@@ -57,7 +57,7 @@ pub async fn main() -> Result<(), Error> {
     let click = Click::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"], "Click Me!");
     let this = click.clone();
     click.sync_callback(move |envelope| {
-        if let Some(action) = envelope.activity.to_action() {
+        if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
             this.clicked();
         }
@@ -67,7 +67,7 @@ pub async fn main() -> Result<(), Error> {
     let switch = Switch::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"], "Switch Me!");
     let this = switch.clone();
     switch.sync_callback(move |envelope| {
-        if let Some(action) = envelope.activity.to_action() {
+        if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
             this.turn(action.turn_on);
         }
@@ -83,7 +83,7 @@ pub async fn main() -> Result<(), Error> {
     );
     let this = slider.clone();
     slider.sync_callback(move |envelope| {
-        if let Some(action) = envelope.activity.to_action() {
+        if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
             this.set(action.new_value);
         }
@@ -97,7 +97,7 @@ pub async fn main() -> Result<(), Error> {
     );
     let this = selector.clone();
     selector.sync_callback(move |envelope| {
-        if let Some(action) = envelope.activity.to_action() {
+        if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
             this.select(action.new_selected);
         }

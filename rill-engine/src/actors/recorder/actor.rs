@@ -346,11 +346,11 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     match control {
                         FlowControl::StartStream => {
                             if self.subscribers.is_empty() {
-                                self.send_activity(id, Activity::Awake);
+                                self.send_activity(id, Activity::Awake, None);
                             }
                             if self.subscribers.insert(id) {
                                 self.send_state(id.into()).await?;
-                                self.send_activity(id, Activity::Connected);
+                                self.send_activity(id, Activity::Connected, None);
                             } else {
                                 log::warn!(
                                     "Attempt to subscribe twice for <path> with id: {:?}",
@@ -360,13 +360,13 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                         }
                         FlowControl::StopStream => {
                             if self.subscribers.remove(&id) {
-                                self.send_activity(id, Activity::Disconnected);
+                                self.send_activity(id, Activity::Disconnected, None);
                                 self.send_end(id.into());
                             } else {
                                 log::warn!("Can't remove subscriber of <path> by id: {:?}", id);
                             }
                             if self.subscribers.is_empty() {
-                                self.send_activity(id, Activity::Suspend);
+                                self.send_activity(id, Activity::Suspend, None);
                             }
                         }
                     }
@@ -387,8 +387,8 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
                     }
                     RecorderAction::DoAction(data) => {
                         let action = T::unpack_action(&data)?;
-                        let activity = Activity::Action(action);
-                        self.send_activity(id, activity);
+                        let activity = Activity::Action;
+                        self.send_activity(id, activity, Some(action));
                     }
                 },
             }
@@ -400,9 +400,18 @@ impl<T: core::Flow> ActionHandler<link::DoRecorderRequest> for Recorder<T> {
 }
 
 impl<T: core::Flow> Recorder<T> {
-    fn send_activity(&mut self, origin: ProviderReqId, activity: Activity<T>) {
+    fn send_activity(
+        &mut self,
+        origin: ProviderReqId,
+        activity: Activity,
+        action: Option<T::Action>,
+    ) {
         if let Some(sender) = self.callback.as_mut() {
-            let envelope = ActionEnvelope { origin, activity };
+            let envelope = ActionEnvelope {
+                origin,
+                activity,
+                action,
+            };
             if let Err(err) = sender.send(envelope) {
                 log::error!("Can't send action to a callback worker: {:?}", err);
             }
