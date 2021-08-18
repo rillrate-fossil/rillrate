@@ -20,6 +20,7 @@ pub(crate) struct EventEnvelope<T: core::Flow> {
 pub(crate) enum ControlEvent<T> {
     Flush,
     AttachCallback { callback: BoxedCallback<T> },
+    // AttachCallbackSender { sender: ActionSender<T> },
     DetachCallback,
 }
 

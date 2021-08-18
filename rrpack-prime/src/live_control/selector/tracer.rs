@@ -2,7 +2,7 @@ use super::state::*;
 use crate::auto_path::AutoPath;
 use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::tracer::{ActionSender, Tracer};
+use rill_engine::tracers::tracer::Tracer;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Selector {
