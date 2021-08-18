@@ -229,8 +229,12 @@ impl<T: core::Flow> Consumer<ControlEvent> for Recorder<T> {
             ControlEvent::Flush => {
                 self.flush_state(ctx).await?;
             }
-            ControlEvent::AttachCallback => {}
-            ControlEvent::DetachCallback => {}
+            ControlEvent::AttachCallback => {
+                self.attach_callback(ctx);
+            }
+            ControlEvent::DetachCallback => {
+                self.detach_callback(ctx);
+            }
         }
         Ok(())
     }
@@ -258,7 +262,7 @@ impl<T: core::Flow> Consumer<Vec<EventEnvelope<T>>> for Recorder<T> {
         Ok(())
     }
 
-    async fn finished(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn finished(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
         //self.graceful_shutdown(ctx);
         Ok(())
     }

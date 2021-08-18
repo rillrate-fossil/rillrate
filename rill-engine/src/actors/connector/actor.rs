@@ -15,7 +15,7 @@ use meio_connect::{
     WsIncoming,
 };
 use rill_protocol::flow::core;
-use rill_protocol::flow::meta::path::PATHS;
+//use rill_protocol::flow::meta::path::PATHS;
 use rill_protocol::io::provider::{
     Description, ProviderProtocol, ProviderToServer, ServerToProvider,
 };
@@ -84,7 +84,7 @@ impl RillConnector {
             info: "".into(),
             stream_type: provider_type,
         };
-        let paths = PATHS.root();
+        //let paths = PATHS.root();
         Self {
             url: config.node_url(),
             config,

@@ -196,14 +196,6 @@ impl<T: core::Flow> Tracer<T> {
         &self.description
     }
 
-    /// Ask recorder to resend a state in the `Pull` mode.
-    pub fn flush(&self) {
-        let event = ControlEvent::Flush;
-        if let Err(err) = self.control_tx.send(event) {
-            log::error!("Can't send a flush event to {}: {}", self.path(), err);
-        }
-    }
-
     /// Send an event to a `Recorder`.
     pub fn send(&self, event: T::Event, direction: Option<Direction<ProviderProtocol>>) {
         match &self.mode {
@@ -230,6 +222,14 @@ impl<T: core::Flow> Tracer<T> {
         }
     }
 
+    /// Ask recorder to resend a state in the `Pull` mode.
+    pub fn flush(&self) {
+        let event = ControlEvent::Flush;
+        if let Err(err) = self.control_tx.send(event) {
+            log::error!("Can't send a flush event to {}: {}", self.path(), err);
+        }
+    }
+
     /*
     /// Registers a callback to the flow.
     pub fn callback<F>(&mut self, func: F)
@@ -248,6 +248,22 @@ impl<T: core::Flow> Tracer<T> {
         }
     }
     */
+
+    /// Assign a callback
+    pub fn callback(&self) {
+        let event = ControlEvent::AttachCallback;
+        if let Err(err) = self.control_tx.send(event) {
+            log::error!("Can't attach the callback from {}: {}", self.path(), err);
+        }
+    }
+
+    /// Removes the callback
+    pub fn detach_callback(&self) {
+        let event = ControlEvent::DetachCallback;
+        if let Err(err) = self.control_tx.send(event) {
+            log::error!("Can't detach the callback from {}: {}", self.path(), err);
+        }
+    }
 }
 
 /*
