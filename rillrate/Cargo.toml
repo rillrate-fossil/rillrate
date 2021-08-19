@@ -10,7 +10,7 @@ license = "Apache-2.0"
 readme = "README.md"
 keywords = ["logging"]
 categories = ["development-tools::debugging"]
-description = "Dynamic UI for bots, microservices, and IoT"
+description = "Real-time UI for bots"
 
 [dependencies]
 anyhow = "1.0.42"
