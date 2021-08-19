@@ -107,16 +107,18 @@ pub struct ActionEnvelope<T: Flow> {
 /// compatible with languages that have no ADTs.
 #[derive(Debug, Clone)]
 pub enum Activity {
-    /// At least one client connected
-    Awake,
-    /// Listener connected
-    Connected,
-    /// Forwards an action
-    Action,
-    /// Listener disconnected
-    Disconnected,
     /// No one connected client
-    Suspend,
+    Suspend = 0, // 0b0000
+    /// At least one client connected
+    Awake = 1, // 0b0001
+
+    /// Listener disconnected
+    Disconnected = 2, // 0b0010
+    /// Listener connected
+    Connected = 3, // 0b0011
+
+    /// Forwards an action
+    Action = 4, // 0b010
 }
 
 impl Activity {
