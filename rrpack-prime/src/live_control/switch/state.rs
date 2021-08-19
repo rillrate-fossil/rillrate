@@ -30,10 +30,7 @@ impl Flow for SwitchState {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwitchAction {
-    pub turn_on: bool,
-}
+pub type SwitchAction = bool;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SwitchEvent {

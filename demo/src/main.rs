@@ -59,7 +59,7 @@ pub async fn main() -> Result<(), Error> {
     click.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
-            this.clicked();
+            this.apply();
         }
         Ok(())
     });
@@ -69,7 +69,7 @@ pub async fn main() -> Result<(), Error> {
     switch.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
-            this.turn(action.turn_on);
+            this.apply(action);
         }
         Ok(())
     });
@@ -85,7 +85,7 @@ pub async fn main() -> Result<(), Error> {
     slider.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
-            this.set(action.new_value);
+            this.apply(action);
         }
         Ok(())
     });
@@ -99,7 +99,7 @@ pub async fn main() -> Result<(), Error> {
     selector.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
-            this.select(action.new_selected);
+            this.apply(action);
         }
         Ok(())
     });

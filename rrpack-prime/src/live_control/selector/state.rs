@@ -32,10 +32,7 @@ impl Flow for SelectorState {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SelectorAction {
-    pub new_selected: Option<String>,
-}
+pub type SelectorAction = Option<String>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SelectorEvent {

@@ -30,7 +30,7 @@ impl Slider {
         }
     }
 
-    pub fn set(&self, set_value: f64) {
+    pub fn apply(&self, set_value: f64) {
         let msg = SliderEvent { set_value };
         self.tracer.send(msg, None);
     }

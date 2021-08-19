@@ -24,7 +24,7 @@ impl Switch {
         }
     }
 
-    pub fn turn(&self, turn_on: bool) {
+    pub fn apply(&self, turn_on: bool) {
         let msg = SwitchEvent { turn_on };
         self.tracer.send(msg, None);
     }

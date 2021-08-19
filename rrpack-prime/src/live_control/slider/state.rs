@@ -36,10 +36,7 @@ impl Flow for SliderState {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SliderAction {
-    pub new_value: f64,
-}
+pub type SliderAction = f64;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SliderEvent {

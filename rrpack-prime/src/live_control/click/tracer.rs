@@ -24,7 +24,7 @@ impl Click {
         }
     }
 
-    pub fn clicked(&self) {
+    pub fn apply(&self) {
         let msg = ClickEvent;
         self.tracer.send(msg, None);
     }

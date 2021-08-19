@@ -24,7 +24,7 @@ impl Selector {
         }
     }
 
-    pub fn select(&self, value: Option<String>) {
+    pub fn apply(&self, value: Option<String>) {
         let msg = SelectorEvent {
             update_selected: value,
         };

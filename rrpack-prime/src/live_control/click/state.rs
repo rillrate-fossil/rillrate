@@ -24,8 +24,7 @@ impl Flow for ClickState {
     fn apply(&mut self, _event: Self::Event) {}
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClickAction;
+pub type ClickAction = ();
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClickEvent;
