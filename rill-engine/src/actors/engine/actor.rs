@@ -1,5 +1,5 @@
 use crate::actors::connector::RillConnector;
-use crate::actors::pool::RillPool;
+//use crate::actors::pool::RillPool;
 use crate::config::EngineConfig;
 use anyhow::Error;
 use async_trait::async_trait;
@@ -17,7 +17,7 @@ pub struct RillEngine {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter)]
 pub enum Group {
     Connector,
-    Pool,
+    //Pool,
 }
 
 impl Actor for RillEngine {
@@ -48,8 +48,10 @@ impl<T: Actor> StartedBy<T> for RillEngine {
         let connector = RillConnector::new(config);
         ctx.spawn_actor(connector, Group::Connector);
 
+        /*
         let pool = RillPool::new();
         ctx.spawn_actor(pool, Group::Pool);
+        */
 
         Ok(())
     }
@@ -75,6 +77,7 @@ impl Eliminated<RillConnector> for RillEngine {
     }
 }
 
+/*
 #[async_trait]
 impl Eliminated<RillPool> for RillEngine {
     async fn handle(&mut self, _id: IdOf<RillPool>, ctx: &mut Context<Self>) -> Result<(), Error> {
@@ -84,3 +87,4 @@ impl Eliminated<RillPool> for RillEngine {
         Ok(())
     }
 }
+*/
