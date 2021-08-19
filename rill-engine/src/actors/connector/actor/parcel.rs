@@ -63,8 +63,7 @@ impl<T: core::Flow> InstantActionHandler<RegisterTracer<T>> for RillConnector {
             let recorder = ctx.spawn_actor(actor, Group::Recorders);
             record.set_link(recorder.link());
             // Send a description that's new tracer added
-            self.registered
-                .insert(recorder.id().into(), packed_desc.clone());
+            self.registered.insert(recorder.id().into(), packed_desc);
             //self.path_flow.add(path, packed_desc);
         } else {
             log::error!("Provider for {} already registered.", path);

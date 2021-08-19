@@ -8,6 +8,7 @@ pub struct MetaFlowTracer<T: MetaFlowSpec> {
 }
 
 impl<T: MetaFlowSpec> MetaFlowTracer<T> {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let state = MetaFlowState::new();
         let tracer = Tracer::new_push(state, T::path());
