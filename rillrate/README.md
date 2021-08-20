@@ -54,20 +54,62 @@ tracer.push(value);
 <!-- TODO: Add links to apis here -->
 <table>
 <tr>
-    <td align="center">
-        <h4>Pulse</h4>
-        <img src="https://cdn.rillrate.com/github/rillrate/tracers/pulse.gif" width="250">
-        <p>Live chart</p>
-    </td>
-    <td align="center">
+    <td align="center" valign="top" width="250px">
         <h4>Board</h4>
-        <img src="https://cdn.rillrate.com/github/rillrate/tracers/board.png" width="250">
-        <p>Key-value map</p>
+        <img src="https://docs.rillrate.com/images/tracers/flows/board.gif" width="250px">
     </td>
-    <td align="center">
+    <td align="center" valign="top" width="250px">
         <h4>Coutner</h4>
-        <img src="https://cdn.rillrate.com/github/rillrate/tracers/counter.png" width="250">
-        <p>Incremental value</p>
+        <img src="https://docs.rillrate.com/images/tracers/flows/counter.gif" width="250px">
+    </td>
+    <td align="center" valign="top" width="250px">
+        <h4>Pulse</h4>
+        <img src="https://docs.rillrate.com/images/tracers/flows/pulse.gif" width="250px">
+    </td>
+</tr>
+<tr>
+</tr>
+<tr>
+    <td align="center" valign="top" width="250px">
+        <h4>Gauge</h4>
+        <img src="https://docs.rillrate.com/images/tracers/flows/gauge.gif" width="250px">
+    </td>
+    <td align="center" valign="top" width="250px">
+        <h4>Table</h4>
+        <img src="https://docs.rillrate.com/images/tracers/flows/table.gif" width="250px">
+    </td>
+    <td align="center" valign="top" width="250px">
+    </td>
+</tr>
+</table>
+
+### Conrols
+
+<table>
+<tr>
+    <td align="center" valign="top" width="250px">
+        <h4>Click</h4>
+        <img src="https://docs.rillrate.com/images/tracers/controls/click.gif" height="100px">
+    </td>
+    <td align="center" valign="top" width="250px">
+        <h4>Selector</h4>
+        <img src="https://docs.rillrate.com/images/tracers/controls/selector.gif" width="250px">
+    </td>
+    <td align="center" valign="top" width="250px">
+        <h4>Slider</h4>
+        <img src="https://docs.rillrate.com/images/tracers/controls/slider.gif" width="250px">
+    </td>
+</tr>
+<tr>
+</tr>
+<tr>
+    <td align="center" valign="top" width="250px">
+        <h4>Switch</h4>
+        <img src="https://docs.rillrate.com/images/tracers/controls/switch.gif" height="100px">
+    </td>
+    <td align="center" valign="top" width="250px">
+    </td>
+    <td align="center" valign="top" width="250px">
     </td>
 </tr>
 </table>
