@@ -4,7 +4,7 @@
 
 **Support**: Rust, Python, Node.js _(soon)_.
 
-<img align="left" width="400px" style="margin-left: 20px;" src="https://rillrate.com/images/dashboard.png" />
+<img align="center" width="400px" style="margin-left: 20px;" src="https://rillrate.com/images/dashboard.png" />
 
 - **_It's fully custom_** - You add your own data streams with everything you want
 - **_It works in real-time!_** - NOT `5 secs` real-time, it's `0.002 secs` real-time 🚀
@@ -14,10 +14,7 @@
 
 Become a [sponsor][sponsor] to see how the project is born.
 
-<br>
-
 Join our [reddit/rillrate][reddit] community to stay tuned about all the new features we released every day!
-
 
 ### How to use it?
 
@@ -49,94 +46,6 @@ When you tracer is spawned use it to put data to it:
 tracer.push(value);
 ```
 
-### What types of tracers supported?
-
-<!-- TODO: Add links to apis here -->
-<table>
-<tr>
-    <td align="center" valign="top" width="250px">
-        <h4>Board</h4>
-        <img src="https://docs.rillrate.com/images/tracers/flows/board.gif" width="250px">
-    </td>
-    <td align="center" valign="top" width="250px">
-        <h4>Coutner</h4>
-        <img src="https://docs.rillrate.com/images/tracers/flows/counter.gif" width="250px">
-    </td>
-    <td align="center" valign="top" width="250px">
-        <h4>Pulse</h4>
-        <img src="https://docs.rillrate.com/images/tracers/flows/pulse.gif" width="250px">
-    </td>
-</tr>
-<tr>
-</tr>
-<tr>
-    <td align="center" valign="top" width="250px">
-        <h4>Gauge</h4>
-        <img src="https://docs.rillrate.com/images/tracers/flows/gauge.gif" width="250px">
-    </td>
-    <td align="center" valign="top" width="250px">
-        <h4>Table</h4>
-        <img src="https://docs.rillrate.com/images/tracers/flows/table.gif" width="250px">
-    </td>
-    <td align="center" valign="top" width="250px">
-    </td>
-</tr>
-</table>
-
-### Conrols
-
-<table>
-<tr>
-    <td align="center" valign="top" width="250px">
-        <h4>Click</h4>
-        <img src="https://docs.rillrate.com/images/tracers/controls/click.gif" height="100px">
-    </td>
-    <td align="center" valign="top" width="250px">
-        <h4>Selector</h4>
-        <img src="https://docs.rillrate.com/images/tracers/controls/selector.gif" width="250px">
-    </td>
-    <td align="center" valign="top" width="250px">
-        <h4>Slider</h4>
-        <img src="https://docs.rillrate.com/images/tracers/controls/slider.gif" width="250px">
-    </td>
-</tr>
-<tr>
-</tr>
-<tr>
-    <td align="center" valign="top" width="250px">
-        <h4>Switch</h4>
-        <img src="https://docs.rillrate.com/images/tracers/controls/switch.gif" height="100px">
-    </td>
-    <td align="center" valign="top" width="250px">
-    </td>
-    <td align="center" valign="top" width="250px">
-    </td>
-</tr>
-</table>
-
-<!--
-#### Pulse
-
-<table>
-<tr>
-<td><img src="https://media.giphy.com/media/aV6jDhD7p6KKZvvD1F/giphy.gif" width="300"></td>
-<td>Real-time data. And long long long long long long long long long long long description.</td>
-</tr>
-</table>
-
-#### Board
-
-<table>
-<tr>
-<td><img src="https://cdn.rillrate.com/github/rillrate/tracers/board.png" width="300"></td>
-<td>Real-time data. And long long long long long long long long long long long description.</td>
-</tr>
-</table>
-
-<img src="" height="1px" width="100%" />
-<br>
--->
-
 <a href="https://github.com/sponsors/rillrate" target="_blank"><img align="right" width="300px" src="https://cdn.rillrate.com/github/heroic-toys/book-only.png" /></a>
 
 ### Do you want to know how we develop it?
@@ -150,12 +59,6 @@ We use the following frameworks to build our product:
 
 - [Yew][yew] Framework (frontend)
 - [meio][meio] actor framework (backend)
-
-### License
-
-The `rillrate` library released under **Apache-2.0** license.
-
-This protocol and the project is strongly inspired by the [Nitrogen][nitrogen] Web Framework (Erlang).
 
 [reddit]: https://www.reddit.com/r/rillrate/
 [sponsor]: https://github.com/sponsors/rillrate
