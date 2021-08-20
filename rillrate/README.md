@@ -2,7 +2,7 @@
 
 ### UI for Microservices, Bots and IoT devices.
 
-**Support**: Rust, Python _(soon)_, Node.js _(soon)_.
+**Support**: Rust, Python, Node.js _(soon)_.
 
 <img align="left" width="400px" style="margin-left: 20px;" src="https://rillrate.com/images/dashboard.png" />
 
@@ -25,7 +25,7 @@ Add a dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rillrate = "0.37.0-rc.3"
+rillrate = "0.37.0"
 ```
 
 Install the **rillrate** engine in the `main` function:

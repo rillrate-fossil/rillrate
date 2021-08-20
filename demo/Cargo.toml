@@ -1,12 +1,12 @@
 [package]
 publish = false
 name = "demo"
-version = "0.37.0-rc.4"
+version = "0.37.0"
 edition = "2018"
 
 [dependencies]
 anyhow = "1.0.42"
 env_logger = "0.9.0"
 log = "0.4.14"
-rillrate = { version = "0.37.0-rc.4", path = "../rillrate" }
+rillrate = { version = "0.37.0", path = "../rillrate" }
 tokio = "1.10.0"
