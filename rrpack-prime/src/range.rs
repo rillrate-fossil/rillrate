@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Bound {
@@ -9,6 +10,80 @@ pub enum Bound {
 impl Default for Bound {
     fn default() -> Self {
         Self::Auto
+    }
+}
+
+impl Bound {
+    pub fn min(&self, active_min: f64) -> f64 {
+        self.clamp(active_min, Ordering::Less)
+    }
+
+    pub fn max(&self, active_max: f64) -> f64 {
+        self.clamp(active_max, Ordering::Greater)
+    }
+
+    fn clamp(&self, active: f64, ordering: Ordering) -> f64 {
+        match *self {
+            Self::Auto => active,
+            Self::Accurate { value, strict } => {
+                if active.partial_cmp(&value) == Some(ordering) {
+                    if strict {
+                        value
+                    } else {
+                        active
+                    }
+                } else {
+                    value
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bound_min() {
+        let auto = Bound::Auto;
+        assert_eq!(auto.min(10.0), 10.0);
+        assert_eq!(auto.min(-5.0), -5.0);
+        let strict = Bound::Accurate {
+            value: 0.0,
+            strict: true,
+        };
+        assert_eq!(strict.min(10.0), 0.0);
+        assert_eq!(strict.min(0.0), 0.0);
+        assert_eq!(strict.min(-5.0), 0.0);
+        let loose = Bound::Accurate {
+            value: 0.0,
+            strict: false,
+        };
+        assert_eq!(loose.min(10.0), 0.0);
+        assert_eq!(loose.min(0.0), 0.0);
+        assert_eq!(loose.min(-5.0), -5.0);
+    }
+
+    #[test]
+    fn test_bound_max() {
+        let auto = Bound::Auto;
+        assert_eq!(auto.max(120.0), 120.0);
+        assert_eq!(auto.max(90.0), 90.0);
+        let strict = Bound::Accurate {
+            value: 100.0,
+            strict: true,
+        };
+        assert_eq!(strict.max(120.0), 100.0);
+        assert_eq!(strict.max(100.0), 100.0);
+        assert_eq!(strict.max(90.0), 100.0);
+        let loose = Bound::Accurate {
+            value: 100.0,
+            strict: false,
+        };
+        assert_eq!(loose.max(120.0), 120.0);
+        assert_eq!(loose.max(100.0), 100.0);
+        assert_eq!(loose.max(90.0), 100.0);
     }
 }
 
