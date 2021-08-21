@@ -1,10 +1,22 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Bound {
+    Auto,
+    Accurate { value: f64, strict: bool },
+}
+
+impl Default for Bound {
+    fn default() -> Self {
+        Self::Auto
+    }
+}
+
 // TODO: Move some parts here from the `rill-protocol::Range`
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Range {
-    pub min: Option<f64>,
-    pub max: Option<f64>,
+    pub min: Bound,
+    pub max: Bound,
 }
 
 impl Range {
@@ -13,22 +25,34 @@ impl Range {
             std::mem::swap(&mut min, &mut max);
         }
         Self {
-            min: Some(min),
-            max: Some(max),
+            min: Bound::Accurate {
+                value: min,
+                strict: true,
+            },
+            max: Bound::Accurate {
+                value: max,
+                strict: true,
+            },
         }
     }
 
     pub fn min(min: f64) -> Self {
         Self {
-            min: Some(min),
-            max: None,
+            min: Bound::Accurate {
+                value: min,
+                strict: true,
+            },
+            max: Bound::Auto,
         }
     }
 
     pub fn max(max: f64) -> Self {
         Self {
-            min: None,
-            max: Some(max),
+            min: Bound::Auto,
+            max: Bound::Accurate {
+                value: max,
+                strict: true,
+            },
         }
     }
 }
