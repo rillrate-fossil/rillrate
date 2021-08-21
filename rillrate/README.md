@@ -46,7 +46,7 @@ When you tracer is spawned use it to put data to it:
 tracer.push(value);
 ```
 
-<a href="https://github.com/sponsors/rillrate" target="_blank"><img align="right" width="300px" src="https://cdn.rillrate.com/github/heroic-toys/book-only.png" /></a>
+<a href="https://github.com/sponsors/rillrate" target="_blank"><img align="right" width="300px" src="https://rillrate.com/images/book/book-only.gif" /></a>
 
 ### Do you want to know how we develop it?
 
