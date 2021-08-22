@@ -14,13 +14,13 @@ impl Default for Bound {
 }
 
 impl Bound {
-    pub fn from_options(value: Option<f64>, strict: Option<bool>) -> Self {
-        match (value, strict) {
-            (Some(value), strict) => {
-                let strict = strict.unwrap_or_default();
+    pub fn from_options(value: Option<f64>, loose: Option<bool>) -> Self {
+        match value {
+            Some(value) => {
+                let strict = !loose.unwrap_or_default();
                 Self::Accurate { value, strict }
             }
-            (None, _) => Self::Auto,
+            None => Self::Auto,
         }
     }
 
