@@ -126,3 +126,10 @@ impl Activity {
         matches!(self, Self::Action)
     }
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum Throttle {
+    Open,
+    Interval { ms: u64 },
+    Close,
+}
