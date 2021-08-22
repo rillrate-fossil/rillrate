@@ -29,7 +29,10 @@ pub async fn main() -> Result<(), Error> {
         [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"],
         Default::default(),
     );
-    let long_board = Board::new([PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"]);
+    let long_board = Board::new(
+        [PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"],
+        Default::default(),
+    );
     long_board.set(
         "Very Long Long Long Long Long Long Long Key",
         "Very Long Long Long Long Long Long Long Long Long Long Value",
@@ -124,7 +127,10 @@ pub async fn main() -> Result<(), Error> {
         [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"],
         Default::default(),
     );
-    let board_1 = Board::new([PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"]);
+    let board_1 = Board::new(
+        [PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"],
+        Default::default(),
+    );
     let histogram_1 = Histogram::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"],
         vec![10.0, 20.0, 100.0, 500.0],

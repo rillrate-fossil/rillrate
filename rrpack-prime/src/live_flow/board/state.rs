@@ -3,18 +3,19 @@ use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct BoardSpec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BoardState {
+    pub spec: BoardSpec,
     pub map: BTreeMap<String, String>,
 }
 
-#[allow(clippy::new_without_default)]
-impl BoardState {
-    pub fn new() -> Self {
+impl From<BoardSpec> for BoardState {
+    fn from(spec: BoardSpec) -> Self {
         Self {
+            spec,
             map: BTreeMap::new(),
         }
     }

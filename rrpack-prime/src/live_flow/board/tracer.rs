@@ -13,9 +13,9 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(auto_path: impl Into<AutoPath>) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, spec: BoardSpec) -> Self {
         let path = auto_path.into();
-        let state = BoardState::new();
+        let state = spec.into();
         let tracer = Tracer::new(state, path.into(), None);
         let binder = Binder::new(&tracer);
         Self {
