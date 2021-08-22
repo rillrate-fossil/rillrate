@@ -14,6 +14,16 @@ impl Default for Bound {
 }
 
 impl Bound {
+    pub fn from_options(value: Option<f64>, strict: Option<bool>) -> Self {
+        match (value, strict) {
+            (Some(value), strict) => {
+                let strict = strict.unwrap_or_default();
+                Self::Accurate { value, strict }
+            }
+            (None, _) => Self::Auto,
+        }
+    }
+
     pub fn auto() -> Self {
         Self::Auto
     }
@@ -114,6 +124,7 @@ pub struct Range {
 }
 
 impl Range {
+    // TODO: Remove it
     pub fn new(mut min: f64, mut max: f64) -> Self {
         if min > max {
             std::mem::swap(&mut min, &mut max);
