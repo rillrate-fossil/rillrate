@@ -59,6 +59,8 @@ impl<T: Origin> From<DirectId<T>> for usize {
 pub enum Direction<T: Origin> {
     Direct(DirectId<T>),
     Multicast(HashSet<DirectId<T>>),
+    // TODO: Remove, since all streames bootstrapped from
+    // a predefined path the Broadcast direction is not needed anymore.
     Broadcast,
 }
 

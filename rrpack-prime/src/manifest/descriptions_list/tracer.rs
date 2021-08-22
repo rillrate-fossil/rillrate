@@ -1,5 +1,4 @@
 use super::state::*;
-use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::flow::core::FlowMode;
@@ -7,22 +6,15 @@ use rill_protocol::io::provider::{Description, Path};
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct DescriptionsListTracer {
-    #[deref]
-    #[deref_mut]
     tracer: Tracer<DescriptionsListState>,
-    _binder: Binder,
 }
 
 impl DescriptionsListTracer {
     pub fn new() -> Self {
         let path = DescriptionsListSpec::path();
         let state = DescriptionsListSpec.into();
-        let tracer = Tracer::new(state, path.into(), FlowMode::Realtime);
-        let binder = Binder::new(&tracer);
-        Self {
-            tracer,
-            _binder: binder,
-        }
+        let tracer = Tracer::new(state, path, FlowMode::Realtime);
+        Self { tracer }
     }
 
     pub fn add_path(&self, path: Path, description: Description) {
