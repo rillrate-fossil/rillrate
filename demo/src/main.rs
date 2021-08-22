@@ -5,6 +5,7 @@ use rillrate::histogram::HistogramSpec;
 use rillrate::pulse::PulseSpec;
 use rillrate::range::{Bound, Range};
 use rillrate::selector::SelectorSpec;
+use rillrate::slider::SliderSpec;
 use rillrate::table::{Col, Row, TableSpec};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
@@ -90,10 +91,12 @@ pub async fn main() -> Result<(), Error> {
 
     let slider = Slider::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "slider-1"],
-        "Slide Me!",
-        100.0,
-        5_000.0,
-        100.0,
+        SliderSpec {
+            label: "Slide Me!".into(),
+            min: 100.0,
+            max: 5_000.0,
+            step: 100.0,
+        },
     );
     let this = slider.clone();
     slider.sync_callback(move |envelope| {

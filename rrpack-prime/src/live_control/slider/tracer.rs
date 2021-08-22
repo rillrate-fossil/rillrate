@@ -14,15 +14,9 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn new(
-        auto_path: impl Into<AutoPath>,
-        label: impl ToString,
-        min: f64,
-        max: f64,
-        step: f64,
-    ) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, spec: SliderSpec) -> Self {
         let path = auto_path.into();
-        let state = SliderState::new(label.to_string(), min, max, step);
+        let state = spec.into();
         let tracer = Tracer::new(state, path.into(), FlowMode::Realtime);
         let binder = Binder::new(&tracer);
         Self {

@@ -3,23 +3,23 @@ use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SliderState {
+pub struct SliderSpec {
     pub label: String,
     pub min: f64,
     pub max: f64,
     pub step: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SliderState {
+    pub spec: SliderSpec,
     pub value: f64,
 }
 
-impl SliderState {
-    pub fn new(label: String, min: f64, max: f64, step: f64) -> Self {
-        Self {
-            label,
-            min,
-            max,
-            step,
-            value: min,
-        }
+impl From<SliderSpec> for SliderState {
+    fn from(spec: SliderSpec) -> Self {
+        let value = spec.min;
+        Self { spec, value }
     }
 }
 
@@ -32,7 +32,7 @@ impl Flow for SliderState {
     }
 
     fn apply(&mut self, event: Self::Event) {
-        self.value = event.set_value.clamp(self.min, self.max);
+        self.value = event.set_value.clamp(self.spec.min, self.spec.max);
     }
 }
 
