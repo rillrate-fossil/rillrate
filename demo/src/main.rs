@@ -60,11 +60,7 @@ pub async fn main() -> Result<(), Error> {
         "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
     );
 
-    let click = Click::new(
-        [PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"],
-        Default::default(),
-        "Click Me!",
-    );
+    let click = Click::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"], "Click Me!");
     let this = click.clone();
     click.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
@@ -74,11 +70,7 @@ pub async fn main() -> Result<(), Error> {
         Ok(())
     });
 
-    let switch = Switch::new(
-        [PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"],
-        Default::default(),
-        "Switch Me!",
-    );
+    let switch = Switch::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"], "Switch Me!");
     let this = switch.clone();
     switch.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
@@ -90,7 +82,6 @@ pub async fn main() -> Result<(), Error> {
 
     let slider = Slider::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "slider-1"],
-        Default::default(),
         "Slide Me!",
         100.0,
         5_000.0,
@@ -107,7 +98,6 @@ pub async fn main() -> Result<(), Error> {
 
     let selector = Selector::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "selector-1"],
-        Default::default(),
         "Select Me!",
         vec!["One".into(), "Two".into(), "Three".into()],
     );
