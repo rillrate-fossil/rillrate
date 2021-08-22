@@ -1,4 +1,5 @@
 use anyhow::Error;
+use rillrate::click::ClickSpec;
 use rillrate::gauge::GaugeSpec;
 use rillrate::histogram::HistogramSpec;
 use rillrate::pulse::PulseSpec;
@@ -61,7 +62,12 @@ pub async fn main() -> Result<(), Error> {
         "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
     );
 
-    let click = Click::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"], "Click Me!");
+    let click = Click::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"],
+        ClickSpec {
+            label: "Click Me!".into(),
+        },
+    );
     let this = click.clone();
     click.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {

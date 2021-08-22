@@ -3,13 +3,18 @@ use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClickState {
+pub struct ClickSpec {
     pub label: String,
 }
 
-impl ClickState {
-    pub fn new(label: String) -> Self {
-        Self { label }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClickState {
+    pub spec: ClickSpec,
+}
+
+impl From<ClickSpec> for ClickState {
+    fn from(spec: ClickSpec) -> Self {
+        Self { spec }
     }
 }
 

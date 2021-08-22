@@ -14,9 +14,9 @@ pub struct Click {
 }
 
 impl Click {
-    pub fn new(auto_path: impl Into<AutoPath>, label: impl ToString) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, spec: ClickSpec) -> Self {
         let path = auto_path.into();
-        let state = ClickState::new(label.to_string());
+        let state = spec.into();
         let tracer = Tracer::new(state, path.into(), FlowMode::Realtime);
         let binder = Binder::new(&tracer);
         Self {
