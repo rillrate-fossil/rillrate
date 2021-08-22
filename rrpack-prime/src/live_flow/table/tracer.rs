@@ -14,22 +14,9 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(
-        auto_path: impl Into<AutoPath>,
-        mode: FlowMode,
-        columns: Vec<(Col, impl ToString)>,
-    ) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: TableSpec) -> Self {
         let path = auto_path.into();
-        let columns = columns
-            .into_iter()
-            .map(|(col_id, title)| {
-                let record = ColRecord {
-                    title: title.to_string(),
-                };
-                (col_id, record)
-            })
-            .collect();
-        let state = TableState::new(columns);
+        let state = spec.into();
         let tracer = Tracer::new(state, path.into(), mode);
         let binder = Binder::new(&tracer);
         Self {

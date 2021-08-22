@@ -6,6 +6,11 @@ use std::collections::BTreeMap;
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableSpec {
+    pub columns: Vec<(Col, String)>,
+}
+
 /// Id of a column in a table.
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash,
@@ -57,8 +62,16 @@ pub struct TableState {
     pub rows: BTreeMap<Row, RowRecord>,
 }
 
-impl TableState {
-    pub fn new(columns: BTreeMap<Col, ColRecord>) -> Self {
+impl From<TableSpec> for TableState {
+    fn from(spec: TableSpec) -> Self {
+        let columns = spec
+            .columns
+            .into_iter()
+            .map(|(col_id, title)| {
+                let record = ColRecord { title };
+                (col_id, record)
+            })
+            .collect();
         Self {
             columns,
             rows: BTreeMap::new(),

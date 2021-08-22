@@ -3,7 +3,7 @@ use rillrate::gauge::GaugeSpec;
 use rillrate::histogram::HistogramSpec;
 use rillrate::pulse::PulseSpec;
 use rillrate::range::{Bound, Range};
-use rillrate::table::{Col, Row};
+use rillrate::table::{Col, Row, TableSpec};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
 
@@ -164,11 +164,25 @@ pub async fn main() -> Result<(), Error> {
     histogram_1.add(120.0);
     histogram_1.add(11.0);
 
+    // TODO: Consider:
+    // ```
+    // let table = Table::builder()
+    //     .col(...)
+    //     .col(...)
+    //     .build("path.to.flow", weight, mode);
+    // ```
+
     // TABLE
     let my_table = Table::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_3, "table-1"],
         Default::default(),
-        vec![(Col(0), "Thread"), (Col(1), "State")],
+        // TODO: Use builder here:
+        // ```
+        // TableSpec::builder().col(0, "Thread).col(1, "State).build();
+        // ```
+        TableSpec {
+            columns: vec![(Col(0), "Thread".into()), (Col(1), "State".into())],
+        },
     );
     for i in 1..=5 {
         let tbl = my_table.clone();
