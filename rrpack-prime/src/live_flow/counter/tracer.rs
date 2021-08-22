@@ -26,7 +26,7 @@ impl Counter {
         }
     }
 
-    pub fn inc(&self, delta: impl Into<f64>) {
+    pub fn inc(&self, delta: impl Into<i64>) {
         let msg = CounterEvent::Inc {
             delta: delta.into(),
         };

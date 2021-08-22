@@ -8,12 +8,13 @@ pub struct CounterSpec;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CounterState {
     pub spec: CounterSpec,
-    pub total: f64,
+    /// It's integer to be split in parts (mil, thous, ones).
+    pub total: i64,
 }
 
 impl From<CounterSpec> for CounterState {
     fn from(spec: CounterSpec) -> Self {
-        Self { spec, total: 0.0 }
+        Self { spec, total: 0 }
     }
 }
 
@@ -36,5 +37,5 @@ impl Flow for CounterState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CounterEvent {
-    Inc { delta: f64 },
+    Inc { delta: i64 },
 }
