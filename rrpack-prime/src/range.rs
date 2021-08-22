@@ -14,6 +14,24 @@ impl Default for Bound {
 }
 
 impl Bound {
+    pub fn auto() -> Self {
+        Self::Auto
+    }
+
+    pub fn strict(value: impl Into<f64>) -> Self {
+        Self::Accurate {
+            value: value.into(),
+            strict: true,
+        }
+    }
+
+    pub fn loose(value: impl Into<f64>) -> Self {
+        Self::Accurate {
+            value: value.into(),
+            strict: false,
+        }
+    }
+
     pub fn min(&self, active_min: f64) -> f64 {
         self.clamp(active_min, Ordering::Less)
     }

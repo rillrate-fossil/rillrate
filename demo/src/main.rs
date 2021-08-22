@@ -1,6 +1,7 @@
 use anyhow::Error;
 use rillrate::gauge::GaugeSpec;
-use rillrate::range::Range;
+use rillrate::pulse::PulseSpec;
+use rillrate::range::{Bound, Range};
 use rillrate::table::{Col, Row};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
@@ -163,10 +164,14 @@ pub async fn main() -> Result<(), Error> {
             sleep(Duration::from_secs(1)).await;
         }
         board_1.set("Loop", "Second");
-        let pulse_2 = Pulse::new(
-            [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"],
-            Default::default(),
-        );
+        let spec = PulseSpec {
+            range: Range {
+                min: Bound::strict(0.0),
+                max: Bound::loose(20.0),
+            },
+            ..Default::default()
+        };
+        let pulse_2 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"], spec);
         for x in 1..=SECOND_LIMIT {
             gauge_2.set(x as f64);
             counter_1.inc(1);
