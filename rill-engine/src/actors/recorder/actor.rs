@@ -130,8 +130,10 @@ impl<T: core::Flow> StartedBy<RillConnector> for Recorder<T> {
             }
             TracerMode::Pull { interval, .. } => {
                 // TODO: Wait for the subscribers to spawn a heartbeat activity
-                let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
-                let _task = ctx.spawn_task(heartbeat, (), Group::HeartBeat);
+                if let Some(interval) = interval {
+                    let heartbeat = HeartBeat::new(*interval, ctx.address().clone());
+                    let _task = ctx.spawn_task(heartbeat, (), Group::HeartBeat);
+                }
                 /*
                 let notifications = stream::repeat(notifier.to_owned())
                     .then(|notifier| async move { notifier.notified().await })

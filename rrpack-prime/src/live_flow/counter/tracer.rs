@@ -3,6 +3,7 @@ use crate::auto_path::AutoPath;
 use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::Tracer;
+use rill_protocol::flow::core::FlowMode;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Counter {
@@ -14,10 +15,10 @@ pub struct Counter {
 
 impl Counter {
     // TODO: Use `ms` here and move `realtime` paramter to the rillrate constructor
-    pub fn new(auto_path: impl Into<AutoPath>, realtime: bool, spec: CounterSpec) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: CounterSpec) -> Self {
         let path = auto_path.into();
         let state = spec.into();
-        let tracer = Tracer::new(state, path.into(), None);
+        let tracer = Tracer::new(state, path.into(), mode);
         let binder = Binder::new(&tracer);
         Self {
             tracer,

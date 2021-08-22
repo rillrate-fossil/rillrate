@@ -133,3 +133,9 @@ pub enum FlowMode {
     Throttle { ms: u64 },
     FlushOnly,
 }
+
+impl Default for FlowMode {
+    fn default() -> Self {
+        Self::Realtime
+    }
+}

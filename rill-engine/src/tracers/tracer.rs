@@ -4,7 +4,7 @@ use crate::actors::connector;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope, TimedEvent};
+use rill_protocol::flow::core::{self, ActionEnvelope, FlowMode, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
@@ -59,7 +59,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
         // TODO: Replace with `Arc` since data channel used
         // to detect Tracers's termination
         state: Weak<Mutex<T>>,
-        interval: Duration,
+        interval: Option<Duration>,
     },
 }
 
@@ -124,11 +124,13 @@ impl<T: core::Flow> Eq for Tracer<T> {}
 
 impl<T: core::Flow> Tracer<T> {
     /// Create a new `Tracer`
-    pub fn new(state: T, path: Path, pull_interval: Option<Duration>) -> Self {
-        if let Some(duration) = pull_interval {
-            Self::new_pull(state, path, duration)
-        } else {
-            Self::new_push(state, path)
+    pub fn new(state: T, path: Path, mode: FlowMode) -> Self {
+        match mode {
+            FlowMode::Realtime => Self::new_push(state, path),
+            FlowMode::Throttle { ms } => {
+                Self::new_pull(state, path, Some(Duration::from_millis(ms)))
+            }
+            FlowMode::FlushOnly => Self::new_pull(state, path, None),
         }
     }
 
@@ -144,7 +146,7 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Create a `Pull` mode `Tracer`
-    pub fn new_pull(state: T, path: Path, interval: Duration) -> Self {
+    pub fn new_pull(state: T, path: Path, interval: Option<Duration>) -> Self {
         let state = Arc::new(Mutex::new(state));
         let mode = TracerMode::Pull {
             state: Arc::downgrade(&state),

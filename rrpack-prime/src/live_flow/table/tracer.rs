@@ -3,6 +3,7 @@ use crate::auto_path::AutoPath;
 use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::Tracer;
+use rill_protocol::flow::core::FlowMode;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Table {
@@ -13,7 +14,11 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(auto_path: impl Into<AutoPath>, columns: Vec<(Col, impl ToString)>) -> Self {
+    pub fn new(
+        auto_path: impl Into<AutoPath>,
+        mode: FlowMode,
+        columns: Vec<(Col, impl ToString)>,
+    ) -> Self {
         let path = auto_path.into();
         let columns = columns
             .into_iter()
@@ -25,7 +30,7 @@ impl Table {
             })
             .collect();
         let state = TableState::new(columns);
-        let tracer = Tracer::new(state, path.into(), None);
+        let tracer = Tracer::new(state, path.into(), mode);
         let binder = Binder::new(&tracer);
         Self {
             tracer,

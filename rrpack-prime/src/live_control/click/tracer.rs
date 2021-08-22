@@ -3,6 +3,7 @@ use crate::auto_path::AutoPath;
 use crate::manifest::Binder;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::Tracer;
+use rill_protocol::flow::core::FlowMode;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Click {
@@ -13,10 +14,10 @@ pub struct Click {
 }
 
 impl Click {
-    pub fn new(auto_path: impl Into<AutoPath>, label: impl ToString) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, label: impl ToString) -> Self {
         let path = auto_path.into();
         let state = ClickState::new(label.to_string());
-        let tracer = Tracer::new(state, path.into(), None);
+        let tracer = Tracer::new(state, path.into(), mode);
         let binder = Binder::new(&tracer);
         Self {
             tracer,
