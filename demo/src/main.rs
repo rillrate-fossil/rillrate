@@ -1,13 +1,6 @@
 use anyhow::Error;
-use rillrate::click::ClickSpec;
-use rillrate::gauge::GaugeSpec;
-use rillrate::histogram::HistogramSpec;
-use rillrate::pulse::PulseSpec;
 use rillrate::range::{Bound, Range};
-use rillrate::selector::SelectorSpec;
-use rillrate::slider::SliderSpec;
-use rillrate::switch::SwitchSpec;
-use rillrate::table::{Col, Row, TableSpec};
+use rillrate::table::{Col, Row};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
 

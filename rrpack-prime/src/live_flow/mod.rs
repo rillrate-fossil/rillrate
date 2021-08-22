@@ -2,24 +2,24 @@
 
 pub mod board;
 #[cfg(feature = "engine")]
-pub use board::Board;
+pub use board::{Board, BoardSpec};
 
 pub mod counter;
 #[cfg(feature = "engine")]
-pub use counter::Counter;
+pub use counter::{Counter, CounterSpec};
 
 pub mod gauge;
 #[cfg(feature = "engine")]
-pub use gauge::Gauge;
+pub use gauge::{Gauge, GaugeSpec};
 
 pub mod histogram;
 #[cfg(feature = "engine")]
-pub use histogram::Histogram;
+pub use histogram::{Histogram, HistogramSpec};
 
 pub mod pulse;
 #[cfg(feature = "engine")]
-pub use pulse::Pulse;
+pub use pulse::{Pulse, PulseSpec};
 
 pub mod table;
 #[cfg(feature = "engine")]
-pub use table::Table;
+pub use table::{Table, TableSpec};
