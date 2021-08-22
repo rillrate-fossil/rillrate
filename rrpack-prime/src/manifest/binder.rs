@@ -36,12 +36,12 @@ impl<T> Binded<T> {
 
     fn register(&self) {
         let path = self.description.path.clone();
-        DESCRIPTIONS.add_record(path, self.description.clone());
+        DESCRIPTIONS.add_path(path, self.description.clone());
     }
 
     fn unregister(&self) {
         let path = self.description.path.clone();
-        DESCRIPTIONS.remove_record(path);
+        DESCRIPTIONS.remove_path(path);
     }
 }
 
@@ -79,13 +79,13 @@ impl BinderInner {
     fn register(&self) {
         let path = self.description.path.clone();
         //log::debug!("REGISTERING: {}", path);
-        DESCRIPTIONS.add_record(path, self.description.clone());
+        DESCRIPTIONS.add_path(path, self.description.clone());
     }
 
     fn unregister(&self) {
         let path = self.description.path.clone();
         //log::debug!("UNREGISTERING: {}", path);
-        DESCRIPTIONS.remove_record(path);
+        DESCRIPTIONS.remove_path(path);
     }
 }
 

@@ -196,6 +196,7 @@ impl<T: core::Flow> Tracer<T> {
     }
 
     /// Send an event to a `Recorder`.
+    // TODO: Consider using explicit direction value. What sould Broadcast be?
     pub fn send(&self, event: T::Event, direction: Option<Direction<ProviderProtocol>>) {
         match &self.mode {
             InnerMode::Push { sender, .. } => {
