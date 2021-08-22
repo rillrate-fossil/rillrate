@@ -4,6 +4,7 @@ use rillrate::gauge::GaugeSpec;
 use rillrate::histogram::HistogramSpec;
 use rillrate::pulse::PulseSpec;
 use rillrate::range::{Bound, Range};
+use rillrate::selector::SelectorSpec;
 use rillrate::table::{Col, Row, TableSpec};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
@@ -105,8 +106,10 @@ pub async fn main() -> Result<(), Error> {
 
     let selector = Selector::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "selector-1"],
-        "Select Me!",
-        vec!["One".into(), "Two".into(), "Three".into()],
+        SelectorSpec {
+            label: "Select Me!".into(),
+            options: vec!["One".into(), "Two".into(), "Three".into()],
+        },
     );
     let this = selector.clone();
     selector.sync_callback(move |envelope| {

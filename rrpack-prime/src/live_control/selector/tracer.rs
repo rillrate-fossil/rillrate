@@ -14,9 +14,9 @@ pub struct Selector {
 }
 
 impl Selector {
-    pub fn new(auto_path: impl Into<AutoPath>, label: impl ToString, options: Vec<String>) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, spec: SelectorSpec) -> Self {
         let path = auto_path.into();
-        let state = SelectorState::new(label.to_string(), options);
+        let state = spec.into();
         let tracer = Tracer::new(state, path.into(), FlowMode::Realtime);
         let binder = Binder::new(&tracer);
         Self {

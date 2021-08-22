@@ -3,17 +3,21 @@ use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SelectorState {
+pub struct SelectorSpec {
     pub label: String,
     pub options: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectorState {
+    pub spec: SelectorSpec,
     pub selected: Option<String>,
 }
 
-impl SelectorState {
-    pub fn new(label: String, options: Vec<String>) -> Self {
+impl From<SelectorSpec> for SelectorState {
+    fn from(spec: SelectorSpec) -> Self {
         Self {
-            label,
-            options,
+            spec,
             selected: None,
         }
     }
