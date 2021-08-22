@@ -1,5 +1,5 @@
-use crate::base_flow::new_tf;
 use crate::range::{Label, Range};
+use crate::utils::new_tf;
 use rill_protocol::flow::core::{Flow, TimedEvent};
 use rill_protocol::io::provider::StreamType;
 use rill_protocol::timed_frame::TimedFrame;
