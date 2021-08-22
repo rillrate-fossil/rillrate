@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistogramSpec {
+    pub levels: Vec<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stat {
     pub sum: f64,
     pub count: u64,
@@ -38,9 +43,10 @@ pub struct HistogramState {
     pub total: Stat,
 }
 
-impl HistogramState {
-    pub fn new(levels: Vec<f64>) -> Self {
-        let mut buckets: BTreeMap<_, _> = levels
+impl From<HistogramSpec> for HistogramState {
+    fn from(spec: HistogramSpec) -> Self {
+        let mut buckets: BTreeMap<_, _> = spec
+            .levels
             .iter()
             .map(|level| (OrderedFloat::from(*level), Stat::default()))
             .collect();
@@ -51,7 +57,9 @@ impl HistogramState {
             total: Stat::default(),
         }
     }
+}
 
+impl HistogramState {
     pub fn bars(&self) -> impl Iterator<Item = Bar> + '_ {
         let total = self.total.sum;
         self.buckets.iter().map(move |(level, stat)| Bar {

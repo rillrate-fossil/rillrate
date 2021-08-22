@@ -1,5 +1,6 @@
 use anyhow::Error;
 use rillrate::gauge::GaugeSpec;
+use rillrate::histogram::HistogramSpec;
 use rillrate::pulse::PulseSpec;
 use rillrate::range::{Bound, Range};
 use rillrate::table::{Col, Row};
@@ -156,7 +157,9 @@ pub async fn main() -> Result<(), Error> {
     let histogram_1 = Histogram::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"],
         Default::default(),
-        vec![10.0, 20.0, 100.0, 500.0],
+        HistogramSpec {
+            levels: vec![10.0, 20.0, 100.0, 500.0],
+        },
     );
     histogram_1.add(120.0);
     histogram_1.add(11.0);

@@ -14,9 +14,9 @@ pub struct Histogram {
 }
 
 impl Histogram {
-    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, levels: Vec<f64>) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: HistogramSpec) -> Self {
         let path = auto_path.into();
-        let state = HistogramState::new(levels);
+        let state = spec.into();
         let tracer = Tracer::new(state, path.into(), mode);
         let binder = Binder::new(&tracer);
         Self {
