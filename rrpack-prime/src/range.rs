@@ -41,6 +41,7 @@ impl Bound {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)] // Consts are used only!
 mod tests {
     use super::*;
 
