@@ -1,7 +1,10 @@
 ## RillRate
 
-### UI for Microservices, Bots and IoT devices.
+### Real-time UI for bots, microservices, and IoT
 
+RillRate is a library that embeds a live web dashboard to your app.
+
+Fast, embedded, with auto-layout and controls. No configuration is needed.
 **Support**: Rust, Python, Node.js _(soon)_.
 
 <img align="center" width="400px" style="margin-left: 20px;" src="https://rillrate.com/images/dashboard.png" />
