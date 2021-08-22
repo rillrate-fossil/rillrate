@@ -1,23 +1,34 @@
 use super::state::*;
 use crate::auto_path::AutoPath;
-use crate::base_flow::stat_flow::StatFlowTracer;
-use crate::manifest::Binded;
+use crate::manifest::Binder;
+use derive_more::{Deref, DerefMut};
+use rill_engine::tracers::tracer::Tracer;
 
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Counter {
-    tracer: Binded<StatFlowTracer<CounterSpec>>,
+    #[deref]
+    #[deref_mut]
+    tracer: Tracer<CounterState>,
+    _binder: Binder,
 }
 
 impl Counter {
     // TODO: Use `ms` here and move `realtime` paramter to the rillrate constructor
-    pub fn new(auto_path: impl Into<AutoPath>, realtime: bool) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, realtime: bool, spec: CounterSpec) -> Self {
         let path = auto_path.into();
-        let pull_ms = if realtime { None } else { Some(1_000) };
-        let spec = CounterSpec { pull_ms };
-        let tracer = Binded::new(StatFlowTracer::new(path.into(), spec));
-        Self { tracer }
+        let state = spec.into();
+        let tracer = Tracer::new(state, path.into(), None);
+        let binder = Binder::new(&tracer);
+        Self {
+            tracer,
+            _binder: binder,
+        }
     }
 
-    pub fn inc(&self, delta: i64) {
-        self.tracer.change(delta);
+    pub fn inc(&self, delta: impl Into<f64>) {
+        let msg = CounterEvent::Inc {
+            delta: delta.into(),
+        };
+        self.tracer.send(msg, None);
     }
 }

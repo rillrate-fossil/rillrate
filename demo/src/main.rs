@@ -110,9 +110,21 @@ pub async fn main() -> Result<(), Error> {
 
     // === The main part ===
     // TODO: Improve that busy paths declarations...
-    let counter_1 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"], true);
-    let counter_2 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"], true);
-    let counter_3 = Counter::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"], true);
+    let counter_1 = Counter::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"],
+        true,
+        Default::default(),
+    );
+    let counter_2 = Counter::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"],
+        true,
+        Default::default(),
+    );
+    let counter_3 = Counter::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"],
+        true,
+        Default::default(),
+    );
     let gauge_1_spec = GaugeSpec {
         pull_ms: None,
         range: Range::new(0.0, FIRST_LIMIT as f64),
