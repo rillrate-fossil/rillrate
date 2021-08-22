@@ -1,65 +1,56 @@
+use crate::auto_path::AutoPath;
 use crate::manifest::descriptions_list::DescriptionsListTracer;
 use derive_more::{Deref, DerefMut};
 use once_cell::sync::Lazy;
 use rill_engine::tracers::tracer::Tracer;
-use rill_protocol::flow::core::Flow;
+use rill_protocol::flow::core;
+use rill_protocol::flow::core::FlowMode;
 use rill_protocol::io::provider::Description;
-use std::ops::Deref;
 use std::sync::Arc;
 
 static DESCRIPTIONS: Lazy<DescriptionsListTracer> = Lazy::new(DescriptionsListTracer::new);
 
-// TODO: Remove and replace with `Binder`! It unregistered wrong!
 /// `Binded` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
-pub struct Binded<T> {
+pub struct BindedTracer<T: core::Flow> {
     #[deref]
     #[deref_mut]
-    tracer: T,
-    description: Description,
+    tracer: Tracer<T>,
+    binder: Binder,
 }
 
-impl<T> Binded<T> {
-    pub fn new<F>(tracer: T) -> Self
+impl<T: core::Flow> BindedTracer<T> {
+    pub fn new<S>(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: S) -> Self
     where
-        F: Flow,
-        T: Deref<Target = Tracer<F>>,
+        S: Into<T>,
     {
-        let description = tracer.description().clone();
-        let this = Self {
+        let path = auto_path.into();
+        let state = spec.into();
+        let tracer = Tracer::new(state, path.into(), mode);
+        let binder = Binder::new(&tracer);
+        Self { tracer, binder }
+    }
+
+    /*
+    pub fn new(tracer: Tracer<T>) -> Self {
+        let binder = Binder::new(&tracer);
+        Self {
             tracer,
-            description,
-        };
-        this.register();
-        this
+            _binder: binder,
+        }
     }
-
-    fn register(&self) {
-        let path = self.description.path.clone();
-        DESCRIPTIONS.add_path(path, self.description.clone());
-    }
-
-    fn unregister(&self) {
-        let path = self.description.path.clone();
-        DESCRIPTIONS.remove_path(path);
-    }
-}
-
-impl<T> Drop for Binded<T> {
-    fn drop(&mut self) {
-        self.unregister();
-    }
+    */
 }
 
 /// `Binder` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
-pub struct Binder {
+struct Binder {
     /// Wrapped with `Arc` to have a single instance of inner only.
     inner: Arc<BinderInner>,
 }
 
 impl Binder {
-    pub fn new<T: Flow>(tracer: &Tracer<T>) -> Self {
+    pub fn new<T: core::Flow>(tracer: &Tracer<T>) -> Self {
         let description = tracer.description().clone();
         let inner = BinderInner { description };
         let this = Self {
@@ -71,7 +62,7 @@ impl Binder {
 }
 
 #[derive(Deref, DerefMut, Debug, Clone)]
-pub struct BinderInner {
+struct BinderInner {
     description: Description,
 }
 

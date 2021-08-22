@@ -1,28 +1,19 @@
 use super::state::*;
 use crate::auto_path::AutoPath;
-use crate::manifest::Binder;
+use crate::manifest::BindedTracer;
 use derive_more::{Deref, DerefMut};
-use rill_engine::tracers::tracer::{timed, Tracer};
+use rill_engine::tracers::tracer::timed;
 use rill_protocol::flow::core::FlowMode;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Pulse {
-    #[deref]
-    #[deref_mut]
-    tracer: Tracer<PulseState>,
-    _binder: Binder,
+    tracer: BindedTracer<PulseState>,
 }
 
 impl Pulse {
     pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: PulseSpec) -> Self {
-        let path = auto_path.into();
-        let state = spec.into();
-        let tracer = Tracer::new(state, path.into(), mode);
-        let binder = Binder::new(&tracer);
-        Self {
-            tracer,
-            _binder: binder,
-        }
+        let tracer = BindedTracer::new(auto_path, mode, spec);
+        Self { tracer }
     }
 
     pub fn push(&self, value: f64) {
