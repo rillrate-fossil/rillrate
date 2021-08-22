@@ -14,7 +14,6 @@ pub struct Counter {
 }
 
 impl Counter {
-    // TODO: Use `ms` here and move `realtime` paramter to the rillrate constructor
     pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: CounterSpec) -> Self {
         let path = auto_path.into();
         let state = spec.into();
