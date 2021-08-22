@@ -128,8 +128,8 @@ impl Activity {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub enum Throttle {
-    Open,
-    Interval { ms: u64 },
-    Close,
+pub enum FlowMode {
+    Realtime,
+    Throttle { ms: u64 },
+    FlushOnly,
 }
