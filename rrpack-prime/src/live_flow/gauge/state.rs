@@ -6,8 +6,6 @@ use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GaugeSpec {
-    // TODO: Move it outside...
-    pub pull_ms: Option<u64>,
     pub range: Range,
 }
 
@@ -37,7 +35,7 @@ impl StatFlowSpec for GaugeSpec {
     }
 
     fn interval(&self) -> Option<Duration> {
-        self.pull_ms.map(Duration::from_millis)
+        None
     }
 
     // TODO: Use `Spec` reference here to check the range

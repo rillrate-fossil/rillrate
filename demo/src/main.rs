@@ -128,7 +128,6 @@ pub async fn main() -> Result<(), Error> {
         Default::default(),
     );
     let gauge_1_spec = GaugeSpec {
-        pull_ms: None,
         range: Range::new(0.0, FIRST_LIMIT as f64),
     };
     let gauge_1 = Gauge::new(
@@ -137,7 +136,6 @@ pub async fn main() -> Result<(), Error> {
         gauge_1_spec,
     );
     let gauge_2_spec = GaugeSpec {
-        pull_ms: None,
         range: Range::new(0.0, SECOND_LIMIT as f64),
     };
     let gauge_2 = Gauge::new(
