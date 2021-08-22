@@ -27,10 +27,12 @@ pub async fn main() -> Result<(), Error> {
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
     let _pulse_empty = Pulse::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"],
+        //Default::default(),
         Default::default(),
     );
     let long_board = Board::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"],
+        Default::default(),
         Default::default(),
     );
     long_board.set(
@@ -58,7 +60,11 @@ pub async fn main() -> Result<(), Error> {
         "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
     );
 
-    let click = Click::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"], "Click Me!");
+    let click = Click::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"],
+        Default::default(),
+        "Click Me!",
+    );
     let this = click.clone();
     click.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
@@ -68,7 +74,11 @@ pub async fn main() -> Result<(), Error> {
         Ok(())
     });
 
-    let switch = Switch::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"], "Switch Me!");
+    let switch = Switch::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"],
+        Default::default(),
+        "Switch Me!",
+    );
     let this = switch.clone();
     switch.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
@@ -80,6 +90,7 @@ pub async fn main() -> Result<(), Error> {
 
     let slider = Slider::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "slider-1"],
+        Default::default(),
         "Slide Me!",
         100.0,
         5_000.0,
@@ -96,6 +107,7 @@ pub async fn main() -> Result<(), Error> {
 
     let selector = Selector::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "selector-1"],
+        Default::default(),
         "Select Me!",
         vec!["One".into(), "Two".into(), "Three".into()],
     );
@@ -112,39 +124,50 @@ pub async fn main() -> Result<(), Error> {
     // TODO: Improve that busy paths declarations...
     let counter_1 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"],
-        true,
+        Default::default(),
         Default::default(),
     );
     let counter_2 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"],
-        true,
+        Default::default(),
         Default::default(),
     );
     let counter_3 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"],
-        true,
+        Default::default(),
         Default::default(),
     );
     let gauge_1_spec = GaugeSpec {
         pull_ms: None,
         range: Range::new(0.0, FIRST_LIMIT as f64),
     };
-    let gauge_1 = Gauge::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"], gauge_1_spec);
+    let gauge_1 = Gauge::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"],
+        Default::default(),
+        gauge_1_spec,
+    );
     let gauge_2_spec = GaugeSpec {
         pull_ms: None,
         range: Range::new(0.0, SECOND_LIMIT as f64),
     };
-    let gauge_2 = Gauge::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"], gauge_2_spec);
+    let gauge_2 = Gauge::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"],
+        Default::default(),
+        gauge_2_spec,
+    );
     let pulse_1 = Pulse::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"],
+        //Default::default(),
         Default::default(),
     );
     let board_1 = Board::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"],
         Default::default(),
+        Default::default(),
     );
     let histogram_1 = Histogram::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"],
+        Default::default(),
         vec![10.0, 20.0, 100.0, 500.0],
     );
     histogram_1.add(120.0);
@@ -153,6 +176,7 @@ pub async fn main() -> Result<(), Error> {
     // TABLE
     let my_table = Table::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_3, "table-1"],
+        Default::default(),
         vec![(Col(0), "Thread"), (Col(1), "State")],
     );
     for i in 1..=5 {
