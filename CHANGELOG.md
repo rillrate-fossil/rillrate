@@ -1,4 +1,11 @@
-# v0.37.0-dev
+# v0.38.0-dev
+
+Improvements:
+
+- `Range` use `Bound` with `strict`, `loose` or `auto` limit
+
+
+# v0.37.0
 
 Improvements:
 
@@ -16,6 +23,7 @@ Improvements:
     - `Histogram`
     - `Table`
 - Strings as paths allowed. For example: "package.dashboard.group.my-data-flow"
+- Python support
 
 Fixes:
 
