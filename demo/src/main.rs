@@ -6,6 +6,7 @@ use rillrate::pulse::PulseSpec;
 use rillrate::range::{Bound, Range};
 use rillrate::selector::SelectorSpec;
 use rillrate::slider::SliderSpec;
+use rillrate::switch::SwitchSpec;
 use rillrate::table::{Col, Row, TableSpec};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
@@ -79,7 +80,12 @@ pub async fn main() -> Result<(), Error> {
         Ok(())
     });
 
-    let switch = Switch::new([PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"], "Switch Me!");
+    let switch = Switch::new(
+        [PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"],
+        SwitchSpec {
+            label: "Switch Me!".into(),
+        },
+    );
     let this = switch.clone();
     switch.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {

@@ -14,9 +14,9 @@ pub struct Switch {
 }
 
 impl Switch {
-    pub fn new(auto_path: impl Into<AutoPath>, caption: impl ToString) -> Self {
+    pub fn new(auto_path: impl Into<AutoPath>, spec: SwitchSpec) -> Self {
         let path = auto_path.into();
-        let state = SwitchState::new(caption.to_string());
+        let state = spec.into();
         let tracer = Tracer::new(state, path.into(), FlowMode::Realtime);
         let binder = Binder::new(&tracer);
         Self {

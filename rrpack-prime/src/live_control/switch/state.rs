@@ -3,15 +3,20 @@ use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwitchState {
+pub struct SwitchSpec {
     pub label: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwitchState {
+    pub spec: SwitchSpec,
     pub turned_on: bool,
 }
 
-impl SwitchState {
-    pub fn new(label: String) -> Self {
+impl From<SwitchSpec> for SwitchState {
+    fn from(spec: SwitchSpec) -> Self {
         Self {
-            label,
+            spec,
             turned_on: false,
         }
     }
