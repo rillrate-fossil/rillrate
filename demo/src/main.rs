@@ -25,7 +25,7 @@ pub async fn main() -> Result<(), Error> {
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
     let _pulse_empty = Pulse::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"],
-        //Default::default(),
+        Default::default(),
         Default::default(),
     );
     let long_board = Board::new(
@@ -157,7 +157,7 @@ pub async fn main() -> Result<(), Error> {
     );
     let pulse_1 = Pulse::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"],
-        //Default::default(),
+        Default::default(),
         Default::default(),
     );
     let board_1 = Board::new(
@@ -229,7 +229,11 @@ pub async fn main() -> Result<(), Error> {
             },
             ..Default::default()
         };
-        let pulse_2 = Pulse::new([PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"], spec);
+        let pulse_2 = Pulse::new(
+            [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"],
+            Default::default(),
+            spec,
+        );
         for x in 1..=SECOND_LIMIT {
             gauge_2.set(x as f64);
             counter_1.inc(1);

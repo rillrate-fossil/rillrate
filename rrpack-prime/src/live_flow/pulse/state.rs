@@ -1,5 +1,8 @@
-use crate::base_flow::frame_flow::{FrameFlowSpec, FrameFlowState};
+use crate::base_flow::new_tf;
 use crate::range::{Label, Range};
+use rill_protocol::flow::core::{Flow, TimedEvent};
+use rill_protocol::io::provider::StreamType;
+use rill_protocol::timed_frame::TimedFrame;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,12 +24,37 @@ impl Default for PulseSpec {
     }
 }
 
-impl FrameFlowSpec for PulseSpec {
-    type Frame = f64;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PulseState {
+    pub spec: PulseSpec,
+    pub frame: TimedFrame<f64>,
+}
 
-    fn retain_secs(&self) -> u32 {
-        self.retain
+impl From<PulseSpec> for PulseState {
+    fn from(spec: PulseSpec) -> Self {
+        let frame = new_tf(spec.retain as i64 + 1);
+        Self { spec, frame }
     }
 }
 
-pub type PulseState = FrameFlowState<PulseSpec>;
+impl Flow for PulseState {
+    type Action = ();
+    type Event = PulseEvent;
+
+    fn stream_type() -> StreamType {
+        StreamType::from(module_path!())
+    }
+
+    fn apply(&mut self, event: Self::Event) {
+        match event {
+            PulseEvent::Push { value } => {
+                self.frame.insert_pop(value);
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PulseEvent {
+    Push { value: TimedEvent<f64> },
+}
