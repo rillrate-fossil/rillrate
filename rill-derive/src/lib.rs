@@ -9,7 +9,7 @@ use syn::{parse_macro_input, DeriveInput, Field, Ident};
 pub fn tracer_opts(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     match impl_tracer_opts(&input) {
-        Ok(output) => output.into(),
+        Ok(output) => output,
         Err(error) => error.to_compile_error().into(),
     }
 }
@@ -27,7 +27,7 @@ fn impl_tracer_opts(ast: &syn::DeriveInput) -> Result<TokenStream, Error> {
                             "TracerOpts is not supported fields of tuple structs",
                         )
                     })?;
-                    let ty = extract_opt_type(&field).ok_or_else(|| {
+                    let ty = extract_opt_type(field).ok_or_else(|| {
                         Error::new(ast.span(), "TracerOpts supports optional fields only")
                     })?;
                     methods.push(quote! {

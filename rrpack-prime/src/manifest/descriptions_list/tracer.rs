@@ -10,6 +10,7 @@ pub struct DescriptionsListTracer {
 }
 
 impl DescriptionsListTracer {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let path = DescriptionsListSpec::path();
         let state = DescriptionsListSpec.into();
