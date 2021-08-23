@@ -1,5 +1,4 @@
 use anyhow::Error;
-use rillrate::range::{Bound, Range};
 use rillrate::table::{Col, Row};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
@@ -26,7 +25,7 @@ pub async fn main() -> Result<(), Error> {
     let _pulse_empty = Pulse::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"],
         Default::default(),
-        PulseSpec::default(),
+        PulseOpts::default(),
     );
     let long_board = Board::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"],
@@ -153,7 +152,7 @@ pub async fn main() -> Result<(), Error> {
     let pulse_1 = Pulse::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"],
         Default::default(),
-        PulseSpec::default(),
+        PulseOpts::default(),
     );
     let board_1 = Board::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"],
@@ -205,17 +204,10 @@ pub async fn main() -> Result<(), Error> {
             sleep(Duration::from_secs(1)).await;
         }
         board_1.set("Loop", "Second");
-        let spec = PulseSpec {
-            range: Range {
-                min: Bound::strict(0.0),
-                max: Bound::loose(20.0),
-            },
-            ..Default::default()
-        };
         let pulse_2 = Pulse::new(
             [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-2"],
             Default::default(),
-            spec,
+            PulseOpts::default().min(0.0).max(20.0).higher(true),
         );
         for x in 1..=SECOND_LIMIT {
             gauge_2.set(x as f64);

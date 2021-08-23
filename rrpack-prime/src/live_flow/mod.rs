@@ -18,7 +18,7 @@ pub use histogram::{Histogram, HistogramSpec};
 
 pub mod pulse;
 #[cfg(feature = "engine")]
-pub use pulse::{Pulse, PulseSpec};
+pub use pulse::{Pulse, PulseOpts};
 
 pub mod table;
 #[cfg(feature = "engine")]
