@@ -44,8 +44,8 @@ impl Pulse {
         Self { tracer }
     }
 
-    pub fn push(&self, value: f64) {
-        if let Some(value) = timed(value) {
+    pub fn push(&self, value: impl Into<f64>) {
+        if let Some(value) = timed(value.into()) {
             let msg = PulseEvent::Push { value };
             self.tracer.send(msg, None);
         }

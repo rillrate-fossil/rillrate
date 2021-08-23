@@ -180,6 +180,8 @@ pub async fn main() -> Result<(), Error> {
         });
     }
 
+    tokio::spawn(subcrate::random_pulse());
+
     loop {
         board_1.set("Loop", "First");
         for x in 1..=FIRST_LIMIT {

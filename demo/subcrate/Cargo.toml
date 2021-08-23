@@ -1,0 +1,9 @@
+[package]
+name = "subcrate"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+rand = "0.8.4"
+rillrate = { version = "0.37.0", path = "../../rillrate" }
+tokio = "1.10.0"
