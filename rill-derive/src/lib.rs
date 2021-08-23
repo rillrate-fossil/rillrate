@@ -27,22 +27,25 @@ fn impl_tracer_opts(ast: &syn::DeriveInput) -> Result<TokenStream, Error> {
                             "TracerOpts is not supported fields of tuple structs",
                         )
                     })?;
-                    let ty = extract_opt_type(field).ok_or_else(|| {
-                        Error::new(ast.span(), "TracerOpts supports optional fields only")
-                    })?;
-                    methods.push(quote! {
-                        pub fn #ident(mut self, value: impl Into<#ty>) -> Self {
-                            self.#ident = Some(value.into());
-                            self
-                        }
-                    });
-                    let set_ident = Ident::new(&format!("set_{}", ident), Span::call_site());
-                    methods.push(quote! {
-                        pub fn #set_ident(&mut self, value: impl Into<#ty>) -> &mut Self {
-                            self.#ident = Some(value.into());
-                            self
-                        }
-                    });
+                    if let Some(ty) = extract_opt_type(field) {
+                        methods.push(quote! {
+                            pub fn #ident(mut self, value: impl Into<#ty>) -> Self {
+                                self.#ident = Some(value.into());
+                                self
+                            }
+                        });
+                        let set_ident = Ident::new(&format!("set_{}", ident), Span::call_site());
+                        methods.push(quote! {
+                            pub fn #set_ident(&mut self, value: impl Into<#ty>) -> &mut Self {
+                                self.#ident = Some(value.into());
+                                self
+                            }
+                        });
+                    } else {
+                        // Not optional fields skipped, because they can be
+                        // collections and they have to be handeled separately.
+                        // For example, by providing methods link `add_item`.
+                    }
                 }
                 quote! {
                     impl #ident {
