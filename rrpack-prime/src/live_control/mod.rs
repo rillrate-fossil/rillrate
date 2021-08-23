@@ -8,7 +8,7 @@ pub use selector::{Selector, SelectorSpec};
 
 pub mod slider;
 #[cfg(feature = "engine")]
-pub use slider::{Slider, SliderSpec};
+pub use slider::{Slider, SliderOpts};
 
 pub mod switch;
 #[cfg(feature = "engine")]

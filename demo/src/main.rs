@@ -85,12 +85,11 @@ pub async fn main() -> Result<(), Error> {
 
     let slider = Slider::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "slider-1"],
-        SliderSpec {
-            label: "Slide Me!".into(),
-            min: 100.0,
-            max: 5_000.0,
-            step: 100.0,
-        },
+        SliderOpts::default()
+            .label("Slide Me!")
+            .min(100)
+            .max(5_000)
+            .step(100),
     );
     let this = slider.clone();
     slider.sync_callback(move |envelope| {
