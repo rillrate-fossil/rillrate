@@ -158,9 +158,7 @@ pub async fn main() -> Result<(), Error> {
     let histogram_1 = Histogram::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"],
         Default::default(),
-        HistogramSpec {
-            levels: vec![10.0, 20.0, 100.0, 500.0],
-        },
+        HistogramOpts::default().levels([10, 20, 100, 500]),
     );
     histogram_1.add(120.0);
     histogram_1.add(11.0);

@@ -14,7 +14,7 @@ pub use gauge::{Gauge, GaugeOpts};
 
 pub mod histogram;
 #[cfg(feature = "engine")]
-pub use histogram::{Histogram, HistogramSpec};
+pub use histogram::{Histogram, HistogramOpts};
 
 pub mod pulse;
 #[cfg(feature = "engine")]
