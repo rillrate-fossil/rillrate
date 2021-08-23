@@ -11,23 +11,6 @@ pub struct SelectorOpts {
     pub options: Vec<String>,
 }
 
-impl SelectorOpts {
-    /*
-    pub fn option(mut self, opt: impl ToString) -> Self {
-        self.options.push(opt.to_string());
-        self
-    }
-
-    pub fn options<T>(mut self, opts: impl IntoIterator<Item = T>) -> Self
-    where
-        String: From<T>,
-    {
-        self.options.extend(opts.into_iter().map(String::from));
-        self
-    }
-    */
-}
-
 impl From<SelectorOpts> for SelectorSpec {
     fn from(opts: SelectorOpts) -> Self {
         Self {

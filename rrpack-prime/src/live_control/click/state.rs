@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,12 @@ pub struct ClickState {
 impl From<ClickSpec> for ClickState {
     fn from(spec: ClickSpec) -> Self {
         Self { spec }
+    }
+}
+
+impl PackFlow for ClickState {
+    fn layer() -> Layer {
+        Layer::Control
     }
 }
 

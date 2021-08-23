@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
@@ -20,6 +21,12 @@ impl From<SelectorSpec> for SelectorState {
             spec,
             selected: None,
         }
+    }
+}
+
+impl PackFlow for SelectorState {
+    fn layer() -> Layer {
+        Layer::Control
     }
 }
 

@@ -1,25 +1,24 @@
 use crate::auto_path::AutoPath;
+use crate::manifest::description::{PackFlow, PackFlowDescription};
 use crate::manifest::descriptions_list::DescriptionsListTracer;
 use derive_more::{Deref, DerefMut};
 use once_cell::sync::Lazy;
 use rill_engine::tracers::tracer::Tracer;
-use rill_protocol::flow::core;
 use rill_protocol::flow::core::FlowMode;
-use rill_protocol::io::provider::Description;
 use std::sync::Arc;
 
 static DESCRIPTIONS: Lazy<DescriptionsListTracer> = Lazy::new(DescriptionsListTracer::new);
 
 /// `Binded` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
-pub struct BindedTracer<T: core::Flow> {
+pub struct BindedTracer<T: PackFlow> {
     #[deref]
     #[deref_mut]
     tracer: Tracer<T>,
     binder: Binder,
 }
 
-impl<T: core::Flow> BindedTracer<T> {
+impl<T: PackFlow> BindedTracer<T> {
     pub fn new<S>(auto_path: AutoPath, mode: FlowMode, spec: S) -> Self
     where
         S: Into<T>,
@@ -39,8 +38,13 @@ struct Binder {
 }
 
 impl Binder {
-    pub fn new<T: core::Flow>(tracer: &Tracer<T>) -> Self {
-        let description = tracer.description().clone();
+    pub fn new<T: PackFlow>(tracer: &Tracer<T>) -> Self {
+        let desc = tracer.description();
+        let description = PackFlowDescription {
+            path: desc.path.clone(),
+            layer: T::layer(),
+            stream_type: desc.stream_type.clone(),
+        };
         let inner = BinderInner { description };
         let this = Self {
             inner: Arc::new(inner),
@@ -52,7 +56,7 @@ impl Binder {
 
 #[derive(Deref, DerefMut, Debug, Clone)]
 struct BinderInner {
-    description: Description,
+    description: PackFlowDescription,
 }
 
 impl BinderInner {

@@ -1,8 +1,9 @@
 use super::state::*;
+use crate::manifest::description::PackFlowDescription;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::flow::core::FlowMode;
-use rill_protocol::io::provider::{Description, Path};
+use rill_protocol::io::provider::Path;
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct DescriptionsListTracer {
@@ -18,7 +19,7 @@ impl DescriptionsListTracer {
         Self { tracer }
     }
 
-    pub fn add_path(&self, path: Path, description: Description) {
+    pub fn add_path(&self, path: Path, description: PackFlowDescription) {
         let msg = DescriptionsListEvent::Add { path, description };
         self.tracer.send(msg, None);
     }

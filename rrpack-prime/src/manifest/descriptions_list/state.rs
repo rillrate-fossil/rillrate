@@ -1,5 +1,6 @@
+use crate::manifest::description::PackFlowDescription;
 use rill_protocol::flow::core::Flow;
-use rill_protocol::io::provider::{Description, Path, StreamType};
+use rill_protocol::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -15,7 +16,7 @@ pub struct DescriptionsListSpec;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DescriptionsListState {
     #[serde(with = "vectorize")]
-    pub records: BTreeMap<Path, Description>,
+    pub records: BTreeMap<Path, PackFlowDescription>,
 }
 
 impl From<DescriptionsListSpec> for DescriptionsListState {
@@ -50,7 +51,7 @@ impl Flow for DescriptionsListState {
 pub enum DescriptionsListEvent {
     Add {
         path: Path,
-        description: Description,
+        description: PackFlowDescription,
     },
     Remove {
         path: Path,

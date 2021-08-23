@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use derive_more::{From, Into};
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
@@ -66,6 +67,12 @@ impl From<TableSpec> for TableState {
             spec,
             rows: BTreeMap::new(),
         }
+    }
+}
+
+impl PackFlow for TableState {
+    fn layer() -> Layer {
+        Layer::Visual
     }
 }
 

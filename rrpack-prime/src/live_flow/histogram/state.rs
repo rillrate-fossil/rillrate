@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use ordered_float::OrderedFloat;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
@@ -67,6 +68,12 @@ impl HistogramState {
             count: stat.count,
             pct: Pct::from_div(stat.sum, total),
         })
+    }
+}
+
+impl PackFlow for HistogramState {
+    fn layer() -> Layer {
+        Layer::Visual
     }
 }
 

@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use crate::range::{Label, Range};
 use crate::utils::new_tf;
 use rill_protocol::flow::core::{Flow, TimedEvent};
@@ -32,6 +33,12 @@ impl From<PulseSpec> for PulseState {
     fn from(spec: PulseSpec) -> Self {
         let frame = new_tf(spec.retain as i64 + 1);
         Self { spec, frame }
+    }
+}
+
+impl PackFlow for PulseState {
+    fn layer() -> Layer {
+        Layer::Visual
     }
 }
 

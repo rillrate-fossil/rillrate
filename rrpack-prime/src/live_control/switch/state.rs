@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,12 @@ impl From<SwitchSpec> for SwitchState {
             spec,
             turned_on: false,
         }
+    }
+}
+
+impl PackFlow for SwitchState {
+    fn layer() -> Layer {
+        Layer::Control
     }
 }
 

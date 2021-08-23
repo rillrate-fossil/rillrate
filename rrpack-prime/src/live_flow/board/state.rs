@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
@@ -18,6 +19,12 @@ impl From<BoardSpec> for BoardState {
             spec,
             map: BTreeMap::new(),
         }
+    }
+}
+
+impl PackFlow for BoardState {
+    fn layer() -> Layer {
+        Layer::Visual
     }
 }
 

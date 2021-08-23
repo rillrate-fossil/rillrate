@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,12 @@ pub struct CounterState {
 impl From<CounterSpec> for CounterState {
     fn from(spec: CounterSpec) -> Self {
         Self { spec, total: 0 }
+    }
+}
+
+impl PackFlow for CounterState {
+    fn layer() -> Layer {
+        Layer::Visual
     }
 }
 

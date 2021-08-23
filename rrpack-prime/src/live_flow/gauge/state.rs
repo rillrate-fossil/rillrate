@@ -1,3 +1,4 @@
+use crate::manifest::description::{Layer, PackFlow};
 use crate::range::Range;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
@@ -24,6 +25,12 @@ impl From<GaugeSpec> for GaugeState {
             abs_min: f64::MAX,
             abs_max: f64::MIN,
         }
+    }
+}
+
+impl PackFlow for GaugeState {
+    fn layer() -> Layer {
+        Layer::Visual
     }
 }
 
