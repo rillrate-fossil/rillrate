@@ -24,6 +24,8 @@ impl Bound {
         }
     }
 
+    // TODO: Remove all that below
+
     pub fn auto() -> Self {
         Self::Auto
     }
@@ -178,6 +180,15 @@ impl Default for Label {
 }
 
 impl Label {
+    pub fn from_options(caption: Option<String>, divisor: Option<f64>) -> Self {
+        Self {
+            caption: caption.unwrap_or_else(String::new),
+            divisor: divisor.unwrap_or(1.0),
+        }
+    }
+
+    // TODO: Consider removing all that below
+
     pub fn new(caption: impl Into<String>, divisor: f64) -> Self {
         Self {
             caption: caption.into(),

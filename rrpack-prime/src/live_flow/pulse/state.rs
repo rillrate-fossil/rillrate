@@ -7,8 +7,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PulseSpec {
-    /// Retain interval in seconds.
-    // TODO: Make `retain` optional
     pub retain: u32,
     pub range: Range,
     pub label: Label,
