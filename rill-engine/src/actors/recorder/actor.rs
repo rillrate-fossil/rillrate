@@ -51,6 +51,7 @@ impl<T: core::Flow> Recorder<T> {
         Direction::from(&self.subscribers)
     }
 
+    // TODO: Consider removing
     fn send_flow(&mut self, direction: Direction<ProviderProtocol>) {
         let description = Description::clone(&self.description);
         let response = ProviderToServer::Flow { description };

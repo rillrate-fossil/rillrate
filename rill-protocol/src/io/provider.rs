@@ -341,10 +341,14 @@ impl From<&str> for StreamType {
     }
 }
 
+// TODO: Consider removing and use `domain-scope` descriptions:
+// - for packs
+// - for internal server things
+// - for server ui controls
+// - etc.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Description {
     pub path: Path,
-    pub info: String,
     pub stream_type: StreamType,
 }
 

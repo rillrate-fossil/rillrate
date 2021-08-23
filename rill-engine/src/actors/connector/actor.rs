@@ -81,7 +81,6 @@ impl RillConnector {
         let provider_type = config.provider_type();
         let description = Description {
             path: entry_id.into(),
-            info: "".into(),
             stream_type: provider_type,
         };
         //let paths = PATHS.root();

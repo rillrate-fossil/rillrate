@@ -163,12 +163,7 @@ impl<T: core::Flow> Tracer<T> {
             control_rx: Some(control_rx),
         };
         let stream_type = T::stream_type();
-        let info = format!("{} - {}", path, stream_type);
-        let description = Description {
-            path,
-            info,
-            stream_type,
-        };
+        let description = Description { path, stream_type };
         log::trace!("Creating Tracer with path: {}", description.path);
         let description = Arc::new(description);
         let this = Tracer {
