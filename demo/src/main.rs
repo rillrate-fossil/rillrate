@@ -143,13 +143,13 @@ pub async fn main() -> Result<(), Error> {
     let gauge_1 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"],
         Default::default(),
-        GaugeOpts::default().min(0.0).max(FIRST_LIMIT),
+        GaugeOpts::default().min(0.0).max(FIRST_LIMIT as f64),
     );
 
     let gauge_2 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"],
         Default::default(),
-        GaugeOpts::default().min(0.0).max(SECOND_LIMIT),
+        GaugeOpts::default().min(0.0).max(SECOND_LIMIT as f64),
     );
 
     let pulse_1 = Pulse::new(

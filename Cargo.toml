@@ -4,5 +4,5 @@ members = [
     "rate-*",
     "rill-*",
     "rrpack-*",
-    #"demo",
+    "demo",
 ]

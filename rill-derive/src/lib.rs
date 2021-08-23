@@ -1,8 +1,9 @@
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use quote::quote;
 use syn::parse::Error;
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, DeriveInput, Field};
+use syn::{parse_macro_input, DeriveInput, Field, Ident};
 
 #[proc_macro_derive(TracerOpts)]
 pub fn tracer_opts(input: TokenStream) -> TokenStream {
@@ -30,8 +31,15 @@ fn impl_tracer_opts(ast: &syn::DeriveInput) -> Result<TokenStream, Error> {
                         Error::new(ast.span(), "TracerOpts supports optional fields only")
                     })?;
                     methods.push(quote! {
-                        fn #ident(&mut self, value: #ty) -> &mut Self {
-                            self.#ident = Some(value);
+                        pub fn #ident(mut self, value: impl Into<#ty>) -> Self {
+                            self.#ident = Some(value.into());
+                            self
+                        }
+                    });
+                    let set_ident = Ident::new(&format!("set_{}", ident), Span::call_site());
+                    methods.push(quote! {
+                        pub fn #set_ident(&mut self, value: impl Into<#ty>) -> &mut Self {
+                            self.#ident = Some(value.into());
                             self
                         }
                     });

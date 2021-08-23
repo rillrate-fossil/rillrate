@@ -3,9 +3,10 @@ use crate::auto_path::AutoPath;
 use crate::manifest::BindedTracer;
 use crate::range::{Bound, Range};
 use derive_more::{Deref, DerefMut};
+use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
 
-#[derive(Default)]
+#[derive(TracerOpts, Default)]
 pub struct GaugeOpts {
     pub min: Option<f64>,
     pub lower: Option<bool>,
