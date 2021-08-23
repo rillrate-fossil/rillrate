@@ -125,17 +125,17 @@ pub async fn main() -> Result<(), Error> {
     let counter_1 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"],
         Default::default(),
-        CounterSpec::default(),
+        CounterOpts::default(),
     );
     let counter_2 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"],
         Default::default(),
-        CounterSpec::default(),
+        CounterOpts::default(),
     );
     let counter_3 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"],
         Default::default(),
-        CounterSpec::default(),
+        CounterOpts::default(),
     );
 
     let gauge_1 = Gauge::new(

@@ -6,7 +6,7 @@ pub use board::{Board, BoardOpts};
 
 pub mod counter;
 #[cfg(feature = "engine")]
-pub use counter::{Counter, CounterSpec};
+pub use counter::{Counter, CounterOpts};
 
 pub mod gauge;
 #[cfg(feature = "engine")]
