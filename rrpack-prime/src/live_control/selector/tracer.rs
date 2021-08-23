@@ -10,8 +10,8 @@ pub struct Selector {
 }
 
 impl Selector {
-    pub fn new(auto_path: impl Into<AutoPath>, spec: SelectorSpec) -> Self {
-        let tracer = BindedTracer::new(auto_path, FlowMode::Realtime, spec);
+    pub fn new(auto_path: impl Into<AutoPath>, spec: impl Into<SelectorSpec>) -> Self {
+        let tracer = BindedTracer::new(auto_path.into(), FlowMode::Realtime, spec.into());
         Self { tracer }
     }
 

@@ -26,12 +26,12 @@ pub async fn main() -> Result<(), Error> {
     let _pulse_empty = Pulse::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_1, "pulse-empty"],
         Default::default(),
-        Default::default(),
+        PulseSpec::default(),
     );
     let long_board = Board::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"],
         Default::default(),
-        Default::default(),
+        BoardSpec::default(),
     );
     long_board.set(
         "Very Long Long Long Long Long Long Long Key",
@@ -127,17 +127,17 @@ pub async fn main() -> Result<(), Error> {
     let counter_1 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-1"],
         Default::default(),
-        Default::default(),
+        CounterSpec::default(),
     );
     let counter_2 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-2"],
         Default::default(),
-        Default::default(),
+        CounterSpec::default(),
     );
     let counter_3 = Counter::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "counter-3"],
         Default::default(),
-        Default::default(),
+        CounterSpec::default(),
     );
 
     let gauge_1 = Gauge::new(
@@ -155,12 +155,12 @@ pub async fn main() -> Result<(), Error> {
     let pulse_1 = Pulse::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"],
         Default::default(),
-        Default::default(),
+        PulseSpec::default(),
     );
     let board_1 = Board::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"],
         Default::default(),
-        Default::default(),
+        BoardSpec::default(),
     );
     let histogram_1 = Histogram::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"],
@@ -172,22 +172,10 @@ pub async fn main() -> Result<(), Error> {
     histogram_1.add(120.0);
     histogram_1.add(11.0);
 
-    // TODO: Consider:
-    // ```
-    // let table = Table::builder()
-    //     .col(...)
-    //     .col(...)
-    //     .build("path.to.flow", weight, mode);
-    // ```
-
     // TABLE
     let my_table = Table::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_3, "table-1"],
         Default::default(),
-        // TODO: Use builder here:
-        // ```
-        // TableSpec::builder().col(0, "Thread).col(1, "State).build();
-        // ```
         TableSpec {
             columns: vec![(Col(0), "Thread".into()), (Col(1), "State".into())],
         },

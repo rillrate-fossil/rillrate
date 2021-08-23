@@ -10,8 +10,8 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: TableSpec) -> Self {
-        let tracer = BindedTracer::new(auto_path, mode, spec);
+    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: impl Into<TableSpec>) -> Self {
+        let tracer = BindedTracer::new(auto_path.into(), mode, spec.into());
         Self { tracer }
     }
 

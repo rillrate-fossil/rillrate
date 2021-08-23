@@ -10,8 +10,8 @@ pub struct Click {
 }
 
 impl Click {
-    pub fn new(auto_path: impl Into<AutoPath>, spec: ClickSpec) -> Self {
-        let tracer = BindedTracer::new(auto_path, FlowMode::Realtime, spec);
+    pub fn new(auto_path: impl Into<AutoPath>, spec: impl Into<ClickSpec>) -> Self {
+        let tracer = BindedTracer::new(auto_path.into(), FlowMode::Realtime, spec.into());
         Self { tracer }
     }
 

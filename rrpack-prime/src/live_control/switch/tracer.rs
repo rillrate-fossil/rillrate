@@ -10,8 +10,8 @@ pub struct Switch {
 }
 
 impl Switch {
-    pub fn new(auto_path: impl Into<AutoPath>, spec: SwitchSpec) -> Self {
-        let tracer = BindedTracer::new(auto_path, FlowMode::Realtime, spec);
+    pub fn new(auto_path: impl Into<AutoPath>, spec: impl Into<SwitchSpec>) -> Self {
+        let tracer = BindedTracer::new(auto_path.into(), FlowMode::Realtime, spec.into());
         Self { tracer }
     }
 

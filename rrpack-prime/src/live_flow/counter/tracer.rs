@@ -10,8 +10,12 @@ pub struct Counter {
 }
 
 impl Counter {
-    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: CounterSpec) -> Self {
-        let tracer = BindedTracer::new(auto_path, mode, spec);
+    pub fn new(
+        auto_path: impl Into<AutoPath>,
+        mode: FlowMode,
+        spec: impl Into<CounterSpec>,
+    ) -> Self {
+        let tracer = BindedTracer::new(auto_path.into(), mode, spec.into());
         Self { tracer }
     }
 

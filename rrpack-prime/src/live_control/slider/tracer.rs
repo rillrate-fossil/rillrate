@@ -10,8 +10,8 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn new(auto_path: impl Into<AutoPath>, spec: SliderSpec) -> Self {
-        let tracer = BindedTracer::new(auto_path, FlowMode::Realtime, spec);
+    pub fn new(auto_path: impl Into<AutoPath>, spec: impl Into<SliderSpec>) -> Self {
+        let tracer = BindedTracer::new(auto_path.into(), FlowMode::Realtime, spec.into());
         Self { tracer }
     }
 

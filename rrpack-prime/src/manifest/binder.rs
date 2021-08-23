@@ -20,26 +20,15 @@ pub struct BindedTracer<T: core::Flow> {
 }
 
 impl<T: core::Flow> BindedTracer<T> {
-    pub fn new<S>(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: S) -> Self
+    pub fn new<S>(auto_path: AutoPath, mode: FlowMode, spec: S) -> Self
     where
         S: Into<T>,
     {
-        let path = auto_path.into();
         let state = spec.into();
-        let tracer = Tracer::new(state, path.into(), mode);
+        let tracer = Tracer::new(state, auto_path.into(), mode);
         let binder = Binder::new(&tracer);
         Self { tracer, binder }
     }
-
-    /*
-    pub fn new(tracer: Tracer<T>) -> Self {
-        let binder = Binder::new(&tracer);
-        Self {
-            tracer,
-            _binder: binder,
-        }
-    }
-    */
 }
 
 /// `Binder` wraps a tracer to automatically track it in the global `DescriptionFlow`.

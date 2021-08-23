@@ -11,8 +11,8 @@ pub struct Pulse {
 }
 
 impl Pulse {
-    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: PulseSpec) -> Self {
-        let tracer = BindedTracer::new(auto_path, mode, spec);
+    pub fn new(auto_path: impl Into<AutoPath>, mode: FlowMode, spec: impl Into<PulseSpec>) -> Self {
+        let tracer = BindedTracer::new(auto_path.into(), mode, spec.into());
         Self { tracer }
     }
 
