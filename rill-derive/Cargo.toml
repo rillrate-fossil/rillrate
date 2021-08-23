@@ -1,0 +1,20 @@
+[package]
+name = "rill-derive"
+version = "0.37.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+repository = "https://github.com/rillrate/rillrate"
+homepage = "https://github.com/rillrate/rillrate"
+documentation = "https://docs.rs/rill-derive/"
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["logging"]
+categories = ["development-tools::debugging"]
+description = "Derive macro for the RillRate."
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.9"
+syn = "1.0.75"
