@@ -2,7 +2,17 @@ use super::state::*;
 use crate::auto_path::AutoPath;
 use crate::manifest::BindedTracer;
 use derive_more::{Deref, DerefMut};
+use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
+
+#[derive(TracerOpts, Default)]
+pub struct BoardOpts {}
+
+impl From<BoardOpts> for BoardSpec {
+    fn from(_opts: BoardOpts) -> Self {
+        Self {}
+    }
+}
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Board {

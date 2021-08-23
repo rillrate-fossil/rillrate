@@ -31,7 +31,7 @@ pub async fn main() -> Result<(), Error> {
     let long_board = Board::new(
         [PACKAGE_1, DASHBOARD_I, GROUP_2, "long-board"],
         Default::default(),
-        BoardSpec::default(),
+        BoardOpts::default(),
     );
     long_board.set(
         "Very Long Long Long Long Long Long Long Key",
@@ -158,7 +158,7 @@ pub async fn main() -> Result<(), Error> {
     let board_1 = Board::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "board-1"],
         Default::default(),
-        BoardSpec::default(),
+        BoardOpts::default(),
     );
     let histogram_1 = Histogram::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_2, "histogram-1"],

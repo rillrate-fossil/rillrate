@@ -2,7 +2,7 @@
 
 pub mod board;
 #[cfg(feature = "engine")]
-pub use board::{Board, BoardSpec};
+pub use board::{Board, BoardOpts};
 
 pub mod counter;
 #[cfg(feature = "engine")]
