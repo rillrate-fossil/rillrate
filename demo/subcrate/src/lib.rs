@@ -4,7 +4,7 @@ use tokio::time::{sleep, Duration};
 
 pub async fn random_pulse() {
     let pulse = Pulse::new(
-        "subcrate.dashboard.pulse",
+        "subcrate.dashboard.all.pulse",
         Default::default(),
         PulseOpts::default().min(0).max(100),
     );

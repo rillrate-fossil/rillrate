@@ -3,11 +3,6 @@ use rillrate::table::{Col, Row};
 use rillrate::*;
 use tokio::time::{sleep, Duration};
 
-const PACKAGE_1: &str = "package-1";
-const DASHBOARD_1: &str = "dashboard-1";
-const DASHBOARD_2: &str = "dashboard-2";
-const DASHBOARD_I: &str = "issues";
-
 const FIRST_LIMIT: usize = 10;
 const SECOND_LIMIT: usize = 50;
 
@@ -19,12 +14,12 @@ pub async fn main() -> Result<(), Error> {
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
     let _pulse_empty = Pulse::new(
-        [PACKAGE_1, DASHBOARD_I, "pulse-empty"],
+        "app.issues.all.pulse-empty",
         Default::default(),
         PulseOpts::default(),
     );
     let long_board = Board::new(
-        [PACKAGE_1, DASHBOARD_I, "long-board"],
+        "app.issues.all.long-board",
         Default::default(),
         BoardOpts::default(),
     );
@@ -54,7 +49,7 @@ pub async fn main() -> Result<(), Error> {
     );
 
     let click = Click::new(
-        [PACKAGE_1, DASHBOARD_1, "click-1"],
+        "app.dashboard-1.controls.click-1",
         ClickOpts::default().label("Click Me!"),
     );
     let this = click.clone();
@@ -67,7 +62,7 @@ pub async fn main() -> Result<(), Error> {
     });
 
     let switch = Switch::new(
-        [PACKAGE_1, DASHBOARD_1, "switch-1"],
+        "app.dashboard-1.controls.switch-1",
         SwitchOpts::default().label("Switch Me!"),
     );
     let this = switch.clone();
@@ -80,7 +75,7 @@ pub async fn main() -> Result<(), Error> {
     });
 
     let slider = Slider::new(
-        [PACKAGE_1, DASHBOARD_1, "slider-1"],
+        "app.dashboard-1.controls.slider-1",
         SliderOpts::default()
             .label("Slide Me!")
             .min(100)
@@ -97,7 +92,7 @@ pub async fn main() -> Result<(), Error> {
     });
 
     let selector = Selector::new(
-        [PACKAGE_1, DASHBOARD_1, "selector-1"],
+        "app.dashboard-1.controls.selector-1",
         SelectorOpts::default()
             .label("Select Me!")
             .options(["One", "Two", "Three"]),
@@ -114,45 +109,45 @@ pub async fn main() -> Result<(), Error> {
     // === The main part ===
     // TODO: Improve that busy paths declarations...
     let counter_1 = Counter::new(
-        [PACKAGE_1, DASHBOARD_1, "counter-1"],
+        "app.dashboard-1.counters.counter-1",
         Default::default(),
         CounterOpts::default(),
     );
     let counter_2 = Counter::new(
-        [PACKAGE_1, DASHBOARD_1, "counter-2"],
+        "app.dashboard-1.counters.counter-2",
         Default::default(),
         CounterOpts::default(),
     );
     let counter_3 = Counter::new(
-        [PACKAGE_1, DASHBOARD_1, "counter-3"],
+        "app.dashboard-1.counters.counter-3",
         Default::default(),
         CounterOpts::default(),
     );
 
     let gauge_1 = Gauge::new(
-        [PACKAGE_1, DASHBOARD_1, "gauge-1"],
+        "app.dashboard-1.gauges.gauge-1",
         Default::default(),
         GaugeOpts::default().min(0.0).max(FIRST_LIMIT as f64),
     );
 
     let gauge_2 = Gauge::new(
-        [PACKAGE_1, DASHBOARD_1, "gauge-2"],
+        "app.dashboard-1.gauges.gauge-2",
         Default::default(),
         GaugeOpts::default().min(0.0).max(SECOND_LIMIT as f64),
     );
 
     let pulse_1 = Pulse::new(
-        [PACKAGE_1, DASHBOARD_2, "pulse-1"],
+        "app.dashboard-1.pulses.pulse-1",
         Default::default(),
         PulseOpts::default(),
     );
     let board_1 = Board::new(
-        [PACKAGE_1, DASHBOARD_2, "board-1"],
+        "app.dashboard-1.others.board-1",
         Default::default(),
         BoardOpts::default(),
     );
     let histogram_1 = Histogram::new(
-        [PACKAGE_1, DASHBOARD_2, "histogram-1"],
+        "app.dashboard-1.others.histogram-1",
         Default::default(),
         HistogramOpts::default().levels([10, 20, 100, 500]),
     );
@@ -161,7 +156,7 @@ pub async fn main() -> Result<(), Error> {
 
     // TABLE
     let my_table = Table::new(
-        [PACKAGE_1, DASHBOARD_2, "table-1"],
+        "app.dashboard-1.z-last.table-1",
         Default::default(),
         TableOpts::default().columns([(0, "Thread".into()), (1, "State".into())]),
     );
@@ -195,7 +190,7 @@ pub async fn main() -> Result<(), Error> {
         }
         board_1.set("Loop", "Second");
         let pulse_2 = Pulse::new(
-            [PACKAGE_1, DASHBOARD_2, "pulse-2"],
+            "app.dashboard-1.pulses.pulse-2",
             Default::default(),
             PulseOpts::default().min(0.0).max(20.0).higher(true),
         );

@@ -1,11 +1,12 @@
 use rill_protocol::io::provider::{EntryId, Path};
 
-const SIZE: usize = 3;
+const SIZE: usize = 4;
 
 /// `Live` bacause of `Live` product approach.
 pub struct AutoPath {
     pub package: EntryId,
     pub dashboard: EntryId,
+    pub group: EntryId,
     pub name: EntryId,
 }
 
@@ -14,7 +15,8 @@ impl AutoPath {
         let entry = EntryId::from("unassigned");
         Self {
             package: entry.clone(),
-            dashboard: entry,
+            dashboard: entry.clone(),
+            group: entry,
             name,
         }
     }
@@ -22,7 +24,7 @@ impl AutoPath {
 
 impl From<AutoPath> for Path {
     fn from(this: AutoPath) -> Self {
-        vec![this.package, this.dashboard, this.name].into()
+        vec![this.package, this.dashboard, this.group, this.name].into()
     }
 }
 
@@ -31,7 +33,8 @@ impl From<[&str; SIZE]> for AutoPath {
         Self {
             package: array[0].into(),
             dashboard: array[1].into(),
-            name: array[2].into(),
+            group: array[2].into(),
+            name: array[3].into(),
         }
     }
 }
@@ -52,6 +55,7 @@ impl From<&str> for AutoPath {
                 Self {
                     package: items.next().unwrap(),
                     dashboard: items.next().unwrap(),
+                    group: items.next().unwrap(),
                     name: items.next().unwrap(),
                 }
             }
