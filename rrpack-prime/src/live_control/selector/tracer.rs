@@ -12,6 +12,7 @@ pub struct SelectorOpts {
 }
 
 impl SelectorOpts {
+    /*
     pub fn option(mut self, opt: impl ToString) -> Self {
         self.options.push(opt.to_string());
         self
@@ -24,6 +25,7 @@ impl SelectorOpts {
         self.options.extend(opts.into_iter().map(String::from));
         self
     }
+    */
 }
 
 impl From<SelectorOpts> for SelectorSpec {

@@ -27,24 +27,49 @@ fn impl_tracer_opts(ast: &syn::DeriveInput) -> Result<TokenStream, Error> {
                             "TracerOpts is not supported fields of tuple structs",
                         )
                     })?;
-                    if let Some(ty) = extract_opt_type(field) {
-                        methods.push(quote! {
-                            pub fn #ident(mut self, value: impl Into<#ty>) -> Self {
-                                self.#ident = Some(value.into());
-                                self
-                            }
-                        });
-                        let set_ident = Ident::new(&format!("set_{}", ident), Span::call_site());
-                        methods.push(quote! {
-                            pub fn #set_ident(&mut self, value: impl Into<#ty>) -> &mut Self {
-                                self.#ident = Some(value.into());
-                                self
-                            }
-                        });
-                    } else {
-                        // Not optional fields skipped, because they can be
-                        // collections and they have to be handeled separately.
-                        // For example, by providing methods link `add_item`.
+                    match extract_opt_type(field) {
+                        Some((cont, ty)) if cont == "Option" => {
+                            methods.push(quote! {
+                                pub fn #ident(mut self, value: impl Into<#ty>) -> Self {
+                                    self.#ident = Some(value.into());
+                                    self
+                                }
+                            });
+                            let set_ident =
+                                Ident::new(&format!("set_{}", ident), Span::call_site());
+                            methods.push(quote! {
+                                pub fn #set_ident(&mut self, value: impl Into<#ty>) -> &mut Self {
+                                    self.#ident = Some(value.into());
+                                    self
+                                }
+                            });
+                        }
+                        Some((cont, ty)) if cont == "Vec" => {
+                            methods.push(quote! {
+                                pub fn #ident<T>(mut self, values: impl IntoIterator<Item = T>) -> Self
+                                where
+                                    #ty: From<T>,
+                                {
+                                    self.#ident.extend(values.into_iter().map(#ty::from));
+                                    self
+                                }
+                            });
+                            let single = ident.to_string();
+                            let mut chars = single.chars();
+                            chars.next_back();
+                            let single_ident = Ident::new(chars.as_str(), Span::call_site());
+                            methods.push(quote! {
+                                pub fn #single_ident(mut self, value: impl Into<#ty>) -> Self {
+                                    self.#ident.push(value.into());
+                                    self
+                                }
+                            });
+                        }
+                        _ => {
+                            // Not optional fields skipped, because they can be
+                            // collections and they have to be handeled separately.
+                            // For example, by providing methods link `add_item`.
+                        }
                     }
                 }
                 quote! {
@@ -82,7 +107,7 @@ fn impl_tracer_opts(ast: &syn::DeriveInput) -> Result<TokenStream, Error> {
     Ok(data.into())
 }
 
-fn extract_opt_type(field: &Field) -> Option<&syn::Type> {
+fn extract_opt_type(field: &Field) -> Option<(&syn::Ident, &syn::Type)> {
     let path = if let syn::Type::Path(type_path) = &field.ty {
         if type_path.qself.is_some() {
             return None;
@@ -93,9 +118,11 @@ fn extract_opt_type(field: &Field) -> Option<&syn::Type> {
         return None;
     };
     let segment = path.segments.last()?;
+    /*
     if segment.ident != "Option" {
         return None;
     }
+    */
     let generic_params =
         if let syn::PathArguments::AngleBracketed(generic_params) = &segment.arguments {
             generic_params
@@ -103,7 +130,7 @@ fn extract_opt_type(field: &Field) -> Option<&syn::Type> {
             return None;
         };
     if let syn::GenericArgument::Type(ty) = generic_params.args.first()? {
-        Some(ty)
+        Some((&segment.ident, ty))
     } else {
         None
     }
