@@ -60,9 +60,7 @@ pub async fn main() -> Result<(), Error> {
 
     let click = Click::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "click-1"],
-        ClickSpec {
-            label: "Click Me!".into(),
-        },
+        ClickOpts::default().label("Click Me!"),
     );
     let this = click.clone();
     click.sync_callback(move |envelope| {

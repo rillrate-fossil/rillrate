@@ -1,6 +1,6 @@
 pub mod click;
 #[cfg(feature = "engine")]
-pub use click::{Click, ClickSpec};
+pub use click::{Click, ClickOpts};
 
 pub mod selector;
 #[cfg(feature = "engine")]
