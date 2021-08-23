@@ -102,10 +102,9 @@ pub async fn main() -> Result<(), Error> {
 
     let selector = Selector::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "selector-1"],
-        SelectorSpec {
-            label: "Select Me!".into(),
-            options: vec!["One".into(), "Two".into(), "Three".into()],
-        },
+        SelectorOpts::default()
+            .label("Select Me!")
+            .options(["One", "Two", "Three"]),
     );
     let this = selector.clone();
     selector.sync_callback(move |envelope| {

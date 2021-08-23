@@ -4,7 +4,7 @@ pub use click::{Click, ClickOpts};
 
 pub mod selector;
 #[cfg(feature = "engine")]
-pub use selector::{Selector, SelectorSpec};
+pub use selector::{Selector, SelectorOpts};
 
 pub mod slider;
 #[cfg(feature = "engine")]
