@@ -12,4 +12,4 @@ pub use slider::{Slider, SliderSpec};
 
 pub mod switch;
 #[cfg(feature = "engine")]
-pub use switch::{Switch, SwitchSpec};
+pub use switch::{Switch, SwitchOpts};

@@ -72,9 +72,7 @@ pub async fn main() -> Result<(), Error> {
 
     let switch = Switch::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "switch-1"],
-        SwitchSpec {
-            label: "Switch Me!".into(),
-        },
+        SwitchOpts::default().label("Switch Me!"),
     );
     let this = switch.clone();
     switch.sync_callback(move |envelope| {

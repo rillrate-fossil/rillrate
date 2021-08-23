@@ -2,7 +2,21 @@ use super::state::*;
 use crate::auto_path::AutoPath;
 use crate::manifest::BindedTracer;
 use derive_more::{Deref, DerefMut};
+use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
+
+#[derive(TracerOpts, Default)]
+pub struct SwitchOpts {
+    pub label: Option<String>,
+}
+
+impl From<SwitchOpts> for SwitchSpec {
+    fn from(opts: SwitchOpts) -> Self {
+        Self {
+            label: opts.label.unwrap_or_else(|| "Switch".into()),
+        }
+    }
+}
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Switch {
