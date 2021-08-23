@@ -22,4 +22,4 @@ pub use pulse::{Pulse, PulseOpts};
 
 pub mod table;
 #[cfg(feature = "engine")]
-pub use table::{Table, TableSpec};
+pub use table::{Table, TableOpts};

@@ -167,9 +167,7 @@ pub async fn main() -> Result<(), Error> {
     let my_table = Table::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_3, "table-1"],
         Default::default(),
-        TableSpec {
-            columns: vec![(Col(0), "Thread".into()), (Col(1), "State".into())],
-        },
+        TableOpts::default().columns([(0, "Thread".into()), (1, "State".into())]),
     );
     for i in 1..=5 {
         let tbl = my_table.clone();

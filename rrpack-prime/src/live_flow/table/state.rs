@@ -8,7 +8,8 @@ use std::fmt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableSpec {
-    pub columns: Vec<(Col, String)>,
+    #[serde(with = "vectorize")]
+    pub columns: BTreeMap<Col, ColRecord>,
 }
 
 /// Id of a column in a table.
@@ -53,10 +54,7 @@ impl TryFrom<usize> for Row {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableState {
-    // IMMUTABLE:
-    #[serde(with = "vectorize")]
-    pub columns: BTreeMap<Col, ColRecord>,
-
+    pub spec: TableSpec,
     // MUTABLE:
     #[serde(with = "vectorize")]
     pub rows: BTreeMap<Row, RowRecord>,
@@ -64,16 +62,8 @@ pub struct TableState {
 
 impl From<TableSpec> for TableState {
     fn from(spec: TableSpec) -> Self {
-        let columns = spec
-            .columns
-            .into_iter()
-            .map(|(col_id, title)| {
-                let record = ColRecord { title };
-                (col_id, record)
-            })
-            .collect();
         Self {
-            columns,
+            spec,
             rows: BTreeMap::new(),
         }
     }
@@ -100,7 +90,7 @@ impl Flow for TableState {
             }
             TableEvent::SetCell { row, col, value } => {
                 if let Some(record) = self.rows.get_mut(&row) {
-                    if self.columns.contains_key(&col) {
+                    if self.spec.columns.contains_key(&col) {
                         record.cols.insert(col, value);
                     }
                 }

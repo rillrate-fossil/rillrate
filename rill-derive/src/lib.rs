@@ -50,7 +50,7 @@ fn impl_tracer_opts(ast: &syn::DeriveInput) -> Result<TokenStream, Error> {
                                 where
                                     #ty: From<T>,
                                 {
-                                    self.#ident.extend(values.into_iter().map(#ty::from));
+                                    self.#ident.extend(values.into_iter().map(<#ty>::from));
                                     self
                                 }
                             });

@@ -2,7 +2,27 @@ use super::state::*;
 use crate::auto_path::AutoPath;
 use crate::manifest::BindedTracer;
 use derive_more::{Deref, DerefMut};
+use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
+
+#[derive(TracerOpts, Default)]
+pub struct TableOpts {
+    pub columns: Vec<(u64, String)>,
+}
+
+impl From<TableOpts> for TableSpec {
+    fn from(opts: TableOpts) -> Self {
+        let columns = opts
+            .columns
+            .into_iter()
+            .map(|(col_id, title)| {
+                let record = ColRecord { title };
+                (Col(col_id), record)
+            })
+            .collect();
+        Self { columns }
+    }
+}
 
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct Table {
