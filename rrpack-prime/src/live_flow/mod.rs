@@ -10,7 +10,7 @@ pub use counter::{Counter, CounterSpec};
 
 pub mod gauge;
 #[cfg(feature = "engine")]
-pub use gauge::{Gauge, GaugeSpec};
+pub use gauge::{Gauge, GaugeOpts};
 
 pub mod histogram;
 #[cfg(feature = "engine")]

@@ -1,26 +1,7 @@
-use crate::range::{Bound, Range};
+use crate::range::Range;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
 use serde::{Deserialize, Serialize};
-
-// TODO: Move builder to the separate module?
-pub struct GaugeOpts {
-    pub min: Option<f64>,
-    pub lower: Option<bool>,
-    pub max: Option<f64>,
-    pub higher: Option<bool>,
-}
-
-impl From<GaugeOpts> for GaugeSpec {
-    fn from(opts: GaugeOpts) -> Self {
-        Self {
-            range: Range {
-                min: Bound::from_options(opts.min, opts.lower),
-                max: Bound::from_options(opts.max, opts.higher),
-            },
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GaugeSpec {

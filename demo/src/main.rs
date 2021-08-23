@@ -139,22 +139,19 @@ pub async fn main() -> Result<(), Error> {
         Default::default(),
         Default::default(),
     );
-    let gauge_1_spec = GaugeSpec {
-        range: Range::new(0.0, FIRST_LIMIT as f64),
-    };
+
     let gauge_1 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-1"],
         Default::default(),
-        gauge_1_spec,
+        GaugeOpts::default().min(0.0).max(FIRST_LIMIT),
     );
-    let gauge_2_spec = GaugeSpec {
-        range: Range::new(0.0, SECOND_LIMIT as f64),
-    };
+
     let gauge_2 = Gauge::new(
         [PACKAGE_1, DASHBOARD_1, GROUP_1, "gauge-2"],
         Default::default(),
-        gauge_2_spec,
+        GaugeOpts::default().min(0.0).max(SECOND_LIMIT),
     );
+
     let pulse_1 = Pulse::new(
         [PACKAGE_1, DASHBOARD_2, GROUP_1, "pulse-1"],
         Default::default(),
