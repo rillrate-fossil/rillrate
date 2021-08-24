@@ -15,7 +15,15 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Publishing crates
-        uses: katyo/publish-crates@v1
+      - name: Install cargo-workspaces
+        uses: actions-rs/install@v0.1
         with:
-          registry-token: ${{ secrets.CARGO_TOKEN }}
+          crate: cargo-workspaces
+
+
+      - name: Release
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
+        shell: bash
+        run: |
+          cargo workspaces publish --allow-branch trunk
