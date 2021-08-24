@@ -14,7 +14,9 @@ use thiserror::Error;
 pub type ProviderReqId = DirectId<ProviderProtocol>;
 
 /// An identifier in a hierarchy of the node/metadata/stream.
-#[derive(Serialize, Deserialize, FromStr, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Serialize, Deserialize, FromStr, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default,
+)]
 pub struct EntryId(String);
 
 impl AsRef<str> for EntryId {
