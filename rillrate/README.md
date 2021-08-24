@@ -53,10 +53,7 @@ When you tracer is spawned use it to put data to it:
 tracer.push(value);
 ```
 
-### License
-
-**RillRate** has an open-source core that means we released our code under
-open-source licenses.
+### Frameworks
 
 We use the following frameworks to build our product:
 
@@ -65,8 +62,20 @@ We use the following frameworks to build our product:
 
 The original idea was inspired by [Nitrogen][nitrogen] Web Framework (Erlang).
 
+<hr>
+
+### License
+
+**RillRate** released the following licenses:
+
+- **Backend** and core parts: _Apache-2.0_
+- **Frontend and packs** with UI parts and tracers: _BUSL-1.1_
+- **Tools**, demos, examples: _MIT_
+
+The project is the Full-stack Rust solution. UI sources (web-dashboard made with Rust) available for [sponsors][sponsor].
+
 [reddit]: https://reddit.com/r/rillrate/
-[reddit]: https://twitter.com/rillrate/
+[twitter]: https://twitter.com/rillrate/
 [sponsor]: https://github.com/sponsors/rillrate
 [nitrogen]: https://nitrogenproject.com/
 [yew]: https://github.com/yewstack/yew
