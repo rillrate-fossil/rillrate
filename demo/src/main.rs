@@ -49,7 +49,7 @@ pub async fn main() -> Result<(), Error> {
     );
 
     let click = Click::new(
-        "app.dashboard-1.controls.click-1",
+        "app.dashboard-1.controls-2.click-1",
         ClickOpts::default().label("Click Me!"),
     );
     let this = click.clone();
@@ -62,7 +62,7 @@ pub async fn main() -> Result<(), Error> {
     });
 
     let switch = Switch::new(
-        "app.dashboard-1.controls.switch-1",
+        "app.dashboard-1.controls-2.switch-1",
         SwitchOpts::default().label("Switch Me!"),
     );
     let this = switch.clone();
