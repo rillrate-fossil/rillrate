@@ -19,7 +19,7 @@ ordered-float = "2.7.0"
 rill-derive = { version = "0.37.0", path = "../rill-derive" }
 rill-engine = { version = "0.37.0", path = "../rill-engine", optional = true }
 rill-protocol = { version = "0.37.0", path = "../rill-protocol" }
-serde = "1.0.127"
+serde = "1.0.129"
 vectorize = "0.2.0"
 
 [features]
