@@ -53,6 +53,20 @@ When you tracer is spawned use it to put data to it:
 tracer.push(value);
 ```
 
+### Packs
+
+RillRate provides packs of components for different purposes.
+
+Released:
+
+- **Prime** - basic elements
+
+In progress:
+
+- **APM** - components for performance monitoring
+- **Charts** - all basic charts
+- **Trade** - live components for trading (order books, charts, etc.)
+
 ### Frameworks
 
 We use the following frameworks to build our product:
