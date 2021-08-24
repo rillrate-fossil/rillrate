@@ -1,6 +1,6 @@
 [package]
 name = "rate-core"
-version = "0.37.0"
+version = "0.38.0-rc.1"
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"
@@ -24,8 +24,8 @@ metacrate = "0.1.2"
 mime_guess = "2.0.3"
 once_cell = "1.8.0"
 reqwest = { version = "0.11.4", default-features = false, features = ["rustls-tls"] }
-rill-engine = { version = "0.37.0", path = "../rill-engine" }
-rill-protocol = { version = "0.37.0", path = "../rill-protocol" }
+rill-engine = { version = "0.38.0-rc.1", path = "../rill-engine" }
+rill-protocol = { version = "0.38.0-rc.1", path = "../rill-protocol" }
 serde = "1.0.129"
 strum = { version = "0.21.0", features = ["derive"] }
 tar = "0.4.37"
