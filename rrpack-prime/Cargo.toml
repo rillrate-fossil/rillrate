@@ -1,6 +1,6 @@
 [package]
 name = "rrpack-prime"
-version = "0.38.0-rc.1"
+version = "0.38.0-rc.2"
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"
@@ -16,9 +16,9 @@ derive_more = "0.99.16"
 log = "0.4.14"
 once_cell = "1.8.0"
 ordered-float = "2.7.0"
-rill-derive = { version = "0.38.0-rc.1", path = "../rill-derive" }
-rill-engine = { version = "0.38.0-rc.1", path = "../rill-engine", optional = true }
-rill-protocol = { version = "0.38.0-rc.1", path = "../rill-protocol" }
+rill-derive = { version = "0.38.0-rc.2", path = "../rill-derive" }
+rill-engine = { version = "0.38.0-rc.2", path = "../rill-engine", optional = true }
+rill-protocol = { version = "0.38.0-rc.2", path = "../rill-protocol" }
 serde = "1.0.129"
 vectorize = "0.2.0"
 
