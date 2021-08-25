@@ -184,6 +184,8 @@ pub async fn main() -> Result<(), Error> {
     );
     live_text.set("This is **markdown** text.");
 
+    let alert = Alert::new("app.dashboard-1.hidden.alert", AlertOpts::default());
+
     loop {
         board_1.set("Loop", "First");
         for x in 1..=FIRST_LIMIT {
@@ -211,6 +213,7 @@ pub async fn main() -> Result<(), Error> {
             pulse_2.push(x as f64);
             sleep(Duration::from_millis(500 - x as u64 * 10)).await;
         }
+        alert.notify("Both loops ended!");
         sleep(Duration::from_secs(1)).await;
     }
     //rillrate::uninstall()?;
