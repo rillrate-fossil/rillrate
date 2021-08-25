@@ -177,6 +177,13 @@ pub async fn main() -> Result<(), Error> {
 
     tokio::spawn(subcrate::random_pulse());
 
+    let live_text = LiveText::new(
+        "app.dashboard-1.a-first.live-text",
+        Default::default(),
+        LiveTextOpts::default(),
+    );
+    live_text.set("This is **markdown** text.");
+
     loop {
         board_1.set("Loop", "First");
         for x in 1..=FIRST_LIMIT {
