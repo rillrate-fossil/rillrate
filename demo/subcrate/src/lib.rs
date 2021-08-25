@@ -1,5 +1,5 @@
 use rand::Rng;
-use rillrate::*;
+use rillrate::prime::*;
 use tokio::time::{sleep, Duration};
 
 pub async fn random_pulse() {

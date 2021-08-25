@@ -1,6 +1,6 @@
 use anyhow::Error;
-use rillrate::table::{Col, Row};
-use rillrate::*;
+use rillrate::prime::table::{Col, Row};
+use rillrate::prime::*;
 use tokio::time::{sleep, Duration};
 
 const FIRST_LIMIT: usize = 10;
