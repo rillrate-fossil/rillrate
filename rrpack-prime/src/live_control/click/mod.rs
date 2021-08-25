@@ -1,3 +1,7 @@
+//! Ordinary button.
+//!
+//! <img src="https://docs.rillrate.com/images/packs/prime/controls/click.gif" height="120px" />
+
 pub mod state;
 pub use state::*;
 
