@@ -16,6 +16,10 @@ pub mod histogram;
 #[cfg(feature = "engine")]
 pub use histogram::{Histogram, HistogramOpts};
 
+pub mod live_text;
+#[cfg(feature = "engine")]
+pub use live_text::{LiveText, LiveTextOpts};
+
 pub mod pulse;
 #[cfg(feature = "engine")]
 pub use pulse::{Pulse, PulseOpts};

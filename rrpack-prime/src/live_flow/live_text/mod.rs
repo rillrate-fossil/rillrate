@@ -1,4 +1,4 @@
-//! Counter with levels (buckets).
+//! Live Markdown text.
 
 pub mod state;
 pub use state::*;
