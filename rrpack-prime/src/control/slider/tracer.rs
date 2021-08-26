@@ -35,8 +35,8 @@ impl Slider {
         Self { tracer }
     }
 
-    pub fn apply(&self, set_value: f64) {
-        let msg = SliderEvent { set_value };
+    pub fn apply(&self, set_value: impl Into<f64>) {
+        let msg = SliderEvent { set_value: set_value.into() };
         self.tracer.send(msg, None);
     }
 }
