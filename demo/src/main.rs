@@ -48,15 +48,20 @@ pub async fn main() -> Result<(), Error> {
         "Very::Long::Long::Long::Long::Long::Long::Long::Long::Long::Long::Value",
     );
 
+    let alert = Alert::new("app.dashboard-1.hidden.alert", AlertOpts::default());
+
     let click = Click::new(
         "app.dashboard-1.controls-2.click-1",
         ClickOpts::default().label("Click Me!"),
     );
     let this = click.clone();
+    let alert_cloned = alert.clone();
     click.sync_callback(move |envelope| {
         if let Some(action) = envelope.action {
             log::warn!("ACTION: {:?}", action);
             this.apply();
+            // TODO: Rename to `feed`
+            alert_cloned.notify("Instant alert!");
         }
         Ok(())
     });
@@ -182,8 +187,6 @@ pub async fn main() -> Result<(), Error> {
         Default::default(),
         LiveTextOpts::default(),
     );
-
-    let alert = Alert::new("app.dashboard-1.hidden.alert", AlertOpts::default());
 
     let mut inner_counter = 0;
     loop {
