@@ -182,11 +182,16 @@ pub async fn main() -> Result<(), Error> {
         Default::default(),
         LiveTextOpts::default(),
     );
-    live_text.set("This is **markdown** text.");
 
     let alert = Alert::new("app.dashboard-1.hidden.alert", AlertOpts::default());
 
+    let mut inner_counter = 0;
     loop {
+        inner_counter += 1;
+        live_text.set(format!(
+            "This is a **markdown** text. Iteration: {}.",
+            inner_counter
+        ));
         board_1.set("Loop", "First");
         for x in 1..=FIRST_LIMIT {
             gauge_1.set(x as f64);
