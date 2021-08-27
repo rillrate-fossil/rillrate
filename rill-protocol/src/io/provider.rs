@@ -15,7 +15,19 @@ pub type ProviderReqId = DirectId<ProviderProtocol>;
 
 /// An identifier in a hierarchy of the node/metadata/stream.
 #[derive(
-    Serialize, Deserialize, FromStr, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default,
+    Serialize,
+    Deserialize,
+    FromStr,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Default,
+    From,
+    Into,
 )]
 pub struct EntryId(String);
 
@@ -34,12 +46,6 @@ impl Borrow<str> for EntryId {
 impl From<&str> for EntryId {
     fn from(value: &str) -> Self {
         Self(value.to_string())
-    }
-}
-
-impl From<String> for EntryId {
-    fn from(value: String) -> Self {
-        Self(value)
     }
 }
 
