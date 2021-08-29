@@ -1,8 +1,21 @@
-# v0.38.0-dev
+# v0.39.0
+
+Improvements:
+
+- New `LiveText` tracer with **Markdown** rendering
+- New `Alert` tracer and rendering as popup notification
+- New layout based of `flex`
+- Improved layout for mobile devices
+
+# v0.38.0
 
 Improvements:
 
 - `Range` use `Bound` with `strict`, `loose` or `auto` limit
+- Prime Pack moved to the `prime` submodule
+- Add internal layers: Visual, Control, Transparent
+- Group controls in a separate panel
+- Add options to all tracers
 
 
 # v0.37.0
