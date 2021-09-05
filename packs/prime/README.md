@@ -20,5 +20,4 @@ The pack contains:
     - `Slider`
     - `Switch`
 
-We licensed it under "BUSL-1.1", because decided to release frontned parts as well.
-Having UI parts bring more flexibility to users.
+This part released under "BUSL-1.1".

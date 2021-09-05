@@ -1,15 +1,15 @@
 [package]
-name = "rrpack-prime"
+name = "rrpack-trade"
 version = "0.39.0"
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"
-documentation = "https://docs.rs/rrpack-prime/"
+documentation = "https://docs.rs/rrpack-trade/"
 license = "BUSL-1.1"
 readme = "README.md"
 keywords = ["logging"]
 categories = ["development-tools::debugging"]
-description = "RillRate Pack: Prime"
+description = "RillRate Pack: Trade"
 
 [dependencies]
 derive_more = "0.99.16"
