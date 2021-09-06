@@ -29,6 +29,17 @@ impl RillRate {
         Ok(RillRate { _rt: rt })
     }
 
+    /*
+    // TODO: Move to `ConfigWatcher` actor
+    async fn configure(&mut self) -> Result<(), Error> {
+        use crate::config::RillRateConfig;
+        use rate_config::ReadableConfig;
+
+        let config = RillRateConfig::read("rillrate.toml".into()).await?;
+        Ok(())
+    }
+    */
+
     /// Pin the engine globally. Not needed to keep the handle in the scope.
     pub fn pin(self) -> Result<(), Error> {
         let mut opt_handle = GLOBAL.lock().map_err(|err| Error::msg(err.to_string()))?;
