@@ -4,4 +4,5 @@ pub mod binder;
 pub use binder::BindedTracer;
 
 pub mod description;
+pub mod layouts;
 pub mod paths;

@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 impl PathsSpec {
     pub fn path() -> Path {
-        "rillrate.manifest.descriptions_list".parse().unwrap()
+        "rillrate.manifest.paths".parse().unwrap()
     }
 }
 

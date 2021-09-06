@@ -21,6 +21,7 @@ meio = "0.93.6"
 meio-connect = "0.93.6"
 metacrate = "0.1.2"
 once_cell = "1.8.0"
+rate-config = { version = "0.39.0", path = "../rate-config" }
 rate-core = { version = "0.39.0", path = "../rate-core" }
 rill-protocol = { version = "0.39.0", path = "../rill-protocol" }
 rrpack-prime = { version = "0.39.0", path = "../packs/prime" }
