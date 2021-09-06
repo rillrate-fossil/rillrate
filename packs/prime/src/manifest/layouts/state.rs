@@ -1,6 +1,6 @@
 use super::layout::Layout;
 use rill_protocol::flow::core::Flow;
-use rill_protocol::io::provider::{Path, EntryId, StreamType};
+use rill_protocol::io::provider::{EntryId, Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -49,11 +49,6 @@ impl Flow for LayoutsState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LayoutsEvent {
-    Add {
-        name: EntryId,
-        layout: Layout,
-    },
-    Remove {
-        name: EntryId,
-    },
+    Add { name: EntryId, layout: Layout },
+    Remove { name: EntryId },
 }
