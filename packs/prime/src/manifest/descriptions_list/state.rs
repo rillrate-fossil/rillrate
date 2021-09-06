@@ -4,32 +4,32 @@ use rill_protocol::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-impl DescriptionsListSpec {
+impl PathsSpec {
     pub fn path() -> Path {
         "rillrate.manifest.descriptions_list".parse().unwrap()
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DescriptionsListSpec;
+pub struct PathsSpec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DescriptionsListState {
+pub struct PathsState {
     #[serde(with = "vectorize")]
     pub records: BTreeMap<Path, PackFlowDescription>,
 }
 
-impl From<DescriptionsListSpec> for DescriptionsListState {
-    fn from(_spec: DescriptionsListSpec) -> Self {
+impl From<PathsSpec> for PathsState {
+    fn from(_spec: PathsSpec) -> Self {
         Self {
             records: BTreeMap::new(),
         }
     }
 }
 
-impl Flow for DescriptionsListState {
+impl Flow for PathsState {
     type Action = ();
-    type Event = DescriptionsListEvent;
+    type Event = PathsEvent;
 
     fn stream_type() -> StreamType {
         StreamType::from(module_path!())
@@ -37,10 +37,10 @@ impl Flow for DescriptionsListState {
 
     fn apply(&mut self, event: Self::Event) {
         match event {
-            DescriptionsListEvent::Add { path, description } => {
+            PathsEvent::Add { path, description } => {
                 self.records.insert(path, description);
             }
-            DescriptionsListEvent::Remove { path } => {
+            PathsEvent::Remove { path } => {
                 self.records.remove(&path);
             }
         }
@@ -48,7 +48,7 @@ impl Flow for DescriptionsListState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum DescriptionsListEvent {
+pub enum PathsEvent {
     Add {
         path: Path,
         description: PackFlowDescription,

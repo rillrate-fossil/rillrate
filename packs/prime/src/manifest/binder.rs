@@ -1,13 +1,13 @@
 use crate::auto_path::AutoPath;
 use crate::manifest::description::{PackFlow, PackFlowDescription};
-use crate::manifest::descriptions_list::DescriptionsListTracer;
+use crate::manifest::descriptions_list::PathsTracer;
 use derive_more::{Deref, DerefMut};
 use once_cell::sync::Lazy;
 use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::flow::core::FlowMode;
 use std::sync::Arc;
 
-static DESCRIPTIONS: Lazy<DescriptionsListTracer> = Lazy::new(DescriptionsListTracer::new);
+static PATHS: Lazy<PathsTracer> = Lazy::new(PathsTracer::new);
 
 /// `Binded` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
@@ -63,13 +63,13 @@ impl BinderInner {
     fn register(&self) {
         let path = self.description.path.clone();
         //log::debug!("REGISTERING: {}", path);
-        DESCRIPTIONS.add_path(path, self.description.clone());
+        PATHS.add_path(path, self.description.clone());
     }
 
     fn unregister(&self) {
         let path = self.description.path.clone();
         //log::debug!("UNREGISTERING: {}", path);
-        DESCRIPTIONS.remove_path(path);
+        PATHS.remove_path(path);
     }
 }
 

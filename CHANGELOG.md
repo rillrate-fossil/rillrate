@@ -1,3 +1,5 @@
+# v0.40.0
+
 # v0.39.0
 
 Improvements:
