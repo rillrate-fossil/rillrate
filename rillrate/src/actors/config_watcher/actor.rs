@@ -45,12 +45,12 @@ impl ConfigWatcher {
         let config = RillRateConfig::read("rillrate.toml".into()).await;
         match config {
             Ok(config) => {
-                if let Some(layouts) = config.layout {
-                    for layout in layouts {
-                        log::debug!("Add Layout: {}", layout.name);
-                        LAYOUTS.add_layout(layout.name.clone(), layout);
-                    }
+                //if let Some(layouts) = config.layout {
+                for (name, layout) in config.layout {
+                    log::debug!("Add Layout: {}", layout.name);
+                    LAYOUTS.add_layout(name.into(), layout);
                 }
+                //}
             }
             Err(err) => {
                 log::error!("Can't read config: {}", err);
