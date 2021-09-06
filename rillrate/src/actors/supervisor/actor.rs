@@ -1,4 +1,5 @@
 mod assets;
+mod config;
 mod node;
 
 use crate::actors::client_assistant::NodeClientAssistant;
@@ -33,6 +34,7 @@ impl Supervisor for NodeSupervisor {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter)]
 pub enum Group {
+    ConfigWatcher,
     Assets,
     Node,
 }
@@ -45,6 +47,8 @@ impl Actor for NodeSupervisor {
 impl StartedBy<System> for NodeSupervisor {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(Group::iter().collect());
+
+        self.spawn_config_watcher(ctx);
 
         self.spawn_node(ctx);
         self.node

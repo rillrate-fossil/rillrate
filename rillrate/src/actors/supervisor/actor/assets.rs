@@ -8,6 +8,7 @@ use rate_core::actors::app_bind::{AppBind, AssetsOptions};
 use rate_core::actors::node::WaitHttpServer;
 
 impl NodeSupervisor {
+    // TODO: Avoid returning error here
     pub(super) fn spawn_assets(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let node = self.node.as_mut().ok_or(NotSet)?;
         // TODO: Change this bool.
