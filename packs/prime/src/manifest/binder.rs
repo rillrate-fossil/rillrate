@@ -1,6 +1,6 @@
 use crate::auto_path::AutoPath;
 use crate::manifest::description::{PackFlow, PackFlowDescription};
-use crate::manifest::descriptions_list::PathsTracer;
+use crate::manifest::paths::PathsTracer;
 use derive_more::{Deref, DerefMut};
 use once_cell::sync::Lazy;
 use rill_engine::tracers::tracer::Tracer;
