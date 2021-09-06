@@ -1,6 +1,7 @@
 [package]
 name = "rrpack-prime"
 version = "0.39.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"

@@ -2,6 +2,7 @@
 name = "rate-core"
 version = "0.39.0"
 edition = "2018"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"
 documentation = "https://docs.rs/rill-server/"
