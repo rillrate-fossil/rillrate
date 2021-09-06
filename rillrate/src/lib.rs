@@ -3,6 +3,7 @@
 #![warn(missing_docs)]
 
 mod actors;
+mod config;
 pub mod prime;
 
 metacrate::meta!();

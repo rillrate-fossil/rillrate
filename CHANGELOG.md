@@ -1,5 +1,9 @@
 # v0.40.0
 
+Improvements:
+
+- Support config file
+
 # v0.39.0
 
 Improvements:
