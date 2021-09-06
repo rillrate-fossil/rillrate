@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "rate-config"
 version = "0.39.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
