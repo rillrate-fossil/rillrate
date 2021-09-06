@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, PartialEq, Eq)]
 pub struct RillRateConfig {
-    pub node: NodeConfig,
+    pub node: Option<NodeConfig>,
     /// Show explorer
-    pub explorer: bool,
-    pub layout: Vec<Layout>,
+    pub explorer: Option<bool>,
+    pub layout: Option<Vec<Layout>>,
 }
 
 impl Config for RillRateConfig {}

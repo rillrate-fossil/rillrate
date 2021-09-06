@@ -42,11 +42,19 @@ impl InterruptedBy<NodeSupervisor> for ConfigWatcher {
 
 impl ConfigWatcher {
     async fn read_config(&mut self) {
-        let config = RillRateConfig::read("rillrate.toml".into())
-            .await
-            .unwrap_or_default();
-        for layout in config.layout {
-            LAYOUTS.add_layout(layout.name.clone(), layout);
+        let config = RillRateConfig::read("rillrate.toml".into()).await;
+        match config {
+            Ok(config) => {
+                if let Some(layouts) = config.layout {
+                    for layout in layouts {
+                        log::debug!("Add Layout: {}", layout.name);
+                        LAYOUTS.add_layout(layout.name.clone(), layout);
+                    }
+                }
+            }
+            Err(err) => {
+                log::error!("Can't read config: {}", err);
+            }
         }
     }
 }
