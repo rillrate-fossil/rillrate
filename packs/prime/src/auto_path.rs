@@ -1,8 +1,11 @@
 use rill_protocol::io::provider::{EntryId, Path};
+use serde::{Deserialize, Serialize};
 
 const SIZE: usize = 4;
 
 /// `Live` bacause of `Live` product approach.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(from = "String", into = "String")]
 pub struct AutoPath {
     pub package: EntryId,
     pub dashboard: EntryId,
@@ -61,5 +64,14 @@ impl From<&str> for AutoPath {
             }
             _ => Self::unassigned(EntryId::from(s)),
         }
+    }
+}
+
+impl Into<String> for AutoPath {
+    fn into(self) -> String {
+        format!(
+            "{}.{}.{}.{}",
+            self.package, self.dashboard, self.group, self.name
+        )
     }
 }

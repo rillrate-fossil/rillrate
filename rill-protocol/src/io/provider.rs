@@ -29,6 +29,7 @@ pub type ProviderReqId = DirectId<ProviderProtocol>;
     From,
     Into,
 )]
+#[serde(transparent)]
 pub struct EntryId(String);
 
 impl AsRef<str> for EntryId {

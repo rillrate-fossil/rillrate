@@ -11,7 +11,7 @@ pub struct RillRateConfig {
     pub node: Option<NodeConfig>,
     /// Show explorer
     pub explorer: Option<bool>,
-    pub layout: HashMap<String, Layout>,
+    pub layout: HashMap<EntryId, Layout>,
 }
 
 impl Config for RillRateConfig {}

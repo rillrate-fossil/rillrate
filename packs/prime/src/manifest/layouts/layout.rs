@@ -1,3 +1,4 @@
+use crate::auto_path::AutoPath;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -8,5 +9,7 @@ pub struct Layout {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LayoutItem {
-    pub position: (u32, u32, u32, u32),
+    pub position: (u32, u32),
+    pub size: (u32, u32),
+    pub path: AutoPath,
 }
