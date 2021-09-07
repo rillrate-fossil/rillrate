@@ -48,7 +48,7 @@ impl ConfigWatcher {
                 //if let Some(layouts) = config.layout {
                 for (name, layout) in config.layout {
                     log::debug!("Add Layout: {}", layout.name);
-                    LAYOUTS.add_layout(name.into(), layout);
+                    LAYOUTS.add_layout(name.into(), layout.into());
                 }
                 //}
             }
