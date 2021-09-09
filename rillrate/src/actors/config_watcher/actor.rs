@@ -7,7 +7,6 @@ use meio::{Actor, Context, InterruptedBy, StartedBy};
 use rate_config::ReadableConfig;
 use rrpack_prime::manifest::layouts::global::LAYOUTS;
 
-
 pub struct ConfigWatcher {}
 
 impl ConfigWatcher {
@@ -48,7 +47,7 @@ impl ConfigWatcher {
                 //if let Some(layouts) = config.layout {
                 for (name, layout) in config.layout {
                     log::debug!("Add Layout: {}", layout.name);
-                    LAYOUTS.add_layout(name.into(), layout.into());
+                    LAYOUTS.add_layout(name, layout.into());
                 }
                 //}
             }

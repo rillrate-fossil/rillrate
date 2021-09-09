@@ -67,11 +67,11 @@ impl From<&str> for AutoPath {
     }
 }
 
-impl Into<String> for AutoPath {
-    fn into(self) -> String {
+impl From<AutoPath> for String {
+    fn from(path: AutoPath) -> Self {
         format!(
             "{}.{}.{}.{}",
-            self.package, self.dashboard, self.group, self.name
+            path.package, path.dashboard, path.group, path.name
         )
     }
 }

@@ -3,7 +3,7 @@ use rate_core::actors::node::NodeConfig;
 // TODO: Don't use `Layout` type directly.
 use rill_protocol::io::provider::EntryId;
 use rrpack_prime::manifest::layouts::layout::LayoutConfig;
-use serde::{Deserialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Default, Deserialize, PartialEq, Eq)]
