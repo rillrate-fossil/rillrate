@@ -4,16 +4,26 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{Actor, Context, InterruptedBy, StartedBy};
+//use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rate_config::ReadableConfig;
+use rill_protocol::diff::diff_full;
+use rill_protocol::io::provider::EntryId;
 use rrpack_prime::manifest::layouts::global::LAYOUTS;
-use rrpack_prime::manifest::layouts::layout::Layout;
+use rrpack_prime::manifest::layouts::layout::LayoutConfig;
+use std::collections::HashMap;
 use std::time::Duration;
 
-pub struct ConfigWatcher {}
+pub struct ConfigWatcher {
+    //watcher: Option<RecommendedWatcher>,
+    layouts: HashMap<EntryId, LayoutConfig>,
+}
 
 impl ConfigWatcher {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            //watcher: None,
+            layouts: HashMap::new(),
+        }
     }
 }
 
@@ -24,6 +34,14 @@ impl Actor for ConfigWatcher {
 #[async_trait]
 impl StartedBy<NodeSupervisor> for ConfigWatcher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        /*
+        let mut watcher = RecommendedWatcher::new(move |res| {
+            log::warn!("{:?}", res);
+        })?;
+        watcher.watch("./rillrate.toml".as_ref(), RecursiveMode::NonRecursive)?;
+        self.watcher = Some(watcher);
+        */
+
         let interval = Duration::from_secs(5);
         let heartbeat = HeartBeat::new(interval, ctx.address().clone());
         ctx.spawn_task(heartbeat, (), ());
@@ -45,13 +63,25 @@ impl ConfigWatcher {
         let config = RillRateConfig::read("rillrate.toml".into()).await;
         match config {
             Ok(config) => {
-                //if let Some(layouts) = config.layout {
-                for (name, layout_config) in config.layout {
-                    let layout: Layout = layout_config.into();
-                    log::debug!("Add Layout: {}", layout.name);
-                    LAYOUTS.add_layout(name, layout);
+                let (to_add, to_remove, to_check) =
+                    diff_full(self.layouts.keys(), config.layout.keys());
+                for name in to_add {
+                    let layout_config = config.layout.get(&name).unwrap();
+                    log::debug!("Add Layout: {}", name);
+                    LAYOUTS.add_layout(name, layout_config.clone().into());
                 }
-                //}
+                for name in to_remove {
+                    log::debug!("Remove Layout: {}", name);
+                    LAYOUTS.remove_layout(name);
+                }
+                for name in to_check {
+                    log::debug!("Update Layout: {}", name);
+                    let prev = self.layouts.get(&name).unwrap();
+                    let new = config.layout.get(&name).unwrap();
+                    if prev != new {
+                        LAYOUTS.add_layout(name, new.clone().into());
+                    }
+                }
             }
             Err(err) => {
                 log::error!("Can't read config: {}", err);

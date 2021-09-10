@@ -20,6 +20,7 @@ log = "0.4.14"
 meio = "0.93.6"
 meio-connect = "0.93.6"
 metacrate = "0.1.2"
+notify = "5.0.0-pre.12"
 once_cell = "1.8.0"
 rate-config = { version = "0.39.0", path = "../rate-config" }
 rate-core = { version = "0.39.0", path = "../rate-core" }
