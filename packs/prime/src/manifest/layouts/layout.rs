@@ -13,7 +13,8 @@ pub struct LayoutItemConfig {
     // TODO: Use `Position` in non-config
     pub position: (u32, u32),
     pub size: (u32, u32),
-    pub path: AutoPath,
+    pub path: Option<AutoPath>,
+    pub text: Option<String>,
 }
 
 impl From<LayoutConfig> for Layout {
@@ -41,11 +42,23 @@ impl From<LayoutItemConfig> for LayoutItem {
             width: config.size.0,
             height: config.size.1,
         };
-        let path = config.path.into();
+        let item_type = (config.path, config.text).into();
         Self {
             position,
             size,
-            path,
+            item_type,
+        }
+    }
+}
+
+impl From<(Option<AutoPath>, Option<String>)> for LayoutItemType {
+    fn from(pair: (Option<AutoPath>, Option<String>)) -> Self {
+        match pair {
+            (Some(path), _) => Self::Flow { path: path.into() },
+            (_, Some(text)) => Self::Label { text },
+            (None, None) => Self::Label {
+                text: "<label>".into(),
+            },
         }
     }
 }
@@ -60,7 +73,13 @@ pub struct Layout {
 pub struct LayoutItem {
     pub position: Position,
     pub size: Size,
-    pub path: Path,
+    pub item_type: LayoutItemType,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum LayoutItemType {
+    Flow { path: Path },
+    Label { text: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
