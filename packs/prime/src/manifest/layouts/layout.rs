@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LayoutConfig {
-    pub name: String,
+    pub name: Option<String>,
     pub item: Option<Vec<LayoutItemConfig>>,
 }
 
@@ -25,7 +25,7 @@ impl From<LayoutConfig> for Layout {
             .map(LayoutItem::from)
             .collect();
         Self {
-            name: config.name.into(),
+            name: config.name.unwrap_or_default().into(),
             items,
         }
     }

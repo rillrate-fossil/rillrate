@@ -2,10 +2,12 @@ use crate::actors::supervisor::NodeSupervisor;
 use crate::config::RillRateConfig;
 use anyhow::Error;
 use async_trait::async_trait;
-use meio::task::{OnTick, Tick};
+use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{Actor, Context, InterruptedBy, StartedBy};
 use rate_config::ReadableConfig;
 use rrpack_prime::manifest::layouts::global::LAYOUTS;
+use rrpack_prime::manifest::layouts::layout::Layout;
+use std::time::Duration;
 
 pub struct ConfigWatcher {}
 
@@ -21,11 +23,10 @@ impl Actor for ConfigWatcher {
 
 #[async_trait]
 impl StartedBy<NodeSupervisor> for ConfigWatcher {
-    async fn handle(&mut self, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        /* TODO: Implement live updates
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let interval = Duration::from_secs(5);
-        let _heartbeat = HeartBeat::new(interval, ctx.address().clone());
-        */
+        let heartbeat = HeartBeat::new(interval, ctx.address().clone());
+        ctx.spawn_task(heartbeat, (), ());
         self.read_config().await;
         Ok(())
     }
@@ -45,9 +46,10 @@ impl ConfigWatcher {
         match config {
             Ok(config) => {
                 //if let Some(layouts) = config.layout {
-                for (name, layout) in config.layout {
+                for (name, layout_config) in config.layout {
+                    let layout: Layout = layout_config.into();
                     log::debug!("Add Layout: {}", layout.name);
-                    LAYOUTS.add_layout(name, layout.into());
+                    LAYOUTS.add_layout(name, layout);
                 }
                 //}
             }
