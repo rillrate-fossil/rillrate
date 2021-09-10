@@ -3,8 +3,8 @@ use crate::config::RillRateConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
-use meio::{Actor, Context, InterruptedBy, StartedBy};
-//use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use meio::{Action, ActionHandler, Actor, Context, InterruptedBy, StartedBy};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rate_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
 use rill_protocol::io::provider::EntryId;
@@ -14,14 +14,14 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct ConfigWatcher {
-    //watcher: Option<RecommendedWatcher>,
+    watcher: Option<RecommendedWatcher>,
     layouts: HashMap<EntryId, LayoutConfig>,
 }
 
 impl ConfigWatcher {
     pub fn new() -> Self {
         Self {
-            //watcher: None,
+            watcher: None,
             layouts: HashMap::new(),
         }
     }
@@ -31,16 +31,31 @@ impl Actor for ConfigWatcher {
     type GroupBy = ();
 }
 
+struct Reload;
+
+impl Action for Reload {}
+
 #[async_trait]
 impl StartedBy<NodeSupervisor> for ConfigWatcher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        /*
-        let mut watcher = RecommendedWatcher::new(move |res| {
-            log::warn!("{:?}", res);
+        let mut addr = ctx.address().clone();
+        let mut watcher = RecommendedWatcher::new(move |res: Result<notify::Event, _>| {
+            if let Ok(event) = res {
+                let changed = event
+                    .paths
+                    .iter()
+                    .any(|p| p.as_path().to_string_lossy().contains("rillrate.toml"));
+                if changed {
+                    if let Err(err) = addr.blocking_act(Reload) {
+                        log::error!("Can't notify config watcher about config changes: {}", err);
+                    } else {
+                        log::info!("Config updated. Loading...");
+                    }
+                }
+            }
         })?;
-        watcher.watch("./rillrate.toml".as_ref(), RecursiveMode::NonRecursive)?;
+        watcher.watch(".".as_ref(), RecursiveMode::NonRecursive)?;
         self.watcher = Some(watcher);
-        */
 
         let interval = Duration::from_secs(5);
         let heartbeat = HeartBeat::new(interval, ctx.address().clone());
@@ -91,8 +106,18 @@ impl ConfigWatcher {
 }
 
 #[async_trait]
+impl ActionHandler<Reload> for ConfigWatcher {
+    async fn handle(&mut self, _event: Reload, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.read_config().await;
+        Ok(())
+    }
+}
+
+// TODO: How about to use plain actions for `HeartBeat`?
+#[async_trait]
 impl OnTick for ConfigWatcher {
     async fn tick(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        // TODO: Check config exists
         self.read_config().await;
         Ok(())
     }
