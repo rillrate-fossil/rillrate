@@ -6,15 +6,21 @@ use serde::{Deserialize, Serialize};
 pub struct LayoutConfig {
     pub name: Option<String>,
     pub item: Option<Vec<LayoutItemConfig>>,
+    pub label: Option<Vec<LabelConfig>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LayoutItemConfig {
-    // TODO: Use `Position` in non-config
     pub position: (u32, u32),
     pub size: (u32, u32),
-    pub path: Option<AutoPath>,
-    pub text: Option<String>,
+    pub path: AutoPath,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct LabelConfig {
+    pub position: (u32, u32),
+    pub size: (u32, u32),
+    pub text: String,
 }
 
 impl From<LayoutConfig> for Layout {
@@ -25,15 +31,23 @@ impl From<LayoutConfig> for Layout {
             .into_iter()
             .map(LayoutItem::from)
             .collect();
+        let labels = config
+            .label
+            .unwrap_or_default()
+            .into_iter()
+            .map(Label::from)
+            .collect();
         Self {
             name: config.name.unwrap_or_default().into(),
             items,
+            labels,
         }
     }
 }
 
 impl From<LayoutItemConfig> for LayoutItem {
     fn from(config: LayoutItemConfig) -> Self {
+        // TODO: DRY
         let position = Position {
             left: config.position.0,
             top: config.position.1,
@@ -42,23 +56,29 @@ impl From<LayoutItemConfig> for LayoutItem {
             width: config.size.0,
             height: config.size.1,
         };
-        let item_type = (config.path, config.text).into();
         Self {
             position,
             size,
-            item_type,
+            path: config.path.into(),
         }
     }
 }
 
-impl From<(Option<AutoPath>, Option<String>)> for LayoutItemType {
-    fn from(pair: (Option<AutoPath>, Option<String>)) -> Self {
-        match pair {
-            (Some(path), _) => Self::Flow { path: path.into() },
-            (_, Some(text)) => Self::Label { text },
-            (None, None) => Self::Label {
-                text: "<label>".into(),
-            },
+impl From<LabelConfig> for Label {
+    fn from(config: LabelConfig) -> Self {
+        // TODO: DRY
+        let position = Position {
+            left: config.position.0,
+            top: config.position.1,
+        };
+        let size = Size {
+            width: config.size.0,
+            height: config.size.1,
+        };
+        Self {
+            position,
+            size,
+            text: config.text,
         }
     }
 }
@@ -67,19 +87,21 @@ impl From<(Option<AutoPath>, Option<String>)> for LayoutItemType {
 pub struct Layout {
     pub name: EntryId,
     pub items: Vec<LayoutItem>,
+    pub labels: Vec<Label>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LayoutItem {
     pub position: Position,
     pub size: Size,
-    pub item_type: LayoutItemType,
+    pub path: Path,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum LayoutItemType {
-    Flow { path: Path },
-    Label { text: String },
+pub struct Label {
+    pub position: Position,
+    pub size: Size,
+    pub text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
