@@ -2,3 +2,4 @@ target
 Cargo.lock
 *.orig
 /rillrate.toml
+.rillrate
