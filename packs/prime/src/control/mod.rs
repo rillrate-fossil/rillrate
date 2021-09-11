@@ -2,6 +2,10 @@ pub mod click;
 #[cfg(feature = "engine")]
 pub use click::{Click, ClickOpts};
 
+pub mod input;
+#[cfg(feature = "engine")]
+pub use input::{Input, InputOpts};
+
 pub mod selector;
 #[cfg(feature = "engine")]
 pub use selector::{Selector, SelectorOpts};
