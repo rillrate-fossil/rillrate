@@ -55,7 +55,7 @@ impl StartedBy<NodeSupervisor> for ConfigWatcher {
                 }
             }
         })?;
-        watcher.watch(".rillrate".as_ref(), RecursiveMode::NonRecursive)?;
+        watcher.watch(".rillrate".as_ref(), RecursiveMode::Recursive)?;
         self.watcher = Some(watcher);
 
         let interval = Duration::from_secs(5);
