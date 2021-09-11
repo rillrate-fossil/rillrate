@@ -87,9 +87,11 @@ impl ConfigWatcher {
         while let Some(entry) = dir.next_entry().await? {
             let meta = entry.metadata().await?;
             if meta.is_file() {
-                let case = CaseConfig::read(entry.path()).await?;
-                let layout: Layout = case.into();
-                layouts.insert(layout.name.clone(), layout);
+                if entry.path().extension() == Some("toml".as_ref()) {
+                    let case = CaseConfig::read(entry.path()).await?;
+                    let layout: Layout = case.into();
+                    layouts.insert(layout.name.clone(), layout);
+                }
             }
         }
         let (to_add, to_remove, to_check) = diff_full(self.layouts.keys(), layouts.keys());
