@@ -1,17 +1,21 @@
-use crate::auto_path::AutoPath;
-use rill_protocol::io::provider::{EntryId, Path};
+use rate_config::{Config, ReadableConfig};
+use rrpack_prime::auto_path::AutoPath;
+use rrpack_prime::manifest::layouts::layout::{Label, Layout, LayoutItem, Position, Size};
 use serde::{Deserialize, Serialize};
 
-// TODO: Remove config part
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LayoutConfig {
+pub struct CaseConfig {
     pub name: Option<String>,
-    pub item: Option<Vec<LayoutItemConfig>>,
+    pub item: Option<Vec<CaseItemConfig>>,
     pub label: Option<Vec<LabelConfig>>,
 }
 
+impl Config for CaseConfig {}
+
+impl ReadableConfig for CaseConfig {}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LayoutItemConfig {
+pub struct CaseItemConfig {
     pub position: (u32, u32),
     pub size: (u32, u32),
     pub path: AutoPath,
@@ -24,8 +28,8 @@ pub struct LabelConfig {
     pub text: String,
 }
 
-impl From<LayoutConfig> for Layout {
-    fn from(config: LayoutConfig) -> Self {
+impl From<CaseConfig> for Layout {
+    fn from(config: CaseConfig) -> Self {
         let items = config
             .item
             .unwrap_or_default()
@@ -46,8 +50,8 @@ impl From<LayoutConfig> for Layout {
     }
 }
 
-impl From<LayoutItemConfig> for LayoutItem {
-    fn from(config: LayoutItemConfig) -> Self {
+impl From<CaseItemConfig> for LayoutItem {
+    fn from(config: CaseItemConfig) -> Self {
         // TODO: DRY
         let position = Position {
             left: config.position.0,
@@ -82,37 +86,4 @@ impl From<LabelConfig> for Label {
             text: config.text,
         }
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Layout {
-    pub name: EntryId,
-    pub items: Vec<LayoutItem>,
-    pub labels: Vec<Label>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LayoutItem {
-    pub position: Position,
-    pub size: Size,
-    pub path: Path,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Label {
-    pub position: Position,
-    pub size: Size,
-    pub text: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Position {
-    pub left: u32,
-    pub top: u32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Size {
-    pub width: u32,
-    pub height: u32,
 }

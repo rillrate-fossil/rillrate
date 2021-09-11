@@ -1,5 +1,6 @@
 use crate::actors::supervisor::NodeSupervisor;
-use crate::config::RillRateConfig;
+use crate::config::cases::CaseConfig;
+use crate::config::server::RillRateConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
@@ -12,6 +13,7 @@ use rrpack_prime::manifest::layouts::global::LAYOUTS;
 use rrpack_prime::manifest::layouts::layout::LayoutConfig;
 use std::collections::HashMap;
 use std::time::Duration;
+use tokio::fs;
 
 pub struct ConfigWatcher {
     watcher: Option<RecommendedWatcher>,
@@ -44,7 +46,7 @@ impl StartedBy<NodeSupervisor> for ConfigWatcher {
                 let changed = event
                     .paths
                     .iter()
-                    .any(|p| p.as_path().to_string_lossy().contains("rillrate.toml"));
+                    .any(|p| p.as_path().to_string_lossy().contains(".toml"));
                 if changed {
                     if let Err(err) = addr.blocking_act(Reload) {
                         log::error!("Can't notify config watcher about config changes: {}", err);
@@ -54,7 +56,7 @@ impl StartedBy<NodeSupervisor> for ConfigWatcher {
                 }
             }
         })?;
-        watcher.watch(".".as_ref(), RecursiveMode::NonRecursive)?;
+        watcher.watch(".rillrate".as_ref(), RecursiveMode::NonRecursive)?;
         self.watcher = Some(watcher);
 
         let interval = Duration::from_secs(5);
@@ -75,7 +77,25 @@ impl InterruptedBy<NodeSupervisor> for ConfigWatcher {
 
 impl ConfigWatcher {
     async fn read_config(&mut self) {
-        let config = RillRateConfig::read("rillrate.toml".into()).await;
+        if let Err(err) = self.read_config_impl().await {
+            log::error!("Can't read config: {}", err);
+        }
+    }
+
+    async fn read_config_impl(&mut self) -> Result<(), Error> {
+        let mut dir = fs::read_dir(".rillrate/cases").await?;
+        while let Some(entry) = dir.next_entry().await? {
+            let meta = entry.metadata().await?;
+            if meta.is_file() {
+                //let case = CaseConfig::read(entry.path()).await?;
+            }
+        }
+        Ok(())
+    }
+
+    /*
+    async fn read_config(&mut self) {
+        let config = RillRateConfig::read(".rillrate/config.toml".into()).await;
         match config {
             Ok(config) => {
                 let (to_add, to_remove, to_check) =
@@ -103,6 +123,7 @@ impl ConfigWatcher {
             }
         }
     }
+    */
 }
 
 #[async_trait]
