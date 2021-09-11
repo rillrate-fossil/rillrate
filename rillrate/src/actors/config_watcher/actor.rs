@@ -115,38 +115,6 @@ impl ConfigWatcher {
         }
         Ok(())
     }
-
-    /*
-    async fn read_config(&mut self) {
-        let config = RillRateConfig::read(".rillrate/config.toml".into()).await;
-        match config {
-            Ok(config) => {
-                let (to_add, to_remove, to_check) =
-                    diff_full(self.layouts.keys(), config.layout.keys());
-                for name in to_add {
-                    let layout_config = config.layout.get(&name).unwrap();
-                    log::debug!("Add Layout: {}", name);
-                    LAYOUTS.add_layout(name, layout_config.clone().into());
-                }
-                for name in to_remove {
-                    log::debug!("Remove Layout: {}", name);
-                    LAYOUTS.remove_layout(name);
-                }
-                for name in to_check {
-                    log::debug!("Update Layout: {}", name);
-                    let prev = self.layouts.get(&name).unwrap();
-                    let new = config.layout.get(&name).unwrap();
-                    if prev != new {
-                        LAYOUTS.add_layout(name, new.clone().into());
-                    }
-                }
-            }
-            Err(err) => {
-                log::error!("Can't read config: {}", err);
-            }
-        }
-    }
-    */
 }
 
 #[async_trait]
