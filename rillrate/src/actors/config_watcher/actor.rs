@@ -1,6 +1,5 @@
 use crate::actors::supervisor::NodeSupervisor;
 use crate::config::cases::CaseConfig;
-use crate::config::server::RillRateConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
@@ -10,14 +9,14 @@ use rate_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
 use rill_protocol::io::provider::EntryId;
 use rrpack_prime::manifest::layouts::global::LAYOUTS;
-use rrpack_prime::manifest::layouts::layout::LayoutConfig;
+use rrpack_prime::manifest::layouts::layout::Layout;
 use std::collections::HashMap;
 use std::time::Duration;
 use tokio::fs;
 
 pub struct ConfigWatcher {
     watcher: Option<RecommendedWatcher>,
-    layouts: HashMap<EntryId, LayoutConfig>,
+    layouts: HashMap<EntryId, Layout>,
 }
 
 impl ConfigWatcher {
@@ -84,10 +83,34 @@ impl ConfigWatcher {
 
     async fn read_config_impl(&mut self) -> Result<(), Error> {
         let mut dir = fs::read_dir(".rillrate/cases").await?;
+        let mut layouts = HashMap::new();
         while let Some(entry) = dir.next_entry().await? {
             let meta = entry.metadata().await?;
             if meta.is_file() {
-                //let case = CaseConfig::read(entry.path()).await?;
+                let case = CaseConfig::read(entry.path()).await?;
+                let layout: Layout = case.into();
+                layouts.insert(layout.name.clone(), layout);
+            }
+        }
+        let (to_add, to_remove, to_check) = diff_full(self.layouts.keys(), layouts.keys());
+        for name in to_add {
+            let layout = layouts.get(&name).unwrap();
+            log::debug!("Add Layout: {}", name);
+            LAYOUTS.add_layout(name.clone(), layout.clone());
+            self.layouts.insert(name, layout.clone());
+        }
+        for name in to_remove {
+            log::debug!("Remove Layout: {}", name);
+            LAYOUTS.remove_layout(name.clone());
+            self.layouts.remove(&name);
+        }
+        for name in to_check {
+            log::debug!("Update Layout: {}", name);
+            let prev = self.layouts.get(&name).unwrap();
+            let layout = layouts.get(&name).unwrap();
+            if prev != layout {
+                LAYOUTS.add_layout(name.clone(), layout.clone());
+                self.layouts.insert(name, layout.clone());
             }
         }
         Ok(())

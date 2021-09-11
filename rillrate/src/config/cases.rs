@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CaseConfig {
-    pub name: Option<String>,
+    pub name: String,
     pub item: Option<Vec<CaseItemConfig>>,
     pub label: Option<Vec<LabelConfig>>,
 }
@@ -43,7 +43,7 @@ impl From<CaseConfig> for Layout {
             .map(Label::from)
             .collect();
         Self {
-            name: config.name.unwrap_or_default().into(),
+            name: config.name.into(),
             items,
             labels,
         }
