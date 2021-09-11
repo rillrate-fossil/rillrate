@@ -96,6 +96,18 @@ pub async fn main() -> Result<(), Error> {
         Ok(())
     });
 
+    let input = Input::new(
+        "app.dashboard-1.controls.input-1",
+        InputOpts::default().label("Input value"),
+    );
+    //let this = input.clone();
+    input.sync_callback(move |envelope| {
+        if let Some(action) = envelope.action {
+            log::warn!("ACTION: {:?}", action);
+        }
+        Ok(())
+    });
+
     let selector = Selector::new(
         "app.dashboard-1.controls.selector-1",
         SelectorOpts::default()
