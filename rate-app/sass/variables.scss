@@ -1,0 +1,17 @@
+$primary:       #4211CC;
+$secondary:     #8B8B8B;
+$light:         #F8F9FA;
+//$body-bg:       #FFFFFF;
+
+$card-bg:       $light;
+
+$accordion-border-width: 0;
+$accordion-button-active-bg: #FFFFFF;
+$accordion-button-color: $secondary;
+$accordion-button-bg: #FFFFFF;
+$accordion-button-focus-box-shadow: 0;
+
+
+$font-family-sans-serif:      "Jost", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+$font-family-monospace:       sfmono-regular, menlo, monaco, consolas, "Liberation Mono", "Courier New", monospace;
+$font-family-base:            $font-family-sans-serif;
