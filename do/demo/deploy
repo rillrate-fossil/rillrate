@@ -1,4 +1,9 @@
 set -e
 
-do/demo/build
-do/demo/upload
+IMAGE=rillrate/demo:latest
+
+echo "Building..."
+docker build -t $IMAGE --file do/demo/Dockerfile .
+
+echo "Uploading..."
+docker image push $IMAGE

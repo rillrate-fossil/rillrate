@@ -1,2 +1,0 @@
-IMAGE=rillrate/demo:latest
-docker build -t $IMAGE --file do/demo/Dockerfile .
