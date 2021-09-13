@@ -1,0 +1,5 @@
+mkdir -p dist
+
+pushd rate-app
+RUST_LOG=error trunk watch --dist ../dist/app --public-url /ui/
+popd

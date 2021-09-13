@@ -1,5 +1,12 @@
+# Rust
 target
 Cargo.lock
-*.orig
-/rillrate.toml
+
+# Config
 .rillrate
+
+# UI
+dist
+
+# Dev
+*.orig

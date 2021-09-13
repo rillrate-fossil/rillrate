@@ -1,0 +1,19 @@
+set -e
+
+RUST_LOG=error
+
+if [ "$1" == "release" ]; then
+FLAG="--release"
+else
+FLAG=""
+fi
+
+mkdir -p dist
+
+pushd rate-app
+trunk build $FLAG --dist ../dist/app --public-url /ui/
+popd
+
+pushd dist/app
+tar -cvzf ../app.tar.gz *
+popd
