@@ -80,13 +80,9 @@ The original idea was inspired by [Nitrogen][nitrogen] Web Framework (Erlang).
 
 ### License
 
-**RillRate** released the following licenses:
+**RillRate** is provided under the _Apache-2.0_ license. See [LICENSE](LICENSE).
 
-- **Backend** and core parts: _Apache-2.0_
-- **Frontend and packs** with UI parts and tracers: _BUSL-1.1_
-- **Tools**, demos, examples: _MIT_
-
-The project is the Full-stack Rust solution. UI sources (web-dashboard made with Rust) available for [sponsors][sponsor].
+The project is the Full-stack Rust app: both frontend and backend made with Rust.
 
 [reddit]: https://reddit.com/r/rillrate/
 [twitter]: https://twitter.com/rillrate/
