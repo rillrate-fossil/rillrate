@@ -6,10 +6,10 @@ use serde::Deserialize;
 
 /// The external user app can set this value to override default server.
 /// If embedded server started it can put its socket address here.
-pub static NODE: ConfigPatch<String> = ConfigPatch::new("RILLRATE_NODE");
+pub static NODE: ConfigPatch<String> = ConfigPatch::new("RR_NODE");
 
 /// The external user app can set this value to override the default name.
-pub static NAME: ConfigPatch<EntryId> = ConfigPatch::new("RILLRATE_NAME");
+pub static NAME: ConfigPatch<EntryId> = ConfigPatch::new("RR_NAME");
 
 /// Provider configuration
 #[derive(Deserialize, Debug, Clone)]

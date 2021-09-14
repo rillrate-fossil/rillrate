@@ -33,7 +33,7 @@ impl InteractionDone<WaitHttpServer, ()> for NodeSupervisor {
         let embedded = None;
         let options = AssetsOptions {
             prefix: "/ui/",
-            env_var: Some("RILLRATE_UI"),
+            env_var: Some("RR_UI"),
             url: Some(url.parse()?),
             embedded,
         };
