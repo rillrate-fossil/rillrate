@@ -1,0 +1,3 @@
+do/build-ui
+
+RR_UI=dist/app cargo run -p demo
