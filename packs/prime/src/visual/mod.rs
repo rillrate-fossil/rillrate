@@ -20,6 +20,10 @@ pub mod live_text;
 #[cfg(feature = "engine")]
 pub use live_text::{LiveText, LiveTextOpts};
 
+pub mod live_logs;
+#[cfg(feature = "engine")]
+pub use live_logs::{LiveLogs, LiveLogsOpts};
+
 pub mod pulse;
 #[cfg(feature = "engine")]
 pub use pulse::{Pulse, PulseOpts};

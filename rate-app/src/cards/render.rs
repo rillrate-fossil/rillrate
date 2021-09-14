@@ -103,6 +103,10 @@ fn preffered_sizes() -> HashMap<StreamType, RenderRule> {
         RenderRule::new::<prime::visual::HistogramCard, _>(450, 300),
     );
     preffered_sizes.insert(
+        visual::live_logs::LiveLogsState::stream_type(),
+        RenderRule::new::<prime::visual::LiveLogsCard, _>(450, 200),
+    );
+    preffered_sizes.insert(
         visual::live_text::LiveTextState::stream_type(),
         RenderRule::new::<prime::visual::LiveTextCard, _>(450, 200),
     );
