@@ -148,7 +148,7 @@ impl LiveChart {
         if let Some(mut last_point) = points_iter.next() {
             ctx.move_to(ts_range.min(), translate_y(last_point.value));
             ctx.begin_path();
-            while let Some(next_point) = points_iter.next() {
+            for next_point in points_iter {
                 ctx.line_to(
                     translate_x(next_point.timestamp),
                     translate_y(last_point.value),

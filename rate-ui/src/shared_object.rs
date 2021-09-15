@@ -52,6 +52,15 @@ impl<T> Drop for SharedObject<T> {
     }
 }
 
+impl<T> Default for SharedObject<T>
+where
+    T: RouterState + Default,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> SharedObject<T> {
     pub fn new() -> Self
     where

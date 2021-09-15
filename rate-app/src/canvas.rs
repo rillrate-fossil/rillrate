@@ -121,6 +121,8 @@ pub struct DrawCanvas {
 }
 
 impl DrawCanvas {
+    // TODO: Fix that!
+    #[allow(clippy::too_many_arguments)]
     pub fn draw_charts(
         &mut self,
         secs: i64,

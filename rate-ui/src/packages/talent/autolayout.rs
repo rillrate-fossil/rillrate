@@ -60,7 +60,7 @@ where
             .items
             .iter_mut()
             .map(Option::as_mut)
-            .filter_map(std::convert::identity)
+            .flatten()
             .sorted_by(Item::by_priority)
             .peekable();
 
@@ -120,8 +120,7 @@ where
             row_num += 1;
         }
         // At least one row needed
-        let total_height = row_num * row_height;
-        total_height
+        row_num * row_height // total_height
     }
 }
 
