@@ -44,10 +44,12 @@ fn render_default(path: &Path) -> Html {
 pub struct RenderRule {
     pub render: RenderFn,
     pub size: Size,
+    pub grow: bool,
 }
 
 impl RenderRule {
-    fn new<T, M>(width: u32, height: u32) -> Self
+    // TODO: Use `new(Width::Min(200), Height::Fixed(...))
+    fn new<T, M>(width: u32, height: u32, grow: bool) -> Self
     where
         T: Component<Message = M, Properties = SingleFlowProps>,
         M: 'static,
@@ -55,6 +57,7 @@ impl RenderRule {
         Self {
             render: &render_card::<T, _>,
             size: Size { width, height },
+            grow,
         }
     }
 }
@@ -65,6 +68,7 @@ pub const RENDER_DEFAULT: RenderRule = RenderRule {
         width: 100,
         height: 50,
     },
+    grow: false,
 };
 
 pub static RENDERS: Lazy<HashMap<StreamType, RenderRule>> = Lazy::new(preffered_sizes);
@@ -76,61 +80,61 @@ fn preffered_sizes() -> HashMap<StreamType, RenderRule> {
 
     preffered_sizes.insert(
         transparent::alert::AlertState::stream_type(),
-        RenderRule::new::<prime::transparent::AlertCard, _>(100, 100),
+        RenderRule::new::<prime::transparent::AlertCard, _>(100, 100, false),
     );
 
     preffered_sizes.insert(
         control::click::ClickState::stream_type(),
-        RenderRule::new::<prime::control::ClickCard, _>(150, 100),
+        RenderRule::new::<prime::control::ClickCard, _>(150, 100, false),
     );
     preffered_sizes.insert(
         control::input::InputState::stream_type(),
-        RenderRule::new::<prime::control::InputCard, _>(300, 100),
+        RenderRule::new::<prime::control::InputCard, _>(300, 100, false),
     );
     preffered_sizes.insert(
         control::selector::SelectorState::stream_type(),
-        RenderRule::new::<prime::control::SelectorCard, _>(300, 100),
+        RenderRule::new::<prime::control::SelectorCard, _>(300, 100, false),
     );
     preffered_sizes.insert(
         control::slider::SliderState::stream_type(),
-        RenderRule::new::<prime::control::SliderCard, _>(300, 100),
+        RenderRule::new::<prime::control::SliderCard, _>(300, 100, false),
     );
     preffered_sizes.insert(
         control::switch::SwitchState::stream_type(),
-        RenderRule::new::<prime::control::SwitchCard, _>(150, 100),
+        RenderRule::new::<prime::control::SwitchCard, _>(150, 100, false),
     );
 
     preffered_sizes.insert(
         visual::board::BoardState::stream_type(),
-        RenderRule::new::<prime::visual::BoardCard, _>(450, 300),
+        RenderRule::new::<prime::visual::BoardCard, _>(450, 300, false),
     );
     preffered_sizes.insert(
         visual::counter::CounterState::stream_type(),
-        RenderRule::new::<prime::visual::CounterCard, _>(300, 100),
+        RenderRule::new::<prime::visual::CounterCard, _>(300, 100, false),
     );
     preffered_sizes.insert(
         visual::gauge::GaugeState::stream_type(),
-        RenderRule::new::<prime::visual::GaugeCard, _>(300, 100),
+        RenderRule::new::<prime::visual::GaugeCard, _>(300, 100, false),
     );
     preffered_sizes.insert(
         visual::histogram::HistogramState::stream_type(),
-        RenderRule::new::<prime::visual::HistogramCard, _>(450, 300),
+        RenderRule::new::<prime::visual::HistogramCard, _>(450, 300, false),
     );
     preffered_sizes.insert(
         visual::live_logs::LiveLogsState::stream_type(),
-        RenderRule::new::<prime::visual::LiveLogsCard, _>(450, 200),
+        RenderRule::new::<prime::visual::LiveLogsCard, _>(600, 400, true),
     );
     preffered_sizes.insert(
         visual::live_text::LiveTextState::stream_type(),
-        RenderRule::new::<prime::visual::LiveTextCard, _>(450, 200),
+        RenderRule::new::<prime::visual::LiveTextCard, _>(450, 200, false),
     );
     preffered_sizes.insert(
         visual::pulse::PulseState::stream_type(),
-        RenderRule::new::<prime::visual::PulseCard, _>(450, 300),
+        RenderRule::new::<prime::visual::PulseCard, _>(450, 300, false),
     );
     preffered_sizes.insert(
         visual::table::TableState::stream_type(),
-        RenderRule::new::<prime::visual::TableCard, _>(800, 400),
+        RenderRule::new::<prime::visual::TableCard, _>(800, 400, true),
     );
 
     preffered_sizes

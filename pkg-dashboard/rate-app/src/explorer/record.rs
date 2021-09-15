@@ -11,12 +11,20 @@ impl Record {
             let record = &item.record;
             let inner_html = record.rule.render.render(&record.path);
             let style = format!("order: {};", item.order,);
-            let size = format!(
-                " width: {}px; height: {}px;",
-                record.rule.size.width, record.rule.size.height,
-            );
+            let grow;
+            let size;
+            if record.rule.grow {
+                size = format!("height: {}px;", record.rule.size.height,);
+                grow = "flex-grow-1";
+            } else {
+                size = format!(
+                    "width: {}px; height: {}px;",
+                    record.rule.size.width, record.rule.size.height,
+                );
+                grow = "";
+            }
             html! {
-                <div class="pe-3 pb-3 d-flex" style=style ref=record.node_ref.clone()>
+                <div class=format!("pe-3 pb-3 d-flex {}", grow) style=style ref=record.node_ref.clone()>
                     <div class="bg-light shadow-sm w-100 d-flex flex-column">
                         <div class="pt-3 text-center caption">{ &record.name }</div>
                         <div style=size>
