@@ -129,7 +129,7 @@ impl Range {
         if power >= 0.0 {
             factor * 10_f64.powf(power)
         } else {
-            -10_f64.powf(-power) / factor
+            -(10_f64.powf(-power)) / factor
         }
     }
 

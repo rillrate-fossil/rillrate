@@ -40,7 +40,7 @@ impl Widget for AppWidget {
             GlobalScene::Home => {
                 menu = html! {};
                 body = html! {
-                    <welcome::Welcome />
+                    <welcome::Shield />
                 };
             }
             GlobalScene::Cases => {

@@ -225,7 +225,7 @@ enum ConnectorError {
 
 impl LiveAgent {
     fn status_to_wires(&mut self, live_status: LiveStatus) {
-        for (_req_id, runtime) in &mut self.wires {
+        for runtime in self.wires.values_mut() {
             let action = WireAction::Status(live_status.clone());
             runtime.wire_action(action, &mut self.link);
         }

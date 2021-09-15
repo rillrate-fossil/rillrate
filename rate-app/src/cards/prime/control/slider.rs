@@ -98,7 +98,7 @@ impl Widget for SliderCardWidget {
                             min=state.spec.min.to_string()
                             max=state.spec.max.to_string()
                             step=state.spec.step.to_string()
-                            value={self.temp_value.clone().unwrap_or(state.value).to_string()}
+                            value={self.temp_value.unwrap_or(state.value).to_string()}
                             // I used `callback` instead of `event`, because `ChangeData` in not
                             // cloneable and `Msg` poisoned of it.
                             onmousedown=ctx.callback(|_| Msg::BeginChange)

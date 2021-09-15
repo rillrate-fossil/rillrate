@@ -260,8 +260,8 @@ where
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         match (tag.as_ref(), event.data) {
-            (Some(path), event) => match event {
-                LiveResponse::Forwarded(response) => {
+            (Some(path), event) => {
+                if let LiveResponse::Forwarded(response) = event {
                     let mut reloaded = false;
                     match response {
                         ClientResponse::State(data) => {
@@ -286,8 +286,7 @@ where
                     }
                     self.state_changed(reloaded, ctx);
                 }
-                _ => {}
-            },
+            }
             (None, _) => {
                 // Redraw on action
                 ctx.redraw();

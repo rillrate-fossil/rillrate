@@ -128,7 +128,7 @@ impl DrawCanvas {
         max: f32,
         x_formatter: &dyn Fn(&i64) -> String,
         y_formatter: &dyn Fn(&f32) -> String,
-        data: &Vec<Vec<(i64, f32)>>,
+        data: &[Vec<(i64, f32)>],
     ) -> Result<(), Error> {
         from_color += 5;
 

@@ -1,5 +1,5 @@
-mod welcome;
-pub use welcome::Welcome;
+mod shield;
+pub use shield::Shield;
 
 mod scene_selector;
 pub use scene_selector::SceneSelector;

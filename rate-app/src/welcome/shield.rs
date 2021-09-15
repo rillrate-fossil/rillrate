@@ -6,14 +6,14 @@ use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
 use rill_protocol::io::provider::EntryId;
 use yew::{html, Html};
 
-pub type Welcome = WidgetRuntime<WelcomeWidget>;
+pub type Shield = WidgetRuntime<ShieldWidget>;
 
-pub struct WelcomeWidget {
+pub struct ShieldWidget {
     scene: SharedObject<SceneState>,
     paths: SharedObject<DashboardState>,
 }
 
-impl Default for WelcomeWidget {
+impl Default for ShieldWidget {
     fn default() -> Self {
         Self {
             scene: SCENE.with(SharedObject::clone),
@@ -29,7 +29,7 @@ pub enum Msg {
     ToDashboard(EntryId, EntryId),
 }
 
-impl Widget for WelcomeWidget {
+impl Widget for ShieldWidget {
     type Event = Msg;
     type Tag = ();
     type Properties = ();
@@ -85,7 +85,7 @@ impl Widget for WelcomeWidget {
 const CARD_CLASS: &str = "card me-3 mb-3 bg-primary text-white shadow-sm";
 const CARD_BUTTON: &str = "btn btn-outline-primary stretched-link";
 
-impl WelcomeWidget {
+impl ShieldWidget {
     fn render_package(&self, entry_id: &EntryId, ctx: &Context<Self>) -> Html {
         let paths_state = self.paths.read();
         html! {
@@ -128,7 +128,7 @@ impl WelcomeWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<SceneState>> for WelcomeWidget {
+impl NotificationHandler<DataChanged<SceneState>> for ShieldWidget {
     fn handle(
         &mut self,
         _event: DataChanged<SceneState>,
@@ -139,7 +139,7 @@ impl NotificationHandler<DataChanged<SceneState>> for WelcomeWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<DashboardState>> for WelcomeWidget {
+impl NotificationHandler<DataChanged<DashboardState>> for ShieldWidget {
     fn handle(
         &mut self,
         _event: DataChanged<DashboardState>,
