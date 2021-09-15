@@ -66,14 +66,23 @@ impl Widget for ShieldWidget {
         let paths_state = self.paths.read();
         let to_layouts = ctx.event(Msg::ChangeScene(GlobalScene::Cases));
         let to_explorer = ctx.event(Msg::ChangeScene(GlobalScene::Explorer));
-        html! {
-            <div class="flex-grow-1">
-                <div class="container mt-5">
-                    <h2 class="fw-bold"><span class="text-primary">{ "Live" }</span>{ " Dashboard" }</h2>
+        let cases = if !scene_state.layouts.is_empty() {
+            html! {
+                <div>
                     <h3 class="mt-4 mb-3 pointer" onclick=to_layouts>{ "Cases" }</h3>
                     <div class="d-flex flex-row flex-wrap">
                         { for scene_state.layouts.keys().map(|entry| self.render_layout_card(entry, ctx)) }
                     </div>
+                </div>
+            }
+        } else {
+            Html::default()
+        };
+        html! {
+            <div class="flex-grow-1">
+                <div class="container mt-5">
+                    <h2 class="fw-bold"><span class="text-primary">{ "Live" }</span>{ " Dashboard" }</h2>
+                    { cases }
                     <h3 class="mt-4 mb-3 pointer" onclick=to_explorer>{ "Explorer" }</h3>
                     { for paths_state.structure.get_packages().map(|entry| self.render_package(entry, ctx)) }
                 </div>

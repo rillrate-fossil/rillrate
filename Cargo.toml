@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "pkg-core/*",
-    "pkg-dashboard/*",
+    "pkg-dashboard/rate-*",
     "pkg-packs/*",
     "rillrate",
     "demo",
