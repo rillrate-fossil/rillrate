@@ -85,7 +85,7 @@ fn preffered_sizes() -> HashMap<StreamType, RenderRule> {
 
     preffered_sizes.insert(
         control::click::ClickState::stream_type(),
-        RenderRule::new::<prime::control::ClickCard, _>(150, 100, false),
+        RenderRule::new::<prime::control::ClickCard, _>(140, 100, false),
     );
     preffered_sizes.insert(
         control::input::InputState::stream_type(),
@@ -101,7 +101,7 @@ fn preffered_sizes() -> HashMap<StreamType, RenderRule> {
     );
     preffered_sizes.insert(
         control::switch::SwitchState::stream_type(),
-        RenderRule::new::<prime::control::SwitchCard, _>(150, 100, false),
+        RenderRule::new::<prime::control::SwitchCard, _>(140, 100, false),
     );
 
     preffered_sizes.insert(

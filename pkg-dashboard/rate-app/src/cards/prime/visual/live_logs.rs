@@ -31,6 +31,14 @@ impl Widget for LiveLogsCardWidget {
                 html! {
                     //<div class="d-flex flex-column w-100 py-3 px-4 overflow-auto">
                     <table class="table">
+                        <thead>
+                            <tr>
+                                <td width="10%">{ "Module" }</td>
+                                <td width="10%">{ "Level" }</td>
+                                <td width="10%">{ "Timestamp" }</td>
+                                <td width="70%">{ "Text" }</td>
+                            </tr>
+                        </thead>
                         <tbody>
                             { for state.frame.iter().rev().map(|record| self.render_record(record)) }
                         </tbody>
