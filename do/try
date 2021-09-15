@@ -1,3 +1,5 @@
 do/build-ui
 
-RR_UI=dist/app cargo run -p demo
+pushd demo
+RR_UI=../dist/app cargo run -p demo
+popd
