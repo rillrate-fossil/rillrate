@@ -1,4 +1,4 @@
-use once_cell::unsync::Lazy;
+use once_cell::sync::Lazy;
 use rate_ui::widget::wired_widget::SingleFlowProps;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::{Path, StreamType};
@@ -6,7 +6,21 @@ use rrpack_prime::manifest::layouts::layout::Size;
 use std::collections::HashMap;
 use yew::{html, Component, Html};
 
-pub type RenderFn = &'static dyn Fn(&Path) -> Html;
+pub type RenderFn = &'static dyn RenderFunc;
+
+pub trait RenderFunc: Send + Sync {
+    fn render(&self, path: &Path) -> Html;
+}
+
+impl<T> RenderFunc for T
+where
+    T: Fn(&Path) -> Html,
+    T: Sync + Send,
+{
+    fn render(&self, path: &Path) -> Html {
+        (self)(path)
+    }
+}
 
 fn render_card<T, M>(path: &Path) -> Html
 where
@@ -53,7 +67,7 @@ pub const RENDER_DEFAULT: RenderRule = RenderRule {
     },
 };
 
-pub const RENDERS: Lazy<HashMap<StreamType, RenderRule>> = Lazy::new(preffered_sizes);
+pub static RENDERS: Lazy<HashMap<StreamType, RenderRule>> = Lazy::new(preffered_sizes);
 
 fn preffered_sizes() -> HashMap<StreamType, RenderRule> {
     use super::prime;

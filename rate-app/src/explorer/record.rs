@@ -9,7 +9,7 @@ impl Record {
     pub fn render(item: Option<&Item<Self>>) -> Html {
         if let Some(item) = item {
             let record = &item.record;
-            let inner_html = (record.rule.render)(&record.path);
+            let inner_html = record.rule.render.render(&record.path);
             let style = format!("order: {};", item.order,);
             let size = format!(
                 " width: {}px; height: {}px;",

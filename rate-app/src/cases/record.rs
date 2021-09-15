@@ -62,7 +62,7 @@ impl Record {
             "position: absolute; top: {}%; left: {}%; height: {}%; width: {}%;",
             top, left, height, width
         );
-        let inner_html = (record.rule.render)(&record.path);
+        let inner_html = record.rule.render.render(&record.path);
         html! {
             <div style=style ref=record.node_ref.clone()>
                 { inner_html }
