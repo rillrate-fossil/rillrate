@@ -1,4 +1,5 @@
 use anyhow::Error;
+use approx::abs_diff_ne;
 use derive_more::{Deref, DerefMut};
 // TODO: Remove it or use
 use plotters::prelude::*;
@@ -69,13 +70,13 @@ impl SmartCanvas {
         let rect = canvas.get_bounding_client_rect();
         self.scale = 2.0;
         self.real_height = rect.height();
-        if self.was_height != self.real_height {
+        if abs_diff_ne!(&self.was_height, &self.real_height) {
             let height = self.real_height * self.scale;
             canvas.set_height(height as u32);
             self.was_height = self.real_height;
         }
         self.real_width = rect.width();
-        if self.was_width != self.real_width {
+        if abs_diff_ne!(&self.was_width, &self.real_width) {
             let width = self.real_width * self.scale;
             canvas.set_width(width as u32);
             self.was_width = self.real_width;
@@ -155,7 +156,7 @@ impl DrawCanvas {
 
         let single = data.len() == 1;
 
-        for (col, line) in data.into_iter().enumerate() {
+        for (col, line) in data.iter().enumerate() {
             let area_color;
             let line_color;
             if single {

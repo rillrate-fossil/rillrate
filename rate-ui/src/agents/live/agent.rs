@@ -260,7 +260,7 @@ impl LiveAgent {
             .as_string()
             .ok_or(ConnectorError::NoString)?
             .parse()?;
-        let scheme = if url.scheme().ends_with("s") {
+        let scheme = if url.scheme().ends_with('s') {
             "wss"
         } else {
             "ws"

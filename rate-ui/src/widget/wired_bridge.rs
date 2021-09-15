@@ -111,7 +111,7 @@ impl<ID, T: Agent, W: Widget> WiredBridge<ID, T, W> {
     }
 
     pub fn handler(&self) -> Option<WiredHandler<W::Tag, T::Output, W>> {
-        self.handler.clone()
+        self.handler
     }
 
     pub fn registry(&mut self) -> &mut TagRegistry<W::Tag, ID> {

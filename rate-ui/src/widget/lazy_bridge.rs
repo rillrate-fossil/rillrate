@@ -72,6 +72,6 @@ impl<T: Agent, W: Widget> LazyBridge<T, W> {
     }
 
     pub fn handler(&self) -> Option<Handler<T::Output, W>> {
-        self.handler.clone()
+        self.handler
     }
 }

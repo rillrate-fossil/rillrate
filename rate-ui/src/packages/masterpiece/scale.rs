@@ -208,14 +208,15 @@ struct Norm(pub f64);
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_abs_diff_eq;
 
     #[test]
     fn test_tick_increment() {
         let range = Range::new(0.03310319276564422, 0.9859442826901874);
-        assert_eq!(range.tick_increment(5.0), -5.0);
+        assert_abs_diff_eq!(range.tick_increment(5.0), -5.0);
 
         let range = Range::new(0.12, 500.0);
-        assert_eq!(range.tick_increment(29.0), 20.0);
+        assert_abs_diff_eq!(range.tick_increment(29.0), 20.0);
     }
 
     #[test]
@@ -233,6 +234,6 @@ mod tests {
         assert_eq!(domain.normalize(11.0), Norm(0.1));
         let range = Range::new(0.0, 600.0);
         let linear = LinearScale::new(domain, range);
-        assert_eq!(linear.rescale(11.0), 60.0);
+        assert_abs_diff_eq!(linear.rescale(11.0), 60.0);
     }
 }
