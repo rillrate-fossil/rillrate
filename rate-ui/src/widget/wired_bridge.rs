@@ -2,7 +2,6 @@ use super::{Context, Msg, Widget, WidgetRuntime};
 use anyhow::{anyhow, Error};
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::ops::DerefMut;
 use std::rc::Rc;
 use yew::worker::Agent;
 use yew::{Bridge, Bridged, ComponentLink};
@@ -153,7 +152,7 @@ impl<ID, T: Agent, W: Widget> WiredBridge<ID, T, W> {
     {
         self.activate_link(widget_link);
         self.activate_handler();
-        let bridge = self.link.as_mut().map(Box::deref_mut).unwrap();
+        let bridge = self.link.as_deref_mut().unwrap();
         (bridge, &mut self.registry)
     }
 }

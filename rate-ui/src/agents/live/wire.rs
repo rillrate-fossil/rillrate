@@ -36,13 +36,13 @@ pub struct WireContext<'a> {
 }
 
 impl<'a> WireContext<'a> {
-    fn to_server(&mut self, request: ClientRequest) {
+    fn send_to_server(&mut self, request: ClientRequest) {
         let input = LiveRequest::Forward(request);
         let envelope = WireEnvelope::new(self.req_id, input);
         self.link.send_input(envelope);
     }
 
-    fn to_component(&mut self, response: ClientResponse) {
+    fn send_to_component(&mut self, response: ClientResponse) {
         let output = LiveResponse::Forwarded(response);
         let envelope = WireEnvelope::new(self.req_id, output);
         self.link.respond(self.who, envelope);
@@ -86,7 +86,7 @@ impl WireTask for Subscription {
                             path: self.path.clone(),
                             request,
                         };
-                        ctx.to_server(request);
+                        ctx.send_to_server(request);
                     }
                 }
             }
@@ -109,7 +109,7 @@ impl WireTask for Subscription {
                     // TODO: Try again if had an error: for the case if the server was restarted
                     // and not all providers sent when the client tried to reach them.
                     //
-                    ctx.to_component(response);
+                    ctx.send_to_component(response);
                 }
             }
             WireAction::Interrupted => {
@@ -121,7 +121,7 @@ impl WireTask for Subscription {
                         path: self.path.clone(),
                         request,
                     };
-                    ctx.to_server(request);
+                    ctx.send_to_server(request);
                     // Wait for the `End` marker or `Error` or `Disconnected`
                 }
             }
@@ -154,7 +154,7 @@ impl WireTask for GetDescription {
                         path: self.path.clone(),
                         request,
                     };
-                    ctx.to_server(request);
+                    ctx.send_to_server(request);
                 }
             }
             WireAction::Status(LiveStatus::Disconnected) => {
@@ -164,7 +164,7 @@ impl WireTask for GetDescription {
             }
             WireAction::Incoming(response) => {
                 // TODO: Match `End`, `Error, `Disconected`
-                ctx.to_component(response);
+                ctx.send_to_component(response);
                 ctx.shutdown();
             }
             WireAction::Interrupted => {
@@ -208,7 +208,7 @@ impl<T: core::Flow> WireTask for DoAction<T> {
                                 path: self.path.clone(),
                                 request,
                             };
-                            ctx.to_server(request);
+                            ctx.send_to_server(request);
                         }
                         Err(err) => {
                             log::error!("Can't pack an action: {}", err);

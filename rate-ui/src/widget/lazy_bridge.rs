@@ -1,6 +1,5 @@
 use super::{Context, Msg, Widget, WidgetRuntime};
 use anyhow::{anyhow, Error};
-use std::ops::DerefMut;
 use yew::worker::Agent;
 use yew::{Bridge, Bridged, ComponentLink};
 
@@ -46,7 +45,7 @@ impl<T: Agent, W: Widget> LazyBridge<T, W> {
             let link = T::bridge(callback);
             self.link = Some(link);
         }
-        self.link.as_mut().map(Box::deref_mut).unwrap()
+        self.link.as_deref_mut().unwrap()
     }
 
     pub fn activate_handler(&mut self)
