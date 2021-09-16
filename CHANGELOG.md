@@ -3,6 +3,10 @@
 Improvements:
 
 - Support config file
+- Fully custom layouts (cases)
+- `LiveTail` tracer
+- Flexible width of `Table` and `LiveTail`
+
 
 # v0.39.0
 
@@ -12,6 +16,7 @@ Improvements:
 - New `Alert` tracer and rendering as popup notification
 - New layout based of `flex`
 - Improved layout for mobile devices
+
 
 # v0.38.0
 
