@@ -20,6 +20,12 @@ pub struct PulseOpts {
     pub higher: Option<bool>,
 }
 
+impl PulseOpts {
+    pub fn pct_100(self) -> Self {
+        self.divisor(100).suffix('%')
+    }
+}
+
 impl From<PulseOpts> for PulseSpec {
     fn from(opts: PulseOpts) -> Self {
         Self {
