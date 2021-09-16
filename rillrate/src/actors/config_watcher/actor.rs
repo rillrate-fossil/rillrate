@@ -3,7 +3,7 @@ use crate::config::cases::CaseConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
-use meio::{Action, ActionHandler, Actor, Context, InterruptedBy, StartedBy};
+use meio::{Action, ActionHandler, Actor, Context, InterruptedBy, StartedBy, TaskAddress};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rate_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
@@ -19,6 +19,7 @@ use tokio::fs;
 pub struct ConfigWatcher {
     watcher: Option<RecommendedWatcher>,
     layouts: HashMap<EntryId, Layout>,
+    heartbeat: Option<TaskAddress<HeartBeat>>,
 }
 
 impl ConfigWatcher {
@@ -26,6 +27,7 @@ impl ConfigWatcher {
         Self {
             watcher: None,
             layouts: HashMap::new(),
+            heartbeat: None,
         }
     }
 }
@@ -49,15 +51,44 @@ const PATH: &str = ".rillrate";
 impl StartedBy<NodeSupervisor> for ConfigWatcher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(Group::iter().collect());
+        self.read_and_watch(ctx).await;
+        Ok(())
+    }
+}
+
+impl ConfigWatcher {
+    async fn read_and_watch(&mut self, ctx: &mut Context<Self>) {
+        let mut success = true;
         if Path::new(PATH).exists() {
-            self.assign_watcher(ctx)?;
-            self.read_config().await;
+            success &= self.read_config().await.is_ok();
+            success &= self.assign_watcher(ctx).is_ok();
+        }
+        if !success {
+            self.start_heartbeat(ctx);
         } else {
+            self.stop_heartbeat();
+            self.unassign_watcher();
+        }
+    }
+
+    fn start_heartbeat(&mut self, ctx: &mut Context<Self>) {
+        if self.heartbeat.is_none() {
             let interval = Duration::from_secs(5);
             let heartbeat = HeartBeat::new(interval, ctx.address().clone());
-            ctx.spawn_task(heartbeat, (), Group::HeartBeat);
+            let addr = ctx.spawn_task(heartbeat, (), Group::HeartBeat);
+            self.heartbeat = Some(addr);
         }
-        Ok(())
+    }
+
+    fn stop_heartbeat(&mut self) {
+        if let Some(heartbeat) = self.heartbeat.take() {
+            if let Err(err) = heartbeat.stop() {
+                log::error!(
+                    "Can't stop the HeartBeat task of the ConfigWatcher: {}",
+                    err
+                );
+            }
+        }
     }
 }
 
@@ -71,34 +102,37 @@ impl InterruptedBy<NodeSupervisor> for ConfigWatcher {
 
 impl ConfigWatcher {
     fn assign_watcher(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        let mut addr = ctx.address().clone();
-        let mut watcher = RecommendedWatcher::new(move |res: Result<notify::Event, _>| {
-            if let Ok(event) = res {
-                let changed = event
-                    .paths
-                    .iter()
-                    .any(|p| p.as_path().to_string_lossy().contains(".toml"));
-                if changed {
-                    if let Err(err) = addr.blocking_act(Reload) {
-                        log::error!("Can't notify config watcher about config changes: {}", err);
-                    } else {
-                        log::info!("Config updated. Loading...");
+        if self.watcher.is_none() {
+            let mut addr = ctx.address().clone();
+            let mut watcher = RecommendedWatcher::new(move |res: Result<notify::Event, _>| {
+                if let Ok(event) = res {
+                    let changed = event
+                        .paths
+                        .iter()
+                        .any(|p| p.as_path().to_string_lossy().contains(".toml"));
+                    if changed {
+                        if let Err(err) = addr.blocking_act(Reload) {
+                            log::error!(
+                                "Can't notify config watcher about config changes: {}",
+                                err
+                            );
+                        } else {
+                            log::info!("Config updated. Loading...");
+                        }
                     }
                 }
-            }
-        })?;
-        watcher.watch(PATH.as_ref(), RecursiveMode::Recursive)?;
-        self.watcher = Some(watcher);
+            })?;
+            watcher.watch(PATH.as_ref(), RecursiveMode::Recursive)?;
+            self.watcher = Some(watcher);
+        }
         Ok(())
     }
 
-    async fn read_config(&mut self) {
-        if let Err(err) = self.read_config_impl().await {
-            log::error!("Can't read config: {}", err);
-        }
+    fn unassign_watcher(&mut self) {
+        self.watcher.take();
     }
 
-    async fn read_config_impl(&mut self) -> Result<(), Error> {
+    async fn read_config(&mut self) -> Result<(), Error> {
         let mut dir = fs::read_dir(".rillrate/cases").await?;
         let mut layouts = HashMap::new();
         while let Some(entry) = dir.next_entry().await? {
@@ -137,17 +171,15 @@ impl ConfigWatcher {
 #[async_trait]
 impl ActionHandler<Reload> for ConfigWatcher {
     async fn handle(&mut self, _event: Reload, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.read_config().await;
-        Ok(())
+        self.read_config().await
     }
 }
 
 // TODO: How about to use plain actions for `HeartBeat`?
 #[async_trait]
 impl OnTick for ConfigWatcher {
-    async fn tick(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        // TODO: Check config exists
-        self.read_config().await;
+    async fn tick(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<(), Error> {
+        self.read_and_watch(ctx).await;
         Ok(())
     }
 
