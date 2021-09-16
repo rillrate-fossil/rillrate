@@ -67,6 +67,16 @@ In progress:
 - **Charts** - all basic charts
 - **Trade** - live components for trading (order books, charts, etc.)
 
+### Project structure
+
+The project consists of the following parts:
+
+- `pkg-core` (backend) - core components and the engine
+- `pkg-dashboard` (frontend) - the dashboard app and rendering routines
+- `pkg-packs` - tracers for different data stream types
+- `rillrate` - the main library that joins all the parts above
+- `demo` - the demo app
+
 ### Frameworks
 
 We use the following frameworks to build our product:
