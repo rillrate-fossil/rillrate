@@ -1,0 +1,17 @@
+do/build --release
+
+# Use version here
+VERSION=`cargo pkgid -p rate-vision | cut -d# -f2 | cut -d: -f2`
+UPLOAD_TO="s3://rillrate/live/v0/v${VERSION}.tar.gz"
+DIST="dist/app.tar.gz"
+
+ls -lah $DIST
+
+read -p "Are you sure to upload ${UPLOAD_TO}? " -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    s3cmd --acl-public put $DIST $UPLOAD_TO
+else
+    echo "Skipped."
+fi
