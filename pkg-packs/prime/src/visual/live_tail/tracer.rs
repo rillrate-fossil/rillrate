@@ -47,4 +47,21 @@ impl LiveTail {
         let msg = LiveTailEvent::Add(record);
         self.tracer.send(msg, None);
     }
+
+    pub fn log_now(
+        &self,
+        module: impl Into<String>,
+        level: impl Into<String>,
+        content: impl Into<String>,
+    ) {
+        let timestamp = chrono::Local::now().format("%F%T%.3f").to_string();
+        let record = LogRecord {
+            module: module.into(),
+            level: level.into(),
+            timestamp: timestamp.into(),
+            content: content.into(),
+        };
+        let msg = LiveTailEvent::Add(record);
+        self.tracer.send(msg, None);
+    }
 }

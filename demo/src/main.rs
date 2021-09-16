@@ -214,8 +214,9 @@ pub async fn main() -> Result<(), Error> {
             inner_counter
         ));
         board_1.set("Loop", "First");
+        live_tail.log_now(module_path!(), "INFO", "Loop 1");
         for x in 1..=FIRST_LIMIT {
-            live_tail.log("module", "INFO", "DateTime", format!("Line {}", x));
+            live_tail.log_now(module_path!(), "DEBUG", format!("Line {}", x));
             gauge_1.set(x as f64);
             counter_1.inc(1);
             counter_2.inc(10);
@@ -230,7 +231,9 @@ pub async fn main() -> Result<(), Error> {
             Default::default(),
             PulseOpts::default().min(0.0).max(20.0).higher(true),
         );
+        live_tail.log_now(module_path!(), "INFO", "Loop 2");
         for x in 1..=SECOND_LIMIT {
+            live_tail.log_now(module_path!(), "DEBUG", format!("Line {}", x));
             gauge_2.set(x as f64);
             counter_1.inc(1);
             counter_2.inc(10);

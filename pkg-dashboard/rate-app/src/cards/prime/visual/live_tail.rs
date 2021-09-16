@@ -34,8 +34,8 @@ impl Widget for LiveTailCardWidget {
                         <thead>
                             <tr>
                                 <td width="10%">{ "Module" }</td>
-                                <td width="10%">{ "Level" }</td>
-                                <td width="10%">{ "Timestamp" }</td>
+                                <td width="6%">{ "Level" }</td>
+                                <td width="14%">{ "Timestamp" }</td>
                                 <td width="70%">{ "Text" }</td>
                             </tr>
                         </thead>
