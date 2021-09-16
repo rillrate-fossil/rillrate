@@ -1,6 +1,6 @@
 [package]
 name = "rill-client"
-version = "0.40.0-rc.2"
+version = "0.40.0-rc.3"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
@@ -19,6 +19,6 @@ derive_more = "0.99.16"
 log = "0.4.14"
 meio = "0.94.0"
 meio-connect = "0.94.0"
-rill-protocol = { version = "0.40.0-rc.2", path = "../rill-protocol" }
+rill-protocol = { version = "0.40.0-rc.3", path = "../rill-protocol" }
 thiserror = "1.0.29"
 tokio = "1.11.0"
