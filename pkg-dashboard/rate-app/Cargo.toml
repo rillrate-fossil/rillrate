@@ -1,6 +1,6 @@
 [package]
 name = "rate-app"
-version = "0.40.0-rc.1"
+version = "0.40.0-rc.2"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
@@ -26,9 +26,9 @@ plotters = "0.3.1"
 plotters-backend = "0.3.2"
 plotters-canvas = "0.3.0"
 pulldown-cmark = "0.8.0"
-rate-ui = { version = "0.40.0-rc.1", path = "../rate-ui" }
-rill-protocol = { version = "0.40.0-rc.1", path = "../../pkg-core/rill-protocol" }
-rrpack-prime = { version = "0.40.0-rc.1", path = "../../pkg-packs/prime", default-features = false }
+rate-ui = { version = "0.40.0-rc.2", path = "../rate-ui" }
+rill-protocol = { version = "0.40.0-rc.2", path = "../../pkg-core/rill-protocol" }
+rrpack-prime = { version = "0.40.0-rc.2", path = "../../pkg-packs/prime", default-features = false }
 serde = "1.0.130"
 strum = "0.21.0"
 timeago = "0.3.0"

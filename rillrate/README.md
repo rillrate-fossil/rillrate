@@ -28,7 +28,7 @@ Add a dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rillrate = "0.40.0-rc.1"
+rillrate = "0.40.0-rc.2"
 ```
 
 Install the **rillrate** engine in the `main` function:

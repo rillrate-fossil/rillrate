@@ -1,6 +1,6 @@
 [package]
 name = "rillrate"
-version = "0.40.0-rc.1"
+version = "0.40.0-rc.2"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
@@ -22,10 +22,10 @@ meio-connect = "0.94.0"
 metacrate = "0.1.2"
 notify = "5.0.0-pre.12"
 once_cell = "1.8.0"
-rate-config = { version = "0.40.0-rc.1", path = "../pkg-core/rate-config" }
-rate-core = { version = "0.40.0-rc.1", path = "../pkg-core/rate-core" }
-rill-protocol = { version = "0.40.0-rc.1", path = "../pkg-core/rill-protocol" }
-rrpack-prime = { version = "0.40.0-rc.1", path = "../pkg-packs/prime" }
+rate-config = { version = "0.40.0-rc.2", path = "../pkg-core/rate-config" }
+rate-core = { version = "0.40.0-rc.2", path = "../pkg-core/rate-core" }
+rill-protocol = { version = "0.40.0-rc.2", path = "../pkg-core/rill-protocol" }
+rrpack-prime = { version = "0.40.0-rc.2", path = "../pkg-packs/prime" }
 serde = "1.0.130"
 strum = "0.21.0"
 thiserror = "1.0.29"
