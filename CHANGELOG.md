@@ -8,7 +8,7 @@ Improvements:
 - Flexible width of `Table` and `LiveTail`
 
 
-# v0.39.0
+# v0.40.0-rc.1
 
 Improvements:
 

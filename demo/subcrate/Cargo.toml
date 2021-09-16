@@ -1,10 +1,10 @@
 [package]
 publish = false
 name = "subcrate"
-version = "0.39.0"
+version = "0.40.0-rc.1"
 edition = "2018"
 
 [dependencies]
 rand = "0.8.4"
-rillrate = { version = "0.39.0", path = "../../rillrate" }
+rillrate = { version = "0.40.0-rc.1", path = "../../rillrate" }
 tokio = "1.11.0"
