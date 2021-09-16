@@ -11,7 +11,9 @@ use rill_protocol::io::provider::EntryId;
 use rrpack_prime::manifest::layouts::global::LAYOUTS;
 use rrpack_prime::manifest::layouts::layout::Layout;
 use std::collections::HashMap;
+use std::path::Path;
 use std::time::Duration;
+use strum::{EnumIter, IntoEnumIterator};
 use tokio::fs;
 
 pub struct ConfigWatcher {
@@ -28,17 +30,47 @@ impl ConfigWatcher {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter)]
+pub enum Group {
+    HeartBeat,
+}
+
 impl Actor for ConfigWatcher {
-    type GroupBy = ();
+    type GroupBy = Group;
 }
 
 struct Reload;
 
 impl Action for Reload {}
 
+const PATH: &str = ".rillrate";
+
 #[async_trait]
 impl StartedBy<NodeSupervisor> for ConfigWatcher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.termination_sequence(Group::iter().collect());
+        if Path::new(PATH).exists() {
+            self.assign_watcher(ctx)?;
+            self.read_config().await;
+        } else {
+            let interval = Duration::from_secs(5);
+            let heartbeat = HeartBeat::new(interval, ctx.address().clone());
+            ctx.spawn_task(heartbeat, (), Group::HeartBeat);
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl InterruptedBy<NodeSupervisor> for ConfigWatcher {
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
+        Ok(())
+    }
+}
+
+impl ConfigWatcher {
+    fn assign_watcher(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         let mut addr = ctx.address().clone();
         let mut watcher = RecommendedWatcher::new(move |res: Result<notify::Event, _>| {
             if let Ok(event) = res {
@@ -55,26 +87,11 @@ impl StartedBy<NodeSupervisor> for ConfigWatcher {
                 }
             }
         })?;
-        watcher.watch(".rillrate".as_ref(), RecursiveMode::Recursive)?;
+        watcher.watch(PATH.as_ref(), RecursiveMode::Recursive)?;
         self.watcher = Some(watcher);
-
-        let interval = Duration::from_secs(5);
-        let heartbeat = HeartBeat::new(interval, ctx.address().clone());
-        ctx.spawn_task(heartbeat, (), ());
-        self.read_config().await;
         Ok(())
     }
-}
 
-#[async_trait]
-impl InterruptedBy<NodeSupervisor> for ConfigWatcher {
-    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
-        Ok(())
-    }
-}
-
-impl ConfigWatcher {
     async fn read_config(&mut self) {
         if let Err(err) = self.read_config_impl().await {
             log::error!("Can't read config: {}", err);

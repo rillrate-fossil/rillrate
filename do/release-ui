@@ -1,7 +1,7 @@
-do/build --release
+do/build-ui --release
 
 # Use version here
-VERSION=`cargo pkgid -p rate-vision | cut -d# -f2 | cut -d: -f2`
+VERSION=`cargo pkgid -p rate-app | cut -d# -f2 | cut -d: -f2`
 UPLOAD_TO="s3://rillrate/live/v0/v${VERSION}.tar.gz"
 DIST="dist/app.tar.gz"
 
