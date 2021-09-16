@@ -13,30 +13,30 @@ pub struct LogRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveLogsSpec;
+pub struct LiveTailSpec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveLogsState {
-    pub spec: LiveLogsSpec,
+pub struct LiveTailState {
+    pub spec: LiveTailSpec,
     pub frame: Frame<LogRecord>,
 }
 
-impl From<LiveLogsSpec> for LiveLogsState {
-    fn from(spec: LiveLogsSpec) -> Self {
+impl From<LiveTailSpec> for LiveTailState {
+    fn from(spec: LiveTailSpec) -> Self {
         let frame = Frame::new(50); // TODO: Get from spec
         Self { spec, frame }
     }
 }
 
-impl PackFlow for LiveLogsState {
+impl PackFlow for LiveTailState {
     fn layer() -> Layer {
         Layer::Visual
     }
 }
 
-impl Flow for LiveLogsState {
+impl Flow for LiveTailState {
     type Action = ();
-    type Event = LiveLogsEvent;
+    type Event = LiveTailEvent;
 
     fn stream_type() -> StreamType {
         StreamType::from(module_path!())
@@ -44,7 +44,7 @@ impl Flow for LiveLogsState {
 
     fn apply(&mut self, event: Self::Event) {
         match event {
-            LiveLogsEvent::Add(record) => {
+            LiveTailEvent::Add(record) => {
                 self.frame.insert_pop(record);
             }
         }
@@ -52,6 +52,6 @@ impl Flow for LiveLogsState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LiveLogsEvent {
+pub enum LiveTailEvent {
     Add(LogRecord),
 }

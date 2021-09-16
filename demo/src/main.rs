@@ -200,10 +200,10 @@ pub async fn main() -> Result<(), Error> {
         LiveTextOpts::default(),
     );
 
-    let live_logs = LiveLogs::new(
-        "app.dashboard-1.a-first.live-logs",
+    let live_tail = LiveTail::new(
+        "app.dashboard-1.a-first.live-tail",
         Default::default(),
-        LiveLogsOpts::default(),
+        LiveTailOpts::default(),
     );
 
     let mut inner_counter = 0;
@@ -215,7 +215,7 @@ pub async fn main() -> Result<(), Error> {
         ));
         board_1.set("Loop", "First");
         for x in 1..=FIRST_LIMIT {
-            live_logs.log("module", "INFO", "DateTime", format!("Line {}", x));
+            live_tail.log("module", "INFO", "DateTime", format!("Line {}", x));
             gauge_1.set(x as f64);
             counter_1.inc(1);
             counter_2.inc(10);

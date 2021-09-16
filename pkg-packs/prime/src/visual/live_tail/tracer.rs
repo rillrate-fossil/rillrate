@@ -6,26 +6,26 @@ use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
 
 #[derive(TracerOpts, Default)]
-pub struct LiveLogsOpts {
+pub struct LiveTailOpts {
     // TODO: Add levels here (maybe)
 }
 
-impl From<LiveLogsOpts> for LiveLogsSpec {
-    fn from(_opts: LiveLogsOpts) -> Self {
+impl From<LiveTailOpts> for LiveTailSpec {
+    fn from(_opts: LiveTailOpts) -> Self {
         Self {}
     }
 }
 
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct LiveLogs {
-    tracer: BindedTracer<LiveLogsState>,
+pub struct LiveTail {
+    tracer: BindedTracer<LiveTailState>,
 }
 
-impl LiveLogs {
+impl LiveTail {
     pub fn new(
         auto_path: impl Into<AutoPath>,
         mode: FlowMode,
-        spec: impl Into<LiveLogsSpec>,
+        spec: impl Into<LiveTailSpec>,
     ) -> Self {
         let tracer = BindedTracer::new(auto_path.into(), mode, spec.into());
         Self { tracer }
@@ -44,7 +44,7 @@ impl LiveLogs {
             timestamp: timestamp.into(),
             content: content.into(),
         };
-        let msg = LiveLogsEvent::Add(record);
+        let msg = LiveTailEvent::Add(record);
         self.tracer.send(msg, None);
     }
 }

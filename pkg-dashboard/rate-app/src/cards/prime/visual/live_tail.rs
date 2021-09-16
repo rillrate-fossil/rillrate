@@ -2,15 +2,15 @@ use crate::blocks;
 use rate_ui::widget::wired_widget::{SingleFlowMeta, SingleFlowProps, WiredWidget};
 use rate_ui::widget::{Context, Widget, WidgetRuntime};
 use rill_protocol::io::provider::Path;
-use rrpack_prime::visual::live_logs::{LiveLogsState, LogRecord};
+use rrpack_prime::visual::live_tail::{LiveTailState, LogRecord};
 use yew::{html, Html};
 
-pub type LiveLogsCard = WidgetRuntime<LiveLogsCardWidget>;
+pub type LiveTailCard = WidgetRuntime<LiveTailCardWidget>;
 
 #[derive(Default)]
-pub struct LiveLogsCardWidget {}
+pub struct LiveTailCardWidget {}
 
-impl Widget for LiveLogsCardWidget {
+impl Widget for LiveTailCardWidget {
     type Event = ();
     type Tag = Option<Path>;
     type Properties = SingleFlowProps;
@@ -57,7 +57,7 @@ impl Widget for LiveLogsCardWidget {
     }
 }
 
-impl LiveLogsCardWidget {
+impl LiveTailCardWidget {
     fn render_record(&self, record: &LogRecord) -> Html {
         html! {
             <tr>
@@ -70,8 +70,8 @@ impl LiveLogsCardWidget {
     }
 }
 
-impl WiredWidget<SingleFlowMeta<Self>> for LiveLogsCardWidget {
-    type Flow = LiveLogsState;
+impl WiredWidget<SingleFlowMeta<Self>> for LiveTailCardWidget {
+    type Flow = LiveTailState;
 
     fn state_changed(&mut self, _reloaded: bool, ctx: &mut Context<Self>) {
         ctx.redraw();

@@ -13,8 +13,8 @@ pub use histogram::HistogramCard;
 mod live_text;
 pub use live_text::LiveTextCard;
 
-mod live_logs;
-pub use live_logs::LiveLogsCard;
+mod live_tail;
+pub use live_tail::LiveTailCard;
 
 mod pulse;
 pub use pulse::PulseCard;
