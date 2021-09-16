@@ -5,7 +5,7 @@ use derive_more::{Deref, DerefMut};
 use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
 
-#[derive(TracerOpts, Default)]
+#[derive(TracerOpts, Clone, Default)]
 pub struct TableOpts {
     pub columns: Vec<(u64, String)>,
 }

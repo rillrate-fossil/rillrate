@@ -5,7 +5,7 @@ use derive_more::{Deref, DerefMut};
 use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
 
-#[derive(TracerOpts, Default)]
+#[derive(TracerOpts, Clone, Default)]
 pub struct BoardOpts {}
 
 impl From<BoardOpts> for BoardSpec {

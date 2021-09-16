@@ -6,7 +6,7 @@ use derive_more::{Deref, DerefMut};
 use rill_derive::TracerOpts;
 use rill_protocol::flow::core::FlowMode;
 
-#[derive(TracerOpts, Default)]
+#[derive(TracerOpts, Clone, Default)]
 pub struct GaugeOpts {
     pub min: Option<f64>,
     pub lower: Option<bool>,
