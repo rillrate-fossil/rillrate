@@ -1,0 +1,30 @@
+name = "Second Layout"
+
+[[label]]
+text = "Hi! It's the text!"
+position = [0, 70]
+size = [50, 40]
+
+[[item]]
+name = "Pulse"
+position = [0, 0]
+size = [50, 40]
+path = "app.dashboard-1.pulses.pulse-1"
+
+[[item]]
+name = "Pulse"
+position = [50, 0]
+size = [50, 70]
+path = "app.dashboard-1.pulses.pulse-1"
+
+[[item]]
+name = "Slider"
+position = [10, 40]
+size = [30, 10]
+path = "app.dashboard-1.controls.slider-1"
+
+[[item]]
+name = "Slider"
+position = [10, 50]
+size = [30, 10]
+path = "app.dashboard-1.controls.slider-1"
