@@ -18,7 +18,7 @@ derive_more = "0.99.16"
 log = "0.4.14"
 once_cell = "1.8.0"
 ordered-float = "2.8.0"
-rrpack-basis = { version = "0.40.0", path = "../basis" }
+rrpack-basis = { version = "0.40.0", path = "../basis", default-features = false }
 rill-derive = { version = "0.40.0", path = "../../pkg-core/rill-derive" }
 rill-engine = { version = "0.40.0", path = "../../pkg-core/rill-engine", optional = true }
 rill-protocol = { version = "0.40.0", path = "../../pkg-core/rill-protocol" }
@@ -27,4 +27,4 @@ vectorize = "0.2.0"
 
 [features]
 default = ["engine"]
-engine = ["chrono", "rill-engine"]
+engine = ["chrono", "rill-engine", "rrpack-basis/engine"]
