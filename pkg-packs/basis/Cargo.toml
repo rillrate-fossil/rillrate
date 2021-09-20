@@ -1,0 +1,24 @@
+[package]
+name = "rrpack-basis"
+version = "0.40.0"
+authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+edition = "2018"
+repository = "https://github.com/rillrate/rillrate"
+homepage = "https://github.com/rillrate/rillrate"
+documentation = "https://docs.rs/rrpack-basis/"
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["logging"]
+categories = ["development-tools::debugging"]
+description = "RillRate Pack: Basis"
+
+[dependencies]
+rill-derive = { version = "0.40.0", path = "../../pkg-core/rill-derive" }
+rill-engine = { version = "0.40.0", path = "../../pkg-core/rill-engine", optional = true }
+rill-protocol = { version = "0.40.0", path = "../../pkg-core/rill-protocol" }
+serde = "1.0.130"
+vectorize = "0.2.0"
+
+[features]
+default = ["engine"]
+engine = ["rill-engine"]
