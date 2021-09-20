@@ -1,7 +1,7 @@
-use crate::manifest::description::{Layer, PackFlow};
 use derive_more::{From, Into};
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
+use rrpack_basis::manifest::description::{Layer, PackFlow};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::convert::{TryFrom, TryInto};

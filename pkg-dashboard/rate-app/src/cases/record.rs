@@ -1,7 +1,7 @@
 use crate::cards::render;
 use rill_protocol::io::provider::{EntryId, Path};
-use rrpack_prime::manifest::description::PackFlowDescription;
-use rrpack_prime::manifest::layouts::layout::{Label, LayoutItem, Position, Size};
+use rrpack_basis::manifest::description::PackFlowDescription;
+use rrpack_basis::manifest::layouts::layout::{Label, LayoutItem, Position, Size};
 use std::cmp::{Ord, Ordering};
 use yew::{html, Html, NodeRef};
 

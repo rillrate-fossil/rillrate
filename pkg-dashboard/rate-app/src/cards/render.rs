@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use rate_ui::widget::wired_widget::SingleFlowProps;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::{Path, StreamType};
-use rrpack_prime::manifest::layouts::layout::Size;
+use rrpack_basis::manifest::layouts::layout::Size;
 use std::collections::HashMap;
 use yew::{html, Component, Html};
 

@@ -1,7 +1,7 @@
 use crate::cards::render;
 use rate_ui::packages::talent::flexlayout::Item;
 use rill_protocol::io::provider::{EntryId, Path};
-use rrpack_prime::manifest::description::PackFlowDescription;
+use rrpack_basis::manifest::description::PackFlowDescription;
 use std::cmp::{Ord, Ordering};
 use yew::{html, Html, NodeRef};
 

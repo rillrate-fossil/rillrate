@@ -3,7 +3,7 @@ use rate_ui::shared_object::SharedObject;
 use rate_ui::widget::wired_widget::{SingleFlowMeta, WiredWidget};
 use rate_ui::widget::{Context, Widget, WidgetRuntime};
 use rill_protocol::io::provider::Path;
-use rrpack_prime::manifest::paths::{PathsSpec, PathsState};
+use rrpack_basis::manifest::paths::{PathsSpec, PathsState};
 use yew::Html;
 
 pub type Loader = WidgetRuntime<LoaderWidget>;

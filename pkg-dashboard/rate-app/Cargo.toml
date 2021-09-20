@@ -28,6 +28,7 @@ plotters-canvas = "0.3.0"
 pulldown-cmark = "0.8.0"
 rate-ui = { version = "0.40.0", path = "../rate-ui" }
 rill-protocol = { version = "0.40.0", path = "../../pkg-core/rill-protocol" }
+rrpack-basis = { version = "0.40.0", path = "../../pkg-packs/basis", default-features = false }
 rrpack-prime = { version = "0.40.0", path = "../../pkg-packs/prime", default-features = false }
 serde = "1.0.130"
 strum = "0.21.0"

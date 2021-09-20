@@ -1,6 +1,6 @@
 use rate_config::{Config, ReadableConfig};
-use rrpack_prime::auto_path::AutoPath;
-use rrpack_prime::manifest::layouts::layout::{Label, Layout, LayoutItem, Position, Size};
+use rrpack_basis::auto_path::AutoPath;
+use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem, Position, Size};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

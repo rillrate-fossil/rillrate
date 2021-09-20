@@ -1,8 +1,8 @@
-use crate::manifest::description::{Layer, PackFlow};
 use ordered_float::OrderedFloat;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::StreamType;
 use rill_protocol::range::Pct;
+use rrpack_basis::manifest::description::{Layer, PackFlow};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
