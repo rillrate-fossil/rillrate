@@ -1,5 +1,3 @@
-use super::global::LAYOUTS;
-use crate::AutoPath;
 use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
 
@@ -10,38 +8,46 @@ pub struct Layout {
     pub labels: Vec<Label>,
 }
 
-impl Layout {
-    pub fn new(name: impl Into<EntryId>) -> Self {
-        Self {
-            name: name.into(),
-            items: Vec::new(),
-            labels: Vec::new(),
+#[cfg(feature = "engine")]
+pub mod layout_builder {
+    use super::*;
+    use crate::manifest::layouts::global::LAYOUTS;
+    use crate::AutoPath;
+
+    // TODO: Consider to add the separate `LayoutBuilder` struct
+    impl Layout {
+        pub fn new(name: impl Into<EntryId>) -> Self {
+            Self {
+                name: name.into(),
+                items: Vec::new(),
+                labels: Vec::new(),
+            }
         }
-    }
 
-    pub fn add_item(
-        &mut self,
-        position: impl Into<Position>,
-        size: impl Into<Size>,
-        path: impl Into<AutoPath>,
-    ) {
-        let item = LayoutItem {
-            position: position.into(),
-            size: size.into(),
-            path: Path::from(path.into()),
-        };
-        self.items.push(item);
-    }
+        pub fn add_item(
+            &mut self,
+            position: impl Into<Position>,
+            size: impl Into<Size>,
+            path: impl Into<AutoPath>,
+        ) {
+            let item = LayoutItem {
+                position: position.into(),
+                size: size.into(),
+                path: Path::from(path.into()),
+            };
+            self.items.push(item);
+        }
 
-    pub fn register(&self) {
-        let name = self.name.clone();
-        let layout = self.clone();
-        LAYOUTS.add_layout(name, layout);
-    }
+        pub fn register(&self) {
+            let name = self.name.clone();
+            let layout = self.clone();
+            LAYOUTS.add_layout(name, layout);
+        }
 
-    pub fn unregister(&self) {
-        let name = self.name.clone();
-        LAYOUTS.remove_layout(name);
+        pub fn unregister(&self) {
+            let name = self.name.clone();
+            LAYOUTS.remove_layout(name);
+        }
     }
 }
 
