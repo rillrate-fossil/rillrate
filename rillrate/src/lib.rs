@@ -3,6 +3,7 @@
 #![warn(missing_docs)]
 
 mod actors;
+pub mod basis;
 mod config;
 pub mod prime;
 

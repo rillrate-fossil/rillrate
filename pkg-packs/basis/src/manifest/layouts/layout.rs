@@ -1,3 +1,5 @@
+use super::global::LAYOUTS;
+use crate::AutoPath;
 use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
 
@@ -6,6 +8,41 @@ pub struct Layout {
     pub name: EntryId,
     pub items: Vec<LayoutItem>,
     pub labels: Vec<Label>,
+}
+
+impl Layout {
+    pub fn new(name: impl Into<EntryId>) -> Self {
+        Self {
+            name: name.into(),
+            items: Vec::new(),
+            labels: Vec::new(),
+        }
+    }
+
+    pub fn add_item(
+        &mut self,
+        position: impl Into<Position>,
+        size: impl Into<Size>,
+        path: impl Into<AutoPath>,
+    ) {
+        let item = LayoutItem {
+            position: position.into(),
+            size: size.into(),
+            path: Path::from(path.into()),
+        };
+        self.items.push(item);
+    }
+
+    pub fn register(&self) {
+        let name = self.name.clone();
+        let layout = self.clone();
+        LAYOUTS.add_layout(name, layout);
+    }
+
+    pub fn unregister(&self) {
+        let name = self.name.clone();
+        LAYOUTS.remove_layout(name);
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -24,12 +61,38 @@ pub struct Label {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Position {
-    pub left: u32,
-    pub top: u32,
+    pub left: i32,
+    pub top: i32,
+}
+
+impl<L, T> From<(L, T)> for Position
+where
+    L: Into<i32>,
+    T: Into<i32>,
+{
+    fn from((left, top): (L, T)) -> Self {
+        Self {
+            left: left.into(),
+            top: top.into(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Size {
-    pub width: u32,
-    pub height: u32,
+    pub width: i32,
+    pub height: i32,
+}
+
+impl<W, H> From<(W, H)> for Size
+where
+    W: Into<i32>,
+    H: Into<i32>,
+{
+    fn from((width, height): (W, H)) -> Self {
+        Self {
+            width: width.into(),
+            height: height.into(),
+        }
+    }
 }

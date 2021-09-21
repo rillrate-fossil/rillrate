@@ -1,6 +1,6 @@
 use rate_config::{Config, ReadableConfig};
 use rrpack_basis::auto_path::AutoPath;
-use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem, Position, Size};
+use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -16,15 +16,15 @@ impl ReadableConfig for CaseConfig {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CaseItemConfig {
-    pub position: (u32, u32),
-    pub size: (u32, u32),
+    pub position: (i32, i32),
+    pub size: (i32, i32),
     pub path: AutoPath,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LabelConfig {
-    pub position: (u32, u32),
-    pub size: (u32, u32),
+    pub position: (i32, i32),
+    pub size: (i32, i32),
     pub text: String,
 }
 
@@ -52,18 +52,9 @@ impl From<CaseConfig> for Layout {
 
 impl From<CaseItemConfig> for LayoutItem {
     fn from(config: CaseItemConfig) -> Self {
-        // TODO: DRY
-        let position = Position {
-            left: config.position.0,
-            top: config.position.1,
-        };
-        let size = Size {
-            width: config.size.0,
-            height: config.size.1,
-        };
         Self {
-            position,
-            size,
+            position: config.position.into(),
+            size: config.size.into(),
             path: config.path.into(),
         }
     }
@@ -71,18 +62,9 @@ impl From<CaseItemConfig> for LayoutItem {
 
 impl From<LabelConfig> for Label {
     fn from(config: LabelConfig) -> Self {
-        // TODO: DRY
-        let position = Position {
-            left: config.position.0,
-            top: config.position.1,
-        };
-        let size = Size {
-            width: config.size.0,
-            height: config.size.1,
-        };
         Self {
-            position,
-            size,
+            position: config.position.into(),
+            size: config.size.into(),
             text: config.text,
         }
     }

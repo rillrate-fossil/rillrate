@@ -49,7 +49,7 @@ pub struct RenderRule {
 
 impl RenderRule {
     // TODO: Use `new(Width::Min(200), Height::Fixed(...))
-    fn new<T, M>(width: u32, height: u32, grow: bool) -> Self
+    fn new<T, M>(width: i32, height: i32, grow: bool) -> Self
     where
         T: Component<Message = M, Properties = SingleFlowProps>,
         M: 'static,
