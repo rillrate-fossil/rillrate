@@ -1,13 +1,10 @@
 use crate::auto_path::AutoPath;
 use crate::manifest::description::{PackFlow, PackFlowDescription};
-use crate::manifest::paths::PathsTracer;
+use crate::manifest::paths::global::PATHS;
 use derive_more::{Deref, DerefMut};
-use once_cell::sync::Lazy;
 use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::flow::core::FlowMode;
 use std::sync::Arc;
-
-static PATHS: Lazy<PathsTracer> = Lazy::new(PathsTracer::new);
 
 /// `Binded` wraps a tracer to automatically track it in the global `DescriptionFlow`.
 #[derive(Deref, DerefMut, Debug, Clone)]
