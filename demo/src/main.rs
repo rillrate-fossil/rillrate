@@ -12,8 +12,8 @@ pub async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     rillrate::install("demo")?;
 
-    let mut layout = Layout::new("Main Layout");
-    layout.add_item((0, 0), (10, 10), "app.dashboard-1.pulses.pulse-1");
+    let mut layout = Layout::new("Prog Layout");
+    layout.add_item((0, 0), (20, 30), "app.dashboard-1.pulses.pulse-1");
     layout.register();
 
     // Special tracers for checking issues:
