@@ -19,8 +19,11 @@ pub trait ReadableConfig: Config + DeserializeOwned {
         let mut file = File::open(path).await?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents).await?;
-        let config: Self = toml::from_slice(&contents)?;
-        Ok(config)
+        Self::parse(&contents)
+    }
+
+    fn parse(data: &[u8]) -> Result<Self, Error> {
+        toml::from_slice(data).map_err(Error::from)
     }
 }
 

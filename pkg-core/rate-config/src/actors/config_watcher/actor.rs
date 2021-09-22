@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{Action, ActionHandler, Actor, Context, InterruptedBy, StartedBy, TaskAddress};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use rate_core::assets::Assets;
 use rill_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
 use rill_protocol::io::provider::EntryId;
@@ -58,7 +59,7 @@ impl<T: Actor> StartedBy<T> for ConfigWatcher {
 impl ConfigWatcher {
     async fn read_and_watch(&mut self, ctx: &mut Context<Self>) {
         let mut success = true;
-        if let Err(err) = self.read_from_tar().await {
+        if let Err(err) = self.read_from_tar() {
             log::error!("Can't read embedded config tar: {}", err);
         }
         if Path::new(PATH).exists() {
@@ -134,8 +135,20 @@ impl ConfigWatcher {
         self.watcher.take();
     }
 
-    async fn read_from_tar(&mut self) -> Result<(), Error> {
-        if let Some(data) = crate::preserved::PRESERVED.get() {}
+    fn read_from_tar(&mut self) -> Result<(), Error> {
+        // TODO: Skip that step using config
+        if let Some(data) = crate::preserved::PRESERVED.get() {
+            let assets = Assets::parse(data)?;
+            for (path, data) in assets.iter() {
+                if path.contains("cases") {
+                    let case = CaseConfig::parse(data)?;
+                    let layout: Layout = case.into();
+                    // Embedded layouts aren't tracked by the `self.layouts` map
+                    // and they exists always.
+                    LAYOUTS.add_layout(layout.name.clone(), layout.clone());
+                }
+            }
+        }
         Ok(())
     }
 
