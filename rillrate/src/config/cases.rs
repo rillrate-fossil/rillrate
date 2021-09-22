@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CaseConfig {
     pub name: String,
-    pub tab: Vec<CaseTabConfig>,
+    pub tab: Option<Vec<CaseTabConfig>>,
 }
 
 impl Config for CaseConfig {}
@@ -38,6 +38,7 @@ impl From<CaseConfig> for Layout {
     fn from(config: CaseConfig) -> Self {
         let tabs = config
             .tab
+            .unwrap_or_default()
             .into_iter()
             .map(LayoutTab::from)
             .map(|tab| (tab.name.clone(), tab))
