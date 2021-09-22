@@ -143,9 +143,11 @@ impl ConfigWatcher {
                 if path.contains("cases") {
                     let case = CaseConfig::parse(data)?;
                     let layout: Layout = case.into();
+                    let name = layout.name.clone();
+                    log::debug!("Add Embedded Layout: {}", name);
                     // Embedded layouts aren't tracked by the `self.layouts` map
                     // and they exists always.
-                    LAYOUTS.add_layout(layout.name.clone(), layout.clone());
+                    LAYOUTS.add_layout(name, layout.clone());
                 }
             }
         }
