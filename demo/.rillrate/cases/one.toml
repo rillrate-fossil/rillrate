@@ -1,18 +1,21 @@
 name = "My Layout"
 
-[[item]]
+[tab.one]
+name = "One"
+
+[[tab.one.item]]
 name = "Gauge"
 position = [0, 0]
 size = [30, 10]
 path = "app.dashboard-1.gauges.gauge-1"
 
-[[item]]
+[[tab.one.item]]
 name = "Slider"
 position = [30, 0]
 size = [30, 10]
 path = "app.dashboard-1.controls.slider-1"
 
-[[item]]
+[[tab.one.item]]
 name = "Selector"
 position = [0, 20]
 size = [30, 10]

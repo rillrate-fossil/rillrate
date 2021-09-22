@@ -4,6 +4,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     pub name: EntryId,
+    pub tabs: Vec<LayoutTab>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct LayoutTab {
+    pub name: EntryId,
     pub items: Vec<LayoutItem>,
     pub labels: Vec<Label>,
 }
@@ -16,6 +22,30 @@ pub mod layout_builder {
 
     // TODO: Consider to add the separate `LayoutBuilder` struct
     impl Layout {
+        pub fn new(name: impl Into<EntryId>) -> Self {
+            Self {
+                name: name.into(),
+                tabs: Vec::new(),
+            }
+        }
+
+        pub fn add_tab(&mut self, tab: LayoutTab) {
+            self.tabs.push(tab);
+        }
+
+        pub fn register(&self) {
+            let name = self.name.clone();
+            let layout = self.clone();
+            LAYOUTS.add_layout(name, layout);
+        }
+
+        pub fn unregister(&self) {
+            let name = self.name.clone();
+            LAYOUTS.remove_layout(name);
+        }
+    }
+
+    impl LayoutTab {
         pub fn new(name: impl Into<EntryId>) -> Self {
             Self {
                 name: name.into(),
@@ -36,17 +66,6 @@ pub mod layout_builder {
                 path: Path::from(path.into()),
             };
             self.items.push(item);
-        }
-
-        pub fn register(&self) {
-            let name = self.name.clone();
-            let layout = self.clone();
-            LAYOUTS.add_layout(name, layout);
-        }
-
-        pub fn unregister(&self) {
-            let name = self.name.clone();
-            LAYOUTS.remove_layout(name);
         }
     }
 }

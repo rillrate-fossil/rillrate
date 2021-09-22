@@ -1,7 +1,7 @@
 use rate_ui::shared_object::{RouterState, SharedObject};
 use rate_ui::storage::typed_storage::Storable;
 use rill_protocol::io::provider::EntryId;
-use rrpack_basis::manifest::layouts::layout::Layout;
+use rrpack_basis::manifest::layouts::layout::{Layout, LayoutTab};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use strum::{Display, EnumIter};
@@ -27,6 +27,7 @@ impl Default for GlobalScene {
 pub struct SceneState {
     pub layouts: BTreeMap<EntryId, Layout>,
     pub selected_layout: Option<EntryId>,
+    pub selected_tab: Option<EntryId>,
     pub global_scene: GlobalScene,
 }
 
@@ -45,6 +46,10 @@ impl SceneState {
         self.selected_layout
             .as_ref()
             .and_then(|id| self.layouts.get(id))
+    }
+
+    pub fn get_layout_tab(&self) -> Option<&LayoutTab> {
+        None
     }
 }
 

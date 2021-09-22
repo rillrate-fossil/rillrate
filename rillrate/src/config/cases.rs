@@ -1,18 +1,24 @@
 use rate_config::{Config, ReadableConfig};
 use rrpack_basis::auto_path::AutoPath;
-use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem};
+use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem, LayoutTab};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CaseConfig {
     pub name: String,
-    pub item: Option<Vec<CaseItemConfig>>,
-    pub label: Option<Vec<LabelConfig>>,
+    pub tab: Vec<CaseTabConfig>,
 }
 
 impl Config for CaseConfig {}
 
 impl ReadableConfig for CaseConfig {}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CaseTabConfig {
+    pub name: String,
+    pub item: Option<Vec<CaseItemConfig>>,
+    pub label: Option<Vec<LabelConfig>>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CaseItemConfig {
@@ -30,6 +36,16 @@ pub struct LabelConfig {
 
 impl From<CaseConfig> for Layout {
     fn from(config: CaseConfig) -> Self {
+        let tabs = config.tab.into_iter().map(LayoutTab::from).collect();
+        Self {
+            name: config.name.into(),
+            tabs,
+        }
+    }
+}
+
+impl From<CaseTabConfig> for LayoutTab {
+    fn from(config: CaseTabConfig) -> Self {
         let items = config
             .item
             .unwrap_or_default()

@@ -30,9 +30,9 @@ impl Widget for DashboardWidget {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let state = self.scene.read();
-        if let Some(layout) = state.get_layout() {
+        if let Some(layout) = state.get_layout_tab() {
             html! {
-                <super::LayoutViewer layout=layout.clone() />
+                <super::LayoutViewer layout_tab=layout.clone() />
             }
         } else {
             html! {
