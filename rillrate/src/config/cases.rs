@@ -36,7 +36,12 @@ pub struct LabelConfig {
 
 impl From<CaseConfig> for Layout {
     fn from(config: CaseConfig) -> Self {
-        let tabs = config.tab.into_iter().map(LayoutTab::from).collect();
+        let tabs = config
+            .tab
+            .into_iter()
+            .map(LayoutTab::from)
+            .map(|tab| (tab.name.clone(), tab))
+            .collect();
         Self {
             name: config.name.into(),
             tabs,

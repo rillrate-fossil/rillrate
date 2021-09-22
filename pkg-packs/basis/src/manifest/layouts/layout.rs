@@ -1,10 +1,11 @@
 use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     pub name: EntryId,
-    pub tabs: Vec<LayoutTab>,
+    pub tabs: BTreeMap<EntryId, LayoutTab>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -25,12 +26,12 @@ pub mod layout_builder {
         pub fn new(name: impl Into<EntryId>) -> Self {
             Self {
                 name: name.into(),
-                tabs: Vec::new(),
+                tabs: BTreeMap::new(),
             }
         }
 
         pub fn add_tab(&mut self, tab: LayoutTab) {
-            self.tabs.push(tab);
+            self.tabs.insert(tab.name.clone(), tab);
         }
 
         pub fn register(&self) {

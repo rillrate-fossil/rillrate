@@ -10,6 +10,7 @@ thread_local! {
     pub static SCENE: SharedObject<SceneState> = SharedObject::new();
 }
 
+// TODO: Move Out
 #[derive(EnumIter, Display, Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub enum GlobalScene {
     Home,
@@ -25,31 +26,44 @@ impl Default for GlobalScene {
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
 pub struct SceneState {
+    // TODO: Move to `CaseStructure` struct
     pub layouts: BTreeMap<EntryId, Layout>,
+
+    // TODO: Move Out
+    pub global_scene: GlobalScene,
+
+    // TODO: Move to `CaseSelection` struct
     pub selected_layout: Option<EntryId>,
     pub selected_tab: Option<EntryId>,
-    pub global_scene: GlobalScene,
 }
 
 impl SceneState {
-    fn autoselect(&mut self) {
-        if self.selected_layout.is_none() {
-            self.selected_layout = self.layouts.keys().next().cloned();
+    fn autoselect(&mut self) -> Option<()> {
+        let mut layout = self.selected_layout.clone().unwrap_or_default();
+        let mut tab = self.selected_tab.clone().unwrap_or_default();
+        let layouts = &self.layouts;
+        if !layouts.contains_key(&layout) {
+            layout = layouts.keys().next().cloned()?;
         }
+        let tabs = &layouts.get(&layout)?.tabs;
+        if !tabs.contains_key(&tab) {
+            tab = tabs.keys().next().cloned()?;
+        }
+        self.selected_layout = Some(layout);
+        self.selected_tab = Some(tab);
+        Some(())
     }
 }
 
 // TODO: Implement auto-select
 
 impl SceneState {
-    pub fn get_layout(&self) -> Option<&Layout> {
-        self.selected_layout
-            .as_ref()
-            .and_then(|id| self.layouts.get(id))
-    }
-
     pub fn get_layout_tab(&self) -> Option<&LayoutTab> {
-        None
+        let selected_layout = self.selected_layout.as_ref()?;
+        let selected_tab = self.selected_tab.as_ref()?;
+        let layout = self.layouts.get(selected_layout)?;
+        let tab = layout.tabs.get(selected_tab)?;
+        Some(tab)
     }
 }
 
