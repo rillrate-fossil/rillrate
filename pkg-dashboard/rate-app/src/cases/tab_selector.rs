@@ -3,6 +3,7 @@ use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
 use rill_protocol::io::provider::EntryId;
+use std::collections::BTreeSet;
 use yew::{html, Html};
 
 pub type TabSelector = WidgetRuntime<TabSelectorWidget>;
@@ -36,22 +37,24 @@ impl Widget for TabSelectorWidget {
 
     fn on_event(&mut self, event: Self::Event, _ctx: &mut Context<Self>) {
         match event {
-            Msg::SelectTab(layout) => {
+            Msg::SelectTab(tab) => {
                 let mut state = self.paths.write();
-                state.selected_layout = layout;
-                state.selected_tab.take();
+                state.selected_tab = tab;
             }
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let state = self.paths.read();
-        let tabls = state.layouts.keys().cloned();
+        let tabs = state
+            .selected_layout
+            .as_ref()
+            .and_then(|layout| state.layouts.get(layout))
+            .map(|layout| layout.tabs.keys().cloned().collect::<BTreeSet<_>>())
+            .unwrap_or_default();
         html! {
             <nav yew=module_path!() class="nav">
-                // TODO: Add unassigned option if the layout exists
-                // TODO: Filter unassigned
-                { for tabls.map(|entry_id| self.render_item(entry_id, ctx)) }
+                { for tabs.into_iter().map(|entry_id| self.render_item(entry_id, ctx)) }
             </nav>
         }
     }
@@ -61,13 +64,13 @@ impl TabSelectorWidget {
     fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
         let state = self.paths.read();
         let caption = entry_id.to_string();
-        let layout = Some(entry_id);
-        let selected = layout == state.selected_layout;
+        let tab = Some(entry_id);
+        let selected = tab == state.selected_tab;
         let (class, event) = {
             if selected {
                 ("nav-link link-primary active", None)
             } else {
-                ("nav-link link-secondary", layout)
+                ("nav-link link-secondary", tab)
             }
         };
         html! {
