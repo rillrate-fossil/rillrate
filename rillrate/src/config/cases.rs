@@ -1,4 +1,4 @@
-use rate_config::{Config, ReadableConfig};
+use rill_config::{Config, ReadableConfig};
 use rrpack_basis::auto_path::AutoPath;
 use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem, LayoutTab};
 use serde::{Deserialize, Serialize};

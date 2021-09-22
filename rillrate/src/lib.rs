@@ -4,7 +4,7 @@
 
 mod actors;
 pub mod basis;
-mod config;
+pub mod config;
 pub mod prime;
 
 metacrate::meta!();
