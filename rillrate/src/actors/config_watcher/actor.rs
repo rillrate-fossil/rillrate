@@ -1,10 +1,10 @@
 use crate::actors::supervisor::NodeSupervisor;
-use crate::config::cases::CaseConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{Action, ActionHandler, Actor, Context, InterruptedBy, StartedBy, TaskAddress};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use rate_config::cases::CaseConfig;
 use rill_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
 use rill_protocol::io::provider::EntryId;

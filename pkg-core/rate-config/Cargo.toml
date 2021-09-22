@@ -13,3 +13,7 @@ categories = ["development-tools::debugging"]
 description = "Utils for configuration files."
 
 [dependencies]
+rate-core = { version = "0.40.0", path = "../rate-core" }
+rill-config = { version = "0.40.0", path = "../rill-config" }
+rrpack-basis = { version = "0.40.0", path = "../../pkg-packs/basis" }
+serde = "1.0.130"

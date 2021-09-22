@@ -1,7 +1,7 @@
 //! This module contains the main config.
 
-use rill_config::{Config, ReadableConfig};
 use rate_core::actors::node::NodeConfig;
+use rill_config::{Config, ReadableConfig};
 use serde::Deserialize;
 
 /// The main config struct.
