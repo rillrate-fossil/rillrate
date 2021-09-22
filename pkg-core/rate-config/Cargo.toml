@@ -1,23 +1,15 @@
 [package]
-name = "rill-config"
+name = "rate-config"
 version = "0.40.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
 homepage = "https://github.com/rillrate/rillrate"
-documentation = "https://docs.rs/rill-config/"
+documentation = "https://docs.rs/rate-config/"
 license = "Apache-2.0"
 readme = "README.md"
 keywords = ["logging"]
 categories = ["development-tools::debugging"]
-description = "Basic utils for configuration files."
+description = "Utils for configuration files."
 
 [dependencies]
-anyhow = "1.0.43"
-async-trait = "0.1.51"
-envy = "0.4.2"
-log = "0.4.14"
-meio = "0.94.0"
-serde = "1.0.130"
-tokio = "1.11.0"
-toml = "0.5.8"
