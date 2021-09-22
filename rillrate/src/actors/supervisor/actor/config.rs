@@ -1,8 +1,8 @@
 use super::{Group, NodeSupervisor};
-use crate::actors::config_watcher::ConfigWatcher;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::{Context, Eliminated, IdOf};
+use rate_config::actors::config_watcher::ConfigWatcher;
 
 impl NodeSupervisor {
     pub(super) fn spawn_config_watcher(&mut self, ctx: &mut Context<Self>) {

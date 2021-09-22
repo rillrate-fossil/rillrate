@@ -1,4 +1,2 @@
-//! Configs
-
-pub mod cases;
-pub mod server;
+pub mod actors;
+pub mod config;
