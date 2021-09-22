@@ -14,5 +14,8 @@ pub mod record;
 
 pub mod state;
 
+mod tab_selector;
+use tab_selector::TabSelector;
+
 mod loader;
 pub use loader::Loader;
