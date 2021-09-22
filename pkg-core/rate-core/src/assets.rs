@@ -51,3 +51,18 @@ impl Assets {
         self.files.iter().map(|(s, d)| (s.as_ref(), d.as_ref()))
     }
 }
+
+pub mod build {
+    use anyhow::Error;
+    use flate2::write::GzEncoder;
+    use flate2::Compression;
+    use std::fs::File;
+
+    pub fn pack(dir: &str, to: &str) -> Result<(), Error> {
+        let tar_gz = File::create(to)?;
+        let enc = GzEncoder::new(tar_gz, Compression::default());
+        let mut tar = tar::Builder::new(enc);
+        tar.append_dir_all(".", dir)?;
+        Ok(())
+    }
+}
