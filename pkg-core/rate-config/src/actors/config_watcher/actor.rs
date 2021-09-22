@@ -58,8 +58,11 @@ impl<T: Actor> StartedBy<T> for ConfigWatcher {
 impl ConfigWatcher {
     async fn read_and_watch(&mut self, ctx: &mut Context<Self>) {
         let mut success = true;
+        if let Err(err) = self.read_from_tar().await {
+            log::error!("Can't read embedded config tar: {}", err);
+        }
         if Path::new(PATH).exists() {
-            success &= self.read_config().await.is_ok();
+            success &= self.read_from_dir().await.is_ok();
             success &= self.assign_watcher(ctx).is_ok();
         }
         if !success {
@@ -131,7 +134,12 @@ impl ConfigWatcher {
         self.watcher.take();
     }
 
-    async fn read_config(&mut self) -> Result<(), Error> {
+    async fn read_from_tar(&mut self) -> Result<(), Error> {
+        if let Some(data) = crate::preserved::PRESERVED.get() {}
+        Ok(())
+    }
+
+    async fn read_from_dir(&mut self) -> Result<(), Error> {
         let mut dir = fs::read_dir(".rillrate/cases").await?;
         let mut layouts = HashMap::new();
         while let Some(entry) = dir.next_entry().await? {
@@ -170,7 +178,7 @@ impl ConfigWatcher {
 #[async_trait]
 impl ActionHandler<Reload> for ConfigWatcher {
     async fn handle(&mut self, _event: Reload, _ctx: &mut Context<Self>) -> Result<(), Error> {
-        self.read_config().await
+        self.read_from_dir().await
     }
 }
 
