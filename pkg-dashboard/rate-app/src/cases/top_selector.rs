@@ -6,13 +6,13 @@ use rill_protocol::io::provider::EntryId;
 use std::collections::BTreeSet;
 use yew::{html, Html};
 
-pub type DashboardSelector = WidgetRuntime<DashboardSelectorWidget>;
+pub type TopSelector = WidgetRuntime<TopSelectorWidget>;
 
-pub struct DashboardSelectorWidget {
+pub struct TopSelectorWidget {
     scene: SharedObject<SceneState>,
 }
 
-impl Default for DashboardSelectorWidget {
+impl Default for TopSelectorWidget {
     fn default() -> Self {
         Self {
             scene: SCENE.with(SharedObject::clone),
@@ -25,7 +25,7 @@ pub enum Msg {
     SelectDashboard(Option<EntryId>),
 }
 
-impl Widget for DashboardSelectorWidget {
+impl Widget for TopSelectorWidget {
     type Event = Msg;
     type Tag = ();
     type Properties = ();
@@ -55,7 +55,7 @@ impl Widget for DashboardSelectorWidget {
     }
 }
 
-impl DashboardSelectorWidget {
+impl TopSelectorWidget {
     fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
         let caption = entry_id.to_string();
         let dashboard = Some(entry_id);
@@ -78,7 +78,7 @@ impl DashboardSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<SceneState>> for DashboardSelectorWidget {
+impl NotificationHandler<DataChanged<SceneState>> for TopSelectorWidget {
     fn handle(
         &mut self,
         _event: DataChanged<SceneState>,

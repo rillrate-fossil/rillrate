@@ -18,7 +18,7 @@ impl Widget for DashboardMenuWidget {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <>
-                <super::DashboardSelector />
+                <super::TopSelector />
                 <super::TabSelector />
             </>
         }

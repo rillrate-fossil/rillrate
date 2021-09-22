@@ -5,13 +5,13 @@ use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
 use rill_protocol::io::provider::EntryId;
 use yew::{html, Html};
 
-pub type PackageSelector = WidgetRuntime<PackageSelectorWidget>;
+pub type TopSelector = WidgetRuntime<TopSelectorWidget>;
 
-pub struct PackageSelectorWidget {
+pub struct TopSelectorWidget {
     paths: SharedObject<DashboardState>,
 }
 
-impl Default for PackageSelectorWidget {
+impl Default for TopSelectorWidget {
     fn default() -> Self {
         Self {
             paths: PATHS.with(SharedObject::clone),
@@ -24,7 +24,7 @@ pub enum Msg {
     SelectPackage(Option<EntryId>),
 }
 
-impl Widget for PackageSelectorWidget {
+impl Widget for TopSelectorWidget {
     type Event = Msg;
     type Tag = ();
     type Properties = ();
@@ -57,7 +57,7 @@ impl Widget for PackageSelectorWidget {
     }
 }
 
-impl PackageSelectorWidget {
+impl TopSelectorWidget {
     fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
         let state = self.paths.read();
         let caption = entry_id.to_string();
@@ -80,7 +80,7 @@ impl PackageSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<DashboardState>> for PackageSelectorWidget {
+impl NotificationHandler<DataChanged<DashboardState>> for TopSelectorWidget {
     fn handle(
         &mut self,
         _event: DataChanged<DashboardState>,

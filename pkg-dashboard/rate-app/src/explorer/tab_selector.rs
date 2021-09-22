@@ -6,13 +6,13 @@ use rill_protocol::io::provider::EntryId;
 use std::collections::BTreeSet;
 use yew::{html, Html};
 
-pub type DashboardSelector = WidgetRuntime<DashboardSelectorWidget>;
+pub type TabSelector = WidgetRuntime<TabSelectorWidget>;
 
-pub struct DashboardSelectorWidget {
+pub struct TabSelectorWidget {
     paths: SharedObject<DashboardState>,
 }
 
-impl Default for DashboardSelectorWidget {
+impl Default for TabSelectorWidget {
     fn default() -> Self {
         Self {
             paths: PATHS.with(SharedObject::clone),
@@ -25,7 +25,7 @@ pub enum Msg {
     SelectDashboard(Option<EntryId>),
 }
 
-impl Widget for DashboardSelectorWidget {
+impl Widget for TabSelectorWidget {
     type Event = Msg;
     type Tag = ();
     type Properties = ();
@@ -61,7 +61,7 @@ impl Widget for DashboardSelectorWidget {
     }
 }
 
-impl DashboardSelectorWidget {
+impl TabSelectorWidget {
     fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
         let state = self.paths.read();
         let caption = entry_id.to_string();
@@ -84,7 +84,7 @@ impl DashboardSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<DashboardState>> for DashboardSelectorWidget {
+impl NotificationHandler<DataChanged<DashboardState>> for TabSelectorWidget {
     fn handle(
         &mut self,
         _event: DataChanged<DashboardState>,
