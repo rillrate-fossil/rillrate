@@ -115,6 +115,18 @@ pub async fn main() -> Result<(), Error> {
         Ok(())
     });
 
+    let wide_input = Input::new(
+        "app.dashboard-1.controls.wide-input-1",
+        InputOpts::default().label("Wide Input value"),
+    );
+    //let this = input.clone();
+    wide_input.sync_callback(move |envelope| {
+        if let Some(action) = envelope.action {
+            log::warn!("ACTION: {:?}", action);
+        }
+        Ok(())
+    });
+
     let selector = Selector::new(
         "app.dashboard-1.controls.selector-1",
         SelectorOpts::default()
