@@ -1,3 +1,9 @@
+# v0.41.0
+
+Improvements:
+
+- Async callbacks
+
 # v0.40.0
 
 Improvements:

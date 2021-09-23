@@ -3,6 +3,7 @@ use crate::actors::connector;
 //use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
 use async_trait::async_trait;
+use futures::Future;
 use meio::Action;
 use rill_protocol::flow::core::{self, ActionEnvelope, FlowMode, TimedEvent};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
@@ -244,7 +245,7 @@ impl<T: core::Flow> Tracer<T> {
     }
     */
 
-    /// Assign a callback
+    /// Assign a sync callback
     pub fn sync_callback<F>(&self, callback: F)
     where
         F: Fn(ActionEnvelope<T>) -> Result<(), Error>,
@@ -252,6 +253,22 @@ impl<T: core::Flow> Tracer<T> {
     {
         let sync_callback = SyncCallback::new(callback);
         let callback = Box::new(sync_callback);
+        let event = ControlEvent::AttachCallback { callback };
+        if let Err(err) = self.control_tx.send(event) {
+            log::error!("Can't attach the callback from {}: {}", self.path(), err);
+        }
+    }
+
+    /// Assign an async callback
+    pub fn async_callback<F, Fut>(&self, callback: F)
+    where
+        F: Fn(ActionEnvelope<T>) -> Fut,
+        F: Send + Sync + 'static,
+        Fut: Future<Output = Result<(), Error>>,
+        Fut: Send + Sync + 'static,
+    {
+        let async_callback = AsyncCallback::new(callback);
+        let callback = Box::new(async_callback);
         let event = ControlEvent::AttachCallback { callback };
         if let Err(err) = self.control_tx.send(event) {
             log::error!("Can't attach the callback from {}: {}", self.path(), err);
@@ -285,6 +302,7 @@ pub trait ActionCallback<T: core::Flow>: Send + Sync + 'static {
     ) -> Result<(), Error>;
     */
 
+    // TODO: Make it sync
     /// A method to handle an action.
     async fn handle_activity(&mut self, envelope: ActionEnvelope<T>) -> Result<(), Error>;
 }
@@ -318,6 +336,36 @@ where
             .await
             .map_err(Error::from)
             .and_then(std::convert::identity)
+    }
+}
+
+use std::marker::PhantomData;
+
+struct AsyncCallback<F, Fut> {
+    func: Arc<F>,
+    fut: PhantomData<Fut>,
+}
+
+impl<F, Fut> AsyncCallback<F, Fut> {
+    fn new(func: F) -> Self {
+        Self {
+            func: Arc::new(func),
+            fut: PhantomData,
+        }
+    }
+}
+
+#[async_trait]
+impl<T, F, Fut> ActionCallback<T> for AsyncCallback<F, Fut>
+where
+    T: core::Flow,
+    F: Fn(ActionEnvelope<T>) -> Fut,
+    F: Send + Sync + 'static,
+    Fut: Future<Output = Result<(), Error>>,
+    Fut: Send + Sync + 'static,
+{
+    async fn handle_activity(&mut self, envelope: ActionEnvelope<T>) -> Result<(), Error> {
+        (self.func)(envelope).await
     }
 }
 
