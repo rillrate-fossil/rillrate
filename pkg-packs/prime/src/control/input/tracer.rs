@@ -7,12 +7,14 @@ use rrpack_basis::{AutoPath, BindedTracer};
 #[derive(TracerOpts, Clone, Default)]
 pub struct InputOpts {
     pub label: Option<String>,
+    pub wide: Option<bool>,
 }
 
 impl From<InputOpts> for InputSpec {
     fn from(opts: InputOpts) -> Self {
         Self {
             label: opts.label.unwrap_or_else(|| "Input".into()),
+            wide: opts.wide.unwrap_or_default(),
         }
     }
 }
