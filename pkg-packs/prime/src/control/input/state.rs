@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct InputSpec {
     pub label: String,
     pub wide: bool,
+    pub password: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

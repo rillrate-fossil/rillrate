@@ -117,7 +117,7 @@ pub async fn main() -> Result<(), Error> {
 
     let wide_input = Input::new(
         "app.dashboard-1.controls.wide-input-1",
-        InputOpts::default().label("Wide Input value"),
+        InputOpts::default().label("Wide Input value").wide(true),
     );
     //let this = input.clone();
     wide_input.sync_callback(move |envelope| {

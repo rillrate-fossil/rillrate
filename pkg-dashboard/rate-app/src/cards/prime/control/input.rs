@@ -39,11 +39,27 @@ impl Widget for InputCardWidget {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let body = {
-            if let Some(_state) = ctx.meta().state() {
+            if let Some(state) = ctx.meta().state() {
                 // TODO: Use placeholder from the state
                 // TODO: Override type with Spec! (password, etc)
-                html! {
-                    <input type="text" class="form-control" oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
+                if state.spec.wide {
+                    let style = if state.spec.password {
+                        "color: transparent;text-shadow: 0 0 8px rgba(0,0,0,0.5);"
+                    } else {
+                        ""
+                    };
+                    html! {
+                        <textarea class="form-control" style=style oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
+                    }
+                } else {
+                    let typ = if state.spec.password {
+                        "password"
+                    } else {
+                        "text"
+                    };
+                    html! {
+                        <input type=typ class="form-control" oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
+                    }
                 }
             } else {
                 blocks::spinner("Connecting...")

@@ -8,6 +8,7 @@ use rrpack_basis::{AutoPath, BindedTracer};
 pub struct InputOpts {
     pub label: Option<String>,
     pub wide: Option<bool>,
+    pub password: Option<bool>,
 }
 
 impl From<InputOpts> for InputSpec {
@@ -15,6 +16,7 @@ impl From<InputOpts> for InputSpec {
         Self {
             label: opts.label.unwrap_or_else(|| "Input".into()),
             wide: opts.wide.unwrap_or_default(),
+            password: opts.password.unwrap_or_default(),
         }
     }
 }
