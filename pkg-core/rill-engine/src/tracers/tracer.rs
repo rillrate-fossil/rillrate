@@ -265,7 +265,7 @@ impl<T: core::Flow> Tracer<T> {
         F: Fn(ActionEnvelope<T>) -> Fut,
         F: Send + Sync + 'static,
         Fut: Future<Output = Result<(), Error>>,
-        Fut: Send + Sync + 'static,
+        Fut: Send + 'static,
     {
         let async_callback = AsyncCallback::new(callback);
         let callback = Box::new(async_callback);
@@ -286,7 +286,7 @@ impl<T: core::Flow> Tracer<T> {
 
 /// The callback that called on flow's incoming actions.
 #[async_trait]
-pub trait ActionCallback<T: core::Flow>: Send + Sync + 'static {
+pub trait ActionCallback<T: core::Flow>: Send + 'static {
     /*
     /// When at least one connection exists.
     async fn awake(&mut self) {}
@@ -342,14 +342,14 @@ where
 use std::marker::PhantomData;
 
 struct AsyncCallback<F, Fut> {
-    func: Arc<F>,
+    func: F,
     fut: PhantomData<Fut>,
 }
 
 impl<F, Fut> AsyncCallback<F, Fut> {
     fn new(func: F) -> Self {
         Self {
-            func: Arc::new(func),
+            func: func,
             fut: PhantomData,
         }
     }
@@ -362,7 +362,7 @@ where
     F: Fn(ActionEnvelope<T>) -> Fut,
     F: Send + Sync + 'static,
     Fut: Future<Output = Result<(), Error>>,
-    Fut: Send + Sync + 'static,
+    Fut: Send + 'static,
 {
     async fn handle_activity(&mut self, envelope: ActionEnvelope<T>) -> Result<(), Error> {
         (self.func)(envelope).await
