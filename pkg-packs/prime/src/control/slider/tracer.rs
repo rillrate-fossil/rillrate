@@ -10,6 +10,7 @@ pub struct SliderOpts {
     pub min: Option<f64>,
     pub max: Option<f64>,
     pub step: Option<f64>,
+    pub instant: Option<bool>,
 }
 
 impl From<SliderOpts> for SliderSpec {
@@ -19,6 +20,7 @@ impl From<SliderOpts> for SliderSpec {
             min: opts.min.unwrap_or(1.0),
             max: opts.max.unwrap_or(100.0),
             step: opts.step.unwrap_or(1.0),
+            instant: opts.instant.unwrap_or_default(),
         }
     }
 }

@@ -9,6 +9,7 @@ pub struct SliderSpec {
     pub min: f64,
     pub max: f64,
     pub step: f64,
+    pub instant: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
