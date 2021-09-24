@@ -74,7 +74,14 @@ impl Widget for SliderCardWidget {
             Msg::Input(input) => {
                 self.update_current(&input.value);
                 self.parse(&input.value);
-                self.send(ctx);
+                let instant_send = ctx
+                    .meta()
+                    .state()
+                    .map(|state| state.spec.instant)
+                    .unwrap_or_default();
+                if instant_send {
+                    self.send(ctx);
+                }
             }
             Msg::Change(other) => {
                 log::error!("Unsupported event for slider: {:?}", other);
