@@ -5,7 +5,7 @@ use meio::{Action, ActionHandler, Actor, Context};
 use rill_protocol::flow::core::{ActionEnvelope, Flow};
 
 /// Tracer action for `meio` actor.
-pub struct TracerAction<T: Flow, Tag> {
+pub struct TracerAction<T: Flow, Tag = ()> {
     /// Assigned envelope with an `Action`.
     pub envelope: ActionEnvelope<T>,
     /// Assigned tag of the action.
