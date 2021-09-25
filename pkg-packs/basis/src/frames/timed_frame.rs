@@ -1,4 +1,4 @@
-use crate::flow::core::TimedEvent;
+use super::TimedEvent;
 use derive_more::Deref;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
@@ -44,4 +44,8 @@ impl<T> TimedFrame<T> {
     pub fn clear(&mut self) {
         self.frame.clear()
     }
+}
+
+pub fn new_tf<T>(secs: i64) -> TimedFrame<T> {
+    TimedFrame::new((secs + 1) * 1_000)
 }

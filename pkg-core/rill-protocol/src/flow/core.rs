@@ -1,10 +1,7 @@
 use crate::encoding;
-use crate::io::provider::{
-    PackedAction, PackedEvent, PackedState, ProviderReqId, StreamType, Timestamp,
-};
+use crate::io::provider::{PackedAction, PackedEvent, PackedState, ProviderReqId, StreamType};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::cmp::Ordering;
 use std::fmt;
 
 // TODO: Move to the separate module
@@ -55,38 +52,6 @@ pub trait Flow: DataFraction {
         encoding::unpack(data)
     }
 }
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct TimedEvent<T> {
-    pub timestamp: Timestamp,
-    pub event: T,
-}
-
-impl<T> TimedEvent<T> {
-    pub fn into_inner(self) -> T {
-        self.event
-    }
-}
-
-impl<T> Ord for TimedEvent<T> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.timestamp.cmp(&other.timestamp)
-    }
-}
-
-impl<T> PartialOrd for TimedEvent<T> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl<T> PartialEq for TimedEvent<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.timestamp == other.timestamp
-    }
-}
-
-impl<T> Eq for TimedEvent<T> {}
 
 /// Envelope for incoming actions that contains routing information.
 #[derive(Debug, Clone)]

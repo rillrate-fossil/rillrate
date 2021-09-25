@@ -5,11 +5,11 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::Future;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope, FlowMode, TimedEvent};
-use rill_protocol::io::provider::{Description, Path, ProviderProtocol, Timestamp};
+use rill_protocol::flow::core::{self, ActionEnvelope, FlowMode};
+use rill_protocol::io::provider::{Description, Path, ProviderProtocol};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 use tokio::sync::mpsc;
 
 #[derive(Debug)]
@@ -367,43 +367,4 @@ where
     async fn handle_activity(&mut self, envelope: ActionEnvelope<T>) -> Result<(), Error> {
         (self.func)(envelope).await
     }
-}
-
-/*
-struct Callback<T: core::Flow, F> {
-    tracer: Tracer<T>,
-    callback: F,
-}
-
-#[async_trait]
-impl<T, F> RillPoolTask for Callback<T, F>
-where
-    T: core::Flow,
-    F: Fn(ActionEnvelope<T>) + Send + 'static,
-{
-    async fn routine(mut self) -> Result<(), Error> {
-        let mut stream = self.tracer.subscribe()?;
-        loop {
-            let envelope = stream.recv().await?;
-            (self.callback)(envelope)
-        }
-    }
-}
-*/
-
-/// Wraps with timed event
-pub fn timed<T>(event: T) -> Option<TimedEvent<T>> {
-    time_to_ts(None)
-        .map(move |timestamp| TimedEvent { timestamp, event })
-        .ok()
-}
-
-/// Generates a `Timestamp` of converts `SystemTime` to it.
-// TODO: How to avoid errors here?
-pub fn time_to_ts(opt_system_time: Option<SystemTime>) -> Result<Timestamp, Error> {
-    opt_system_time
-        .unwrap_or_else(SystemTime::now)
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .map(Timestamp::from)
-        .map_err(Error::from)
 }

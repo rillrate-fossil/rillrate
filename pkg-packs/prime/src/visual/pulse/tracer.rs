@@ -2,8 +2,8 @@ use super::state::*;
 use crate::range::{Bound, Label, Range};
 use derive_more::{Deref, DerefMut};
 use rill_derive::TracerOpts;
-use rill_engine::tracers::tracer::timed;
 use rill_protocol::flow::core::FlowMode;
+use rrpack_basis::frames::timed;
 use rrpack_basis::{AutoPath, BindedTracer};
 
 #[derive(TracerOpts, Clone, Default)]
