@@ -6,6 +6,8 @@ mod actors;
 pub mod basis;
 pub mod prime;
 
+pub mod meio_addon;
+
 metacrate::meta!();
 
 use actors::supervisor::NodeSupervisor;
