@@ -13,11 +13,11 @@ categories = ["development-tools::debugging"]
 description = "The RillRate protocol."
 
 [dependencies]
-anyhow = "1.0.43"
+anyhow = "1.0.44"
 derive_more = "0.99.16"
 flexbuffers = "2.0.0"
 log = "0.4.14"
-meio-protocol = "0.94.0"
+meio-protocol = "0.95.1"
 metacrate = "0.1.2"
 once_cell = "1.8.0"
 ordered-float = { version = "2.8.0", features = ["serde"], default-features = false }

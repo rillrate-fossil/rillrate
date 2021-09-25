@@ -13,27 +13,27 @@ categories = ["development-tools::debugging"]
 description = "RillRate UI: extension for Yew"
 
 [dependencies]
-anyhow = "1.0.43"
+anyhow = "1.0.44"
 approx = "0.5.0"
 chrono = { version = "0.4.19", features = ["wasmbind"] }
 derive_more = "0.99.16"
 itertools = "0.10.1"
-js-sys = "0.3.53"
+js-sys = "0.3.55"
 log = "0.4.14"
 metacrate = "0.1.2"
 once_cell = "1.8.0"
 rill-protocol = { version = "0.40.0", path = "../../pkg-core/rill-protocol" }
 serde = "1.0.130"
 strum = { version = "0.21.0", features = ["derive"] }
-thiserror = "1.0.28"
+thiserror = "1.0.29"
 typed-slab = "0.1.4"
 url = "2.2.2"
-wasm-bindgen = "=0.2.76"
+wasm-bindgen = "0.2.78"
 yew = "0.18.0"
 yew-components = "0.3.0"
 
 [dependencies.web-sys]
-version = "0.3.53"
+version = "0.3.55"
 features = [
   #'Element',
   'DomRect',

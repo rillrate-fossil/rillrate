@@ -13,10 +13,10 @@ categories = ["development-tools::debugging"]
 description = "RillRate App"
 
 [dependencies]
-anyhow = "1.0.43"
+anyhow = "1.0.44"
 approx = "0.5.0"
 derive_more = "0.99.16"
-js-sys = "0.3.53"
+js-sys = "0.3.55"
 lazy_static = "1.4.0"
 log = "0.4.14"
 metacrate = "0.1.2"
@@ -33,13 +33,13 @@ rrpack-prime = { version = "0.40.0", path = "../../pkg-packs/prime", default-fea
 serde = "1.0.130"
 strum = "0.21.0"
 timeago = "0.3.0"
-wasm-bindgen = "=0.2.76"
+wasm-bindgen = "0.2.78"
 wasm-logger = "0.2.0"
 yew = "0.18.0"
 yew-components = "0.3.0"
 
 [dependencies.web-sys]
-version = "0.3.53"
+version = "0.3.55"
 features = [
     "Attr",
     "Element",

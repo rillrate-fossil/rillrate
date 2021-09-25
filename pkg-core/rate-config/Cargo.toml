@@ -13,11 +13,11 @@ categories = ["development-tools::debugging"]
 description = "Utils for configuration files."
 
 [dependencies]
-anyhow = "1.0.43"
+anyhow = "1.0.44"
 async-trait = "0.1.51"
 log = "0.4.14"
-meio = "0.94.0"
-notify = "5.0.0-pre.12"
+meio = "0.95.1"
+notify = "5.0.0-pre.13"
 once_cell = "1.8.0"
 rate-core = { version = "0.40.0", path = "../rate-core" }
 rill-config = { version = "0.40.0", path = "../rill-config" }
@@ -25,4 +25,4 @@ rill-protocol = { version = "0.40.0", path = "../rill-protocol" }
 rrpack-basis = { version = "0.40.0", path = "../../pkg-packs/basis" }
 serde = "1.0.130"
 strum = "0.21.0"
-tokio = "1.11.0"
+tokio = "1.12.0"
