@@ -6,3 +6,6 @@
 // TODO: Delete meta
 //pub mod meta;
 pub mod tracer;
+
+#[cfg(feature = "meio-addon")]
+pub mod meio_addon;

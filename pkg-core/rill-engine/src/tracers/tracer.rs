@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use futures::Future;
 use meio::Action;
-use rill_protocol::flow::core::{self, ActionEnvelope, FlowMode};
+use rill_protocol::flow::core::{ActionEnvelope, Flow, FlowMode};
 use rill_protocol::io::provider::{Description, Path, ProviderProtocol};
 use rill_protocol::io::transport::Direction;
 use std::sync::{Arc, Mutex, Weak};
@@ -13,7 +13,7 @@ use std::time::Duration;
 use tokio::sync::mpsc;
 
 #[derive(Debug)]
-pub(crate) struct EventEnvelope<T: core::Flow> {
+pub(crate) struct EventEnvelope<T: Flow> {
     pub direction: Option<Direction<ProviderProtocol>>,
     pub event: T::Event,
 }
@@ -25,7 +25,7 @@ pub(crate) enum ControlEvent<T> {
     DetachCallback,
 }
 
-impl<T: core::Flow> Action for EventEnvelope<T> {}
+impl<T: Flow> Action for EventEnvelope<T> {}
 
 // TODO: Remove that aliases and use raw types receivers in recorders.
 pub(crate) type DataSender<T> = mpsc::UnboundedSender<EventEnvelope<T>>;
@@ -40,16 +40,16 @@ pub type ActionSender<T> = mpsc::UnboundedSender<ActionEnvelope<T>>;
 pub type ActionReceiver<T> = mpsc::UnboundedReceiver<ActionEnvelope<T>>;
 
 /// Creates a new control channel.
-pub fn channel<T: core::Flow>() -> (ActionSender<T>, ActionReceiver<T>) {
+pub fn channel<T: Flow>() -> (ActionSender<T>, ActionReceiver<T>) {
     mpsc::unbounded_channel()
 }
 
-pub(crate) struct TracerOperator<T: core::Flow> {
+pub(crate) struct TracerOperator<T: Flow> {
     pub mode: TracerMode<T>,
     pub control_rx: Option<ControlReceiver<T>>,
 }
 
-pub(crate) enum TracerMode<T: core::Flow> {
+pub(crate) enum TracerMode<T: Flow> {
     /// Real-time mode
     Push {
         state: T,
@@ -65,7 +65,7 @@ pub(crate) enum TracerMode<T: core::Flow> {
 }
 
 #[derive(Debug)]
-enum InnerMode<T: core::Flow> {
+enum InnerMode<T: Flow> {
     Push {
         // TODO: Add an optional buffer + flushing:
         // TODO: Also it's possible to add a special `AccumulatedDelta` subtype to `Flow`.
@@ -80,7 +80,7 @@ enum InnerMode<T: core::Flow> {
 }
 
 // TODO: Or require `Clone` for the `Flow` to derive this
-impl<T: core::Flow> Clone for InnerMode<T> {
+impl<T: Flow> Clone for InnerMode<T> {
     fn clone(&self) -> Self {
         match self {
             Self::Push { sender } => Self::Push {
@@ -96,13 +96,13 @@ impl<T: core::Flow> Clone for InnerMode<T> {
 /// The generic provider that forwards metrics to worker and keeps a flag
 /// for checking the activitiy status of the `Tracer`.
 #[derive(Debug)]
-pub struct Tracer<T: core::Flow> {
+pub struct Tracer<T: Flow> {
     description: Arc<Description>,
     control_tx: ControlSender<T>,
     mode: InnerMode<T>,
 }
 
-impl<T: core::Flow> Clone for Tracer<T> {
+impl<T: Flow> Clone for Tracer<T> {
     fn clone(&self) -> Self {
         Self {
             description: self.description.clone(),
@@ -115,15 +115,15 @@ impl<T: core::Flow> Clone for Tracer<T> {
 // TODO: Not sure this is suitable for on-demand spawned recorders.
 /// Both tracers are equal only if they use the same description.
 /// That means they both have the same recorder/channel.
-impl<T: core::Flow> PartialEq for Tracer<T> {
+impl<T: Flow> PartialEq for Tracer<T> {
     fn eq(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.description, &other.description)
     }
 }
 
-impl<T: core::Flow> Eq for Tracer<T> {}
+impl<T: Flow> Eq for Tracer<T> {}
 
-impl<T: core::Flow> Tracer<T> {
+impl<T: Flow> Tracer<T> {
     /// Create a new `Tracer`
     pub fn new(state: T, path: Path, mode: FlowMode) -> Self {
         match mode {
@@ -286,7 +286,7 @@ impl<T: core::Flow> Tracer<T> {
 
 /// The callback that called on flow's incoming actions.
 #[async_trait]
-pub trait ActionCallback<T: core::Flow>: Send + 'static {
+pub trait ActionCallback<T: Flow>: Send + 'static {
     /*
     /// When at least one connection exists.
     async fn awake(&mut self) {}
@@ -326,7 +326,7 @@ impl<F> SyncCallback<F> {
 #[async_trait]
 impl<T, F> ActionCallback<T> for SyncCallback<F>
 where
-    T: core::Flow,
+    T: Flow,
     F: Fn(ActionEnvelope<T>) -> Result<(), Error>,
     F: Send + Sync + 'static,
 {
@@ -358,7 +358,7 @@ impl<F, Fut> AsyncCallback<F, Fut> {
 #[async_trait]
 impl<T, F, Fut> ActionCallback<T> for AsyncCallback<F, Fut>
 where
-    T: core::Flow,
+    T: Flow,
     F: Fn(ActionEnvelope<T>) -> Fut,
     F: Send + Sync + 'static,
     Fut: Future<Output = Result<(), Error>>,
