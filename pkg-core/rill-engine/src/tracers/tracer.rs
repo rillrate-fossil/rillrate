@@ -1,6 +1,5 @@
 //! This module contains a generic `Tracer`'s methods.
 use crate::actors::connector;
-//use crate::actors::pool::{self, RillPoolTask};
 use anyhow::Error;
 use async_trait::async_trait;
 use futures::Future;

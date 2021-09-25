@@ -6,7 +6,8 @@ use rill_protocol::flow::core::{ActionEnvelope, Flow};
 
 /// Tracer action for `meio` actor.
 pub struct TracerAction<T: Flow> {
-    envelope: ActionEnvelope<T>,
+    /// Assigned envelope with an `Action`.
+    pub envelope: ActionEnvelope<T>,
 }
 
 impl<T: Flow> Action for TracerAction<T> {}
