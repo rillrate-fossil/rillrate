@@ -1,6 +1,6 @@
 [package]
 name = "rrpack-basis"
-version = "0.40.0"
+version = "0.41.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/rillrate/rillrate"
@@ -15,9 +15,9 @@ description = "RillRate Pack: Basis"
 [dependencies]
 derive_more = "0.99.16"
 once_cell = "1.8.0"
-rill-derive = { version = "0.40.0", path = "../../pkg-core/rill-derive" }
-rill-engine = { version = "0.40.0", path = "../../pkg-core/rill-engine", optional = true }
-rill-protocol = { version = "0.40.0", path = "../../pkg-core/rill-protocol" }
+rill-derive = { version = "0.41.0", path = "../../pkg-core/rill-derive" }
+rill-engine = { version = "0.41.0", path = "../../pkg-core/rill-engine", optional = true }
+rill-protocol = { version = "0.41.0", path = "../../pkg-core/rill-protocol" }
 serde = "1.0.130"
 vectorize = "0.2.0"
 

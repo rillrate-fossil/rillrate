@@ -1,7 +1,7 @@
 [package]
 publish = false
 name = "demo"
-version = "0.40.0"
+version = "0.41.0"
 edition = "2018"
 
 [dependencies]
@@ -9,6 +9,6 @@ anyhow = "1.0.44"
 chrono = "0.4.19"
 env_logger = "0.9.0"
 log = "0.4.14"
-rillrate = { version = "0.40.0", path = "../rillrate" }
+rillrate = { version = "0.41.0", path = "../rillrate" }
 subcrate = { path = "subcrate" }
 tokio = "1.12.0"
