@@ -1,4 +1,4 @@
-use super::state::{DashboardState, PATHS};
+use super::state::{ExplorerState, PATHS};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -8,7 +8,7 @@ use yew::{html, Html};
 pub type TopSelector = WidgetRuntime<TopSelectorWidget>;
 
 pub struct TopSelectorWidget {
-    paths: SharedObject<DashboardState>,
+    paths: SharedObject<ExplorerState>,
 }
 
 impl Default for TopSelectorWidget {
@@ -80,10 +80,10 @@ impl TopSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<DashboardState>> for TopSelectorWidget {
+impl NotificationHandler<DataChanged<ExplorerState>> for TopSelectorWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<DashboardState>,
+        _event: DataChanged<ExplorerState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

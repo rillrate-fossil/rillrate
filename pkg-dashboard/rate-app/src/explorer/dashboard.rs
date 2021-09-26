@@ -1,4 +1,4 @@
-use super::state::{DashboardState, ResolvedGroup, PATHS};
+use super::state::{ExplorerState, ResolvedGroup, PATHS};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -8,7 +8,7 @@ use yew::{html, Html};
 pub type Dashboard = WidgetRuntime<DashboardWidget>;
 
 pub struct DashboardWidget {
-    paths: SharedObject<DashboardState>,
+    paths: SharedObject<ExplorerState>,
 }
 
 impl Default for DashboardWidget {
@@ -103,10 +103,10 @@ fn render_group((name, streams): (EntryId, ResolvedGroup)) -> Html {
     }
 }
 
-impl NotificationHandler<DataChanged<DashboardState>> for DashboardWidget {
+impl NotificationHandler<DataChanged<ExplorerState>> for DashboardWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<DashboardState>,
+        _event: DataChanged<ExplorerState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

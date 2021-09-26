@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 thread_local! {
-    pub static PATHS: SharedObject<DashboardState> = SharedObject::new();
+    pub static PATHS: SharedObject<ExplorerState> = SharedObject::new();
 }
 
 pub type Packages = BTreeMap<EntryId, Dashboards>;
@@ -15,11 +15,11 @@ pub type Groups = BTreeMap<EntryId, Streams>;
 pub type Streams = BTreeSet<EntryId>;
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
-pub struct DashboardStructure {
+pub struct ExplorerStructure {
     pub packages: Packages,
 }
 
-impl DashboardStructure {
+impl ExplorerStructure {
     fn clear(&mut self) {
         self.packages.clear();
     }
@@ -36,7 +36,7 @@ impl DashboardStructure {
             .flatten()
     }
 
-    pub fn get_groups(&self, selection: &DashboardSelection) -> Option<&Groups> {
+    pub fn get_groups(&self, selection: &ExplorerSelection) -> Option<&Groups> {
         let packages = &self.packages;
         let selected_package = selection.selected_package.as_ref()?;
         let dashboards = packages.get(selected_package)?;
@@ -47,15 +47,15 @@ impl DashboardStructure {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
-pub struct DashboardSelection {
+pub struct ExplorerSelection {
     pub selected_package: Option<EntryId>,
     pub selected_dashboard: Option<EntryId>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
-pub struct DashboardState {
-    pub structure: DashboardStructure,
-    pub selection: DashboardSelection,
+pub struct ExplorerState {
+    pub structure: ExplorerStructure,
+    pub selection: ExplorerSelection,
     // TODO: Don't copy this part every time!
     pub descs: BTreeMap<Path, PackFlowDescription>,
 }
@@ -67,7 +67,7 @@ pub struct ResolvedDashboard {
     pub transparents: ResolvedLayer,
 }
 
-impl DashboardState {
+impl ExplorerState {
     pub fn autoselect(&mut self) -> Option<()> {
         let mut package = self.selection.selected_package.clone().unwrap_or_default();
         let mut dashboard = self
@@ -189,13 +189,13 @@ pub struct ResolvedItem {
     //pub description: Option<PackFlowDescription>,
 }
 
-impl Storable for DashboardState {
+impl Storable for ExplorerState {
     fn key() -> &'static str {
         module_path!()
     }
 }
 
-impl RouterState for DashboardState {
+impl RouterState for ExplorerState {
     fn restored(&mut self) {
         self.structure.clear();
     }

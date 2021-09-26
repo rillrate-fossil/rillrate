@@ -1,4 +1,4 @@
-use super::state::{DashboardState, PATHS};
+use super::state::{ExplorerState, PATHS};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -9,7 +9,7 @@ use yew::{html, Html};
 pub type TabSelector = WidgetRuntime<TabSelectorWidget>;
 
 pub struct TabSelectorWidget {
-    paths: SharedObject<DashboardState>,
+    paths: SharedObject<ExplorerState>,
 }
 
 impl Default for TabSelectorWidget {
@@ -84,10 +84,10 @@ impl TabSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<DashboardState>> for TabSelectorWidget {
+impl NotificationHandler<DataChanged<ExplorerState>> for TabSelectorWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<DashboardState>,
+        _event: DataChanged<ExplorerState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

@@ -1,4 +1,4 @@
-use super::state::{DashboardState, DashboardStructure, PATHS};
+use super::state::{ExplorerState, ExplorerStructure, PATHS};
 use rate_ui::shared_object::SharedObject;
 use rate_ui::widget::wired_widget::{SingleFlowMeta, WiredWidget};
 use rate_ui::widget::{Context, Widget, WidgetRuntime};
@@ -9,7 +9,7 @@ use yew::Html;
 pub type Loader = WidgetRuntime<LoaderWidget>;
 
 pub struct LoaderWidget {
-    paths: SharedObject<DashboardState>,
+    paths: SharedObject<ExplorerState>,
 }
 
 impl Default for LoaderWidget {
@@ -41,7 +41,7 @@ impl WiredWidget<SingleFlowMeta<Self>> for LoaderWidget {
 
     fn state_changed(&mut self, _reloaded: bool, ctx: &mut Context<Self>) {
         // TODO: Consider to process deltas instead!
-        let mut new_structure = DashboardStructure::default();
+        let mut new_structure = ExplorerStructure::default();
         if let Some(state) = ctx.meta().state() {
             //log::error!("DASHBOARD: {:?}", state);
             for path in state.records.keys().cloned() {

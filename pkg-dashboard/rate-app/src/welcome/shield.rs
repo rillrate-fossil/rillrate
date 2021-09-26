@@ -1,5 +1,5 @@
 use crate::cases::state::{GlobalScene, SceneState, SCENE};
-use crate::explorer::state::{DashboardState, PATHS};
+use crate::explorer::state::{ExplorerState, PATHS};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -10,7 +10,7 @@ pub type Shield = WidgetRuntime<ShieldWidget>;
 
 pub struct ShieldWidget {
     scene: SharedObject<SceneState>,
-    paths: SharedObject<DashboardState>,
+    paths: SharedObject<ExplorerState>,
 }
 
 impl Default for ShieldWidget {
@@ -148,10 +148,10 @@ impl NotificationHandler<DataChanged<SceneState>> for ShieldWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<DashboardState>> for ShieldWidget {
+impl NotificationHandler<DataChanged<ExplorerState>> for ShieldWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<DashboardState>,
+        _event: DataChanged<ExplorerState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();
