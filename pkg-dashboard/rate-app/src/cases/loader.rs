@@ -1,4 +1,4 @@
-use super::state::{CasesState, SCENE};
+use super::state::{CasesState, CASES};
 use rate_ui::shared_object::SharedObject;
 use rate_ui::widget::wired_widget::{SingleFlowMeta, WiredWidget};
 use rate_ui::widget::{Context, Widget, WidgetRuntime};
@@ -9,13 +9,13 @@ use yew::Html;
 pub type Loader = WidgetRuntime<LoaderWidget>;
 
 pub struct LoaderWidget {
-    scene: SharedObject<CasesState>,
+    cases: SharedObject<CasesState>,
 }
 
 impl Default for LoaderWidget {
     fn default() -> Self {
         Self {
-            scene: SCENE.with(SharedObject::clone),
+            cases: CASES.with(SharedObject::clone),
         }
     }
 }
@@ -43,8 +43,8 @@ impl WiredWidget<SingleFlowMeta<Self>> for LoaderWidget {
         // Apply change to the router state
         if let Some(state) = ctx.meta().state() {
             let layouts = state.records.clone();
-            let mut scene = self.scene.write();
-            scene.layouts = layouts;
+            let mut cases = self.cases.write();
+            cases.layouts = layouts;
         }
     }
 }

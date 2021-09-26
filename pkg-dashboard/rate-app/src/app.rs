@@ -1,4 +1,4 @@
-use crate::cases::state::{CasesState, GlobalScene, SCENE};
+use crate::welcome::state::{GlobalScene, SceneState, SCENE};
 use crate::{alerts, cases, explorer, welcome};
 use anyhow::Error;
 use rate_ui::agents::live::LiveAgent;
@@ -9,7 +9,7 @@ use yew::{html, Html};
 pub type App = WidgetRuntime<AppWidget>;
 
 pub struct AppWidget {
-    scene: SharedObject<CasesState>,
+    scene: SharedObject<SceneState>,
 }
 
 impl Default for AppWidget {
@@ -95,10 +95,10 @@ impl Widget for AppWidget {
 
 impl OnWireEvent<LiveAgent> for AppWidget {}
 
-impl NotificationHandler<DataChanged<CasesState>> for AppWidget {
+impl NotificationHandler<DataChanged<SceneState>> for AppWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<CasesState>,
+        _event: DataChanged<SceneState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

@@ -4,33 +4,15 @@ use rill_protocol::io::provider::EntryId;
 use rrpack_basis::manifest::layouts::layout::{Layout, LayoutTab};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use strum::{Display, EnumIter};
 
 thread_local! {
-    pub static SCENE: SharedObject<CasesState> = SharedObject::new();
-}
-
-// TODO: Move Out
-#[derive(EnumIter, Display, Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-pub enum GlobalScene {
-    Home,
-    Cases,
-    Explorer,
-}
-
-impl Default for GlobalScene {
-    fn default() -> Self {
-        Self::Home
-    }
+    pub static CASES: SharedObject<CasesState> = SharedObject::new();
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
 pub struct CasesState {
     // TODO: Move to `CaseStructure` struct
     pub layouts: BTreeMap<EntryId, Layout>,
-
-    // TODO: Move Out
-    pub global_scene: GlobalScene,
 
     // TODO: Move to `CaseSelection` struct
     pub selected_layout: Option<EntryId>,
@@ -75,7 +57,6 @@ impl Storable for CasesState {
 
 impl RouterState for CasesState {
     fn restored(&mut self) {
-        self.global_scene = Default::default();
         self.layouts.clear();
     }
 

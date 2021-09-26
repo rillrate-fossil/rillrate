@@ -1,4 +1,4 @@
-use super::state::{CasesState, SCENE};
+use super::state::{CasesState, CASES};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -13,7 +13,7 @@ pub struct DashboardWidget {
 impl Default for DashboardWidget {
     fn default() -> Self {
         Self {
-            scene: SCENE.with(SharedObject::clone),
+            scene: CASES.with(SharedObject::clone),
         }
     }
 }

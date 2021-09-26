@@ -1,4 +1,4 @@
-use super::state::{CasesState, SCENE};
+use super::state::{CasesState, CASES};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -9,13 +9,13 @@ use yew::{html, Html};
 pub type TabSelector = WidgetRuntime<TabSelectorWidget>;
 
 pub struct TabSelectorWidget {
-    paths: SharedObject<CasesState>,
+    cases: SharedObject<CasesState>,
 }
 
 impl Default for TabSelectorWidget {
     fn default() -> Self {
         Self {
-            paths: SCENE.with(SharedObject::clone),
+            cases: CASES.with(SharedObject::clone),
         }
     }
 }
@@ -32,20 +32,20 @@ impl Widget for TabSelectorWidget {
     type Meta = ();
 
     fn init(&mut self, ctx: &mut Context<Self>) {
-        self.paths.subscribe(ctx);
+        self.cases.subscribe(ctx);
     }
 
     fn on_event(&mut self, event: Self::Event, _ctx: &mut Context<Self>) {
         match event {
             Msg::SelectTab(tab) => {
-                let mut state = self.paths.write();
+                let mut state = self.cases.write();
                 state.selected_tab = tab;
             }
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let state = self.paths.read();
+        let state = self.cases.read();
         let tabs = state
             .selected_layout
             .as_ref()
@@ -62,7 +62,7 @@ impl Widget for TabSelectorWidget {
 
 impl TabSelectorWidget {
     fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
-        let state = self.paths.read();
+        let state = self.cases.read();
         let caption = entry_id.to_string();
         let tab = Some(entry_id);
         let selected = tab == state.selected_tab;

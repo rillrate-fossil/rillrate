@@ -1,5 +1,6 @@
-use crate::cases::state::{CasesState, GlobalScene, SCENE};
+use crate::cases::state::{CasesState, CASES};
 use crate::explorer::state::{ExplorerState, PATHS};
+use crate::welcome::state::{GlobalScene, SceneState, SCENE};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -9,7 +10,8 @@ use yew::{html, Html};
 pub type Shield = WidgetRuntime<ShieldWidget>;
 
 pub struct ShieldWidget {
-    scene: SharedObject<CasesState>,
+    scene: SharedObject<SceneState>,
+    cases: SharedObject<CasesState>,
     paths: SharedObject<ExplorerState>,
 }
 
@@ -17,6 +19,7 @@ impl Default for ShieldWidget {
     fn default() -> Self {
         Self {
             scene: SCENE.with(SharedObject::clone),
+            cases: CASES.with(SharedObject::clone),
             paths: PATHS.with(SharedObject::clone),
         }
     }
@@ -36,7 +39,7 @@ impl Widget for ShieldWidget {
     type Meta = ();
 
     fn init(&mut self, ctx: &mut Context<Self>) {
-        self.scene.subscribe(ctx);
+        self.cases.subscribe(ctx);
         self.paths.subscribe(ctx);
     }
 
@@ -49,7 +52,8 @@ impl Widget for ShieldWidget {
                 let mut scene = self.scene.write();
                 scene.global_scene = GlobalScene::Cases;
                 // TODO: Use separate route state for seleciton
-                scene.selected_layout = Some(entry_id);
+                let mut cases = self.cases.write();
+                cases.selected_layout = Some(entry_id);
             }
             Msg::ToDashboard(package, entry_id) => {
                 let mut scene = self.scene.write();
@@ -62,16 +66,16 @@ impl Widget for ShieldWidget {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let scene_state = self.scene.read();
+        let cases_state = self.cases.read();
         let paths_state = self.paths.read();
         let to_layouts = ctx.event(Msg::ChangeScene(GlobalScene::Cases));
         let to_explorer = ctx.event(Msg::ChangeScene(GlobalScene::Explorer));
-        let cases = if !scene_state.layouts.is_empty() {
+        let cases = if !cases_state.layouts.is_empty() {
             html! {
                 <div>
                     <h3 class="mt-4 mb-3 pointer" onclick=to_layouts>{ "Cases" }</h3>
                     <div class="d-flex flex-row flex-wrap">
-                        { for scene_state.layouts.keys().map(|entry| self.render_layout_card(entry, ctx)) }
+                        { for cases_state.layouts.keys().map(|entry| self.render_layout_card(entry, ctx)) }
                     </div>
                 </div>
             }
