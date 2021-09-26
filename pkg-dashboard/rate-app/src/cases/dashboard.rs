@@ -1,4 +1,4 @@
-use super::state::{SceneState, SCENE};
+use super::state::{CasesState, SCENE};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -7,7 +7,7 @@ use yew::{html, Html};
 pub type Dashboard = WidgetRuntime<DashboardWidget>;
 
 pub struct DashboardWidget {
-    scene: SharedObject<SceneState>,
+    scene: SharedObject<CasesState>,
 }
 
 impl Default for DashboardWidget {
@@ -42,10 +42,10 @@ impl Widget for DashboardWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<SceneState>> for DashboardWidget {
+impl NotificationHandler<DataChanged<CasesState>> for DashboardWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<SceneState>,
+        _event: DataChanged<CasesState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

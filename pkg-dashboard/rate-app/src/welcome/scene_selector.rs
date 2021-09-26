@@ -1,4 +1,4 @@
-use crate::cases::state::{GlobalScene, SceneState, SCENE};
+use crate::cases::state::{CasesState, GlobalScene, SCENE};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -9,7 +9,7 @@ use yew_components::Select;
 pub type SceneSelector = WidgetRuntime<SceneSelectorWidget>;
 
 pub struct SceneSelectorWidget {
-    scene: SharedObject<SceneState>,
+    scene: SharedObject<CasesState>,
 }
 
 impl Default for SceneSelectorWidget {
@@ -59,10 +59,10 @@ impl Widget for SceneSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<SceneState>> for SceneSelectorWidget {
+impl NotificationHandler<DataChanged<CasesState>> for SceneSelectorWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<SceneState>,
+        _event: DataChanged<CasesState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

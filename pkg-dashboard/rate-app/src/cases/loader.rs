@@ -1,4 +1,4 @@
-use super::state::{SceneState, SCENE};
+use super::state::{CasesState, SCENE};
 use rate_ui::shared_object::SharedObject;
 use rate_ui::widget::wired_widget::{SingleFlowMeta, WiredWidget};
 use rate_ui::widget::{Context, Widget, WidgetRuntime};
@@ -9,7 +9,7 @@ use yew::Html;
 pub type Loader = WidgetRuntime<LoaderWidget>;
 
 pub struct LoaderWidget {
-    scene: SharedObject<SceneState>,
+    scene: SharedObject<CasesState>,
 }
 
 impl Default for LoaderWidget {

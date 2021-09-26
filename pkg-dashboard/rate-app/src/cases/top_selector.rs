@@ -1,4 +1,4 @@
-use super::state::{SceneState, SCENE};
+use super::state::{CasesState, SCENE};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -9,7 +9,7 @@ use yew::{html, Html};
 pub type TopSelector = WidgetRuntime<TopSelectorWidget>;
 
 pub struct TopSelectorWidget {
-    scene: SharedObject<SceneState>,
+    scene: SharedObject<CasesState>,
 }
 
 impl Default for TopSelectorWidget {
@@ -78,10 +78,10 @@ impl TopSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<SceneState>> for TopSelectorWidget {
+impl NotificationHandler<DataChanged<CasesState>> for TopSelectorWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<SceneState>,
+        _event: DataChanged<CasesState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

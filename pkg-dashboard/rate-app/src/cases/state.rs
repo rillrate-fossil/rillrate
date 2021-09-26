@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use strum::{Display, EnumIter};
 
 thread_local! {
-    pub static SCENE: SharedObject<SceneState> = SharedObject::new();
+    pub static SCENE: SharedObject<CasesState> = SharedObject::new();
 }
 
 // TODO: Move Out
@@ -25,7 +25,7 @@ impl Default for GlobalScene {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
-pub struct SceneState {
+pub struct CasesState {
     // TODO: Move to `CaseStructure` struct
     pub layouts: BTreeMap<EntryId, Layout>,
 
@@ -37,7 +37,7 @@ pub struct SceneState {
     pub selected_tab: Option<EntryId>,
 }
 
-impl SceneState {
+impl CasesState {
     fn autoselect(&mut self) -> Option<()> {
         let mut layout = self.selected_layout.clone().unwrap_or_default();
         let mut tab = self.selected_tab.clone().unwrap_or_default();
@@ -57,7 +57,7 @@ impl SceneState {
 
 // TODO: Implement auto-select
 
-impl SceneState {
+impl CasesState {
     pub fn get_layout_tab(&self) -> Option<&LayoutTab> {
         let selected_layout = self.selected_layout.as_ref()?;
         let selected_tab = self.selected_tab.as_ref()?;
@@ -67,13 +67,13 @@ impl SceneState {
     }
 }
 
-impl Storable for SceneState {
+impl Storable for CasesState {
     fn key() -> &'static str {
         module_path!()
     }
 }
 
-impl RouterState for SceneState {
+impl RouterState for CasesState {
     fn restored(&mut self) {
         self.global_scene = Default::default();
         self.layouts.clear();

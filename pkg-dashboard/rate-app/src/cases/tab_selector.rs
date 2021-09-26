@@ -1,4 +1,4 @@
-use super::state::{SceneState, SCENE};
+use super::state::{CasesState, SCENE};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
@@ -9,7 +9,7 @@ use yew::{html, Html};
 pub type TabSelector = WidgetRuntime<TabSelectorWidget>;
 
 pub struct TabSelectorWidget {
-    paths: SharedObject<SceneState>,
+    paths: SharedObject<CasesState>,
 }
 
 impl Default for TabSelectorWidget {
@@ -83,10 +83,10 @@ impl TabSelectorWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<SceneState>> for TabSelectorWidget {
+impl NotificationHandler<DataChanged<CasesState>> for TabSelectorWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<SceneState>,
+        _event: DataChanged<CasesState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();

@@ -1,4 +1,4 @@
-use crate::cases::state::{GlobalScene, SceneState, SCENE};
+use crate::cases::state::{CasesState, GlobalScene, SCENE};
 use crate::explorer::state::{ExplorerState, PATHS};
 use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
@@ -9,7 +9,7 @@ use yew::{html, Html};
 pub type Shield = WidgetRuntime<ShieldWidget>;
 
 pub struct ShieldWidget {
-    scene: SharedObject<SceneState>,
+    scene: SharedObject<CasesState>,
     paths: SharedObject<ExplorerState>,
 }
 
@@ -137,10 +137,10 @@ impl ShieldWidget {
     }
 }
 
-impl NotificationHandler<DataChanged<SceneState>> for ShieldWidget {
+impl NotificationHandler<DataChanged<CasesState>> for ShieldWidget {
     fn handle(
         &mut self,
-        _event: DataChanged<SceneState>,
+        _event: DataChanged<CasesState>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
         ctx.redraw();
