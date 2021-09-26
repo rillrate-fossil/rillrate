@@ -1,3 +1,3 @@
 #rpl -v -x .toml -R "0.38.0-rc.1" "0.38.0-rc.2" .
 
-rpl -v -x .toml -x .md -R "$1" "$2" .
+rpl -v -x .toml -x README.md -R "$1" "$2" .
