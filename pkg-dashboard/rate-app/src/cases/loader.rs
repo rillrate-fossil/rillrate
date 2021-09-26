@@ -42,7 +42,7 @@ impl WiredWidget<SingleFlowMeta<Self>> for LoaderWidget {
     fn state_changed(&mut self, _reloaded: bool, ctx: &mut Context<Self>) {
         // Apply change to the router state
         if let Some(state) = ctx.meta().state() {
-            let layouts = state.records.clone();
+            let layouts = state.layouts.clone();
             let mut cases = self.cases.write();
             cases.layouts = layouts;
         }

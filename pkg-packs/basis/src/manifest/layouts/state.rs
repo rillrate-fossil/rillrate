@@ -16,13 +16,13 @@ pub struct LayoutsSpec;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayoutsState {
     #[serde(with = "vectorize")]
-    pub records: BTreeMap<EntryId, Layout>,
+    pub layouts: BTreeMap<EntryId, Layout>,
 }
 
 impl From<LayoutsSpec> for LayoutsState {
     fn from(_spec: LayoutsSpec) -> Self {
         Self {
-            records: BTreeMap::new(),
+            layouts: BTreeMap::new(),
         }
     }
 }
@@ -38,10 +38,10 @@ impl Flow for LayoutsState {
     fn apply(&mut self, event: Self::Event) {
         match event {
             LayoutsEvent::Add { name, layout } => {
-                self.records.insert(name, layout);
+                self.layouts.insert(name, layout);
             }
             LayoutsEvent::Remove { name } => {
-                self.records.remove(&name);
+                self.layouts.remove(&name);
             }
         }
     }
