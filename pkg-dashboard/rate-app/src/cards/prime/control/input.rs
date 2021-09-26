@@ -40,8 +40,7 @@ impl Widget for InputCardWidget {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let body = {
             if let Some(state) = ctx.meta().state() {
-                // TODO: Use placeholder from the state
-                // TODO: Override type with Spec! (password, etc)
+                let placeholder = state.spec.placeholder.clone();
                 if state.spec.wide {
                     let style = if state.spec.password {
                         "color: transparent;text-shadow: 0 0 8px rgba(0,0,0,0.5);"
@@ -49,7 +48,7 @@ impl Widget for InputCardWidget {
                         ""
                     };
                     html! {
-                        <textarea class="form-control" style=style oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
+                        <textarea class="form-control" placeholder=placeholder style=style oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
                     }
                 } else {
                     let typ = if state.spec.password {
@@ -58,7 +57,7 @@ impl Widget for InputCardWidget {
                         "text"
                     };
                     html! {
-                        <input type=typ class="form-control" oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
+                        <input type=typ class="form-control" placeholder=placeholder oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
                     }
                 }
             } else {

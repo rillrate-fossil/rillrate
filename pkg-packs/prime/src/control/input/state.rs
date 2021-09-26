@@ -8,6 +8,7 @@ pub struct InputSpec {
     pub label: String,
     pub wide: bool,
     pub password: bool,
+    pub placeholder: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

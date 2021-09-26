@@ -9,6 +9,7 @@ pub struct InputOpts {
     pub label: Option<String>,
     pub wide: Option<bool>,
     pub password: Option<bool>,
+    pub placeholder: Option<String>,
 }
 
 impl From<InputOpts> for InputSpec {
@@ -17,6 +18,7 @@ impl From<InputOpts> for InputSpec {
             label: opts.label.unwrap_or_else(|| "Input".into()),
             wide: opts.wide.unwrap_or_default(),
             password: opts.password.unwrap_or_default(),
+            placeholder: opts.placeholder.unwrap_or_default(),
         }
     }
 }
