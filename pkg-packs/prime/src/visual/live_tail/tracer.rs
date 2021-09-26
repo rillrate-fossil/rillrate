@@ -57,7 +57,7 @@ impl LiveTail {
         let record = LogRecord {
             module: module.into(),
             level: level.into(),
-            timestamp: timestamp.into(),
+            timestamp,
             content: content.into(),
         };
         let msg = LiveTailEvent::Add(record);

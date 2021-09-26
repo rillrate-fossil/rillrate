@@ -348,7 +348,7 @@ struct AsyncCallback<F, Fut> {
 impl<F, Fut> AsyncCallback<F, Fut> {
     fn new(func: F) -> Self {
         Self {
-            func: func,
+            func,
             fut: PhantomData,
         }
     }

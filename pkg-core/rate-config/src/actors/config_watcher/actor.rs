@@ -23,6 +23,7 @@ pub struct ConfigWatcher {
 }
 
 impl ConfigWatcher {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             watcher: None,
