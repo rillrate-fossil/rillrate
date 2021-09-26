@@ -3,6 +3,8 @@
 Improvements:
 
 - Async callbacks
+- Tabs in custom layouts
+- `TracerAction` and `meio-addon` to use tracers with `meio` actors
 
 # v0.40.0
 
