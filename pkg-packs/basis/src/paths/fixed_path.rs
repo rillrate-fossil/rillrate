@@ -4,26 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::iter::{repeat, FromIterator};
 
-pub type AutoPath = FixedPath<4>;
-
-impl AutoPath {
-    pub fn package(&self) -> &EntryId {
-        &self.entries[0]
-    }
-
-    pub fn dashboard(&self) -> &EntryId {
-        &self.entries[1]
-    }
-
-    pub fn group(&self) -> &EntryId {
-        &self.entries[2]
-    }
-
-    pub fn name(&self) -> &EntryId {
-        &self.entries[3]
-    }
-}
-
 /// `Live` bacause of `Live` product approach.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, From)]
 #[serde(from = "String", into = "String")]

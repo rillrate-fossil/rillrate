@@ -1,6 +1,6 @@
 use rill_config::{Config, ReadableConfig};
-use rrpack_basis::auto_path::AutoPath;
 use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem, LayoutTab};
+use rrpack_basis::paths::AutoPath;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

@@ -19,7 +19,7 @@ pub struct LayoutTab {
 pub mod layout_builder {
     use super::*;
     use crate::manifest::layouts::global::LAYOUTS;
-    use crate::AutoPath;
+    use crate::paths::AutoPath;
 
     // TODO: Consider to add the separate `LayoutBuilder` struct
     impl Layout {

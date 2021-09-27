@@ -1,6 +1,6 @@
-use crate::auto_path::AutoPath;
 use crate::manifest::description::{PackFlow, PackFlowDescription};
 use crate::manifest::paths::global::PATHS;
+use crate::paths::AutoPath;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::Tracer;
 use rill_protocol::flow::core::FlowMode;
