@@ -1,16 +1,10 @@
 use derive_more::From;
 use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
-use std::iter::FromIterator;
+use std::convert::TryInto;
+use std::iter::{repeat, FromIterator};
 
-const SIZE: usize = 4;
-
-/// `Live` bacause of `Live` product approach.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, From)]
-#[serde(from = "String", into = "String")]
-pub struct AutoPath {
-    pub entries: [EntryId; 4],
-}
+pub type AutoPath = FixedPath<4>;
 
 impl AutoPath {
     pub fn package(&self) -> &EntryId {
@@ -30,65 +24,67 @@ impl AutoPath {
     }
 }
 
-impl AutoPath {
+/// `Live` bacause of `Live` product approach.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, From)]
+#[serde(from = "String", into = "String")]
+pub struct FixedPath<const T: usize> {
+    pub entries: [EntryId; T],
+}
+
+impl<const T: usize> FixedPath<T> {
     fn unassigned(name: EntryId) -> Self {
         let entry = EntryId::from("unassigned");
-        [entry.clone(), entry.clone(), entry, name].into()
+        let entries: [EntryId; T] = repeat(entry)
+            .take(T - 1)
+            .chain([name])
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
+        Self { entries }
     }
 }
 
-impl From<AutoPath> for Path {
-    fn from(this: AutoPath) -> Self {
+impl<const T: usize> From<FixedPath<T>> for Path {
+    fn from(this: FixedPath<T>) -> Self {
         Path::from_iter(this.entries)
     }
 }
 
-impl From<[&str; SIZE]> for AutoPath {
-    fn from(array: [&str; SIZE]) -> Self {
-        let entries: [EntryId; SIZE] = [
-            array[0].into(),
-            array[1].into(),
-            array[2].into(),
-            array[3].into(),
-        ];
+impl<const T: usize> From<[&str; T]> for FixedPath<T> {
+    fn from(array: [&str; T]) -> Self {
+        let entries: [EntryId; T] = array
+            .iter()
+            .map(|item| EntryId::from(*item))
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
         Self::from(entries)
     }
 }
 
-impl From<String> for AutoPath {
+impl<const T: usize> From<String> for FixedPath<T> {
     fn from(s: String) -> Self {
         let s: &str = s.as_ref();
         Self::from(s)
     }
 }
 
-impl From<&str> for AutoPath {
+impl<const T: usize> From<&str> for FixedPath<T> {
     fn from(s: &str) -> Self {
-        let path = s.parse::<Path>().map(Vec::from);
-        match path {
-            Ok(path) if path.len() == SIZE => {
-                let mut items = path.into_iter();
-                [
-                    items.next().unwrap(),
-                    items.next().unwrap(),
-                    items.next().unwrap(),
-                    items.next().unwrap(),
-                ]
-                .into()
-            }
-            _ => Self::unassigned(EntryId::from(s)),
+        let entries: Result<[EntryId; T], ()> = s
+            .parse::<Path>()
+            .map_err(drop)
+            .map(Vec::from)
+            .and_then(|vec| vec.try_into().map_err(drop));
+        match entries {
+            Ok(entries) => Self { entries },
+            Err(_) => Self::unassigned(EntryId::from(s)),
         }
     }
 }
 
-impl From<AutoPath> for String {
-    fn from(path: AutoPath) -> Self {
-        format!(
-            "{}.{}.{}.{}",
-            path.package(),
-            path.dashboard(),
-            path.group(),
-            path.name()
-        )
+impl<const T: usize> From<FixedPath<T>> for String {
+    fn from(path: FixedPath<T>) -> Self {
+        path.entries.join(".")
     }
 }
