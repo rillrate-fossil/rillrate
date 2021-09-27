@@ -7,6 +7,7 @@ const SIZE: usize = 4;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(from = "String", into = "String")]
 pub struct AutoPath {
+    pub entries: [EntryId; 4],
     pub package: EntryId,
     pub dashboard: EntryId,
     pub group: EntryId,
@@ -16,12 +17,7 @@ pub struct AutoPath {
 impl AutoPath {
     fn unassigned(name: EntryId) -> Self {
         let entry = EntryId::from("unassigned");
-        Self {
-            package: entry.clone(),
-            dashboard: entry.clone(),
-            group: entry,
-            name,
-        }
+        [entry.clone(), entry.clone(), entry, name].into()
     }
 }
 
@@ -31,14 +27,27 @@ impl From<AutoPath> for Path {
     }
 }
 
+impl From<[EntryId; SIZE]> for AutoPath {
+    fn from(entries: [EntryId; SIZE]) -> Self {
+        Self {
+            package: entries[0].clone(),
+            dashboard: entries[1].clone(),
+            group: entries[2].clone(),
+            name: entries[3].clone(),
+            entries,
+        }
+    }
+}
+
 impl From<[&str; SIZE]> for AutoPath {
     fn from(array: [&str; SIZE]) -> Self {
-        Self {
-            package: array[0].into(),
-            dashboard: array[1].into(),
-            group: array[2].into(),
-            name: array[3].into(),
-        }
+        let entries: [EntryId; SIZE] = [
+            array[0].into(),
+            array[1].into(),
+            array[2].into(),
+            array[3].into(),
+        ];
+        Self::from(entries)
     }
 }
 
@@ -55,12 +64,13 @@ impl From<&str> for AutoPath {
         match path {
             Ok(path) if path.len() == SIZE => {
                 let mut items = path.into_iter();
-                Self {
-                    package: items.next().unwrap(),
-                    dashboard: items.next().unwrap(),
-                    group: items.next().unwrap(),
-                    name: items.next().unwrap(),
-                }
+                [
+                    items.next().unwrap(),
+                    items.next().unwrap(),
+                    items.next().unwrap(),
+                    items.next().unwrap(),
+                ]
+                .into()
             }
             _ => Self::unassigned(EntryId::from(s)),
         }
