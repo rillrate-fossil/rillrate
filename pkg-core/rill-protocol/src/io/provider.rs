@@ -160,9 +160,9 @@ impl Path {
     }
 }
 
-impl<'a> FromIterator<&'a EntryId> for Path {
-    fn from_iter<I: IntoIterator<Item = &'a EntryId>>(iter: I) -> Self {
-        Self(iter.into_iter().cloned().collect())
+impl FromIterator<EntryId> for Path {
+    fn from_iter<I: IntoIterator<Item = EntryId>>(iter: I) -> Self {
+        Self(iter.into_iter().collect())
     }
 }
 

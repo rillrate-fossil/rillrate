@@ -1,17 +1,33 @@
+use derive_more::From;
 use rill_protocol::io::provider::{EntryId, Path};
 use serde::{Deserialize, Serialize};
+use std::iter::FromIterator;
 
 const SIZE: usize = 4;
 
 /// `Live` bacause of `Live` product approach.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, From)]
 #[serde(from = "String", into = "String")]
 pub struct AutoPath {
     pub entries: [EntryId; 4],
-    pub package: EntryId,
-    pub dashboard: EntryId,
-    pub group: EntryId,
-    pub name: EntryId,
+}
+
+impl AutoPath {
+    pub fn package(&self) -> &EntryId {
+        &self.entries[0]
+    }
+
+    pub fn dashboard(&self) -> &EntryId {
+        &self.entries[1]
+    }
+
+    pub fn group(&self) -> &EntryId {
+        &self.entries[2]
+    }
+
+    pub fn name(&self) -> &EntryId {
+        &self.entries[3]
+    }
 }
 
 impl AutoPath {
@@ -23,19 +39,7 @@ impl AutoPath {
 
 impl From<AutoPath> for Path {
     fn from(this: AutoPath) -> Self {
-        vec![this.package, this.dashboard, this.group, this.name].into()
-    }
-}
-
-impl From<[EntryId; SIZE]> for AutoPath {
-    fn from(entries: [EntryId; SIZE]) -> Self {
-        Self {
-            package: entries[0].clone(),
-            dashboard: entries[1].clone(),
-            group: entries[2].clone(),
-            name: entries[3].clone(),
-            entries,
-        }
+        Path::from_iter(this.entries)
     }
 }
 
@@ -81,7 +85,10 @@ impl From<AutoPath> for String {
     fn from(path: AutoPath) -> Self {
         format!(
             "{}.{}.{}.{}",
-            path.package, path.dashboard, path.group, path.name
+            path.package(),
+            path.dashboard(),
+            path.group(),
+            path.name()
         )
     }
 }
