@@ -1,16 +1,15 @@
-use rill_protocol::io::provider::{EntryId, Path};
+use rill_protocol::io::provider::Path;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
-    pub name: EntryId,
-    pub tabs: BTreeMap<EntryId, LayoutTab>,
+    pub tabs: BTreeMap<Path, LayoutTab>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LayoutTab {
-    pub name: EntryId,
+    pub name: Path,
     pub items: Vec<LayoutItem>,
     pub labels: Vec<Label>,
 }
@@ -19,35 +18,10 @@ pub struct LayoutTab {
 pub mod layout_builder {
     use super::*;
     use crate::manifest::layouts::global::LAYOUTS;
-    use crate::paths::AutoPath;
-
-    // TODO: Consider to add the separate `LayoutBuilder` struct
-    impl Layout {
-        pub fn new(name: impl Into<EntryId>) -> Self {
-            Self {
-                name: name.into(),
-                tabs: BTreeMap::new(),
-            }
-        }
-
-        pub fn add_tab(&mut self, tab: LayoutTab) {
-            self.tabs.insert(tab.name.clone(), tab);
-        }
-
-        pub fn register(&self) {
-            let name = self.name.clone();
-            let layout = self.clone();
-            LAYOUTS.add_layout(name, layout);
-        }
-
-        pub fn unregister(&self) {
-            let name = self.name.clone();
-            LAYOUTS.remove_layout(name);
-        }
-    }
+    use crate::paths::{AutoPath, LayoutPath};
 
     impl LayoutTab {
-        pub fn new(name: impl Into<EntryId>) -> Self {
+        pub fn new(name: LayoutPath) -> Self {
             Self {
                 name: name.into(),
                 items: Vec::new(),
@@ -67,6 +41,17 @@ pub mod layout_builder {
                 path: Path::from(path.into()),
             };
             self.items.push(item);
+        }
+
+        pub fn register(&self) {
+            let name = self.name.clone();
+            let layout = self.clone();
+            LAYOUTS.add_tab(name, layout);
+        }
+
+        pub fn unregister(&self) {
+            let name = self.name.clone();
+            LAYOUTS.remove_tab(name);
         }
     }
 }

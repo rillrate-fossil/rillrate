@@ -7,18 +7,18 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rate_core::assets::Assets;
 use rill_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
-use rill_protocol::io::provider::EntryId;
+use rill_protocol::io::provider::Path;
 use rrpack_basis::manifest::layouts::global::LAYOUTS;
-use rrpack_basis::manifest::layouts::layout::Layout;
+use rrpack_basis::manifest::layouts::layout::{Layout, LayoutTab};
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::Path as FilePath;
 use std::time::Duration;
 use strum::{EnumIter, IntoEnumIterator};
 use tokio::fs;
 
 pub struct ConfigWatcher {
     watcher: Option<RecommendedWatcher>,
-    layouts: HashMap<EntryId, Layout>,
+    layouts: HashMap<Path, LayoutTab>,
     heartbeat: Option<TaskAddress<HeartBeat>>,
 }
 
@@ -63,7 +63,7 @@ impl ConfigWatcher {
         if let Err(err) = self.read_from_tar() {
             log::error!("Can't read embedded config tar: {}", err);
         }
-        if Path::new(PATH).exists() {
+        if FilePath::new(PATH).exists() {
             success &= self.read_from_dir().await.is_ok();
             success &= self.assign_watcher(ctx).is_ok();
         }
@@ -144,11 +144,12 @@ impl ConfigWatcher {
                 if path.contains("cases") {
                     let case = CaseConfig::parse(data)?;
                     let layout: Layout = case.into();
-                    let name = layout.name.clone();
-                    log::debug!("Add Embedded Layout: {}", name);
-                    // Embedded layouts aren't tracked by the `self.layouts` map
-                    // and they exists always.
-                    LAYOUTS.add_layout(name, layout.clone());
+                    for (path, tab) in layout.tabs.into_iter() {
+                        log::debug!("Add Embedded Layout: {}", path);
+                        // Embedded layouts aren't tracked by the `self.layouts` map
+                        // and they exists always.
+                        LAYOUTS.add_tab(path, tab);
+                    }
                 }
             }
         }
@@ -163,19 +164,19 @@ impl ConfigWatcher {
             if meta.is_file() && entry.path().extension() == Some("toml".as_ref()) {
                 let case = CaseConfig::read(entry.path()).await?;
                 let layout: Layout = case.into();
-                layouts.insert(layout.name.clone(), layout);
+                layouts.extend(layout.tabs.into_iter())
             }
         }
         let (to_add, to_remove, to_check) = diff_full(self.layouts.keys(), layouts.keys());
         for name in to_add {
             let layout = layouts.get(&name).unwrap();
             log::debug!("Add Layout: {}", name);
-            LAYOUTS.add_layout(name.clone(), layout.clone());
+            LAYOUTS.add_tab(name.clone(), layout.clone());
             self.layouts.insert(name, layout.clone());
         }
         for name in to_remove {
             log::debug!("Remove Layout: {}", name);
-            LAYOUTS.remove_layout(name.clone());
+            LAYOUTS.remove_tab(name.clone());
             self.layouts.remove(&name);
         }
         for name in to_check {
@@ -183,7 +184,7 @@ impl ConfigWatcher {
             let prev = self.layouts.get(&name).unwrap();
             let layout = layouts.get(&name).unwrap();
             if prev != layout {
-                LAYOUTS.add_layout(name.clone(), layout.clone());
+                LAYOUTS.add_tab(name.clone(), layout.clone());
                 self.layouts.insert(name, layout.clone());
             }
         }

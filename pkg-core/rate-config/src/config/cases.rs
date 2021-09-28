@@ -1,11 +1,13 @@
 use rill_config::{Config, ReadableConfig};
+use rill_protocol::io::provider::{EntryId, Path};
 use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem, LayoutTab};
 use rrpack_basis::paths::AutoPath;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CaseConfig {
-    pub name: String,
+    /// It used to add `group` name prefix
+    name: EntryId,
     pub tab: Option<Vec<CaseTabConfig>>,
 }
 
@@ -15,7 +17,7 @@ impl ReadableConfig for CaseConfig {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CaseTabConfig {
-    pub name: String,
+    pub name: EntryId,
     pub item: Option<Vec<CaseItemConfig>>,
     pub label: Option<Vec<LabelConfig>>,
 }
@@ -36,22 +38,36 @@ pub struct LabelConfig {
 
 impl From<CaseConfig> for Layout {
     fn from(config: CaseConfig) -> Self {
+        let group = config.name;
         let tabs = config
             .tab
             .unwrap_or_default()
             .into_iter()
+            .map(|tab| CaseTabConfigPair::new(group.clone(), tab))
             .map(LayoutTab::from)
             .map(|tab| (tab.name.clone(), tab))
             .collect();
+        Self { tabs }
+    }
+}
+
+pub struct CaseTabConfigPair {
+    pub path: Path,
+    pub config: CaseTabConfig,
+}
+
+impl CaseTabConfigPair {
+    fn new(group: EntryId, config: CaseTabConfig) -> Self {
         Self {
-            name: config.name.into(),
-            tabs,
+            path: [group, config.name.clone()].to_vec().into(),
+            config,
         }
     }
 }
 
-impl From<CaseTabConfig> for LayoutTab {
-    fn from(config: CaseTabConfig) -> Self {
+impl From<CaseTabConfigPair> for LayoutTab {
+    fn from(pair: CaseTabConfigPair) -> Self {
+        let CaseTabConfigPair { path, config } = pair;
         let items = config
             .item
             .unwrap_or_default()
@@ -65,7 +81,7 @@ impl From<CaseTabConfig> for LayoutTab {
             .map(Label::from)
             .collect();
         Self {
-            name: config.name.into(),
+            name: path,
             items,
             labels,
         }
