@@ -1,4 +1,4 @@
-use super::layout::LayoutTab;
+use super::layout::Layout;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ pub struct LayoutsSpec;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayoutsState {
     #[serde(with = "vectorize")]
-    pub layouts: BTreeMap<Path, LayoutTab>,
+    pub layouts: BTreeMap<Path, Layout>,
 }
 
 impl From<LayoutsSpec> for LayoutsState {
@@ -49,6 +49,6 @@ impl Flow for LayoutsState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LayoutsEvent {
-    Add { name: Path, layout: LayoutTab },
+    Add { name: Path, layout: Layout },
     Remove { name: Path },
 }

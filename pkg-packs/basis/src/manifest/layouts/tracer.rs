@@ -1,4 +1,4 @@
-use super::layout::LayoutTab;
+use super::layout::Layout;
 use super::state::*;
 use derive_more::{Deref, DerefMut};
 use rill_engine::tracers::tracer::Tracer;
@@ -19,7 +19,7 @@ impl LayoutsTracer {
         Self { tracer }
     }
 
-    pub fn add_tab(&self, name: Path, layout: LayoutTab) {
+    pub fn add_tab(&self, name: Path, layout: Layout) {
         let msg = LayoutsEvent::Add { name, layout };
         self.tracer.send(msg, None);
     }

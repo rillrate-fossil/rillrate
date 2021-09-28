@@ -1,15 +1,8 @@
 use rill_protocol::io::provider::Path;
 use serde::{Deserialize, Serialize};
 
-/*
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
-    pub tabs: BTreeMap<Path, LayoutTab>,
-}
-*/
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LayoutTab {
     pub name: Path,
     pub items: Vec<LayoutItem>,
     pub labels: Vec<Label>,
@@ -21,7 +14,7 @@ pub mod layout_builder {
     use crate::manifest::layouts::global::LAYOUTS;
     use crate::paths::{AutoPath, LayoutPath};
 
-    impl LayoutTab {
+    impl Layout {
         pub fn new(name: impl Into<LayoutPath>) -> Self {
             Self {
                 name: name.into().into(),

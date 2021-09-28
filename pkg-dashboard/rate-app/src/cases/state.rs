@@ -1,7 +1,7 @@
 use rate_ui::shared_object::{RouterState, SharedObject};
 use rate_ui::storage::typed_storage::Storable;
 use rill_protocol::io::provider::{EntryId, Path};
-use rrpack_basis::manifest::layouts::layout::LayoutTab;
+use rrpack_basis::manifest::layouts::layout::Layout;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -42,7 +42,7 @@ pub struct CasesState {
     pub selected_layout: Option<EntryId>,
     pub selected_tab: Option<EntryId>,
 
-    pub tabs: BTreeMap<Path, LayoutTab>,
+    pub tabs: BTreeMap<Path, Layout>,
 }
 
 impl CasesState {
@@ -66,7 +66,7 @@ impl CasesState {
 // TODO: Implement auto-select
 
 impl CasesState {
-    pub fn get_layout_tab(&self) -> Option<&LayoutTab> {
+    pub fn get_layout_tab(&self) -> Option<&Layout> {
         let selected_layout = self.selected_layout.as_ref()?;
         let selected_tab = self.selected_tab.as_ref()?;
         let path: Path = vec![selected_layout.clone(), selected_tab.clone()].into();

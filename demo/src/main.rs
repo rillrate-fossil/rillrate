@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::basis::LayoutTab;
+use rillrate::basis::Layout;
 use rillrate::prime::table::{Col, Row};
 use rillrate::prime::*;
 use tokio::time::{sleep, Duration};
@@ -12,7 +12,7 @@ pub async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     rillrate::install("demo")?;
 
-    let mut tab = LayoutTab::new(["Prog Layout", "First Tab"]);
+    let mut tab = Layout::new(["Prog Layout", "First Tab"]);
     tab.add_item((0, 0), (20, 30), "app.dashboard-1.pulses.pulse-1");
     tab.register();
 
