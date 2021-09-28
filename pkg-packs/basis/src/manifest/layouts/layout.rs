@@ -21,9 +21,9 @@ pub mod layout_builder {
     use crate::paths::{AutoPath, LayoutPath};
 
     impl LayoutTab {
-        pub fn new(name: LayoutPath) -> Self {
+        pub fn new(name: impl Into<LayoutPath>) -> Self {
             Self {
-                name: name.into(),
+                name: name.into().into(),
                 items: Vec::new(),
                 labels: Vec::new(),
             }

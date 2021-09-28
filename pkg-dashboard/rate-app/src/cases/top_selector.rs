@@ -3,7 +3,6 @@ use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
 use rill_protocol::io::provider::EntryId;
-use std::collections::BTreeSet;
 use yew::{html, Html};
 
 pub type TopSelector = WidgetRuntime<TopSelectorWidget>;
@@ -46,7 +45,7 @@ impl Widget for TopSelectorWidget {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let state = self.cases.read();
-        let dashboards = state.layouts.keys().cloned().collect::<BTreeSet<_>>();
+        let dashboards = state.structure.get_packages();
         html! {
             <nav yew=module_path!() class="nav">
                 { for dashboards.into_iter().map(|entry_id| self.render_item(entry_id, ctx)) }
@@ -56,11 +55,11 @@ impl Widget for TopSelectorWidget {
 }
 
 impl TopSelectorWidget {
-    fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
+    fn render_item(&self, entry_id: &EntryId, ctx: &Context<Self>) -> Html {
         let caption = entry_id.to_string();
         let dashboard = Some(entry_id);
         let state = self.cases.read();
-        let selected = dashboard == state.selected_layout.clone();
+        let selected = dashboard == state.selected_layout.as_ref();
         let (class, event) = {
             if selected {
                 ("nav-link link-primary active", None)
@@ -71,7 +70,7 @@ impl TopSelectorWidget {
         html! {
             <div class="nav-item click">
                 <a class=class
-                    onclick=ctx.event(Msg::SelectDashboard(event))
+                    onclick=ctx.event(Msg::SelectDashboard(event.cloned()))
                     >{ caption }</a>
             </div>
         }

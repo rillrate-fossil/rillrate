@@ -44,10 +44,11 @@ impl WiredWidget<SingleFlowMeta<Self>> for LoaderWidget {
         let mut new_structure = ExplorerStructure::default();
         if let Some(state) = ctx.meta().state() {
             //log::error!("DASHBOARD: {:?}", state);
+            // TODO: Rename records to `flows` (consider)
+            let packages = &mut new_structure.packages;
             for path in state.records.keys().cloned() {
                 let mut items = path.into_iter();
-
-                let packages = &mut new_structure.packages;
+                // TODO: DRY and improve that! (and `cases/loader.rs`)
                 if let Some(package) = items.next() {
                     let dashboards = packages.entry(package).or_default();
                     if let Some(dashboard) = items.next() {

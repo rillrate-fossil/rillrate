@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rillrate::basis::{Layout, LayoutTab};
+use rillrate::basis::LayoutTab;
 use rillrate::prime::table::{Col, Row};
 use rillrate::prime::*;
 use tokio::time::{sleep, Duration};
@@ -12,11 +12,9 @@ pub async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     rillrate::install("demo")?;
 
-    let mut layout = Layout::new("Prog Layout");
-    let mut tab = LayoutTab::new("First Tab");
+    let mut tab = LayoutTab::new(["Prog Layout", "First Tab"]);
     tab.add_item((0, 0), (20, 30), "app.dashboard-1.pulses.pulse-1");
-    layout.add_tab(tab);
-    layout.register();
+    tab.register();
 
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.

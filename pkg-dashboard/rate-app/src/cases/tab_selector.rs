@@ -3,7 +3,6 @@ use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
 use rill_protocol::io::provider::EntryId;
-use std::collections::BTreeSet;
 use yew::{html, Html};
 
 pub type TabSelector = WidgetRuntime<TabSelectorWidget>;
@@ -49,9 +48,9 @@ impl Widget for TabSelectorWidget {
         let tabs = state
             .selected_layout
             .as_ref()
-            .and_then(|layout| state.layouts.get(layout))
-            .map(|layout| layout.tabs.keys().cloned().collect::<BTreeSet<_>>())
-            .unwrap_or_default();
+            .map(|layout| state.structure.get_dashboards(layout))
+            .into_iter()
+            .flatten();
         html! {
             <nav yew=module_path!() class="nav">
                 { for tabs.into_iter().map(|entry_id| self.render_item(entry_id, ctx)) }
@@ -61,11 +60,11 @@ impl Widget for TabSelectorWidget {
 }
 
 impl TabSelectorWidget {
-    fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
+    fn render_item(&self, entry_id: &EntryId, ctx: &Context<Self>) -> Html {
         let state = self.cases.read();
         let caption = entry_id.to_string();
         let tab = Some(entry_id);
-        let selected = tab == state.selected_tab;
+        let selected = tab == state.selected_tab.as_ref();
         let (class, event) = {
             if selected {
                 ("nav-link link-primary active", None)
@@ -76,7 +75,7 @@ impl TabSelectorWidget {
         html! {
             <div class="nav-item click">
                 <a class=class
-                    onclick=ctx.event(Msg::SelectTab(event))
+                    onclick=ctx.event(Msg::SelectTab(event.cloned()))
                     >{ caption }</a>
             </div>
         }

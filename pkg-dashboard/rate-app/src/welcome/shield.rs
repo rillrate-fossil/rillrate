@@ -70,12 +70,12 @@ impl Widget for ShieldWidget {
         let paths_state = self.paths.read();
         let to_layouts = ctx.event(Msg::ChangeScene(GlobalScene::Cases));
         let to_explorer = ctx.event(Msg::ChangeScene(GlobalScene::Explorer));
-        let cases = if !cases_state.layouts.is_empty() {
+        let cases = if !cases_state.structure.layouts.is_empty() {
             html! {
                 <div>
                     <h3 class="mt-4 mb-3 pointer" onclick=to_layouts>{ "Cases" }</h3>
                     <div class="d-flex flex-row flex-wrap">
-                        { for cases_state.layouts.keys().map(|entry| self.render_layout_card(entry, ctx)) }
+                        { for cases_state.structure.layouts.keys().map(|entry| self.render_layout_card(entry, ctx)) }
                     </div>
                 </div>
             }

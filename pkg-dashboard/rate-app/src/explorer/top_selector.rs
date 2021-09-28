@@ -46,7 +46,7 @@ impl Widget for TopSelectorWidget {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let state = self.paths.read();
-        let packages = state.structure.packages.keys().cloned();
+        let packages = state.structure.get_packages();
         html! {
             <nav yew=module_path!() class="nav">
                 // TODO: Add unassigned option if the package exists
@@ -58,11 +58,11 @@ impl Widget for TopSelectorWidget {
 }
 
 impl TopSelectorWidget {
-    fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
+    fn render_item(&self, entry_id: &EntryId, ctx: &Context<Self>) -> Html {
         let state = self.paths.read();
         let caption = entry_id.to_string();
         let package = Some(entry_id);
-        let selected = package == state.selection.selected_package;
+        let selected = package == state.selection.selected_package.as_ref();
         let (class, event) = {
             if selected {
                 ("nav-link link-primary active", None)
@@ -73,7 +73,7 @@ impl TopSelectorWidget {
         html! {
             <div class="nav-item click">
                 <a class=class
-                    onclick=ctx.event(Msg::SelectPackage(event))
+                    onclick=ctx.event(Msg::SelectPackage(event.cloned()))
                     >{ caption }</a>
             </div>
         }

@@ -1,4 +1,4 @@
-use super::state::{CasesState, CASES};
+use super::state::{CasesState, CasesStructure, CASES};
 use rate_ui::shared_object::SharedObject;
 use rate_ui::widget::wired_widget::{SingleFlowMeta, WiredWidget};
 use rate_ui::widget::{Context, Widget, WidgetRuntime};
@@ -41,10 +41,23 @@ impl WiredWidget<SingleFlowMeta<Self>> for LoaderWidget {
 
     fn state_changed(&mut self, _reloaded: bool, ctx: &mut Context<Self>) {
         // Apply change to the router state
+        // TODO: Use `CasesStructure` instead
+        let mut new_structure = CasesStructure::default();
         if let Some(state) = ctx.meta().state() {
-            let layouts = state.layouts.clone();
+            let layouts = &mut new_structure.layouts;
+            for path in state.layouts.keys().cloned() {
+                let mut items = path.into_iter();
+                if let Some(layout) = items.next() {
+                    let tabs = layouts.entry(layout).or_default();
+                    if let Some(tab) = items.next() {
+                        tabs.insert(tab);
+                    }
+                }
+            }
             let mut cases = self.cases.write();
-            cases.layouts = layouts;
+            cases.structure = new_structure;
+            // TODO: Avoid cloning here!!!
+            cases.tabs = state.layouts.clone();
         }
     }
 }

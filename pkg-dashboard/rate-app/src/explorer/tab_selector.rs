@@ -3,7 +3,6 @@ use anyhow::Error;
 use rate_ui::shared_object::{DataChanged, SharedObject};
 use rate_ui::widget::{Context, NotificationHandler, Widget, WidgetRuntime};
 use rill_protocol::io::provider::EntryId;
-use std::collections::BTreeSet;
 use yew::{html, Html};
 
 pub type TabSelector = WidgetRuntime<TabSelectorWidget>;
@@ -50,9 +49,13 @@ impl Widget for TabSelectorWidget {
             .selection
             .selected_package
             .as_ref()
-            .and_then(|package| state.structure.packages.get(package))
-            .map(|dashboards| dashboards.keys().cloned().collect::<BTreeSet<_>>())
-            .unwrap_or_default();
+            .map(|package| state.structure.get_dashboards(package))
+            .into_iter()
+            .flatten();
+        /*
+        .map(|dashboards| dashboards.keys().cloned().collect::<BTreeSet<_>>())
+        .unwrap_or_default();
+        */
         html! {
             <nav yew=module_path!() class="nav">
                 { for dashboards.into_iter().map(|entry_id| self.render_item(entry_id, ctx)) }
@@ -62,11 +65,11 @@ impl Widget for TabSelectorWidget {
 }
 
 impl TabSelectorWidget {
-    fn render_item(&self, entry_id: EntryId, ctx: &Context<Self>) -> Html {
+    fn render_item(&self, entry_id: &EntryId, ctx: &Context<Self>) -> Html {
         let state = self.paths.read();
         let caption = entry_id.to_string();
         let dashboard = Some(entry_id);
-        let selected = dashboard == state.selection.selected_dashboard;
+        let selected = dashboard == state.selection.selected_dashboard.as_ref();
         let (class, event) = {
             if selected {
                 ("nav-link link-primary active", None)
@@ -77,7 +80,7 @@ impl TabSelectorWidget {
         html! {
             <div class="nav-item click">
                 <a class=class
-                    onclick=ctx.event(Msg::SelectDashboard(event))
+                    onclick=ctx.event(Msg::SelectDashboard(event.cloned()))
                     >{ caption }</a>
             </div>
         }
