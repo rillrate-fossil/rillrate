@@ -1,11 +1,12 @@
 use rill_protocol::io::provider::Path;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
+/*
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     pub tabs: BTreeMap<Path, LayoutTab>,
 }
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LayoutTab {

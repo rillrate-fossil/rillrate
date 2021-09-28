@@ -1,6 +1,6 @@
 use rill_config::{Config, ReadableConfig};
 use rill_protocol::io::provider::{EntryId, Path};
-use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem, LayoutTab};
+use rrpack_basis::manifest::layouts::layout::{Label, LayoutItem, LayoutTab};
 use rrpack_basis::paths::AutoPath;
 use serde::{Deserialize, Serialize};
 
@@ -36,18 +36,14 @@ pub struct LabelConfig {
     pub text: String,
 }
 
-impl From<CaseConfig> for Layout {
-    fn from(config: CaseConfig) -> Self {
-        let group = config.name;
-        let tabs = config
-            .tab
-            .unwrap_or_default()
+impl CaseConfig {
+    pub fn tabs(self) -> impl Iterator<Item = LayoutTab> {
+        let group = self.name;
+        self.tab
             .into_iter()
-            .map(|tab| CaseTabConfigPair::new(group.clone(), tab))
+            .flatten()
+            .map(move |tab| CaseTabConfigPair::new(group.clone(), tab))
             .map(LayoutTab::from)
-            .map(|tab| (tab.name.clone(), tab))
-            .collect();
-        Self { tabs }
     }
 }
 

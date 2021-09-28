@@ -9,7 +9,7 @@ use rill_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
 use rill_protocol::io::provider::Path;
 use rrpack_basis::manifest::layouts::global::LAYOUTS;
-use rrpack_basis::manifest::layouts::layout::{Layout, LayoutTab};
+use rrpack_basis::manifest::layouts::layout::LayoutTab;
 use std::collections::HashMap;
 use std::path::Path as FilePath;
 use std::time::Duration;
@@ -143,8 +143,8 @@ impl ConfigWatcher {
             for (path, data) in assets.iter() {
                 if path.contains("cases") {
                     let case = CaseConfig::parse(data)?;
-                    let layout: Layout = case.into();
-                    for (path, tab) in layout.tabs.into_iter() {
+                    for tab in case.tabs() {
+                        let path = tab.name.clone();
                         log::debug!("Add Embedded Layout: {}", path);
                         // Embedded layouts aren't tracked by the `self.layouts` map
                         // and they exists always.
@@ -163,8 +163,8 @@ impl ConfigWatcher {
             let meta = entry.metadata().await?;
             if meta.is_file() && entry.path().extension() == Some("toml".as_ref()) {
                 let case = CaseConfig::read(entry.path()).await?;
-                let layout: Layout = case.into();
-                layouts.extend(layout.tabs.into_iter())
+                let tabs = case.tabs().map(|tab| (tab.name.clone(), tab));
+                layouts.extend(tabs)
             }
         }
         let (to_add, to_remove, to_check) = diff_full(self.layouts.keys(), layouts.keys());
