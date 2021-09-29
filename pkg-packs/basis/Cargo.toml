@@ -15,6 +15,7 @@ description = "RillRate Pack: Basis"
 [dependencies]
 derive_more = "0.99.16"
 once_cell = "1.8.0"
+ordered-float = "2.8.0"
 rill-derive = { version = "0.41.0", path = "../../pkg-core/rill-derive" }
 rill-engine = { version = "0.41.0", path = "../../pkg-core/rill-engine", optional = true }
 rill-protocol = { version = "0.41.0", path = "../../pkg-core/rill-protocol" }

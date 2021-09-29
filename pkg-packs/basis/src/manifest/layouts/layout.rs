@@ -1,9 +1,70 @@
+use derive_more::From;
+use ordered_float::OrderedFloat;
 use rill_protocol::io::provider::Path;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum Container {
+    Empty,
+    SingleChild {
+        rule: SingleChild,
+        child: Box<Element>,
+    },
+    MultipleChild {
+        rule: MultipleChild,
+        children: Vec<Element>,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub enum SingleChild {
+    Align { alignment: Alignment },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Alignment {
+    pub x: OrderedFloat<f64>,
+    pub y: OrderedFloat<f64>,
+}
+
+impl Alignment {
+    pub const fn new(x: f64, y: f64) -> Self {
+        Self {
+            x: OrderedFloat(x),
+            y: OrderedFloat(y),
+        }
+    }
+}
+
+impl Alignment {
+    pub const BOTTOM_CENTER: Self = Self::new(0.0, 1.0);
+    pub const BOTTOM_LEFT: Self = Self::new(-1.0, 1.0);
+    pub const BOTTOM_RIGHT: Self = Self::new(1.0, 1.0);
+    pub const CENTER: Self = Self::new(0.0, 0.0);
+    pub const CENTER_LEFT: Self = Self::new(-1.0, 0.0);
+    pub const CENTER_RIGHT: Self = Self::new(1.0, 0.0);
+    pub const TOP_CENTER: Self = Self::new(0.0, -1.0);
+    pub const TOP_LEFT: Self = Self::new(-1.0, -1.0);
+    pub const TOP_RIGHT: Self = Self::new(1.0, -1.0);
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum MultipleChild {
+    Row,
+    Column,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum Element {
+    Container { container: Container },
+    Label { text: String },
+    Flow { path: Path },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     pub name: Path,
+    pub container: Container,
     pub items: Vec<LayoutItem>,
     pub labels: Vec<Label>,
 }
@@ -18,6 +79,7 @@ pub mod layout_builder {
         pub fn new(name: impl Into<LayoutPath>) -> Self {
             Self {
                 name: name.into().into(),
+                container: Container::Empty,
                 items: Vec::new(),
                 labels: Vec::new(),
             }

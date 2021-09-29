@@ -1,6 +1,6 @@
 use rill_config::{Config, ReadableConfig};
 use rill_protocol::io::provider::{EntryId, Path};
-use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem};
+use rrpack_basis::manifest::layouts::layout::{Container, Label, Layout, LayoutItem};
 use rrpack_basis::paths::AutoPath;
 use serde::{Deserialize, Serialize};
 
@@ -78,6 +78,7 @@ impl From<CaseTabConfigPair> for Layout {
             .collect();
         Self {
             name: path,
+            container: Container::Empty,
             items,
             labels,
         }
