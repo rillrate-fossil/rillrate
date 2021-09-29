@@ -3,22 +3,10 @@ use ordered_float::OrderedFloat;
 use rill_protocol::io::provider::Path;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub enum Container {
     Empty,
-    SingleChild {
-        rule: SingleChild,
-        child: Box<Element>,
-    },
-    MultipleChild {
-        rule: MultipleChild,
-        children: Vec<Element>,
-    },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
-pub enum SingleChild {
-    Align { alignment: Alignment },
+    Align(Align),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
@@ -27,15 +15,7 @@ pub struct Align {
     pub child: Element,
 }
 
-#[allow(non_snake_case)]
-pub fn Align(alignment: Alignment, child: impl Into<Element>) -> Container {
-    Container::SingleChild {
-        rule: SingleChild::Align { alignment },
-        child: Box::new(child.into()),
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Alignment {
     pub x: OrderedFloat<f64>,
     pub y: OrderedFloat<f64>,
@@ -62,22 +42,16 @@ impl Alignment {
     pub const TOP_RIGHT: Self = Self::new(1.0, -1.0);
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum MultipleChild {
-    Row,
-    Column,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub enum Element {
-    Container { container: Container },
-    Label { text: String },
-    Flow { path: Path },
+    //Container { container: Container },
+    Label(LLabel),
+    //Flow { path: Path },
 }
 
-#[allow(non_snake_case)]
-pub fn Label(text: impl Into<String>) -> Element {
-    Element::Label { text: text.into() }
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct LLabel {
+    pub text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

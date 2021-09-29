@@ -1,5 +1,6 @@
+mod layout;
+
 use anyhow::Error;
-use rillrate::basis::{Align, Alignment, Label, Layout};
 use rillrate::prime::table::{Col, Row};
 use rillrate::prime::*;
 use tokio::time::{sleep, Duration};
@@ -11,10 +12,7 @@ const SECOND_LIMIT: usize = 50;
 pub async fn main() -> Result<(), Error> {
     env_logger::try_init()?;
     rillrate::install("demo")?;
-
-    let mut tab = Layout::new(["Prog Layout", "First Tab"]);
-    tab.set_container(Align(Alignment::TOP_CENTER, Label("Text")));
-    tab.register();
+    layout::add();
 
     // Special tracers for checking issues:
     // 1. If `Pulse` has no data a range become intinite and UI app is stucked.
