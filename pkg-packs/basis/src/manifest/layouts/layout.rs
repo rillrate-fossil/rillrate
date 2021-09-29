@@ -21,6 +21,20 @@ pub enum SingleChild {
     Align { alignment: Alignment },
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Align {
+    pub alignment: Alignment,
+    pub child: Element,
+}
+
+#[allow(non_snake_case)]
+pub fn Align(alignment: Alignment, child: impl Into<Element>) -> Container {
+    Container::SingleChild {
+        rule: SingleChild::Align { alignment },
+        child: Box::new(child.into()),
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Alignment {
     pub x: OrderedFloat<f64>,
@@ -61,6 +75,11 @@ pub enum Element {
     Flow { path: Path },
 }
 
+#[allow(non_snake_case)]
+pub fn Label(text: impl Into<String>) -> Element {
+    Element::Label { text: text.into() }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     pub name: Path,
@@ -83,6 +102,10 @@ pub mod layout_builder {
                 items: Vec::new(),
                 labels: Vec::new(),
             }
+        }
+
+        pub fn set_container(&mut self, container: impl Into<Container>) {
+            self.container = container.into();
         }
 
         pub fn add_item(
