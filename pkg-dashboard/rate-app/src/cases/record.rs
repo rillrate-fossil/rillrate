@@ -35,8 +35,10 @@ impl LabelRecord {
             top, left, height, width
         );
         html! {
-            <div class="fs-3" style=style ref=record.node_ref.clone()>
-                { &record.text }
+            <div style=style ref=record.node_ref.clone()>
+                <div class="fs-6 d-flex flex-row justify-content-start align-items-center" style="width: 100%; height: 100%;">
+                    { &record.text }
+                </div>
             </div>
         }
     }
@@ -64,7 +66,7 @@ impl Record {
         );
         let inner_html = record.rule.render.render(&record.path);
         html! {
-            <div style=style ref=record.node_ref.clone()>
+            <div class="center" style=style ref=record.node_ref.clone()>
                 { inner_html }
             </div>
         }

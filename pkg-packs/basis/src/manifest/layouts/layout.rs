@@ -37,6 +37,20 @@ pub mod layout_builder {
             self.items.push(item);
         }
 
+        pub fn add_label(
+            &mut self,
+            position: impl Into<Position>,
+            size: impl Into<Size>,
+            text: impl Into<String>,
+        ) {
+            let item = Label {
+                position: position.into(),
+                size: size.into(),
+                text: text.into(),
+            };
+            self.labels.push(item);
+        }
+
         pub fn register(&self) {
             let name = self.name.clone();
             let layout = self.clone();

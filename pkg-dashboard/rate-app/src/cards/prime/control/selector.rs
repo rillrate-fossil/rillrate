@@ -54,7 +54,7 @@ impl Widget for SelectorCardWidget {
             }
         };
         html! {
-            <div yew=module_path!() class="center align-items-stretch">
+            <div yew=module_path!()>
                 { body }
             </div>
         }

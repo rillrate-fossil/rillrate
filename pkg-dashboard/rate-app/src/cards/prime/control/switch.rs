@@ -46,7 +46,7 @@ impl Widget for SwitchCardWidget {
             }
         };
         html! {
-            <div yew=module_path!() class="center">
+            <div yew=module_path!()>
                 { body }
             </div>
         }

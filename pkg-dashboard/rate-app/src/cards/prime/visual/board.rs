@@ -38,7 +38,7 @@ impl Widget for BoardCardWidget {
             }
         };
         html! {
-            <div yew=module_path!()>
+            <div yew=module_path!() class="overflow-auto pe-3" style="height: 100%; width: 100%;">
                 { body }
             </div>
         }

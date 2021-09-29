@@ -27,7 +27,7 @@ impl Record {
                 <div class=format!("pe-3 pb-3 d-flex {}", grow) style=style ref=record.node_ref.clone()>
                     <div class="bg-light shadow-sm w-100 d-flex flex-column">
                         <div class="pt-3 text-center caption">{ &record.name }</div>
-                        <div style=size>
+                        <div class="center" style=size>
                             { inner_html }
                         </div>
                     </div>

@@ -33,10 +33,10 @@ impl Widget for LiveTailCardWidget {
                     <table class="table">
                         <thead>
                             <tr>
-                                <td width="10%">{ "Module" }</td>
-                                <td width="6%">{ "Level" }</td>
-                                <td width="14%">{ "Timestamp" }</td>
-                                <td width="70%">{ "Text" }</td>
+                                <th width="10%">{ "Module" }</th>
+                                <th width="6%">{ "Level" }</th>
+                                <th width="14%">{ "Timestamp" }</th>
+                                <th width="70%">{ "Text" }</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -50,7 +50,7 @@ impl Widget for LiveTailCardWidget {
             }
         };
         html! {
-            <div yew=module_path!() class="overflow-auto p-3" style="height: 100%; width: 100%;">
+            <div yew=module_path!() class="overflow-auto pe-3" style="height: 100%; width: 100%;">
                 { body }
             </div>
         }

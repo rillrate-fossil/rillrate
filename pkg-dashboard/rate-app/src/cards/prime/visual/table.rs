@@ -37,7 +37,7 @@ impl Widget for TableCardWidget {
             if let Some(state) = ctx.meta().state() {
                 let cols = &state.spec.columns;
                 html! {
-                    <div class="flex-grow-1 p-3 overflow-auto">
+                    <div class="flex-grow-1 overflow-auto">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
@@ -55,7 +55,7 @@ impl Widget for TableCardWidget {
             }
         };
         html! {
-            <div yew=module_path!()>
+            <div yew=module_path!() class="overflow-auto pe-3" style="height: 100%; width: 100%;">
                 { body }
             </div>
         }

@@ -99,7 +99,7 @@ impl Widget for SliderCardWidget {
         let body = {
             if let Some(state) = ctx.meta().state() {
                 html! {
-                    <div class="center">
+                    <div>
                         //<label class="form-label">{ &state.spec.label }</label>
                         <input type="range" class="form-range click"
                             min=state.spec.min.to_string()
