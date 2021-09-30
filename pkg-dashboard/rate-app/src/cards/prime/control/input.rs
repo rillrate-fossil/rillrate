@@ -48,7 +48,15 @@ impl Widget for InputCardWidget {
                         ""
                     };
                     html! {
-                        <textarea class="form-control" placeholder=placeholder style=style oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
+                        <div class="form-floating">
+                            <textarea
+                                class="form-control"
+                                placeholder=placeholder
+                                style=style
+                                oninput=ctx.callback(|data: InputData| Msg::Update(data.value))
+                            />
+                            <label for="floatingTextarea">{ &state.spec.label }</label>
+                        </div>
                     }
                 } else {
                     let typ = if state.spec.password {
@@ -57,7 +65,15 @@ impl Widget for InputCardWidget {
                         "text"
                     };
                     html! {
-                        <input type=typ class="form-control" placeholder=placeholder oninput=ctx.callback(|data: InputData| Msg::Update(data.value)) />
+                        <div class="form-floating">
+                            <input
+                                type=typ
+                                class="form-control"
+                                placeholder=placeholder
+                                oninput=ctx.callback(|data: InputData| Msg::Update(data.value))
+                            />
+                            <label for="floatingInput">{ &state.spec.label }</label>
+                        </div>
                     }
                 }
             } else {

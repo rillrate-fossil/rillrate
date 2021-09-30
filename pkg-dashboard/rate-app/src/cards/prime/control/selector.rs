@@ -42,12 +42,15 @@ impl Widget for SelectorCardWidget {
         let body = {
             if let Some(state) = ctx.meta().state() {
                 html! {
-                    <Select<String>
-                        class="form-select click"
-                        options=state.spec.options.clone()
-                        selected=state.selected.clone()
-                        on_change=ctx.callback(Msg::Select)
-                    />
+                    <div class="form-floating">
+                        <Select<String>
+                            class="form-select click"
+                            options=state.spec.options.clone()
+                            selected=state.selected.clone()
+                            on_change=ctx.callback(Msg::Select)
+                        />
+                        <label for="floatingSelect">{ &state.spec.label }</label>
+                    </div>
                 }
             } else {
                 blocks::spinner("Connecting...")
