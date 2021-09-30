@@ -16,7 +16,7 @@ pub struct SliderOpts {
 impl From<SliderOpts> for SliderSpec {
     fn from(opts: SliderOpts) -> Self {
         Self {
-            label: opts.label.unwrap_or_else(|| "Slider".into()),
+            label: opts.label.unwrap_or_default(),
             min: opts.min.unwrap_or(1.0),
             max: opts.max.unwrap_or(100.0),
             step: opts.step.unwrap_or(1.0),

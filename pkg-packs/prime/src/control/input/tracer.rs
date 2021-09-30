@@ -15,7 +15,7 @@ pub struct InputOpts {
 impl From<InputOpts> for InputSpec {
     fn from(opts: InputOpts) -> Self {
         Self {
-            label: opts.label.unwrap_or_else(|| "Input".into()),
+            label: opts.label.unwrap_or_default(),
             wide: opts.wide.unwrap_or_default(),
             password: opts.password.unwrap_or_default(),
             placeholder: opts.placeholder.unwrap_or_default(),

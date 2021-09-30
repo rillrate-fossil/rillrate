@@ -5,6 +5,7 @@ use rrpack_basis::manifest::layouts::layout::{Label, LayoutItem, Position, Size}
 use std::cmp::{Ord, Ordering};
 use yew::{html, Html, NodeRef};
 
+// TODO: Remove it
 pub struct LabelRecord {
     pub text: String,
     pub node_ref: NodeRef,
@@ -49,13 +50,14 @@ pub struct Record {
     pub path: Path,
     pub node_ref: NodeRef,
     pub rule: render::RenderRule,
-    pub position: Position,
-    pub size: Size,
+    //pub position: Position,
+    //pub size: Size,
 }
 
 impl Record {
     pub fn render(&self) -> Html {
         let record = self;
+        /*
         let top = record.position.top;
         let left = record.position.left;
         let height = record.size.height;
@@ -64,6 +66,8 @@ impl Record {
             "position: absolute; top: {}%; left: {}%; height: {}%; width: {}%;",
             top, left, height, width
         );
+        */
+        let style = "";
         let inner_html = record.rule.render.render(&record.path);
         html! {
             <div class="center" style=style ref=record.node_ref.clone()>
@@ -73,6 +77,7 @@ impl Record {
     }
 }
 
+// TODO: Remove it
 impl From<(&PackFlowDescription, &LayoutItem)> for Record {
     fn from((desc, item): (&PackFlowDescription, &LayoutItem)) -> Self {
         let rule = render::RENDERS
@@ -84,8 +89,23 @@ impl From<(&PackFlowDescription, &LayoutItem)> for Record {
             path: desc.path.clone(),
             node_ref: NodeRef::default(),
             rule,
-            position: item.position.clone(),
-            size: item.size.clone(),
+            //position: item.position.clone(),
+            //size: item.size.clone(),
+        }
+    }
+}
+
+impl From<&PackFlowDescription> for Record {
+    fn from(desc: &PackFlowDescription) -> Self {
+        let rule = render::RENDERS
+            .get(&desc.stream_type)
+            .unwrap_or(&render::RENDER_DEFAULT)
+            .clone();
+        Self {
+            name: desc.path.last().cloned().unwrap_or_default(),
+            path: desc.path.clone(),
+            node_ref: NodeRef::default(),
+            rule,
         }
     }
 }

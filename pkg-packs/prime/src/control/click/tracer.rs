@@ -12,7 +12,7 @@ pub struct ClickOpts {
 impl From<ClickOpts> for ClickSpec {
     fn from(opts: ClickOpts) -> Self {
         Self {
-            label: opts.label.unwrap_or_else(|| "Button".into()),
+            label: opts.label.unwrap_or_default(),
         }
     }
 }

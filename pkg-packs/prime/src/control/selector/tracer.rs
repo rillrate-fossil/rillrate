@@ -13,7 +13,7 @@ pub struct SelectorOpts {
 impl From<SelectorOpts> for SelectorSpec {
     fn from(opts: SelectorOpts) -> Self {
         Self {
-            label: opts.label.unwrap_or_else(|| "Selector".into()),
+            label: opts.label.unwrap_or_default(),
             options: opts.options,
         }
     }

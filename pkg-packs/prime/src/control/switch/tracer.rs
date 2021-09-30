@@ -12,7 +12,7 @@ pub struct SwitchOpts {
 impl From<SwitchOpts> for SwitchSpec {
     fn from(opts: SwitchOpts) -> Self {
         Self {
-            label: opts.label.unwrap_or_else(|| "Switch".into()),
+            label: opts.label.unwrap_or_default(),
         }
     }
 }

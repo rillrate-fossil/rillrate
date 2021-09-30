@@ -1,5 +1,7 @@
+use crate::paths::AutoPath;
 use derive_more::From;
 use ordered_float::OrderedFloat;
+use rill_protocol::io::provider::Path;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
@@ -55,12 +57,31 @@ impl Alignment {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub enum Element {
-    //Container { container: Container },
+    Container(Box<Container>),
     Label(Label),
-    //Flow { path: Path },
+    Flow(Flow),
+}
+
+impl<T: Into<Container>> From<T> for Element {
+    fn from(container: T) -> Self {
+        Self::Container(Box::new(container.into()))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Label {
     pub text: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Flow {
+    pub path: Path,
+}
+
+impl Flow {
+    pub fn new(path: impl Into<AutoPath>) -> Self {
+        Self {
+            path: path.into().into(),
+        }
+    }
 }
