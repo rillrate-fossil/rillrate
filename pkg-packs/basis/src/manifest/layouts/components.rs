@@ -23,9 +23,21 @@ pub struct Row {
     pub children: Vec<Element>,
 }
 
+impl Row {
+    pub fn new(children: Vec<Element>) -> Self {
+        Self { children }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Column {
     pub children: Vec<Element>,
+}
+
+impl Column {
+    pub fn new(children: Vec<Element>) -> Self {
+        Self { children }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

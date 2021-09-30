@@ -33,4 +33,11 @@ impl Input {
         let tracer = BindedTracer::new(auto_path.into(), FlowMode::Realtime, spec.into());
         Self { tracer }
     }
+
+    pub fn apply(&self, value: impl Into<String>) {
+        let msg = InputEvent {
+            changed_text: value.into(),
+        };
+        self.tracer.send(msg, None);
+    }
 }

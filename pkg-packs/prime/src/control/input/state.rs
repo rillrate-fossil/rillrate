@@ -14,11 +14,15 @@ pub struct InputSpec {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InputState {
     pub spec: InputSpec,
+    pub text: String,
 }
 
 impl From<InputSpec> for InputState {
     fn from(spec: InputSpec) -> Self {
-        Self { spec }
+        Self {
+            spec,
+            text: String::new(),
+        }
     }
 }
 
@@ -36,10 +40,14 @@ impl Flow for InputState {
         StreamType::from(module_path!())
     }
 
-    fn apply(&mut self, _event: Self::Event) {}
+    fn apply(&mut self, event: Self::Event) {
+        self.text = event.changed_text;
+    }
 }
 
 pub type InputAction = String;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputEvent;
+pub struct InputEvent {
+    pub changed_text: String,
+}

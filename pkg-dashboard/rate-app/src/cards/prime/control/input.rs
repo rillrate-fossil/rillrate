@@ -8,7 +8,10 @@ use yew::{html, Html, InputData};
 pub type InputCard = WidgetRuntime<InputCardWidget>;
 
 #[derive(Default)]
-pub struct InputCardWidget {}
+pub struct InputCardWidget {
+    touched: bool,
+    value: String,
+}
 
 pub enum Msg {
     Update(String),
@@ -32,6 +35,8 @@ impl Widget for InputCardWidget {
     fn on_event(&mut self, event: Self::Event, ctx: &mut Context<Self>) {
         match event {
             Msg::Update(value) => {
+                self.touched = true;
+                self.value = value.clone();
                 ctx.do_action(value);
             }
         }
@@ -53,8 +58,9 @@ impl Widget for InputCardWidget {
                                 class="form-control"
                                 placeholder=placeholder
                                 style=style
-                                oninput=ctx.callback(|data: InputData| Msg::Update(data.value))
-                            />
+                                oninput=ctx.callback(|data: InputData| Msg::Update(data.value))>
+                                { &self.value }
+                            </textarea>
                             <label for="floatingTextarea">{ &state.spec.label }</label>
                         </div>
                     }
@@ -71,6 +77,7 @@ impl Widget for InputCardWidget {
                                 class="form-control"
                                 placeholder=placeholder
                                 oninput=ctx.callback(|data: InputData| Msg::Update(data.value))
+                                value=self.value.clone()
                             />
                             <label for="floatingInput">{ &state.spec.label }</label>
                         </div>
@@ -92,6 +99,9 @@ impl WiredWidget<SingleFlowMeta<Self>> for InputCardWidget {
     type Flow = InputState;
 
     fn state_changed(&mut self, _reloaded: bool, ctx: &mut Context<Self>) {
+        if let Some(state) = ctx.meta().state() {
+            self.value = state.text.clone();
+        }
         ctx.redraw();
     }
 }
