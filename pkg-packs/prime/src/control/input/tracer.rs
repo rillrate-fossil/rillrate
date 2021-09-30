@@ -40,4 +40,11 @@ impl Input {
         };
         self.tracer.send(msg, None);
     }
+
+    pub fn clear(&self) {
+        let msg = InputEvent {
+            changed_text: String::new(),
+        };
+        self.tracer.send(msg, None);
+    }
 }
