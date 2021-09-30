@@ -1,3 +1,4 @@
+use super::layout_render::LayoutRender;
 use super::record::{LabelRecord, Record};
 use crate::explorer::state::PATHS;
 use rate_ui::shared_object::SharedObject;
@@ -31,9 +32,10 @@ impl Widget for LayoutViewerWidget {
 
     fn on_props(&mut self, ctx: &mut Context<Self>) {
         // TODO: DRY! See `group_viewer`
+        /*
         let paths = PATHS.with(SharedObject::clone);
         let paths = paths.read();
-        let layout = &ctx.properties().layout;
+        */
         /*
         self.blocks.clear();
         for item in &layout.items {
@@ -51,8 +53,8 @@ impl Widget for LayoutViewerWidget {
         ctx.redraw();
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        html! {}
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        ctx.properties().layout.container.layout_render()
     }
 
     /*

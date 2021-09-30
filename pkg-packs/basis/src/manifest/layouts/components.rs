@@ -6,12 +6,24 @@ use serde::{Deserialize, Serialize};
 pub enum Container {
     Empty,
     Align(Align),
+    Row(Row),
+    Column(Column),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Align {
     pub alignment: Alignment,
     pub child: Element,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Row {
+    pub children: Vec<Element>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Column {
+    pub children: Vec<Element>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
