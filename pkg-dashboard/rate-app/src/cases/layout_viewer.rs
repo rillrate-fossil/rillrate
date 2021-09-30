@@ -9,14 +9,15 @@ pub type LayoutViewer = WidgetRuntime<LayoutViewerWidget>;
 
 #[derive(Debug, Properties, Clone, PartialEq, Eq)]
 pub struct Props {
-    pub layout_tab: Layout,
+    pub layout: Layout,
 }
 
 #[derive(Default)]
 pub struct LayoutViewerWidget {
-    blocks: Vec<Record>,
-    labels: Vec<LabelRecord>,
-}
+    /*
+blocks: Vec<Record>,
+labels: Vec<LabelRecord>,
+*/}
 
 impl Widget for LayoutViewerWidget {
     type Event = ();
@@ -32,7 +33,8 @@ impl Widget for LayoutViewerWidget {
         // TODO: DRY! See `group_viewer`
         let paths = PATHS.with(SharedObject::clone);
         let paths = paths.read();
-        let layout = &ctx.properties().layout_tab;
+        let layout = &ctx.properties().layout;
+        /*
         self.blocks.clear();
         for item in &layout.items {
             if let Some(desc) = paths.descs.get(&item.path) {
@@ -45,27 +47,15 @@ impl Widget for LayoutViewerWidget {
             let record = LabelRecord::from(label.clone());
             self.labels.push(record);
         }
-        /*
-        let (to_add, to_remove) = diff(self.layout.keys(), descs.keys());
-        for path in to_add {
-            log::debug!("{:?}", path);
-            match (paths.descs.get(&path), descs.get(&path)) {
-                (Some(desc), Some(item)) => {
-                    let record = Record::from((desc, item));
-                    self.layout.acquire(path, record);
-                }
-                _ => {}
-            }
-        }
-        for name in to_remove {
-            self.layout.release(name);
-        }
-        if ctx.is_rendered() {
-        }
         */
         ctx.redraw();
     }
 
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {}
+    }
+
+    /*
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <div yew=module_path!() style="position: relative; width: 100%; height: 100%;">
@@ -74,4 +64,9 @@ impl Widget for LayoutViewerWidget {
             </div>
         }
     }
+    */
+}
+
+fn layout_to_html(layout: &Layout) -> Html {
+    html! {}
 }

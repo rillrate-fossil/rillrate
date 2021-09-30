@@ -7,6 +7,8 @@ pub use dashboard_menu::DashboardMenu;
 mod layout_viewer;
 pub use layout_viewer::LayoutViewer;
 
+mod layout_render;
+
 pub mod record;
 
 pub mod state;

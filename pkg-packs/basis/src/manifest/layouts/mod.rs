@@ -7,5 +7,9 @@ pub mod tracer;
 pub use tracer::*;
 
 #[cfg(feature = "engine")]
+pub mod builder;
+#[cfg(feature = "engine")]
 pub mod global;
+
+pub mod components;
 pub mod layout;

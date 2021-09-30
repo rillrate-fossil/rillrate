@@ -49,7 +49,7 @@ impl Widget for DashboardWidget {
         let state = self.cases.read();
         if let Some(layout) = state.get_layout_tab() {
             html! {
-                <super::LayoutViewer layout_tab=layout.clone() />
+                <super::LayoutViewer layout=layout.clone() />
             }
         } else {
             html! {

@@ -4,7 +4,7 @@ pub fn add() {
     let mut tab = Layout::new(["Prog Layout", "First Tab"]);
     tab.set_container(Align {
         alignment: Alignment::TOP_CENTER,
-        child: LLabel {
+        child: Label {
             text: "Text".into(),
         }
         .into(),
