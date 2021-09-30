@@ -16,6 +16,7 @@ impl LayoutRender for Container {
                 html! {}
             }
             Self::Align(value) => value.layout_render(),
+            Self::Expanded(value) => value.layout_render(),
             Self::Row(value) => value.layout_render(),
             Self::Column(value) => value.layout_render(),
         }
@@ -28,6 +29,19 @@ impl LayoutRender for Align {
     fn layout_render(&self) -> Html {
         html! {
             <div yew="Align">
+                { self.child.layout_render() }
+            </div>
+        }
+    }
+}
+
+use rrpack_basis::manifest::layouts::components::Expanded;
+
+impl LayoutRender for Expanded {
+    fn layout_render(&self) -> Html {
+        let style = format!("flex-grow: {};", self.flex);
+        html! {
+            <div yew="Expanded" style=style>
                 { self.child.layout_render() }
             </div>
         }
@@ -64,8 +78,19 @@ impl LayoutRender for Element {
     fn layout_render(&self) -> Html {
         match self {
             Self::Container(value) => value.layout_render(),
+            Self::Spacer(value) => value.layout_render(),
             Self::Label(value) => value.layout_render(),
             Self::Flow(value) => value.layout_render(),
+        }
+    }
+}
+
+use rrpack_basis::manifest::layouts::components::Spacer;
+
+impl LayoutRender for Spacer {
+    fn layout_render(&self) -> Html {
+        html! {
+            <div yew="Spacer"></div>
         }
     }
 }

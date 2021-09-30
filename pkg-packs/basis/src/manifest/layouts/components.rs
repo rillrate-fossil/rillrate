@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub enum Container {
     Empty,
     Align(Align),
+    Expanded(Expanded),
     Row(Row),
     Column(Column),
 }
@@ -16,6 +17,21 @@ pub enum Container {
 pub struct Align {
     pub alignment: Alignment,
     pub child: Element,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Expanded {
+    pub child: Element,
+    pub flex: OrderedFloat<f64>,
+}
+
+impl Expanded {
+    pub fn new(child: impl Into<Element>, flex: f64) -> Self {
+        Self {
+            child: child.into(),
+            flex: OrderedFloat(flex),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
@@ -70,6 +86,7 @@ impl Alignment {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub enum Element {
     Container(Box<Container>),
+    Spacer(Spacer),
     Label(Label),
     Flow(Flow),
 }
@@ -77,6 +94,15 @@ pub enum Element {
 impl<T: Into<Container>> From<T> for Element {
     fn from(container: T) -> Self {
         Self::Container(Box::new(container.into()))
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Spacer {}
+
+impl Spacer {
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
