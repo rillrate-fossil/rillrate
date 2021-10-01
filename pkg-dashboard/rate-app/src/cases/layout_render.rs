@@ -49,6 +49,17 @@ impl LayoutRender for Expanded {
     }
 }
 
+use rrpack_basis::manifest::layouts::components::Spacer;
+
+impl LayoutRender for Spacer {
+    fn layout_render(&self) -> Html {
+        let style = format!("flex-grow: {};", self.flex);
+        html! {
+            <div yew="Spacer" style=style></div>
+        }
+    }
+}
+
 use rrpack_basis::manifest::layouts::components::Row;
 
 impl LayoutRender for Row {
@@ -81,16 +92,6 @@ impl LayoutRender for Element {
             Self::Container(value) => value.layout_render(),
             Self::Label(value) => value.layout_render(),
             Self::Flow(value) => value.layout_render(),
-        }
-    }
-}
-
-use rrpack_basis::manifest::layouts::components::Spacer;
-
-impl LayoutRender for Spacer {
-    fn layout_render(&self) -> Html {
-        html! {
-            <div yew="Spacer"></div>
         }
     }
 }
