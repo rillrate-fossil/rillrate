@@ -24,5 +24,6 @@ rill-config = { version = "0.41.0", path = "../rill-config" }
 rill-protocol = { version = "0.41.0", path = "../rill-protocol" }
 rrpack-basis = { version = "0.41.0", path = "../../pkg-packs/basis" }
 serde = "1.0.130"
+serde-xml-rs = "0.5.1"
 strum = "0.21.0"
 tokio = "1.12.0"

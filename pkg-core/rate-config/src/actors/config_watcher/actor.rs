@@ -1,11 +1,9 @@
-use crate::config::cases::CaseConfig;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
 use meio::{Action, ActionHandler, Actor, Context, InterruptedBy, StartedBy, TaskAddress};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rate_core::assets::Assets;
-use rill_config::ReadableConfig;
 use rill_protocol::diff::diff_full;
 use rill_protocol::io::provider::Path;
 use rrpack_basis::manifest::layouts::global::LAYOUTS;
@@ -142,13 +140,18 @@ impl ConfigWatcher {
             let assets = Assets::parse(data)?;
             for (path, data) in assets.iter() {
                 if path.contains("cases") {
-                    let case = CaseConfig::parse(data)?;
-                    for tab in case.to_tabs() {
-                        let path = tab.name.clone();
-                        log::debug!("Add Embedded Layout: {}", path);
-                        // Embedded layouts aren't tracked by the `self.layouts` map
-                        // and they exists always.
-                        LAYOUTS.add_tab(path, tab);
+                    let layout: Result<Layout, _> = serde_xml_rs::from_reader(data);
+                    match layout {
+                        Ok(layout) => {
+                            let path = layout.name.clone();
+                            log::debug!("Add Embedded Layout: {}", path);
+                            // Embedded layouts aren't tracked by the `self.layouts` map
+                            // and they exists always.
+                            LAYOUTS.add_tab(path, layout);
+                        }
+                        Err(err) => {
+                            log::error!("Can't parse embedded layout file {}: {}", path, err);
+                        }
                     }
                 }
             }
@@ -161,10 +164,18 @@ impl ConfigWatcher {
         let mut layouts = HashMap::new();
         while let Some(entry) = dir.next_entry().await? {
             let meta = entry.metadata().await?;
-            if meta.is_file() && entry.path().extension() == Some("toml".as_ref()) {
-                let case = CaseConfig::read(entry.path()).await?;
-                let tabs = case.to_tabs().map(|tab| (tab.name.clone(), tab));
-                layouts.extend(tabs)
+            if meta.is_file() && entry.path().extension() == Some("xml".as_ref()) {
+                let path = entry.path();
+                let data = fs::read_to_string(path.as_path()).await?;
+                let layout: Result<Layout, _> = serde_xml_rs::from_str(&data);
+                match layout {
+                    Ok(layout) => {
+                        layouts.insert(layout.name.clone(), layout);
+                    }
+                    Err(err) => {
+                        log::error!("Can't parse layout file {}: {}", path.display(), err);
+                    }
+                }
             }
         }
         let (to_add, to_remove, to_check) = diff_full(self.layouts.keys(), layouts.keys());
