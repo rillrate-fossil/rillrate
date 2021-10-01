@@ -1,5 +1,4 @@
-use super::components::Container;
-use super::layout::*;
+use super::components::{Container, Layout};
 use crate::manifest::layouts::global::LAYOUTS;
 use crate::paths::LayoutPath;
 

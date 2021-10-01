@@ -1,3 +1,4 @@
+use crate::config::cases::Layout;
 use anyhow::Error;
 use async_trait::async_trait;
 use meio::task::{HeartBeat, OnTick, Tick};
@@ -7,12 +8,14 @@ use rate_core::assets::Assets;
 use rill_protocol::diff::diff_full;
 use rill_protocol::io::provider::Path;
 use rrpack_basis::manifest::layouts::global::LAYOUTS;
-use rrpack_basis::manifest::layouts::layout::Layout;
 use std::collections::HashMap;
 use std::path::Path as FilePath;
 use std::time::Duration;
 use strum::{EnumIter, IntoEnumIterator};
 use tokio::fs;
+
+const CASE_EXT: &str = "xml";
+const PATH: &str = ".rillrate";
 
 pub struct ConfigWatcher {
     watcher: Option<RecommendedWatcher>,
@@ -44,13 +47,19 @@ struct Reload;
 
 impl Action for Reload {}
 
-const PATH: &str = ".rillrate";
-
 #[async_trait]
 impl<T: Actor> StartedBy<T> for ConfigWatcher {
     async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         ctx.termination_sequence(Group::iter().collect());
         self.read_and_watch(ctx).await;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<T: Actor> InterruptedBy<T> for ConfigWatcher {
+    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
+        ctx.shutdown();
         Ok(())
     }
 }
@@ -66,10 +75,10 @@ impl ConfigWatcher {
             success &= self.assign_watcher(ctx).is_ok();
         }
         if !success {
+            self.unassign_watcher();
             self.start_heartbeat(ctx);
         } else {
             self.stop_heartbeat();
-            self.unassign_watcher();
         }
     }
 
@@ -94,24 +103,17 @@ impl ConfigWatcher {
     }
 }
 
-#[async_trait]
-impl<T: Actor> InterruptedBy<T> for ConfigWatcher {
-    async fn handle(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
-        ctx.shutdown();
-        Ok(())
-    }
-}
-
 impl ConfigWatcher {
     fn assign_watcher(&mut self, ctx: &mut Context<Self>) -> Result<(), Error> {
         if self.watcher.is_none() {
             let mut addr = ctx.address().clone();
-            let mut watcher = RecommendedWatcher::new(move |res: Result<notify::Event, _>| {
+            let mut watcher = notify::recommended_watcher(move |res: Result<notify::Event, _>| {
+                log::warn!("Res {:?}", res);
                 if let Ok(event) = res {
                     let changed = event
                         .paths
                         .iter()
-                        .any(|p| p.as_path().to_string_lossy().contains(".toml"));
+                        .any(|p| p.as_path().extension() == Some(CASE_EXT.as_ref()));
                     if changed {
                         if let Err(err) = addr.blocking_act(Reload) {
                             log::error!(
@@ -126,6 +128,7 @@ impl ConfigWatcher {
             })?;
             watcher.watch(PATH.as_ref(), RecursiveMode::Recursive)?;
             self.watcher = Some(watcher);
+            log::info!("Config watcher activated");
         }
         Ok(())
     }
@@ -147,7 +150,7 @@ impl ConfigWatcher {
                             log::debug!("Add Embedded Layout: {}", path);
                             // Embedded layouts aren't tracked by the `self.layouts` map
                             // and they exists always.
-                            LAYOUTS.add_tab(path, layout);
+                            LAYOUTS.add_tab(path, layout.into());
                         }
                         Err(err) => {
                             log::error!("Can't parse embedded layout file {}: {}", path, err);
@@ -160,11 +163,12 @@ impl ConfigWatcher {
     }
 
     async fn read_from_dir(&mut self) -> Result<(), Error> {
+        log::info!("Reading confing files");
         let mut dir = fs::read_dir(".rillrate/cases").await?;
         let mut layouts = HashMap::new();
         while let Some(entry) = dir.next_entry().await? {
             let meta = entry.metadata().await?;
-            if meta.is_file() && entry.path().extension() == Some("xml".as_ref()) {
+            if meta.is_file() && entry.path().extension() == Some(CASE_EXT.as_ref()) {
                 let path = entry.path();
                 let data = fs::read_to_string(path.as_path()).await?;
                 let layout: Result<Layout, _> = serde_xml_rs::from_str(&data);
@@ -182,7 +186,7 @@ impl ConfigWatcher {
         for name in to_add {
             let layout = layouts.get(&name).unwrap();
             log::debug!("Add Layout: {}", name);
-            LAYOUTS.add_tab(name.clone(), layout.clone());
+            LAYOUTS.add_tab(name.clone(), layout.clone().into());
             self.layouts.insert(name, layout.clone());
         }
         for name in to_remove {
@@ -195,7 +199,7 @@ impl ConfigWatcher {
             let prev = self.layouts.get(&name).unwrap();
             let layout = layouts.get(&name).unwrap();
             if prev != layout {
-                LAYOUTS.add_tab(name.clone(), layout.clone());
+                LAYOUTS.add_tab(name.clone(), layout.clone().into());
                 self.layouts.insert(name, layout.clone());
             }
         }

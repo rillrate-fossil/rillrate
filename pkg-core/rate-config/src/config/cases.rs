@@ -1,107 +1,199 @@
-use rill_config::{Config, ReadableConfig};
-use rill_protocol::io::provider::{EntryId, Path};
-use rrpack_basis::manifest::layouts::components::Container;
-use rrpack_basis::manifest::layouts::layout::{Label, Layout, LayoutItem};
-use rrpack_basis::paths::AutoPath;
-use serde::{Deserialize, Serialize};
+use ordered_float::OrderedFloat;
+use rill_protocol::io::provider::Path;
+use rrpack_basis::manifest::layouts::components as basis;
+use serde::{de::Error, Deserialize, Deserializer, Serialize};
+use std::fmt::Display;
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CaseConfig {
-    /// It used to add `group` name prefix
-    name: EntryId,
-    pub tab: Option<Vec<CaseTabConfig>>,
+pub struct Layout {
+    #[serde(deserialize_with = "from_str")]
+    pub name: Path,
+    #[serde(rename = "$value")]
+    pub container: Container,
 }
 
-impl Config for CaseConfig {}
-
-impl ReadableConfig for CaseConfig {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CaseTabConfig {
-    pub name: EntryId,
-    pub item: Option<Vec<CaseItemConfig>>,
-    pub label: Option<Vec<LabelConfig>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CaseItemConfig {
-    pub position: (i32, i32),
-    pub size: (i32, i32),
-    pub path: AutoPath,
+impl From<Layout> for basis::Layout {
+    fn from(value: Layout) -> Self {
+        Self {
+            name: value.name,
+            container: value.container.into(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LabelConfig {
-    pub position: (i32, i32),
-    pub size: (i32, i32),
+#[serde(rename_all = "lowercase")]
+pub enum Container {
+    Empty,
+    Align(Align),
+    Expanded(Expanded),
+    Spacer(Spacer),
+    Row(Row),
+    Column(Column),
+}
+
+impl From<Container> for basis::Container {
+    fn from(value: Container) -> Self {
+        match value {
+            Container::Empty => Self::Empty,
+            Container::Align(value) => Self::Align(value.into()),
+            Container::Expanded(value) => Self::Expanded(value.into()),
+            Container::Spacer(value) => Self::Spacer(value.into()),
+            Container::Row(value) => Self::Row(value.into()),
+            Container::Column(value) => Self::Column(value.into()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Align {
+    pub alignment: Alignment,
+    pub child: Element,
+}
+
+impl From<Align> for basis::Align {
+    fn from(value: Align) -> Self {
+        Self {
+            alignment: value.alignment.into(),
+            child: value.child.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Expanded {
+    pub child: Element,
+    pub flex: OrderedFloat<f64>,
+}
+
+impl From<Expanded> for basis::Expanded {
+    fn from(value: Expanded) -> Self {
+        Self {
+            child: value.child.into(),
+            flex: value.flex,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Spacer {
+    pub flex: OrderedFloat<f64>,
+}
+
+impl From<Spacer> for basis::Spacer {
+    fn from(value: Spacer) -> Self {
+        Self { flex: value.flex }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Row {
+    #[serde(rename = "$value")]
+    pub children: Vec<Element>,
+}
+
+impl From<Row> for basis::Row {
+    fn from(value: Row) -> Self {
+        Self {
+            children: value
+                .children
+                .into_iter()
+                .map(From::<Element>::from)
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Column {
+    #[serde(rename = "$value")]
+    pub children: Vec<Element>,
+}
+
+impl From<Column> for basis::Column {
+    fn from(value: Column) -> Self {
+        Self {
+            children: value
+                .children
+                .into_iter()
+                .map(From::<Element>::from)
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Alignment {
+    pub x: OrderedFloat<f64>,
+    pub y: OrderedFloat<f64>,
+}
+
+impl From<Alignment> for basis::Alignment {
+    fn from(value: Alignment) -> Self {
+        Self {
+            x: value.x,
+            y: value.y,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum Element {
+    Container(Box<Container>),
+    Label(Label),
+    Flow(Flow),
+}
+
+impl From<Element> for basis::Element {
+    fn from(value: Element) -> Self {
+        match value {
+            Element::Container(value) => Self::Container(Box::new((*value).into())),
+            Element::Label(value) => Self::Label(value.into()),
+            Element::Flow(value) => Self::Flow(value.into()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Label {
+    #[serde(rename = "$value")]
     pub text: String,
 }
 
-impl CaseConfig {
-    pub fn to_tabs(self) -> impl Iterator<Item = Layout> {
-        let group = self.name;
-        self.tab
-            .into_iter()
-            .flatten()
-            .map(move |tab| CaseTabConfigPair::new(group.clone(), tab))
-            .map(Layout::from)
+impl From<Label> for basis::Label {
+    fn from(value: Label) -> Self {
+        Self { text: value.text }
     }
 }
 
-pub struct CaseTabConfigPair {
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub struct Flow {
+    #[serde(deserialize_with = "from_str")]
     pub path: Path,
-    pub config: CaseTabConfig,
 }
 
-impl CaseTabConfigPair {
-    fn new(group: EntryId, config: CaseTabConfig) -> Self {
-        Self {
-            path: [group, config.name.clone()].to_vec().into(),
-            config,
-        }
+impl From<Flow> for basis::Flow {
+    fn from(value: Flow) -> Self {
+        Self { path: value.path }
     }
 }
 
-impl From<CaseTabConfigPair> for Layout {
-    fn from(pair: CaseTabConfigPair) -> Self {
-        let CaseTabConfigPair { path, config } = pair;
-        let items = config
-            .item
-            .unwrap_or_default()
-            .into_iter()
-            .map(LayoutItem::from)
-            .collect();
-        let labels = config
-            .label
-            .unwrap_or_default()
-            .into_iter()
-            .map(Label::from)
-            .collect();
-        Self {
-            name: path,
-            container: Container::Empty,
-            items,
-            labels,
-        }
-    }
-}
-
-impl From<CaseItemConfig> for LayoutItem {
-    fn from(config: CaseItemConfig) -> Self {
-        Self {
-            position: config.position.into(),
-            size: config.size.into(),
-            path: config.path.into(),
-        }
-    }
-}
-
-impl From<LabelConfig> for Label {
-    fn from(config: LabelConfig) -> Self {
-        Self {
-            position: config.position.into(),
-            size: config.size.into(),
-            text: config.text,
-        }
-    }
+pub fn from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+where
+    T: FromStr,
+    T::Err: Display,
+    D: Deserializer<'de>,
+{
+    let s = <String>::deserialize(deserializer)?;
+    T::from_str(&s).map_err(Error::custom)
 }

@@ -1,6 +1,6 @@
 use super::layout_render::LayoutRender;
 use rate_ui::widget::{Context, Widget, WidgetRuntime};
-use rrpack_basis::manifest::layouts::layout::Layout;
+use rrpack_basis::manifest::layouts::components::Layout;
 use yew::{Html, Properties};
 
 pub type LayoutViewer = WidgetRuntime<LayoutViewerWidget>;

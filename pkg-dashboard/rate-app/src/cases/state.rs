@@ -1,7 +1,7 @@
 use rate_ui::shared_object::{RouterState, SharedObject};
 use rate_ui::storage::typed_storage::Storable;
 use rill_protocol::io::provider::{EntryId, Path};
-use rrpack_basis::manifest::layouts::layout::Layout;
+use rrpack_basis::manifest::layouts::components::Layout;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 

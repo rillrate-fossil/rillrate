@@ -1,4 +1,4 @@
-use super::layout::Layout;
+use super::components::Layout;
 use rill_protocol::flow::core::Flow;
 use rill_protocol::io::provider::{Path, StreamType};
 use serde::{Deserialize, Serialize};
