@@ -17,6 +17,7 @@ impl LayoutRender for Container {
             }
             Self::Align(value) => value.layout_render(),
             Self::Expanded(value) => value.layout_render(),
+            Self::Spacer(value) => value.layout_render(),
             Self::Row(value) => value.layout_render(),
             Self::Column(value) => value.layout_render(),
         }
@@ -78,7 +79,6 @@ impl LayoutRender for Element {
     fn layout_render(&self) -> Html {
         match self {
             Self::Container(value) => value.layout_render(),
-            Self::Spacer(value) => value.layout_render(),
             Self::Label(value) => value.layout_render(),
             Self::Flow(value) => value.layout_render(),
         }
