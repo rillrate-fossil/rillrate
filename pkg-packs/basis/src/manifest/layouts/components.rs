@@ -5,6 +5,7 @@ use rill_protocol::io::provider::Path;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+#[serde(rename_all = "lowercase")]
 pub enum Container {
     Empty,
     Align(Align),
@@ -117,6 +118,7 @@ pub struct Label {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Flow {
+    #[serde(deserialize_with = "super::unpack::from_str")]
     pub path: Path,
 }
 

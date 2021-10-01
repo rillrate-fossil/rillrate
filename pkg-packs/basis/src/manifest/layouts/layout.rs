@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
+    #[serde(deserialize_with = "super::unpack::from_str")]
     pub name: Path,
+    #[serde(rename = "$value")]
     pub container: Container,
-    pub items: Vec<LayoutItem>,
-    pub labels: Vec<Label>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
