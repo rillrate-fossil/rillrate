@@ -42,7 +42,12 @@ impl<T: ChartSpec> Widget for BasicChartWidget<T> {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let node_ref = self.canvas.node_ref().clone();
         html! {
-            <canvas ref=node_ref class="chart" />
+            <canvas
+                ref=node_ref
+                class="chart"
+                // IMPORTANT: `block` helps to avoid continuos height grow on resize
+                style="display: block; padding: 0; margin: 0; box-sizing: border-box;"
+            />
         }
     }
 }
