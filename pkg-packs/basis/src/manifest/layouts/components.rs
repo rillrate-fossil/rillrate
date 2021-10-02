@@ -28,6 +28,7 @@ pub enum Element {
 
     // Containers
     Align(Align),
+    Container(Container),
     Expanded(Expanded),
     Spacer(Spacer),
     Row(Row),
@@ -41,6 +42,11 @@ pub enum Element {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Align {
     pub alignment: Alignment,
+    pub child: BoxedElement,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Container {
     pub child: BoxedElement,
 }
 

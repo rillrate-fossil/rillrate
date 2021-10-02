@@ -37,6 +37,7 @@ pub enum Element {
 
     // Containers
     Align(Align),
+    Container(Container),
     Expanded(Expanded),
     Spacer(Spacer),
     Row(Row),
@@ -54,6 +55,7 @@ impl From<Element> for basis::Element {
 
             // Containers
             Element::Align(value) => Self::Align(value.into()),
+            Element::Container(value) => Self::Container(value.into()),
             Element::Expanded(value) => Self::Expanded(value.into()),
             Element::Spacer(value) => Self::Spacer(value.into()),
             Element::Row(value) => Self::Row(value.into()),
@@ -78,6 +80,20 @@ impl From<Align> for basis::Align {
         Self {
             alignment: value.alignment.into(),
             child: Box::new(basis::Element::from(*value.child)),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub struct Container {
+    pub child: BoxedElement,
+}
+
+impl From<Container> for basis::Container {
+    fn from(value: Container) -> Self {
+        Self {
+            child: value.child.into(),
         }
     }
 }

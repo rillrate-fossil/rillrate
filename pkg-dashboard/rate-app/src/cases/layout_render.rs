@@ -20,6 +20,7 @@ impl LayoutRender for Element {
                 html! {}
             }
             Self::Align(value) => value.layout_render(),
+            Self::Container(value) => value.layout_render(),
             Self::Expanded(value) => value.layout_render(),
             Self::Spacer(value) => value.layout_render(),
             Self::Row(value) => value.layout_render(),
@@ -37,6 +38,18 @@ impl LayoutRender for Align {
     fn layout_render(&self) -> Html {
         html! {
             <div yew="Align">
+                { self.child.layout_render() }
+            </div>
+        }
+    }
+}
+
+use rrpack_basis::manifest::layouts::components::Container;
+
+impl LayoutRender for Container {
+    fn layout_render(&self) -> Html {
+        html! {
+            <div yew="Container">
                 { self.child.layout_render() }
             </div>
         }
