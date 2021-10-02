@@ -7,6 +7,10 @@ pub trait LayoutRender {
     fn layout_render(&self) -> Html;
 }
 
+pub trait ToStyle {
+    fn to_style(&self) -> &'static str;
+}
+
 use rrpack_basis::manifest::layouts::components::Element;
 
 impl LayoutRender for Element {
@@ -92,7 +96,22 @@ use rrpack_basis::manifest::layouts::components::Text;
 impl LayoutRender for Text {
     fn layout_render(&self) -> Html {
         html! {
-            <div yew="Text">{ &self.text }</div>
+            <div yew="Text" style=self.align.to_style()>{ &self.text }</div>
+        }
+    }
+}
+
+use rrpack_basis::manifest::layouts::components::TextAlign;
+
+impl ToStyle for TextAlign {
+    fn to_style(&self) -> &'static str {
+        match self {
+            TextAlign::Left => "text-align: left;",
+            TextAlign::Right => "text-align: right;",
+            TextAlign::Center => "text-align: center;",
+            TextAlign::Justify => "text-align: justify;",
+            TextAlign::Start => "text-align: start;",
+            TextAlign::End => "text-align: end;",
         }
     }
 }
