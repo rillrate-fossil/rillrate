@@ -7,9 +7,9 @@ pub trait LayoutRender {
     fn layout_render(&self) -> Html;
 }
 
-use rrpack_basis::manifest::layouts::components::Container;
+use rrpack_basis::manifest::layouts::components::Element;
 
-impl LayoutRender for Container {
+impl LayoutRender for Element {
     fn layout_render(&self) -> Html {
         match self {
             Self::Empty => {
@@ -20,6 +20,9 @@ impl LayoutRender for Container {
             Self::Spacer(value) => value.layout_render(),
             Self::Row(value) => value.layout_render(),
             Self::Column(value) => value.layout_render(),
+
+            Self::Label(value) => value.layout_render(),
+            Self::Flow(value) => value.layout_render(),
         }
     }
 }
@@ -80,18 +83,6 @@ impl LayoutRender for Column {
             <div yew="Column" class="d-flex flex-column">
                 { for self.children.iter().map(LayoutRender::layout_render) }
             </div>
-        }
-    }
-}
-
-use rrpack_basis::manifest::layouts::components::Element;
-
-impl LayoutRender for Element {
-    fn layout_render(&self) -> Html {
-        match self {
-            Self::Container(value) => value.layout_render(),
-            Self::Label(value) => value.layout_render(),
-            Self::Flow(value) => value.layout_render(),
         }
     }
 }

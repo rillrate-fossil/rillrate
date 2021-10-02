@@ -7,7 +7,7 @@ pub fn add() {
         child: Label {
             text: "Text".into(),
         }
-        .into(),
+        .boxed(),
     });
     tab.register();
 }

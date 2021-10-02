@@ -5,43 +5,63 @@ use serde::{de::Error, Deserialize, Deserializer};
 use std::fmt::Display;
 use std::str::FromStr;
 
+pub type BoxedElement = Box<Element>;
+
+impl From<BoxedElement> for basis::BoxedElement {
+    fn from(value: BoxedElement) -> Self {
+        Box::new(basis::Element::from(*value))
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     #[serde(deserialize_with = "from_str")]
     pub name: Path,
     #[serde(rename = "$value")]
-    pub container: Container,
+    pub element: Element,
 }
 
 impl From<Layout> for basis::Layout {
     fn from(value: Layout) -> Self {
         Self {
             name: value.name,
-            container: value.container.into(),
+            element: value.element.into(),
         }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
-pub enum Container {
+pub enum Element {
     Empty,
+
+    // Containers
     Align(Align),
     Expanded(Expanded),
     Spacer(Spacer),
     Row(Row),
     Column(Column),
+
+    // Components
+    Label(Label),
+    Flow(Flow),
 }
 
-impl From<Container> for basis::Container {
-    fn from(value: Container) -> Self {
+impl From<Element> for basis::Element {
+    fn from(value: Element) -> Self {
         match value {
-            Container::Empty => Self::Empty,
-            Container::Align(value) => Self::Align(value.into()),
-            Container::Expanded(value) => Self::Expanded(value.into()),
-            Container::Spacer(value) => Self::Spacer(value.into()),
-            Container::Row(value) => Self::Row(value.into()),
-            Container::Column(value) => Self::Column(value.into()),
+            Element::Empty => Self::Empty,
+
+            // Containers
+            Element::Align(value) => Self::Align(value.into()),
+            Element::Expanded(value) => Self::Expanded(value.into()),
+            Element::Spacer(value) => Self::Spacer(value.into()),
+            Element::Row(value) => Self::Row(value.into()),
+            Element::Column(value) => Self::Column(value.into()),
+
+            // Components
+            Element::Label(value) => Self::Label(value.into()),
+            Element::Flow(value) => Self::Flow(value.into()),
         }
     }
 }
@@ -50,14 +70,14 @@ impl From<Container> for basis::Container {
 #[serde(rename_all = "lowercase")]
 pub struct Align {
     pub alignment: Alignment,
-    pub child: Element,
+    pub child: BoxedElement,
 }
 
 impl From<Align> for basis::Align {
     fn from(value: Align) -> Self {
         Self {
             alignment: value.alignment.into(),
-            child: value.child.into(),
+            child: Box::new(basis::Element::from(*value.child)),
         }
     }
 }
@@ -65,7 +85,7 @@ impl From<Align> for basis::Align {
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Expanded {
-    pub child: Element,
+    pub child: BoxedElement,
     pub flex: OrderedFloat<f64>,
 }
 
@@ -140,55 +160,6 @@ impl From<Alignment> for basis::Alignment {
         Self {
             x: value.x,
             y: value.y,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
-//#[serde(try_from = "Container")]
-pub enum Element {
-    Container(Box<Container>),
-    Label(Label),
-    Flow(Flow),
-    //Element(ElementInner),
-}
-
-/*
-impl<'de> Deserialize<'de> for Element {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        if let Ok(container) = Container::deserialize(deserializer) {
-            Ok(Self::Container(Box::new(container)))
-        } else {
-            let element = ElementInner::deserialize(deserializer)?;
-            Ok(Self::Element(element))
-        }
-    }
-}
-*/
-
-/*
-use std::convert::TryFrom;
-
-impl TryFrom<Container> for Element {
-    type Error = anyhow::Error;
-
-    fn try_from(value: Container) -> Result<Self, Self::Error> {
-        Ok(Self::Container(Box::new(value)))
-    }
-}
-*/
-
-impl From<Element> for basis::Element {
-    fn from(value: Element) -> Self {
-        match value {
-            Element::Container(value) => Self::Container(Box::new((*value).into())),
-            Element::Label(value) => Self::Label(value.into()),
-            Element::Flow(value) => Self::Flow(value.into()),
-            //Element::Element(value) => value.into(),
         }
     }
 }

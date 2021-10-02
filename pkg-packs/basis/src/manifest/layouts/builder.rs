@@ -1,4 +1,4 @@
-use super::components::{Container, Layout};
+use super::components::{Element, Layout};
 use crate::manifest::layouts::global::LAYOUTS;
 use crate::paths::LayoutPath;
 
@@ -6,12 +6,12 @@ impl Layout {
     pub fn new(name: impl Into<LayoutPath>) -> Self {
         Self {
             name: name.into().into(),
-            container: Container::Empty,
+            element: Element::Empty,
         }
     }
 
-    pub fn set_container(&mut self, container: impl Into<Container>) {
-        self.container = container.into();
+    pub fn set_container(&mut self, element: impl Into<Element>) {
+        self.element = element.into();
     }
 
     pub fn register(&self) {

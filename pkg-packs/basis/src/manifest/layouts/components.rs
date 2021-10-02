@@ -7,35 +7,53 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     pub name: Path,
-    pub container: Container,
+    pub element: Element,
+}
+
+pub type BoxedElement = Box<Element>;
+
+pub trait Boxed {
+    fn boxed(self) -> BoxedElement;
+}
+
+impl<T: Into<Element>> Boxed for T {
+    fn boxed(self) -> BoxedElement {
+        Box::new(self.into())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
-pub enum Container {
+pub enum Element {
     Empty,
+
+    // Containers
     Align(Align),
     Expanded(Expanded),
     Spacer(Spacer),
     Row(Row),
     Column(Column),
+
+    // Components
+    Label(Label),
+    Flow(Flow),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Align {
     pub alignment: Alignment,
-    pub child: Element,
+    pub child: BoxedElement,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Expanded {
-    pub child: Element,
+    pub child: BoxedElement,
     pub flex: OrderedFloat<f64>,
 }
 
 impl Expanded {
     pub fn new(child: impl Into<Element>, flex: f64) -> Self {
         Self {
-            child: child.into(),
+            child: Box::new(child.into()),
             flex: OrderedFloat(flex),
         }
     }
@@ -101,19 +119,6 @@ impl Alignment {
     pub const TOP_CENTER: Self = Self::new(0.0, -1.0);
     pub const TOP_LEFT: Self = Self::new(-1.0, -1.0);
     pub const TOP_RIGHT: Self = Self::new(1.0, -1.0);
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
-pub enum Element {
-    Container(Box<Container>),
-    Label(Label),
-    Flow(Flow),
-}
-
-impl<T: Into<Container>> From<T> for Element {
-    fn from(container: T) -> Self {
-        Self::Container(Box::new(container.into()))
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]

@@ -51,7 +51,7 @@ impl Widget for LayoutViewerWidget {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        ctx.properties().layout.container.layout_render()
+        ctx.properties().layout.element.layout_render()
     }
 
     /*
