@@ -21,7 +21,7 @@ impl LayoutRender for Element {
             Self::Row(value) => value.layout_render(),
             Self::Column(value) => value.layout_render(),
 
-            Self::Label(value) => value.layout_render(),
+            Self::Text(value) => value.layout_render(),
             Self::Flow(value) => value.layout_render(),
         }
     }
@@ -87,12 +87,12 @@ impl LayoutRender for Column {
     }
 }
 
-use rrpack_basis::manifest::layouts::components::Label;
+use rrpack_basis::manifest::layouts::components::Text;
 
-impl LayoutRender for Label {
+impl LayoutRender for Text {
     fn layout_render(&self) -> Html {
         html! {
-            <div yew="Label">{ &self.text }</div>
+            <div yew="Text">{ &self.text }</div>
         }
     }
 }

@@ -43,7 +43,7 @@ pub enum Element {
     Column(Column),
 
     // Components
-    Label(Label),
+    Text(Text),
     Flow(Flow),
 }
 
@@ -60,7 +60,7 @@ impl From<Element> for basis::Element {
             Element::Column(value) => Self::Column(value.into()),
 
             // Components
-            Element::Label(value) => Self::Label(value.into()),
+            Element::Text(value) => Self::Text(value.into()),
             Element::Flow(value) => Self::Flow(value.into()),
         }
     }
@@ -166,13 +166,13 @@ impl From<Alignment> for basis::Alignment {
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
-pub struct Label {
+pub struct Text {
     #[serde(rename = "$value")]
     pub text: String,
 }
 
-impl From<Label> for basis::Label {
-    fn from(value: Label) -> Self {
+impl From<Text> for basis::Text {
+    fn from(value: Text) -> Self {
         Self { text: value.text }
     }
 }

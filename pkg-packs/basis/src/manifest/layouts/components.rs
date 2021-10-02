@@ -34,7 +34,7 @@ pub enum Element {
     Column(Column),
 
     // Components
-    Label(Label),
+    Text(Text),
     Flow(Flow),
 }
 
@@ -122,7 +122,7 @@ impl Alignment {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
-pub struct Label {
+pub struct Text {
     pub text: String,
 }
 
