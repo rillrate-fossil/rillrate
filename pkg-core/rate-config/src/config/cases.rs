@@ -1,11 +1,11 @@
 use ordered_float::OrderedFloat;
 use rill_protocol::io::provider::Path;
 use rrpack_basis::manifest::layouts::components as basis;
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
+use serde::{de::Error, Deserialize, Deserializer};
 use std::fmt::Display;
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct Layout {
     #[serde(deserialize_with = "from_str")]
     pub name: Path,
@@ -22,7 +22,7 @@ impl From<Layout> for basis::Layout {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Container {
     Empty,
@@ -46,7 +46,7 @@ impl From<Container> for basis::Container {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Align {
     pub alignment: Alignment,
@@ -62,7 +62,7 @@ impl From<Align> for basis::Align {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Expanded {
     pub child: Element,
@@ -78,7 +78,7 @@ impl From<Expanded> for basis::Expanded {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Spacer {
     pub flex: OrderedFloat<f64>,
@@ -90,7 +90,7 @@ impl From<Spacer> for basis::Spacer {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Row {
     #[serde(rename = "$value")]
@@ -109,7 +109,7 @@ impl From<Row> for basis::Row {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Column {
     #[serde(rename = "$value")]
@@ -128,7 +128,7 @@ impl From<Column> for basis::Column {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Alignment {
     pub x: OrderedFloat<f64>,
@@ -144,13 +144,43 @@ impl From<Alignment> for basis::Alignment {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
+//#[serde(try_from = "Container")]
 pub enum Element {
     Container(Box<Container>),
     Label(Label),
     Flow(Flow),
+    //Element(ElementInner),
 }
+
+/*
+impl<'de> Deserialize<'de> for Element {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        if let Ok(container) = Container::deserialize(deserializer) {
+            Ok(Self::Container(Box::new(container)))
+        } else {
+            let element = ElementInner::deserialize(deserializer)?;
+            Ok(Self::Element(element))
+        }
+    }
+}
+*/
+
+/*
+use std::convert::TryFrom;
+
+impl TryFrom<Container> for Element {
+    type Error = anyhow::Error;
+
+    fn try_from(value: Container) -> Result<Self, Self::Error> {
+        Ok(Self::Container(Box::new(value)))
+    }
+}
+*/
 
 impl From<Element> for basis::Element {
     fn from(value: Element) -> Self {
@@ -158,11 +188,12 @@ impl From<Element> for basis::Element {
             Element::Container(value) => Self::Container(Box::new((*value).into())),
             Element::Label(value) => Self::Label(value.into()),
             Element::Flow(value) => Self::Flow(value.into()),
+            //Element::Element(value) => value.into(),
         }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Label {
     #[serde(rename = "$value")]
@@ -175,7 +206,7 @@ impl From<Label> for basis::Label {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub struct Flow {
     #[serde(deserialize_with = "from_str")]
