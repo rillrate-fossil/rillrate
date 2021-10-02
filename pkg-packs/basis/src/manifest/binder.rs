@@ -12,7 +12,7 @@ pub struct BindedTracer<T: PackFlow> {
     #[deref]
     #[deref_mut]
     tracer: Tracer<T>,
-    binder: Binder,
+    _binder: Binder,
 }
 
 impl<T: PackFlow> BindedTracer<T> {
@@ -23,7 +23,10 @@ impl<T: PackFlow> BindedTracer<T> {
         let state = spec.into();
         let tracer = Tracer::new(state, auto_path.into(), mode);
         let binder = Binder::new(&tracer);
-        Self { tracer, binder }
+        Self {
+            tracer,
+            _binder: binder,
+        }
     }
 }
 
