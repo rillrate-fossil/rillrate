@@ -127,6 +127,15 @@ pub struct Text {
     pub align: TextAlign,
 }
 
+impl Text {
+    pub fn new(text: impl Into<String>, align: TextAlign) -> Self {
+        Self {
+            text: text.into(),
+            align,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub enum TextAlign {
     Left = 0,
