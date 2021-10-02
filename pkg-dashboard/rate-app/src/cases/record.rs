@@ -14,10 +14,9 @@ pub struct Record {
 impl Record {
     pub fn render(&self) -> Html {
         let record = self;
-        let style = "";
         let inner_html = record.rule.render.render(&record.path);
         html! {
-            <div class="center" style=style ref=record.node_ref.clone()>
+            <div yew=module_path!() ref=record.node_ref.clone()>
                 { inner_html }
             </div>
         }

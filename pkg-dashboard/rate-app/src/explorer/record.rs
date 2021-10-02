@@ -24,7 +24,7 @@ impl Record {
                 grow = "";
             }
             html! {
-                <div class=format!("pe-3 pb-3 d-flex {}", grow) style=style ref=record.node_ref.clone()>
+                <div yew=module_path!() class=format!("pe-3 pb-3 d-flex {}", grow) style=style ref=record.node_ref.clone()>
                     <div class="bg-light shadow-sm w-100 d-flex flex-column">
                         <div class="pt-3 text-center caption">{ &record.name }</div>
                         <div class="center" style=size>
