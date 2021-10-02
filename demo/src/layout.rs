@@ -6,6 +6,7 @@ pub fn add() {
         alignment: Alignment::TOP_CENTER,
         child: Text {
             text: "Text".into(),
+            align: TextAlign::Center,
         }
         .boxed(),
     });

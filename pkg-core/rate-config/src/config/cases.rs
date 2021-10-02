@@ -31,7 +31,7 @@ impl From<Layout> for basis::Layout {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub enum Element {
     Empty,
 
@@ -67,7 +67,7 @@ impl From<Element> for basis::Element {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub struct Align {
     pub alignment: Alignment,
     pub child: BoxedElement,
@@ -83,7 +83,7 @@ impl From<Align> for basis::Align {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub struct Expanded {
     pub child: BoxedElement,
     pub flex: OrderedFloat<f64>,
@@ -99,7 +99,7 @@ impl From<Expanded> for basis::Expanded {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub struct Spacer {
     pub flex: OrderedFloat<f64>,
 }
@@ -111,7 +111,7 @@ impl From<Spacer> for basis::Spacer {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub struct Row {
     #[serde(rename = "$value")]
     pub children: Vec<Element>,
@@ -130,7 +130,7 @@ impl From<Row> for basis::Row {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub struct Column {
     #[serde(rename = "$value")]
     pub children: Vec<Element>,
@@ -149,7 +149,7 @@ impl From<Column> for basis::Column {
 }
 
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub struct Alignment {
     pub x: OrderedFloat<f64>,
     pub y: OrderedFloat<f64>,
@@ -165,20 +165,48 @@ impl From<Alignment> for basis::Alignment {
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub struct Text {
     #[serde(rename = "$value")]
     pub text: String,
+    pub align: TextAlign,
 }
 
 impl From<Text> for basis::Text {
     fn from(value: Text) -> Self {
-        Self { text: value.text }
+        Self {
+            text: value.text,
+            align: value.align.into(),
+        }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
+pub enum TextAlign {
+    Left = 0,
+    Right = 1,
+    Center = 2,
+    Justify = 3,
+    Start = 4,
+    End = 5,
+}
+
+impl From<TextAlign> for basis::TextAlign {
+    fn from(value: TextAlign) -> Self {
+        match value {
+            TextAlign::Left => Self::Left,
+            TextAlign::Right => Self::Right,
+            TextAlign::Center => Self::Center,
+            TextAlign::Justify => Self::Justify,
+            TextAlign::Start => Self::Start,
+            TextAlign::End => Self::End,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct Flow {
     #[serde(deserialize_with = "from_str")]
     pub path: Path,

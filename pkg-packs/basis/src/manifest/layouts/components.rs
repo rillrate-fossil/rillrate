@@ -124,6 +124,17 @@ impl Alignment {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Text {
     pub text: String,
+    pub align: TextAlign,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub enum TextAlign {
+    Left = 0,
+    Right = 1,
+    Center = 2,
+    Justify = 3,
+    Start = 4,
+    End = 5,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
