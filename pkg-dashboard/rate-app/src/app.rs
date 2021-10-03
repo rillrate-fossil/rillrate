@@ -75,7 +75,7 @@ impl Widget for AppWidget {
                         </div>
                     </div>
                 </nav>
-                <div class="flex-grow-1 p-3" style="width: 100%; height: 100%;">
+                <div class="flex-grow-1 p-3" style="width: 100%; height: 100%; display: grid;">
                     { body }
                 </div>
                 <nav class="navbar bg-light" style="height: 50px;">
