@@ -134,12 +134,15 @@ impl From<Expanded> for basis::Expanded {
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub struct Spacer {
-    pub flex: OrderedFloat<f64>,
+    pub flex: Option<OrderedFloat<f64>>,
 }
 
 impl From<Spacer> for basis::Spacer {
     fn from(value: Spacer) -> Self {
-        Self { flex: value.flex }
+        // TODO: How to improve default?
+        Self {
+            flex: value.flex.unwrap_or_else(|| OrderedFloat(1.0)),
+        }
     }
 }
 
