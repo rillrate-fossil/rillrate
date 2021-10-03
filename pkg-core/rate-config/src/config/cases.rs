@@ -202,14 +202,14 @@ impl From<Alignment> for basis::Alignment {
 pub struct Text {
     #[serde(rename = "$value")]
     pub text: String,
-    pub align: TextAlign,
+    pub align: Option<TextAlign>,
 }
 
 impl From<Text> for basis::Text {
     fn from(value: Text) -> Self {
         Self {
             text: value.text,
-            align: value.align.into(),
+            align: value.align.unwrap_or_default().into(),
         }
     }
 }
@@ -223,6 +223,13 @@ pub enum TextAlign {
     Justify = 3,
     Start = 4,
     End = 5,
+}
+
+// TODO: Move defaults to the `basis`?
+impl Default for TextAlign {
+    fn default() -> Self {
+        Self::Left
+    }
 }
 
 impl From<TextAlign> for basis::TextAlign {
