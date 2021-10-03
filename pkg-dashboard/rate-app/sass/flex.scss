@@ -4,3 +4,12 @@
     border: 1px solid $primary;
     margin: 1px;
 }
+
+// Horizontal
+// background-image: linear-gradient($primary 1px, transparent 1px);
+
+// Vertical
+// background-image: linear-gradient(90deg, $primary 1px, transparent 1px);
+
+// Diagonal
+// background-image: linear-gradient(-45deg, transparent 49%, $primary 50%, $primary 50%, transparent 51%);
