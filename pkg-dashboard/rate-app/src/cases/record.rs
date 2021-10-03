@@ -16,7 +16,7 @@ impl Record {
         let record = self;
         let inner_html = record.rule.render.render(&record.path);
         html! {
-            <div yew=module_path!() ref=record.node_ref.clone()>
+            <div yew=module_path!() ref=record.node_ref.clone() class="rr-component">
                 { inner_html }
             </div>
         }
