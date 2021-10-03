@@ -37,6 +37,7 @@ pub enum Element {
 
     // Containers
     Align(Align),
+    Center(Center),
     Container(Container),
     Expanded(Expanded),
     Spacer(Spacer),
@@ -55,6 +56,7 @@ impl From<Element> for basis::Element {
 
             // Containers
             Element::Align(value) => Self::Align(value.into()),
+            Element::Center(value) => Self::Center(value.into()),
             Element::Container(value) => Self::Container(value.into()),
             Element::Expanded(value) => Self::Expanded(value.into()),
             Element::Spacer(value) => Self::Spacer(value.into()),
@@ -79,7 +81,22 @@ impl From<Align> for basis::Align {
     fn from(value: Align) -> Self {
         Self {
             alignment: value.alignment.into(),
-            child: Box::new(basis::Element::from(*value.child)),
+            child: value.child.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub struct Center {
+    #[serde(rename = "$value")]
+    pub child: BoxedElement,
+}
+
+impl From<Center> for basis::Center {
+    fn from(value: Center) -> Self {
+        Self {
+            child: value.child.into(),
         }
     }
 }

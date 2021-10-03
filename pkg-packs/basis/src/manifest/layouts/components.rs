@@ -28,6 +28,7 @@ pub enum Element {
 
     // Containers
     Align(Align),
+    Center(Center),
     Container(Container),
     Expanded(Expanded),
     Spacer(Spacer),
@@ -46,6 +47,19 @@ pub struct Align {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
+pub struct Center {
+    pub child: BoxedElement,
+}
+
+impl Center {
+    pub fn new(child: impl Into<Element>) -> Self {
+        Self {
+            child: child.boxed(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Container {
     pub child: BoxedElement,
 }
@@ -59,7 +73,7 @@ pub struct Expanded {
 impl Expanded {
     pub fn new(child: impl Into<Element>, flex: f64) -> Self {
         Self {
-            child: Box::new(child.into()),
+            child: child.boxed(),
             flex: OrderedFloat(flex),
         }
     }

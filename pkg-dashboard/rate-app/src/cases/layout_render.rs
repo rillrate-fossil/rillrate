@@ -20,6 +20,7 @@ impl LayoutRender for Element {
                 html! {}
             }
             Self::Align(value) => value.layout_render(),
+            Self::Center(value) => value.layout_render(),
             Self::Container(value) => value.layout_render(),
             Self::Expanded(value) => value.layout_render(),
             Self::Spacer(value) => value.layout_render(),
@@ -38,6 +39,18 @@ impl LayoutRender for Align {
     fn layout_render(&self) -> Html {
         html! {
             <div yew="Align">
+                { self.child.layout_render() }
+            </div>
+        }
+    }
+}
+
+use rrpack_basis::manifest::layouts::components::Center;
+
+impl LayoutRender for Center {
+    fn layout_render(&self) -> Html {
+        html! {
+            <div yew="Center" class="d-flex flex-column justify-content-center align-items-center">
                 { self.child.layout_render() }
             </div>
         }
