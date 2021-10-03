@@ -57,12 +57,13 @@ impl LayoutRender for Center {
     }
 }
 
+// TODO: Consider removing the `Container`
 use rrpack_basis::manifest::layouts::components::Container;
 
 impl LayoutRender for Container {
     fn layout_render(&self) -> Html {
         html! {
-            <div yew="Container">
+            <div yew="Container" class="d-flex flex-column" style="flex-grow: 1;">
                 { self.child.layout_render() }
             </div>
         }

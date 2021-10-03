@@ -7,6 +7,41 @@ use std::str::FromStr;
 
 pub type BoxedElement = Box<Element>;
 
+pub type SingleBoxedElement = Option<BoxedElement>;
+
+fn unpack_single(element: SingleBoxedElement) -> basis::BoxedElement {
+    match element {
+        Some(boxed) => boxed.into(),
+        None => Box::new(Element::Spacer(Spacer {
+            flex: None,
+            maintenance: Some(true),
+        }))
+        .into(),
+    }
+}
+
+pub type MultiBoxedElement = Option<Vec<Element>>;
+
+fn unpack_many(elements: MultiBoxedElement) -> Vec<basis::Element> {
+    let elements = elements.unwrap_or_default();
+    if elements.is_empty() {
+        vec![basis::Spacer {
+            flex: OrderedFloat(1.0),
+            maintenance: true,
+        }
+        .into()]
+    } else {
+        elements.into_iter().map(From::<Element>::from).collect()
+    }
+}
+
+/*
+impl From<SingleBoxedElement> for basis::BoxedElement {
+    fn from(value: SingleBoxedElement) -> Self {
+    }
+}
+*/
+
 impl From<BoxedElement> for basis::BoxedElement {
     fn from(value: BoxedElement) -> Self {
         Box::new(basis::Element::from(*value))
@@ -104,13 +139,13 @@ impl From<Center> for basis::Center {
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub struct Container {
-    pub child: BoxedElement,
+    pub child: SingleBoxedElement,
 }
 
 impl From<Container> for basis::Container {
     fn from(value: Container) -> Self {
         Self {
-            child: value.child.into(),
+            child: unpack_single(value.child),
         }
     }
 }
@@ -152,17 +187,13 @@ impl From<Spacer> for basis::Spacer {
 #[serde(rename_all = "kebab-case")]
 pub struct Row {
     #[serde(rename = "$value")]
-    pub children: Vec<Element>,
+    pub children: MultiBoxedElement,
 }
 
 impl From<Row> for basis::Row {
     fn from(value: Row) -> Self {
         Self {
-            children: value
-                .children
-                .into_iter()
-                .map(From::<Element>::from)
-                .collect(),
+            children: unpack_many(value.children),
         }
     }
 }
@@ -171,17 +202,13 @@ impl From<Row> for basis::Row {
 #[serde(rename_all = "kebab-case")]
 pub struct Column {
     #[serde(rename = "$value")]
-    pub children: Vec<Element>,
+    pub children: MultiBoxedElement,
 }
 
 impl From<Column> for basis::Column {
     fn from(value: Column) -> Self {
         Self {
-            children: value
-                .children
-                .into_iter()
-                .map(From::<Element>::from)
-                .collect(),
+            children: unpack_many(value.children),
         }
     }
 }
