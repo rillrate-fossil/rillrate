@@ -135,6 +135,7 @@ impl From<Expanded> for basis::Expanded {
 #[serde(rename_all = "kebab-case")]
 pub struct Spacer {
     pub flex: Option<OrderedFloat<f64>>,
+    pub maintenance: Option<bool>,
 }
 
 impl From<Spacer> for basis::Spacer {
@@ -142,6 +143,7 @@ impl From<Spacer> for basis::Spacer {
         // TODO: How to improve default?
         Self {
             flex: value.flex.unwrap_or_else(|| OrderedFloat(1.0)),
+            maintenance: value.maintenance.unwrap_or_default(),
         }
     }
 }

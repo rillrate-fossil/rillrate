@@ -87,8 +87,9 @@ use rrpack_basis::manifest::layouts::components::Spacer;
 impl LayoutRender for Spacer {
     fn layout_render(&self) -> Html {
         let style = format!("flex-grow: {};", self.flex);
+        let class = if self.maintenance { "maintenance" } else { "" };
         html! {
-            <div yew="Spacer" style=style></div>
+            <div yew="Spacer" class=class style=style></div>
         }
     }
 }
@@ -98,7 +99,7 @@ use rrpack_basis::manifest::layouts::components::Row;
 impl LayoutRender for Row {
     fn layout_render(&self) -> Html {
         html! {
-            <div yew="Row" class="d-flex flex-row">
+            <div yew="Row" class="d-flex flex-row" style="flex-grow: 1;">
                 { for self.children.iter().map(LayoutRender::layout_render) }
             </div>
         }
@@ -110,7 +111,7 @@ use rrpack_basis::manifest::layouts::components::Column;
 impl LayoutRender for Column {
     fn layout_render(&self) -> Html {
         html! {
-            <div yew="Column" class="d-flex flex-column">
+            <div yew="Column" class="d-flex flex-column" style="flex-grow: 1;">
                 { for self.children.iter().map(LayoutRender::layout_render) }
             </div>
         }

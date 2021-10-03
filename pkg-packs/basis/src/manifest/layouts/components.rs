@@ -82,12 +82,14 @@ impl Expanded {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, From)]
 pub struct Spacer {
     pub flex: OrderedFloat<f64>,
+    pub maintenance: bool,
 }
 
 impl Spacer {
     pub fn new(flex: f64) -> Self {
         Self {
             flex: OrderedFloat(flex),
+            maintenance: false,
         }
     }
 }
