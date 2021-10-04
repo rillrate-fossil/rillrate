@@ -64,7 +64,9 @@ impl RillRate {
 
 /// Install the engine.
 pub fn install(name: impl ToString) -> Result<(), Error> {
-    RillRate::install(name)
+    RillRate::install(name)?;
+    rrpack_basis::init();
+    Ok(())
 }
 
 /// Uninstall the engine.
