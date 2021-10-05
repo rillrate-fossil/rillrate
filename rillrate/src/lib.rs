@@ -16,6 +16,11 @@ use meio::thread;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
+/// Contains core types
+pub mod core {
+    pub use rill_protocol::flow::core::FlowMode;
+}
+
 static GLOBAL: Lazy<Mutex<Option<RillRate>>> = Lazy::new(|| Mutex::new(None));
 
 /// Tracks a lifetime of the `RillRate` engine.
