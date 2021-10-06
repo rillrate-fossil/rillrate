@@ -11,11 +11,15 @@ pub struct ClickSpec {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClickState {
     pub spec: ClickSpec,
+    pub disabled: bool,
 }
 
 impl From<ClickSpec> for ClickState {
     fn from(spec: ClickSpec) -> Self {
-        Self { spec }
+        Self {
+            spec,
+            disabled: false,
+        }
     }
 }
 
@@ -33,10 +37,21 @@ impl Flow for ClickState {
         StreamType::from(module_path!())
     }
 
-    fn apply(&mut self, _event: Self::Event) {}
+    fn apply(&mut self, event: Self::Event) {
+        match event {
+            ClickEvent::Clicked => {}
+            ClickEvent::Disable(disabled) => {
+                self.disabled = disabled;
+            }
+        }
+    }
 }
 
 pub type ClickAction = ();
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClickEvent;
+pub enum ClickEvent {
+    // TODO: Add the timestamp to the `Clicked`?
+    Clicked,
+    Disable(bool),
+}

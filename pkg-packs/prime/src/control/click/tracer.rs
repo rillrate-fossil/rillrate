@@ -29,7 +29,12 @@ impl Click {
     }
 
     pub fn apply(&self) {
-        let msg = ClickEvent;
+        let msg = ClickEvent::Clicked;
+        self.tracer.send(msg, None);
+    }
+
+    pub fn disable(&self, disabled: bool) {
+        let msg = ClickEvent::Disable(disabled);
         self.tracer.send(msg, None);
     }
 }
