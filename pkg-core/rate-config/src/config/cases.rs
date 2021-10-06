@@ -177,7 +177,7 @@ impl From<Spacer> for basis::Spacer {
     fn from(value: Spacer) -> Self {
         // TODO: How to improve default?
         Self {
-            flex: value.flex.unwrap_or_else(|| OrderedFloat(1.0)),
+            flex: value.flex.unwrap_or(OrderedFloat(1.0)),
             maintenance: value.maintenance.unwrap_or_default(),
         }
     }

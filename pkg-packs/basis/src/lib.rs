@@ -9,6 +9,6 @@ pub use paths::*;
 #[cfg(feature = "engine")]
 pub fn init() {
     // TODO: How to do it better?
-    drop(&*crate::manifest::paths::global::PATHS);
-    drop(&*crate::manifest::layouts::global::LAYOUTS);
+    let _ = &*crate::manifest::paths::global::PATHS;
+    let _ = &*crate::manifest::layouts::global::LAYOUTS;
 }

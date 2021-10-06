@@ -14,7 +14,8 @@ description = "RillRate UI: extension for Yew"
 
 [dependencies]
 anyhow = "1.0.44"
-approx = "0.5.0"
+#approx = "0.5.0"
+approx = { git = "https://github.com/torokati44/approx.git", branch = "chores" }
 chrono = { version = "0.4.19", features = ["wasmbind"] }
 derive_more = "0.99.16"
 itertools = "0.10.1"
