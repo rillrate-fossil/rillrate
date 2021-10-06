@@ -34,6 +34,7 @@ impl Widget for ClickCardWidget {
             if let Some(state) = ctx.meta().state() {
                 html! {
                     <button class="btn btn-primary click"
+                        disabled=state.disabled
                         onclick=ctx.event(())
                         >{ &state.spec.label }</button>
                 }
