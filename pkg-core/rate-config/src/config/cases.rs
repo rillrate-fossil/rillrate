@@ -53,14 +53,14 @@ pub struct Layout {
     #[serde(deserialize_with = "from_str")]
     pub name: Path,
     #[serde(rename = "$value")]
-    pub element: Element,
+    pub element: SingleBoxedElement,
 }
 
 impl From<Layout> for basis::Layout {
     fn from(value: Layout) -> Self {
         Self {
             name: value.name,
-            element: value.element.into(),
+            element: *unpack_single(value.element),
         }
     }
 }
