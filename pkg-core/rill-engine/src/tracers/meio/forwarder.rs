@@ -1,6 +1,6 @@
 //! Adds `meio` integraion to `Tracer`.
 
-use super::tracer::Tracer;
+use crate::tracers::tracer::Tracer;
 use meio::{Action, ActionHandler, Actor, Context};
 use rill_protocol::flow::core::{ActionEnvelope, Flow};
 

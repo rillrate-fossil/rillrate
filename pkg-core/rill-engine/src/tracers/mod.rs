@@ -8,4 +8,4 @@
 pub mod tracer;
 
 #[cfg(feature = "meio-addon")]
-pub mod meio_addon;
+pub mod meio;
