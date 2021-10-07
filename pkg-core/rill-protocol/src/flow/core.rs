@@ -70,7 +70,7 @@ pub struct ActionEnvelope<T: Flow> {
 ///
 /// It doesn't include `Action` value to make this type
 /// compatible with languages that have no ADTs.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Activity {
     /// No one connected client
     Suspend = 0, // 0b0000

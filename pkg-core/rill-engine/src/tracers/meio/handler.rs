@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::handlers::{Handler, Priority};
 use meio::{Actor, Context};
-use rill_protocol::flow::core::{ActionEnvelope, Flow};
+use rill_protocol::flow::core::{ActionEnvelope, Activity, Flow};
 
 // TODO: Add `custom_act` method the the `Address`.
 
@@ -53,11 +53,15 @@ where
 
 /// Handles incoming events.
 #[async_trait]
-pub trait FlowHandler<T, Tag>: Actor {
+pub trait FlowHandler<T: Flow, Tag>: Actor {
     /// Status events.
-    async fn status(&mut self, ctx: &mut Context<Self>) -> Result<(), Error>;
+    async fn status(&mut self, _activity: Activity, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        Ok(())
+    }
     /// Actions.
-    async fn action(&mut self, ctx: &mut Context<Self>) -> Result<(), Error>;
+    async fn action(&mut self, _action: T::Action, _ctx: &mut Context<Self>) -> Result<(), Error> {
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -69,12 +73,14 @@ where
 {
     async fn handle(
         &mut self,
-        _input: TracerAction<T, Tag>,
+        mut input: TracerAction<T, Tag>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        FlowHandler::status(self, ctx).await?;
-        FlowHandler::action(self, ctx).await?;
-        Ok(())
+        if let Some(action) = input.envelope.action.take() {
+            FlowHandler::action(self, action, ctx).await
+        } else {
+            FlowHandler::status(self, input.envelope.activity, ctx).await
+        }
     }
 }
 
