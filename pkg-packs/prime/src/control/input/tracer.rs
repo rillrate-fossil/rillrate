@@ -34,9 +34,9 @@ impl Input {
         Self { tracer }
     }
 
-    pub fn apply(&self, value: impl Into<String>) {
+    pub fn apply(&self, value: impl ToString) {
         let msg = InputEvent {
-            changed_text: value.into(),
+            changed_text: value.to_string(),
         };
         self.tracer.send(msg, None);
     }
