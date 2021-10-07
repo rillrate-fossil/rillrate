@@ -1,3 +1,3 @@
 //! Implements integration with `meio`.
 
-pub mod forwarder;
+pub mod handler;
