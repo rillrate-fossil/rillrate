@@ -5,7 +5,7 @@ use anyhow::Error;
 use async_trait::async_trait;
 use meio::handlers::{Handler, Priority};
 use meio::{Actor, Context};
-use rill_protocol::flow::core::{ActionEnvelope, Activity, Flow};
+use rill_protocol::flow::core::{Activity, Flow};
 
 // TODO: Add `custom_act` method the the `Address`.
 
@@ -37,49 +37,52 @@ where
 }
 
 /// Tracer action for `meio` actor.
-pub struct TracerAction<T: Flow, Tag = ()> {
+pub struct TracerAction<ACT, Tag = ()> {
     /// Assigned envelope with an `Action`.
-    pub envelope: ActionEnvelope<T>,
+    pub action: Option<ACT>,
+    /// Activity
+    pub activity: Activity,
+    //pub envelope: ActionEnvelope<T>,
     /// Assigned tag of the action.
     pub tag: Tag,
 }
 
-impl<T, Tag> FlowAction for TracerAction<T, Tag>
+impl<ACT, Tag> FlowAction for TracerAction<ACT, Tag>
 where
-    T: Flow,
+    ACT: Send + 'static,
     Tag: Send + 'static,
 {
 }
 
 /// Handles incoming events.
 #[async_trait]
-pub trait FlowHandler<T: Flow, Tag>: Actor {
+pub trait FlowHandler<ACT: Send + 'static, Tag>: Actor {
     /// Status events.
     async fn status(&mut self, _activity: Activity, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
     /// Actions.
-    async fn action(&mut self, _action: T::Action, _ctx: &mut Context<Self>) -> Result<(), Error> {
+    async fn action(&mut self, _action: ACT, _ctx: &mut Context<Self>) -> Result<(), Error> {
         Ok(())
     }
 }
 
 #[async_trait]
-impl<A, T, Tag> FlowActionHandler<TracerAction<T, Tag>> for A
+impl<A, ACT, Tag> FlowActionHandler<TracerAction<ACT, Tag>> for A
 where
-    A: FlowHandler<T, Tag>,
-    T: Flow,
+    A: FlowHandler<ACT, Tag>,
+    ACT: Send + 'static,
     Tag: Send + 'static,
 {
     async fn handle(
         &mut self,
-        mut input: TracerAction<T, Tag>,
+        mut input: TracerAction<ACT, Tag>,
         ctx: &mut Context<Self>,
     ) -> Result<(), Error> {
-        if let Some(action) = input.envelope.action.take() {
+        if let Some(action) = input.action.take() {
             FlowHandler::action(self, action, ctx).await
         } else {
-            FlowHandler::status(self, input.envelope.activity, ctx).await
+            FlowHandler::status(self, input.activity, ctx).await
         }
     }
 }
@@ -88,7 +91,7 @@ impl<T: Flow> Tracer<T> {
     /// Forward `Tracer` events to an `Actor`.
     pub fn forward<A: Actor, Tag>(&self, tag: Tag, ctx: &mut Context<A>)
     where
-        A: FlowHandler<T, Tag>,
+        A: FlowHandler<T::Action, Tag>,
         Tag: Clone + Send + Sync + 'static,
     {
         let addr = ctx.address().clone();
@@ -96,7 +99,11 @@ impl<T: Flow> Tracer<T> {
             let addr = addr.clone();
             let tag = tag.clone();
             async move {
-                let msg = TracerAction { envelope, tag };
+                let msg = TracerAction {
+                    action: envelope.action,
+                    activity: envelope.activity,
+                    tag,
+                };
                 // TODO: Improve this! `send_event` shold accept external actions directly.
                 let handler = FlowActionHandlerImpl { input: Some(msg) };
                 addr.send_event(handler).await
