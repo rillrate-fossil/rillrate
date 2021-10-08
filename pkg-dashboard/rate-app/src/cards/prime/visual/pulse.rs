@@ -30,7 +30,8 @@ impl Widget for PulseCardWidget {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let path = ctx.properties().path.clone().of_server();
         html! {
-            <div yew=module_path!() style="width: 100%; height: 100%;">
+            // IMPORTANT! It change it check the pulse no continuously grow in height.
+            <div yew=module_path!() style="display: block;">
                 <blocks::BasicChart<PulseSpec> path=path />
             </div>
         }
