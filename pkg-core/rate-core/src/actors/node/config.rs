@@ -9,7 +9,7 @@ pub struct NodeConfig {
     pub internal_address: Option<SocketAddr>,
 }
 
-#[allow(clippy::derivable_impls)]
+//#[allow(clippy::derivable_impls)]
 impl Default for NodeConfig {
     fn default() -> Self {
         Self {
