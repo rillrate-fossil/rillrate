@@ -100,7 +100,7 @@ use rrpack_basis::manifest::layouts::components::Row;
 impl LayoutRender for Row {
     fn layout_render(&self) -> Html {
         html! {
-            <div yew="Row" class="d-flex flex-row rr-stretched">
+            <div yew="Row" class="rr-row">
                 { for self.children.iter().map(LayoutRender::layout_render) }
             </div>
         }
@@ -112,7 +112,7 @@ use rrpack_basis::manifest::layouts::components::Column;
 impl LayoutRender for Column {
     fn layout_render(&self) -> Html {
         html! {
-            <div yew="Column" class="d-flex flex-column rr-stretched">
+            <div yew="Column" class="rr-col">
                 { for self.children.iter().map(LayoutRender::layout_render) }
             </div>
         }

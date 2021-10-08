@@ -14,20 +14,14 @@
 // Diagonal
 // background-image: linear-gradient(-45deg, transparent 49%, $primary 50%, $primary 50%, transparent 51%);
 
-
-// RillRate Case Layout
-.rr-stretched {
-    flex-grow: 1;
+.rr-row {
+    display: grid;
+    grid-auto-rows: 1fr;
+    grid-auto-flow: row;
 }
 
-.rr-no-stretched {
-    flex-grow: 1;
-}
-
-.rr-stretched .rr-component {
-    flex-grow: 1;
-}
-
-.rr-no-stretched .rr-component {
-    flex-grow: none;
+.rr-col {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
 }
