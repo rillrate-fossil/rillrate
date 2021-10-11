@@ -7,7 +7,6 @@ RillRate is a library that embeds a live web dashboard to your app.
 Check the demo [here](https://demo.rillrate.com).
 
 Fast, embedded, with auto-layout and controls. No configuration is needed.
-**Support**: [Rust][rillrate-rs], [Python][rillrate-py]. _Soon_: Node.js, Java, C#.
 
 <img align="center" width="400px" src="https://rillrate.com/images/home/dashboard.png" />
 
